@@ -1,0 +1,86 @@
+/* =========================
+   GRID
+========================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+.stateContainer {
+  width: 100%;
+  padding: 40px;
+  text-align: center;
+  color: #888;
+}
+
+.empty {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* =========================
+   SKELETON SYSTEM
+========================= */
+.skeletonCard {
+  height: 320px;
+  border-radius: 14px;
+  background: #0f0f0f;
+  border: 1px solid #222;
+  overflow: hidden;
+  position: relative;
+}
+
+/* shimmer */
+.skeletonCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeletonImage {
+  height: 140px;
+  background: #1a1a1a;
+}
+
+.skeletonLine {
+  height: 12px;
+  margin: 10px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  width: 80%;
+}
+
+.skeletonLineShort {
+  height: 12px;
+  margin: 10px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  width: 50%;
+}
+
+.skeletonBlock {
+  height: 40px;
+  margin: 10px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}

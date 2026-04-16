@@ -1,0 +1,219 @@
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+.card {
+  position: relative;
+  padding: 1.2rem;
+  border-radius: 14px;
+  border: 1px solid;
+  backdrop-filter: blur(10px);
+  background: linear-gradient(145deg, #0a0a0a, #050505);
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+/* Variantes por estado */
+.critical {
+  border-color: #ef4444;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  background: linear-gradient(145deg, rgba(127, 29, 29, 0.35), #050505);
+}
+
+.low {
+  border-color: #facc15;
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.25);
+  background: linear-gradient(145deg, rgba(113, 63, 18, 0.35), #050505);
+}
+
+.optimal {
+  border-color: #22d3ee;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.25);
+  background: linear-gradient(145deg, rgba(8, 51, 68, 0.35), #050505);
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.neonText {
+  color: #67e8f9;
+  text-shadow: 0 0 5px #22d3ee, 0 0 10px rgba(34, 211, 238, 0.6);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.iconButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #a1a1aa;
+  transition: all 0.2s ease;
+}
+
+.iconButton:hover {
+  transform: scale(1.15);
+  color: #ffffff;
+}
+
+.criticalIcon {
+  color: #ef4444;
+}
+
+/* =========================================================
+   INFORMACIÓN
+========================================================= */
+.category {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+}
+
+.stock {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 6px 0;
+  color: #67e8f9;
+}
+
+.unit {
+  font-size: 0.8rem;
+  color: #71717a;
+}
+
+/* =========================================================
+   BARRA DE PROGRESO
+========================================================= */
+.progressContainer {
+  width: 100%;
+  height: 8px;
+  background-color: #27272a;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease-in-out;
+}
+
+.progressCritical {
+  background-color: #ef4444;
+}
+
+.progressLow {
+  background-color: #facc15;
+}
+
+.progressOptimal {
+  background-color: #22d3ee;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.statusText {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  color: #a1a1aa;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: bold;
+}
+
+.badgeCritical {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.badgeLow {
+  background-color: rgba(250, 204, 21, 0.15);
+  color: #fde047;
+}
+
+.badgeOptimal {
+  background-color: rgba(34, 211, 238, 0.15);
+  color: #67e8f9;
+}
+
+/* =========================================================
+   BOTÓN REFILL
+========================================================= */
+.refillButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #c026d3, #9333ea);
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refillButton:hover {
+  background: linear-gradient(135deg, #a21caf, #7e22ce);
+  transform: scale(1.05);
+}
+
+/* =========================================================
+   BADGES DE ESTADO
+========================================================= */
+.badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badgeCritical {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badgeLow {
+  background-color: rgba(250, 204, 21, 0.15);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.badgeOptimal {
+  background-color: rgba(34, 211, 238, 0.15);
+  color: #67e8f9;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}

@@ -1,0 +1,21 @@
+:root {
+
+  --bg-main: #050507;
+  --bg-panel: #0b0b12;
+
+
+  --neon-purple: #7c3aed;
+  --neon-purple-soft: #a78bfa;
+
+
+  --neon-cyan: #22d3ee;
+  --neon-pink: #f472b6;
+
+
+  --glow-purple: 0 0 8px #7c3aed, 0 0 16px #7c3aed;
+  --glow-cyan: 0 0 8px #22d3ee, 0 0 16px #22d3ee;
+
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-main: #e4e4e7;
+}

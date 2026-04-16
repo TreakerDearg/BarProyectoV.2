@@ -1,0 +1,107 @@
+/* =========================================================
+   GRID PRINCIPAL
+========================================================= */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  width: 100%;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* =========================================================
+   TARJETA CONTENEDORA
+========================================================= */
+.cardWrapper {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.cardWrapper:hover {
+  transform: translateY(-4px);
+  filter: brightness(1.05);
+}
+
+/* =========================================================
+   ESTADO VACÍO
+========================================================= */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(34, 211, 238, 0.3);
+  background: rgba(8, 15, 30, 0.4);
+  color: #9ca3af;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+.emptyState p {
+  font-size: 1.1rem;
+  color: #22d3ee;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState span {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* =========================================================
+   SKELETON LOADER
+========================================================= */
+.skeletonCard {
+  height: 180px;
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    #0f172a 25%,
+    #1e293b 50%,
+    #0f172a 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border: 1px solid rgba(34, 211, 238, 0.1);
+}
+
+/* =========================================================
+   ANIMACIONES
+========================================================= */
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}

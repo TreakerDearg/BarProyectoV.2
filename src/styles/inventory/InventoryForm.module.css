@@ -1,0 +1,270 @@
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+.card {
+  position: relative;
+  background: linear-gradient(145deg, #0b0f1a, #070a12);
+  border: 1px solid rgba(0, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 0 20px rgba(0, 255, 255, 0.05),
+    inset 0 0 10px rgba(0, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 25px rgba(34, 211, 238, 0.15),
+    inset 0 0 12px rgba(34, 211, 238, 0.05);
+}
+
+/* Línea decorativa superior */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #22d3ee,
+    transparent
+  );
+  opacity: 0.7;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #22d3ee;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+}
+
+/* Badge futurista */
+.badge {
+  font-size: 11px;
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(34, 211, 238, 0.05);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.2);
+}
+
+/* =========================================================
+   GRID DEL FORMULARIO
+========================================================= */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* =========================================================
+   GRUPOS DE INPUT
+========================================================= */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 12px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* Inputs y selects */
+.inputGroup input,
+.inputGroup select {
+  background: #020617;
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  color: #e5e7eb;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.25s ease-in-out;
+}
+
+/* Placeholder */
+.inputGroup input::placeholder {
+  color: #6b7280;
+}
+
+/* Focus */
+.inputGroup input:focus,
+.inputGroup select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+  background: #020617;
+}
+
+/* Hover */
+.inputGroup input:hover,
+.inputGroup select:hover {
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+/* =========================================================
+   ESTADOS DE ERROR
+========================================================= */
+.inputError {
+  border: 1px solid #ef4444 !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.errorText {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 2px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* =========================================================
+   BOTONES
+========================================================= */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Botón principal */
+.submitBtn {
+  background: linear-gradient(90deg, #22d3ee, #06b6d4);
+  color: #020617;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.submitBtn:hover {
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+  transform: translateY(-1px);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Botón cancelar */
+.cancelBtn {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+/* =========================================================
+   ANIMACIONES
+========================================================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   SCROLL PERSONALIZADO
+========================================================= */
+.card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.card::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 10px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 768px) {
+  .card {
+    padding: 18px;
+  }
+
+  .header h2 {
+    font-size: 14px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .submitBtn,
+  .cancelBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* =========================================================
+   MODO OSCURO AUTOMÁTICO
+========================================================= */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: linear-gradient(145deg, #060a14, #020617);
+  }
+}

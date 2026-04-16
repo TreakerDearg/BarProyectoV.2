@@ -1,0 +1,73 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+/* BOTONES GENERALES */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #020617;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  color: #22d3ee;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.button:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* BOTONES DE PÁGINA */
+.pageButton {
+  min-width: 36px;
+  height: 36px;
+  background: #020617;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  color: #c4b5fd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.pageButton:hover {
+  border-color: #a855f7;
+  color: #a855f7;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+/* PÁGINA ACTIVA */
+.active {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #ffffff;
+  border-color: #a855f7;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .container {
+    gap: 4px;
+  }
+
+  .pageButton {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}

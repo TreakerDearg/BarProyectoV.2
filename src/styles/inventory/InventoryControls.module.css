@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.sortGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #020617;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.icon {
+  color: #22d3ee;
+}
+
+.select {
+  background: transparent;
+  border: none;
+  color: #e5e7eb;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.orderButton {
+  background: linear-gradient(90deg, #22d3ee, #06b6d4);
+  border: none;
+  color: #020617;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.orderButton:hover {
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}

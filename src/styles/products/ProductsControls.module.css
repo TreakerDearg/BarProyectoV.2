@@ -1,0 +1,84 @@
+/* CONTENEDOR PRINCIPAL */
+.container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* CONTROLES */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: linear-gradient(145deg, #0b0f1a, #070a12);
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.05);
+}
+
+/* ETIQUETA */
+.label {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* SELECT */
+.select {
+  background: #020617;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #e5e7eb;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.4);
+}
+
+/* BOTÓN DE ORDEN */
+.orderButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #22d3ee, #06b6d4);
+  color: #020617;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.orderButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .container {
+    justify-content: center;
+  }
+
+  .controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .orderButton {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .select {
+    flex: 1;
+  }
+}

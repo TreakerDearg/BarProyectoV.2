@@ -1,0 +1,73 @@
+/* CONTENEDOR PRINCIPAL */
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* EFECTO GRID NEON DE FONDO */
+.container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* TOOLBAR */
+.toolbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+/* CONTADOR DE ÓRDENES */
+.counter {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #22d3ee;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+}
+
+/* MENSAJES DE ESTADO */
+.stateMessage {
+  text-align: center;
+  padding: 40px;
+  color: #a1a1aa;
+  font-size: 16px;
+}
+
+.errorMessage {
+  text-align: center;
+  padding: 40px;
+  color: #f87171;
+  font-size: 16px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.05);
+  border-radius: 12px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .counter {
+    width: 100%;
+    text-align: center;
+  }
+}

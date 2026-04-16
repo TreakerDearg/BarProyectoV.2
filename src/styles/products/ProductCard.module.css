@@ -1,0 +1,76 @@
+.card {
+  background: linear-gradient(145deg, #0b0f1a, #070a12);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 16px;
+  padding: 18px;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.05);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.2);
+}
+
+/* ICONO */
+.icon {
+  color: #a855f7;
+  margin-bottom: 10px;
+}
+
+/* TÍTULO */
+.title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #e5e7eb;
+}
+
+/* CATEGORÍA */
+.category {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* PRECIO */
+.price {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #22d3ee;
+  margin-top: 5px;
+}
+
+/* ACCIONES */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.editBtn {
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid #22d3ee;
+  color: #22d3ee;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.editBtn:hover {
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+}
+
+.deleteBtn:hover {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}

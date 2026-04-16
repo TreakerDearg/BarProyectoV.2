@@ -1,0 +1,50 @@
+/* CONTENEDOR PRINCIPAL */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* TARJETAS SKELETON */
+.skeleton {
+  height: 180px;
+  border-radius: 14px;
+  background: linear-gradient(
+    90deg,
+    #0b0f1a 25%,
+    #111827 50%,
+    #0b0f1a 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border: 1px solid rgba(34, 211, 238, 0.1);
+}
+
+/* ANIMACIÓN SKELETON */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ESTADO VACÍO */
+.empty {
+  text-align: center;
+  padding: 3rem;
+  border-radius: 14px;
+  border: 1px dashed rgba(34, 211, 238, 0.3);
+  background: rgba(2, 6, 23, 0.4);
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}

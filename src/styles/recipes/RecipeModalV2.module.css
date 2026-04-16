@@ -1,0 +1,315 @@
+/* =========================
+   OVERLAY (GLASS DARK CORE)
+========================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+/* =========================
+   MODAL CORE
+========================= */
+.modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+
+  background: linear-gradient(
+    180deg,
+    #0f0f0f,
+    #0b0b0b
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* scrollbar minimal */
+.modal::-webkit-scrollbar {
+  width: 6px;
+}
+.modal::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+/* =========================
+   HEADER
+========================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.closeBtn:hover {
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* =========================
+   SECTIONS
+========================= */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section label {
+  font-size: 12px;
+  color: #888;
+  letter-spacing: 0.5px;
+}
+
+/* =========================
+   INPUT GROUP (ICON + INPUT)
+========================= */
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 10px;
+
+  padding: 10px 12px;
+  transition: 0.2s;
+}
+
+.inputGroup:focus-within {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.inputGroup input,
+.inputGroup select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+}
+
+/* =========================
+   TEXTAREA
+========================= */
+.section textarea {
+  width: 100%;
+  min-height: 90px;
+
+  background: #141414;
+  border: 1px solid #262626;
+  border-radius: 10px;
+
+  padding: 10px;
+  color: #fff;
+  resize: none;
+
+  transition: 0.2s;
+}
+
+.section textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  outline: none;
+}
+
+/* =========================
+   BUILDER ROW
+========================= */
+.builder {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.builder select,
+.builder input {
+  background: #141414;
+  border: 1px solid #262626;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  outline: none;
+}
+
+.builder select {
+  flex: 1;
+}
+
+.builder input {
+  width: 90px;
+}
+
+/* add button */
+.builder button {
+  width: 42px;
+  height: 42px;
+
+  border-radius: 10px;
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #5b21b6
+  );
+
+  color: white;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.builder button:hover {
+  transform: scale(1.05);
+}
+
+/* =========================
+   INGREDIENT LIST
+========================= */
+.list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px 10px;
+
+  background: #121212;
+  border: 1px solid #222;
+  border-radius: 8px;
+
+  color: #bbb;
+  font-size: 13px;
+}
+
+.item span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item button {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+}
+
+.item button:hover {
+  color: #ef4444;
+}
+
+/* =========================
+   PREVIEW TAG
+========================= */
+.preview {
+  padding: 10px;
+  border-radius: 10px;
+
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+
+  color: #c4b5fd;
+  font-size: 13px;
+}
+
+/* =========================
+   SAVE BUTTON
+========================= */
+.saveBtn {
+  margin-top: 5px;
+
+  width: 100%;
+  padding: 12px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #22c55e,
+    #16a34a
+  );
+
+  color: white;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.saveBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media (max-width: 600px) {
+  .modal {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .builder {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .builder input {
+    width: 100%;
+  }
+}

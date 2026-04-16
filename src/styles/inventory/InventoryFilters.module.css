@@ -1,0 +1,136 @@
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* =========================================================
+   BUSCADOR
+========================================================= */
+.searchWrapper {
+  position: relative;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .searchWrapper {
+    width: 320px;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  background: linear-gradient(145deg, #0b0f1a, #070a12);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 10px;
+  padding: 10px 40px;
+  font-size: 14px;
+  color: #e5e7eb;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.searchInput::placeholder {
+  color: #6b7280;
+}
+
+.searchInput:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+}
+
+/* Iconos */
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #22d3ee;
+}
+
+.clearButton {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.clearButton:hover {
+  color: #ef4444;
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* =========================================================
+   FILTROS DE CATEGORÍA
+========================================================= */
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .categories {
+    justify-content: flex-end;
+  }
+}
+
+.categoryButton {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #3f3f46;
+  background: rgba(15, 23, 42, 0.6);
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.categoryButton:hover {
+  border-color: #22d3ee;
+  color: #22d3ee;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+}
+
+/* Botón activo */
+.activeCategory {
+  background: linear-gradient(135deg, #22d3ee, #06b6d4);
+  color: #020617;
+  border-color: #22d3ee;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media (max-width: 480px) {
+  .categoryButton {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .searchInput {
+    font-size: 13px;
+  }
+}
