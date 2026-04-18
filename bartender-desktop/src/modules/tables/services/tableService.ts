@@ -1,4 +1,4 @@
-import { api } from "./../../../services/api";
+import api from "../../../services/api";
 import type { Table } from "../types/table";
 
 export const getTables = async (): Promise<Table[]> => {

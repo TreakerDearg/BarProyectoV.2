@@ -1,39 +1,51 @@
 import { Router } from "express";
 import {
   getInventory,
-  getIngredient,
-  createIngredient,
-  updateIngredient,
-  deleteIngredient,
+  getInventoryItem,
+  createInventoryItem,
+  updateInventoryItem,
+  deleteInventoryItem,
   getInventoryStats,
   getInventoryCategories,
+  adjustStock,
 } from "../controllers/inventory.controller.js";
 
 const router = Router();
 
 /* ==============================
-   INVENTORY ROUTES
+   INVENTORY BASE
 ============================== */
 
-// Obtener todos los ingredientes
+// Obtener inventario (con filtros)
 router.get("/", getInventory);
 
-// Obtener estadísticas del inventario
+// Estadísticas
 router.get("/stats", getInventoryStats);
 
-// Obtener categorías únicas
+//  Categorías
 router.get("/categories", getInventoryCategories);
 
-// Obtener un ingrediente por ID
-router.get("/:id", getIngredient);
+/* ==============================
+   OPERACIONES ESPECÍFICAS
+============================== */
 
-// Crear un ingrediente
-router.post("/", createIngredient);
+//  Ajuste de stock 
+router.patch("/:id/stock", adjustStock);
 
-// Actualizar un ingrediente
-router.put("/:id", updateIngredient);
+/* ==============================
+   CRUD
+============================== */
 
-// Eliminar un ingrediente
-router.delete("/:id", deleteIngredient);
+//  Obtener uno
+router.get("/:id", getInventoryItem);
+
+//  Crear
+router.post("/", createInventoryItem);
+
+//  Actualizar (general)
+router.patch("/:id", updateInventoryItem);
+
+// Eliminar
+router.delete("/:id", deleteInventoryItem);
 
 export default router;

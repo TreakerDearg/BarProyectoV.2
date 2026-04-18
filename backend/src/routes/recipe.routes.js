@@ -7,36 +7,47 @@ import {
   updateRecipe,
   deleteRecipe,
 
-  /* NUEVO */
   getRecipeProtocol,
   getRecipesByProduct,
+  checkRecipeAvailability,
 } from "../controllers/recipe.controller.js";
 
 const router = Router();
 
-/* ================================
-   BASIC CRUD
-================================ */
+/* ==============================
+   BASE
+============================== */
+
+//  Listado
 router.get("/", getRecipes);
-router.get("/:id", getRecipe);
-router.post("/", createRecipe);
-router.put("/:id", updateRecipe);
-router.delete("/:id", deleteRecipe);
 
-/* ================================
-   BARTENDER FEATURES (NEW)
-================================ */
+//  Por producto (ANTES de :id para evitar conflicto)
+router.get("/product/:productId", getRecipesByProduct);
 
-/**
- * 🔬 PROTOCOL VIEW
- * Devuelve receta + pasos estructurados para el "mapa de preparación"
- */
+/* ==============================
+   OPERACIONES ESPECÍFICAS
+============================== */
+
+//  Protocolo de preparación
 router.get("/:id/protocol", getRecipeProtocol);
 
-/**
- * 🍸 RECETAS POR PRODUCTO
- * útil para el product system (cocktail builder)
- */
-router.get("/product/:productId", getRecipesByProduct);
+//  Verificar disponibilidad de stock 
+router.get("/:id/availability", checkRecipeAvailability);
+
+/* ==============================
+   CRUD
+============================== */
+
+//  Obtener una receta
+router.get("/:id", getRecipe);
+
+//  Crear
+router.post("/", createRecipe);
+
+// Actualizar (parcial)
+router.patch("/:id", updateRecipe);
+
+// Eliminar
+router.delete("/:id", deleteRecipe);
 
 export default router;

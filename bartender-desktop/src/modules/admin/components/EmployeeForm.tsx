@@ -1,8 +1,26 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
-export default function EmployeeForm({ onSave, onClose }: any) {
-  const [form, setForm] = useState({
+type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
+
+interface EmployeeFormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: Role;
+}
+
+export default function EmployeeForm({
+  onSave,
+  onClose,
+  loading = false,
+}: {
+  onSave: (data: Omit<EmployeeFormData, "confirmPassword">) => void;
+  onClose: () => void;
+  loading?: boolean;
+}) {
+  const [form, setForm] = useState<EmployeeFormData>({
     name: "",
     email: "",
     password: "",
@@ -13,35 +31,49 @@ export default function EmployeeForm({ onSave, onClose }: any) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e: any) => {
-    setForm({
-      ...form,
+  /* ==============================
+     HANDLE INPUT
+  ============================== */
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setForm((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
-  //  VALIDACIÓN
-  const validate = () => {
-    if (!form.name || !form.email || !form.password) {
-      return "Todos los campos son obligatorios";
-    }
+  /* ==============================
+     VALIDATION PRO
+  ============================== */
+  const validate = (): string => {
+    const emailRegex = /^\S+@\S+\.\S+$/;
 
-    if (form.password.length < 6) {
+    if (!form.name.trim()) return "El nombre es obligatorio";
+    if (form.name.trim().length < 2)
+      return "El nombre debe tener al menos 2 caracteres";
+
+    if (!form.email.trim()) return "El email es obligatorio";
+    if (!emailRegex.test(form.email))
+      return "Email inválido";
+
+    if (!form.password) return "La contraseña es obligatoria";
+    if (form.password.length < 6)
       return "La contraseña debe tener al menos 6 caracteres";
-    }
 
-    if (form.password !== form.confirmPassword) {
+    if (form.password !== form.confirmPassword)
       return "Las contraseñas no coinciden";
-    }
 
     return "";
   };
 
+  /* ==============================
+     SUBMIT
+  ============================== */
   const handleSubmit = () => {
-    const validationError = validate();
-
-    if (validationError) {
-      setError(validationError);
+    const err = validate();
+    if (err) {
+      setError(err);
       return;
     }
 
@@ -52,50 +84,58 @@ export default function EmployeeForm({ onSave, onClose }: any) {
     onSave(data);
   };
 
+  /* ==============================
+     UI
+  ============================== */
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-      <div className="bg-gray-900 p-6 rounded-xl w-[400px]">
-        <h2 className="text-xl mb-4 font-bold">
-          Nuevo empleado
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-gray-900 w-[420px] rounded-2xl p-6 shadow-xl border border-gray-800">
+
+        {/* HEADER */}
+        <h2 className="text-xl font-bold text-white mb-4">
+          Crear empleado
         </h2>
 
         {/* ERROR */}
         {error && (
-          <p className="text-red-400 text-sm mb-3">
+          <div className="bg-red-500/10 border border-red-500 text-red-300 text-sm p-2 rounded mb-3">
             {error}
-          </p>
+          </div>
         )}
 
         {/* NAME */}
         <input
           name="name"
-          placeholder="Nombre"
-          className="input"
+          placeholder="Nombre completo"
+          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleChange}
+          value={form.name}
         />
 
         {/* EMAIL */}
         <input
           name="email"
           placeholder="Email"
-          className="input"
+          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleChange}
+          value={form.email}
         />
 
         {/* PASSWORD */}
-        <div className="relative">
+        <div className="relative mb-3">
           <input
             name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Contraseña"
-            className="input pr-10"
+            className="w-full p-2 pr-10 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
             onChange={handleChange}
+            value={form.password}
           />
 
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-2"
+            className="absolute right-2 top-2 text-gray-400"
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -106,31 +146,41 @@ export default function EmployeeForm({ onSave, onClose }: any) {
           name="confirmPassword"
           type="password"
           placeholder="Confirmar contraseña"
-          className="input"
+          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleChange}
+          value={form.confirmPassword}
         />
 
         {/* ROLE */}
         <select
           name="role"
+          className="w-full p-2 mb-4 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleChange}
-          className="input"
+          value={form.role}
         >
           <option value="bartender">Bartender</option>
           <option value="waiter">Mozo</option>
           <option value="cashier">Caja</option>
+          <option value="kitchen">Cocina</option>
           <option value="admin">Admin</option>
         </select>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="btn-gray">
+        {/* ACTIONS */}
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white"
+          >
             Cancelar
           </button>
 
           <button
             onClick={handleSubmit}
-            className="btn-primary"
+            disabled={loading}
+            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-2"
           >
+            {loading && <Loader2 className="animate-spin" size={16} />}
             Crear
           </button>
         </div>

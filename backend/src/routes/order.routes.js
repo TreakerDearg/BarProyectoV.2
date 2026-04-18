@@ -1,23 +1,39 @@
 import { Router } from "express";
+
 import {
   getOrders,
   getOrderById,
   createOrder,
   updateOrderStatus,
+  updateOrderItemStatus,
 } from "../controllers/order.controller.js";
 
 const router = Router();
 
-// GET ALL
+/* ==============================
+   BASE
+============================== */
+
+//  listado con filtros
 router.get("/", getOrders);
 
-//  GET ONE ( CLAVE PARA STATUS PAGE)
+/* ==============================
+   OPERACIONES
+============================== */
+
+// una orden
 router.get("/:id", getOrderById);
 
-//  CREATE
-router.post("/", createOrder);
-
-//  UPDATE STATUS
+//  estado global
 router.patch("/:id/status", updateOrderStatus);
+
+//  estado por item (cocina/bar)
+router.patch("/:orderId/item/:itemId/status", updateOrderItemStatus);
+
+/* ==============================
+   CREACIÓN
+============================== */
+
+router.post("/", createOrder);
 
 export default router;

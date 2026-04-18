@@ -1,4 +1,4 @@
-import { api } from "../../../services/api";
+import api from "../../../services/api";
 import type { Reservation } from "../types/reservation";
 
 export const getReservations = async (): Promise<Reservation[]> => {

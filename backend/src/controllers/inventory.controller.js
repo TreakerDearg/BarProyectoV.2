@@ -1,28 +1,60 @@
-import Ingredient from "../models/Ingredient.js";
+import InventoryItem from "../models/InventoryItem.js";
 import mongoose from "mongoose";
 
 /* ==============================
-   GET ALL
+   HELPERS
+============================== */
+const isValidObjectId = (id) =>
+  mongoose.Types.ObjectId.isValid(id);
+
+const sanitizeNumber = (value, def = 0) =>
+  value !== undefined ? Number(value) : def;
+
+/* ==============================
+   GET ALL (con filtros avanzados)
 ============================== */
 export const getInventory = async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const {
+      category,
+      search,
+      sector,
+      lowStock,
+      page = 1,
+      limit = 50,
+    } = req.query;
 
-    let filter = {};
+    const filter = {};
 
     if (category && category !== "all") {
       filter.category = category;
+    }
+
+    if (sector && sector !== "all") {
+      filter.sector = sector;
     }
 
     if (search) {
       filter.name = { $regex: search, $options: "i" };
     }
 
-    const items = await Ingredient.find(filter).sort({
-      createdAt: -1,
-    });
+    if (lowStock === "true") {
+      filter.$expr = { $lte: ["$stock", "$minStock"] };
+    }
 
-    res.json(items);
+    const items = await InventoryItem.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await InventoryItem.countDocuments(filter);
+
+    res.json({
+      data: items,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -31,18 +63,20 @@ export const getInventory = async (req, res) => {
 /* ==============================
    GET ONE
 ============================== */
-export const getIngredient = async (req, res) => {
+export const getInventoryItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
-    const item = await Ingredient.findById(id);
+    const item = await InventoryItem.findById(id);
 
     if (!item) {
-      return res.status(404).json({ message: "Ingrediente no encontrado" });
+      return res.status(404).json({
+        message: "Item no encontrado",
+      });
     }
 
     res.json(item);
@@ -54,111 +88,156 @@ export const getIngredient = async (req, res) => {
 /* ==============================
    CREATE
 ============================== */
-export const createIngredient = async (req, res) => {
+export const createInventoryItem = async (req, res) => {
   try {
-    const {
-      name,
-      stock = 0,
-      unit = "ml",
-      category = "Otros",
-      minStock = 5,
-      maxStock = 100,
-    } = req.body;
-
-    if (!name) {
-      return res.status(400).json({
-        message: "El nombre es obligatorio",
-      });
-    }
-
-    const existing = await Ingredient.findOne({ name });
-    if (existing) {
-      return res.status(400).json({
-        message: "El ingrediente ya existe",
-      });
-    }
-
-    const newItem = new Ingredient({
+    let {
       name,
       stock,
       unit,
       category,
       minStock,
       maxStock,
+      cost, // 👈 ahora correcto
+      sector,
+      supplier,
+      location,
+    } = req.body;
+
+    if (!name || !category) {
+      return res.status(400).json({
+        message: "Nombre y categoría son obligatorios",
+      });
+    }
+
+    const newItem = new InventoryItem({
+      name: name.trim(),
+      stock: Number(stock ?? 0),
+      unit,
+      category: category.trim().toLowerCase(),
+      minStock: Number(minStock ?? 5),
+      maxStock: Number(maxStock ?? 100),
+      cost: Number(cost ?? 0),
+      sector,
+      supplier,
+      location,
     });
 
     const saved = await newItem.save();
-    res.status(201).json(saved);
+
+    return res.status(201).json(saved);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("CREATE INVENTORY ERROR:", error);
+
+    return res.status(500).json({
+      message: "Error creando item de inventario",
+      error: error.message,
+    });
   }
 };
-
 /* ==============================
-   UPDATE
+   UPDATE (controlado)
 ============================== */
-export const updateIngredient = async (req, res) => {
+export const updateInventoryItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "ID inválido" });
-    }
-
-    const updated = await Ingredient.findByIdAndUpdate(
+    const updated = await InventoryItem.findByIdAndUpdate(
       id,
-      req.body,
       {
-        new: true,
-        runValidators: true,
-      }
+        ...req.body,
+        category: req.body.category?.toLowerCase(),
+      },
+      { new: true, runValidators: true }
     );
 
     if (!updated) {
-      return res.status(404).json({
-        message: "Ingrediente no encontrado",
-      });
+      return res.status(404).json({ message: "No encontrado" });
     }
 
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+
+    res.status(500).json({
+      message: "Error actualizando item",
+      error: error.message,
+    });
   }
 };
-
 /* ==============================
-   DELETE
+   DELETE (seguro)
 ============================== */
-export const deleteIngredient = async (req, res) => {
+export const deleteInventoryItem = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+    if (!isValidObjectId(id)) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
-    const deleted = await Ingredient.findByIdAndDelete(id);
+    const deleted = await InventoryItem.findByIdAndDelete(id);
 
     if (!deleted) {
       return res.status(404).json({
-        message: "Ingrediente no encontrado",
+        message: "Item no encontrado",
       });
     }
 
-    res.json({ message: "Ingrediente eliminado correctamente" });
+    res.json({ message: "Item eliminado correctamente" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 /* ==============================
-   GET INVENTORY CATEGORIES
+   AJUSTE DE STOCK (PRO)
+============================== */
+export const adjustStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { amount, type } = req.body;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID inválido" });
+    }
+
+    amount = sanitizeNumber(amount, 0);
+
+    if (amount <= 0) {
+      return res.status(400).json({ message: "Amount inválido" });
+    }
+
+    const item = await InventoryItem.findById(id);
+
+    if (!item) {
+      return res.status(404).json({ message: "Item no encontrado" });
+    }
+
+    if (type === "add") item.stock += amount;
+    if (type === "subtract") item.stock -= amount;
+
+    if (item.stock < 0) {
+      return res.status(400).json({ message: "Stock insuficiente" });
+    }
+
+    await item.save();
+
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error ajustando stock",
+      error: error.message,
+    });
+  }
+};
+
+/* ==============================
+   GET CATEGORIES
 ============================== */
 export const getInventoryCategories = async (req, res) => {
   try {
-    const categories = await Ingredient.distinct("category");
+    const categories = await InventoryItem.distinct("category");
 
-    // Ordenar alfabéticamente
     categories.sort((a, b) => a.localeCompare(b));
 
     res.json(categories);
@@ -168,15 +247,13 @@ export const getInventoryCategories = async (req, res) => {
 };
 
 /* ==============================
-   GET INVENTORY STATS
+   STATS (MEJORADO)
 ============================== */
 export const getInventoryStats = async (req, res) => {
   try {
-    // Total de ingredientes
-    const totalItems = await Ingredient.countDocuments();
+    const totalItems = await InventoryItem.countDocuments();
 
-    // Stock total
-    const stockData = await Ingredient.aggregate([
+    const stockData = await InventoryItem.aggregate([
       {
         $group: {
           _id: null,
@@ -186,18 +263,15 @@ export const getInventoryStats = async (req, res) => {
       },
     ]);
 
-    // Productos con bajo stock
-    const lowStockItems = await Ingredient.countDocuments({
-      stock: { $lte: 5 },
+    const lowStockItems = await InventoryItem.countDocuments({
+      $expr: { $lte: ["$stock", "$minStock"] },
     });
 
-    // Productos sin stock
-    const outOfStockItems = await Ingredient.countDocuments({
+    const outOfStockItems = await InventoryItem.countDocuments({
       stock: { $lte: 0 },
     });
 
-    // Ingredientes por categoría
-    const categories = await Ingredient.aggregate([
+    const categories = await InventoryItem.aggregate([
       {
         $group: {
           _id: "$category",
@@ -206,9 +280,9 @@ export const getInventoryStats = async (req, res) => {
       },
       {
         $project: {
-          _id: 0,
           name: "$_id",
           value: "$count",
+          _id: 0,
         },
       },
       { $sort: { value: -1 } },
@@ -224,7 +298,7 @@ export const getInventoryStats = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: "Error al obtener estadísticas del inventario",
+      message: "Error al obtener estadísticas",
       error: error.message,
     });
   }

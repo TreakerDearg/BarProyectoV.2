@@ -1,4 +1,4 @@
-import { api } from "../../../services/api";
+import api from "../../../services/api";
 import type { User } from "../types/user";
 
 export const getEmployees = async (): Promise<User[]> => {

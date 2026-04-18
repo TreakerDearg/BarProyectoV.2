@@ -1,20 +1,52 @@
 import express from "express";
+
 import {
   loginUser,
   registerUser,
   getProfile,
 } from "../controllers/auth.controller.js";
+
 import { protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-//  CLIENTES (auto registro)
+/* ==============================
+   PUBLIC ROUTES
+============================== */
+
+/**
+ * Registro (solo clientes)
+ */
 router.post("/register", registerUser);
 
-//  LOGIN (todos)
+/**
+ * Login (clientes + empleados)
+ */
 router.post("/login", loginUser);
 
-//  PERFIL
-router.get("/profile", protect, getProfile);
+/* ==============================
+   PRIVATE ROUTES
+============================== */
+
+/**
+ * Obtener usuario autenticado
+ */
+router.get("/me", protect, getProfile);
+
+/**
+ * Logout (cliente limpia token)
+ */
+router.post("/logout", protect, (req, res) => {
+  res.json({ message: "Logout exitoso" });
+});
+
+/* ==============================
+   FUTURO (RECOMENDADO IMPLEMENTAR)
+============================== */
+
+/**
+ * Refresh token (opcional)
+ */
+// router.post("/refresh", refreshToken);
 
 export default router;

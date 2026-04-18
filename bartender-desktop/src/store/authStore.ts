@@ -1,6 +1,8 @@
 import { create } from "zustand";
-import { login as loginService } from "../modules/auth/services/authService";
+
+import { login as loginService, getMe } from "../modules/auth/services/authService";
 import type { User } from "../types/auth";
+
 import { saveToken, removeToken, getToken } from "../utils/tokenStorage";
 import { setAuthToken } from "../services/api";
 
@@ -8,16 +10,22 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  loading: boolean;
+
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  initialize: () => void;
+  initialize: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
+  loading: true,
 
+  /* =========================
+     LOGIN
+  ========================= */
   login: async (email, password) => {
     const response = await loginService({ email, password });
 
@@ -31,9 +39,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
+  /* =========================
+     LOGOUT
+  ========================= */
   logout: () => {
     removeToken();
     setAuthToken(null);
+
     set({
       user: null,
       token: null,
@@ -41,11 +53,40 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  initialize: () => {
+  /* =========================
+     INIT (AUTO LOGIN REAL)
+  ========================= */
+  initialize: async () => {
     const token = getToken();
-    if (token) {
+
+    if (!token) {
+      set({ loading: false });
+      return;
+    }
+
+    try {
       setAuthToken(token);
-      set({ token, isAuthenticated: true });
+
+      //  VALIDACIÓN REAL DEL TOKEN
+      const user = await getMe();
+
+      set({
+        token,
+        user,
+        isAuthenticated: true,
+        loading: false,
+      });
+    } catch (err) {
+      // token inválido o expirado
+      removeToken();
+      setAuthToken(null);
+
+      set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+      });
     }
   },
 }));

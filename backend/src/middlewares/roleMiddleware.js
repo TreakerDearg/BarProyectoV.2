@@ -1,11 +1,41 @@
-export const authorizeRoles = (...roles) => {
+export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        msg: "No tienes permisos",
-      });
-    }
+    try {
+      /* ==============================
+         VALIDAR AUTENTICACIÓN
+      ============================== */
+      if (!req.user) {
+        const error = new Error("No autenticado");
+        error.statusCode = 401;
+        throw error;
+      }
 
-    next();
+      /* ==============================
+         VALIDAR ESTADO DEL USUARIO
+      ============================== */
+      if (req.user.isActive === false) {
+        const error = new Error("Usuario desactivado");
+        error.statusCode = 403;
+        throw error;
+      }
+
+      /* ==============================
+         VALIDAR ROLES
+      ============================== */
+      if (
+        allowedRoles.length > 0 &&
+        !allowedRoles.includes(req.user.role)
+      ) {
+        const error = new Error(
+          `Acceso denegado. Roles permitidos: ${allowedRoles.join(", ")}`
+        );
+        error.statusCode = 403;
+        throw error;
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 };

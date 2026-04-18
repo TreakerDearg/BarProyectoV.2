@@ -1,22 +1,28 @@
 import mongoose from "mongoose";
 
-/* ================================
-   INGREDIENT SUB-SCHEMA
-================================ */
-const ingredientSchema = new mongoose.Schema(
+/* ==============================
+   INGREDIENTS
+============================== */
+const recipeIngredientSchema = new mongoose.Schema(
   {
-    ingredientId: {
+    inventoryItem: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Ingredient",
+      ref: "InventoryItem",
       required: true,
     },
 
     quantity: {
       type: Number,
       required: true,
+      min: 0,
     },
 
-    // NUEVO: orden de armado (bartender flow)
+    unit: {
+      type: String,
+      required: true,
+      enum: ["ml", "l", "g", "kg", "unit", "oz", "portion"],
+    },
+
     order: {
       type: Number,
       default: 0,
@@ -25,72 +31,114 @@ const ingredientSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/* ================================
-   RECIPE SCHEMA (COCKTAIL ENGINE)
-================================ */
+/* ==============================
+   STEPS
+============================== */
+const stepSchema = new mongoose.Schema(
+  {
+    stepNumber: Number,
+    instruction: String,
+  },
+  { _id: false }
+);
+
+/* ==============================
+   RECIPE SCHEMA
+============================== */
 const recipeSchema = new mongoose.Schema(
   {
-    /* ========================
-       RELATION PRODUCT
-    ======================== */
-    productId: {
+    product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
     },
 
-    /* ========================
-       INGREDIENTS STRUCTURED
-    ======================== */
-    ingredients: [ingredientSchema],
+    ingredients: [recipeIngredientSchema],
 
-    /* ========================
-       METHOD (CORE BARTENDER FIELD)
-    ======================== */
-    method: {
+    type: {
       type: String,
-      default: "",
+      enum: ["drink", "food"],
+      required: true,
     },
 
-    /* ========================
-       COCKTAIL VISUAL
-    ======================== */
+    method: {
+      type: String,
+      trim: true,
+    },
+
+    steps: {
+      type: [stepSchema],
+      default: [],
+    },
+
+    category: {
+      type: String,
+      default: "general",
+    },
+
     image: {
       type: String,
       default: "",
     },
 
-    /* ========================
-       PROTOCOL STEPS (FUTURE UI FLOW)
-    ======================== */
-    steps: {
-      type: [String],
-      default: [],
+    totalCost: {
+      type: Number,
+      default: 0,
     },
 
-    /* ========================
-       CATEGORY (DRINK TYPE ENGINE)
-    ======================== */
-    category: {
-      type: String,
-      enum: [
-        "shot",
-        "cocktail",
-        "mocktail",
-        "frozen",
-        "highball",
-        "martini",
-        "sour",
-      ],
-      default: "cocktail",
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-/* ================================
-   INDEX (PERFORMANCE BOOST)
-================================ */
-recipeSchema.index({ productId: 1 });
+/* ==============================
+   INDEXES (CLEAN)
+============================== */
+
+
+recipeSchema.index({ product: 1 }, { unique: true });
+
+recipeSchema.index({ type: 1 });
+recipeSchema.index({ category: 1 });
+
+/* ==============================
+   OPTIMIZED COST CALCULATION
+============================== */
+recipeSchema.pre("save", async function (next) {
+  try {
+    const InventoryItem = mongoose.model("InventoryItem");
+
+    const ids = this.ingredients.map(i => i.inventoryItem);
+
+    const items = await InventoryItem.find({
+      _id: { $in: ids },
+    }).lean();
+
+    const itemMap = new Map(
+      items.map(i => [i._id.toString(), i])
+    );
+
+    let total = 0;
+
+    for (const ing of this.ingredients) {
+      const item = itemMap.get(ing.inventoryItem.toString());
+
+      if (item) {
+        total += item.cost * ing.quantity;
+      }
+    }
+
+    this.totalCost = total;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default mongoose.model("Recipe", recipeSchema);
