@@ -3,57 +3,111 @@ import Order from "../models/Order.js";
 import Recipe from "../models/Recipe.js";
 import InventoryItem from "../models/InventoryItem.js";
 import Product from "../models/Product.js";
+import Table from "../models/Table.js";
+
+import { io } from "../server.js";
 
 /* ==============================
-   GET ORDERS (FILTRADO PRO)
+   HELPERS
+============================== */
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+const sendError = (res, status, msg) =>
+  res.status(status).json({ error: msg });
+
+const ORDER_STATUS = ["pending", "in-progress", "completed", "cancelled"];
+const ITEM_STATUS = ["pending", "preparing", "ready", "delivered"];
+
+/* ==============================
+   SOCKET HELPERS (CENTRALIZADO)
+============================== */
+const emitOrderUpdate = (order) => {
+  io.emit("order:update", order);
+  io.to(`table:${order.table}`).emit("order:update", order);
+};
+
+const emitOrderCreate = (order) => {
+  io.emit("order:created", order);
+  io.to(`table:${order.table}`).emit("order:created", order);
+};
+
+const emitOrderDelete = (order) => {
+  io.emit("order:deleted", order);
+  io.to(`table:${order.table}`).emit("order:deleted", order);
+};
+
+const emitTableUpdate = async (tableId) => {
+  const table = await Table.findById(tableId);
+  if (!table) return;
+
+  io.emit("table:update", table);
+  io.to(`table:${tableId}`).emit("table:update", table);
+};
+
+/* ==============================
+   TABLE AUTO CLOSE (ROBUSTO)
+============================== */
+const handleTableAutoClose = async (tableId) => {
+  if (!isValidId(tableId)) return;
+
+  const activeOrders = await Order.countDocuments({
+    table: tableId,
+    sessionStatus: "open",
+  });
+
+  if (activeOrders > 0) return;
+
+  const table = await Table.findById(tableId);
+  if (!table) return;
+
+  if (["maintenance", "available"].includes(table.status)) return;
+
+  table.status = "maintenance";
+  table.currentSessionId = null;
+
+  await table.save();
+
+  await emitTableUpdate(tableId);
+
+  setTimeout(async () => {
+    const t = await Table.findById(tableId);
+    if (!t) return;
+
+    if (t.status === "maintenance") {
+      t.status = "available";
+      await t.save();
+
+      await emitTableUpdate(tableId);
+    }
+  }, 2 * 60 * 1000);
+};
+
+/* ==============================
+   GET ORDERS
 ============================== */
 export const getOrders = async (req, res) => {
   try {
-    const { status, type, table } = req.query;
-
-    const validStatus = ["pending", "in-progress", "completed", "cancelled"];
-    const validType = ["drink", "food"];
+    const { status, table, sessionId } = req.query;
 
     const filter = {};
+    if (status) filter.status = status;
+    if (sessionId) filter.sessionId = sessionId;
+    if (table) filter.table = table;
 
-    if (status) {
-      if (!validStatus.includes(status)) {
-        return res.status(400).json({ error: "Estado inválido" });
-      }
-      filter.status = status;
-    }
-
-    if (table) {
-      filter.table = table;
-    }
-
-    if (type) {
-      if (!validType.includes(type)) {
-        return res.status(400).json({ error: "Tipo inválido" });
-      }
-
-      filter.items = {
-        $elemMatch: { type },
-      };
-    }
-
-    let orders = await Order.find(filter)
+    const orders = await Order.find(filter)
+      .populate("table")
       .populate("items.product")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    //  filtrar items por tipo (vista cocina/bar)
-    if (type) {
-      orders = orders.map(order => {
-        const obj = order.toObject();
-        obj.items = obj.items.filter(i => i.type === type);
-        return obj;
-      });
-    }
-
-    res.json(orders);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json(
+      orders.map((o) => ({
+        ...o,
+        tableNumber: o.table?.number,
+      }))
+    );
+  } catch {
+    sendError(res, 500, "No se pudieron obtener las órdenes");
   }
 };
 
@@ -62,25 +116,31 @@ export const getOrders = async (req, res) => {
 ============================== */
 export const getOrderById = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return sendError(res, 400, "ID inválido");
     }
 
-    const order = await Order.findById(req.params.id)
+    const order = await Order.findById(id)
+      .populate("table")
       .populate("items.product");
 
     if (!order) {
-      return res.status(404).json({ error: "Pedido no encontrado" });
+      return sendError(res, 404, "Orden no encontrada");
     }
 
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({
+      ...order.toObject(),
+      tableNumber: order.table?.number,
+    });
+  } catch {
+    sendError(res, 500, "Error al obtener la orden");
   }
 };
 
 /* ==============================
-   CREATE ORDER (CORE)
+   CREATE ORDER
 ============================== */
 export const createOrder = async (req, res) => {
   const session = await mongoose.startSession();
@@ -88,59 +148,67 @@ export const createOrder = async (req, res) => {
   try {
     session.startTransaction();
 
-    const { items, table, notes } = req.body;
+    const { items, table, sessionId, notes = "" } = req.body;
 
     if (!items?.length) {
-      throw new Error("Pedido vacío");
+      throw new Error("Debes agregar productos");
     }
 
-    //  productos
-    const productIds = items.map(i => i.product);
+    const tableDoc = await Table.findById(table).session(session);
+
+    if (!tableDoc) throw new Error("Mesa no encontrada");
+
+    if (tableDoc.status !== "occupied") {
+      throw new Error("Mesa no activa");
+    }
+
+    if (tableDoc.currentSessionId !== sessionId) {
+      throw new Error("Sesión inválida");
+    }
+
+    const productIds = items.map((i) => i.product);
 
     const products = await Product.find({
       _id: { $in: productIds },
     }).session(session);
 
-    const productMap = {};
-    products.forEach(p => {
-      productMap[p._id.toString()] = p;
-    });
+    if (products.length !== productIds.length) {
+      throw new Error("Uno o más productos no existen");
+    }
 
-    // recetas
     const recipes = await Recipe.find({
       product: { $in: productIds },
     }).session(session);
 
-    const recipeMap = {};
-    recipes.forEach(r => {
-      recipeMap[r.product.toString()] = r;
-    });
-
-    //  inventario
-    const ingredientIds = recipes.flatMap(r =>
-      r.ingredients.map(i => i.inventoryItem)
+    const inventoryIds = recipes.flatMap((r) =>
+      r.ingredients.map((i) => i.inventoryItem)
     );
 
     const inventoryItems = await InventoryItem.find({
-      _id: { $in: ingredientIds },
+      _id: { $in: inventoryIds },
     }).session(session);
 
-    const inventoryMap = {};
-    inventoryItems.forEach(i => {
-      inventoryMap[i._id.toString()] = i;
-    });
+    const productMap = Object.fromEntries(
+      products.map((p) => [p._id.toString(), p])
+    );
 
-    //  validar stock
+    const recipeMap = Object.fromEntries(
+      recipes.map((r) => [r.product.toString(), r])
+    );
+
+    const inventoryMap = Object.fromEntries(
+      inventoryItems.map((i) => [i._id.toString(), i])
+    );
+
+    /* =========================
+       STOCK VALIDATION
+    ========================= */
     for (const item of items) {
       const recipe = recipeMap[item.product];
-
-      if (!recipe) {
-        throw new Error("Producto sin receta");
-      }
+      if (!recipe) continue;
 
       for (const ing of recipe.ingredients) {
         const inv = inventoryMap[ing.inventoryItem];
-
         if (!inv) continue;
 
         const required = ing.quantity * item.quantity;
@@ -151,54 +219,64 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    //  descontar stock
+    /* =========================
+       DECREMENT STOCK
+    ========================= */
     for (const item of items) {
       const recipe = recipeMap[item.product];
+      if (!recipe) continue;
 
       for (const ing of recipe.ingredients) {
         const inv = inventoryMap[ing.inventoryItem];
-
         if (!inv) continue;
 
-        const required = ing.quantity * item.quantity;
-
-        inv.stock -= required;
+        inv.stock -= ing.quantity * item.quantity;
       }
     }
 
-    for (const inv of Object.values(inventoryMap)) {
-      await inv.save({ session });
-    }
+    await Promise.all(
+      Object.values(inventoryMap).map((i) =>
+        i.save({ session })
+      )
+    );
 
-    //  armar orden
+    /* =========================
+       BUILD ORDER ITEMS
+    ========================= */
     let total = 0;
 
-    const orderItems = items.map(item => {
+    const orderItems = items.map((item) => {
       const product = productMap[item.product];
 
-      if (!product) throw new Error("Producto inválido");
+      if (!product) {
+        throw new Error("Producto inválido en items");
+      }
 
       const price = product.price || 0;
       const subtotal = price * item.quantity;
-
       total += subtotal;
 
       return {
         product: product._id,
         quantity: item.quantity,
         price,
-        type: product.type,
+        type: product.type || "drink",
         status: "pending",
       };
     });
 
+    /* =========================
+       CREATE ORDER
+    ========================= */
     const [order] = await Order.create(
       [
         {
           items: orderItems,
           total,
           table,
+          sessionId,
           notes,
+          sessionStatus: "open",
           status: "pending",
         },
       ],
@@ -207,83 +285,140 @@ export const createOrder = async (req, res) => {
 
     await session.commitTransaction();
 
+    emitOrderCreate(order);
+
     res.status(201).json(order);
 
   } catch (error) {
     await session.abortTransaction();
-    res.status(400).json({ error: error.message });
+
+    console.log("CREATE ORDER ERROR:", error.message);
+
+    sendError(res, 400, error.message);
   } finally {
     session.endSession();
   }
 };
-
 /* ==============================
    UPDATE ORDER STATUS
 ============================== */
 export const updateOrderStatus = async (req, res) => {
   try {
-    const validStatus = ["pending", "in-progress", "completed", "cancelled"];
     const { status } = req.body;
+    const { id } = req.params;
 
-    if (!validStatus.includes(status)) {
-      return res.status(400).json({ error: "Estado inválido" });
+    if (!ORDER_STATUS.includes(status)) {
+      return sendError(res, 400, "Estado inválido");
     }
 
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    ).populate("items.product");
+    const order = await Order.findById(id);
 
-    if (!order) {
-      return res.status(404).json({ error: "Orden no encontrada" });
+    if (!order) return sendError(res, 404, "Orden no encontrada");
+
+    if (order.sessionStatus === "closed") {
+      return sendError(res, 400, "Orden ya cerrada");
+    }
+
+    order.status = status;
+
+    if (["completed", "cancelled"].includes(status)) {
+      order.sessionStatus = "closed";
+      order.closedAt = new Date();
+    }
+
+    await order.save();
+
+    emitOrderUpdate(order);
+
+    if (order.sessionStatus === "closed") {
+      await handleTableAutoClose(order.table);
     }
 
     res.json(order);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch {
+    sendError(res, 500, "Error al actualizar orden");
   }
 };
 
 /* ==============================
-   UPDATE ITEM STATUS (CLAVE)
+   UPDATE ITEM STATUS
 ============================== */
 export const updateOrderItemStatus = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
 
-    const validStatus = ["pending", "preparing", "ready", "delivered"];
-
-    if (!validStatus.includes(status)) {
-      return res.status(400).json({ error: "Estado inválido" });
+    if (!ITEM_STATUS.includes(status)) {
+      return sendError(res, 400, "Estado inválido");
     }
 
     const order = await Order.findById(orderId);
 
-    if (!order) {
-      return res.status(404).json({ error: "Orden no encontrada" });
-    }
+    if (!order) return sendError(res, 404, "Orden no encontrada");
 
     const item = order.items.id(itemId);
-
-    if (!item) {
-      return res.status(404).json({ error: "Item no encontrado" });
-    }
+    if (!item) return sendError(res, 404, "Item no encontrado");
 
     item.status = status;
 
-    // auto estado global
-    const allDelivered = order.items.every(i => i.status === "delivered");
+    const allDelivered = order.items.every(
+      (i) => i.status === "delivered"
+    );
 
-    order.status = allDelivered ? "completed" : "in-progress";
+    const anyPreparing = order.items.some(
+      (i) => i.status === "preparing"
+    );
+
+    if (allDelivered) {
+      order.status = "completed";
+      order.sessionStatus = "closed";
+      order.closedAt = new Date();
+    } else if (anyPreparing) {
+      order.status = "in-progress";
+    }
 
     await order.save();
 
+    emitOrderUpdate(order);
+
+    if (order.sessionStatus === "closed") {
+      await handleTableAutoClose(order.table);
+    }
+
     res.json(order);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch {
+    sendError(res, 500, "Error al actualizar item");
+  }
+};
+
+/* ==============================
+   DELETE ORDER
+============================== */
+export const deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return sendError(res, 400, "ID inválido");
+    }
+
+    const order = await Order.findById(id);
+
+    if (!order) return sendError(res, 404, "Orden no encontrada");
+
+    if (order.sessionStatus === "open") {
+      return sendError(res, 400, "No puedes eliminar orden activa");
+    }
+
+    await order.deleteOne();
+
+    emitOrderDelete(order);
+
+    res.json({ message: "Orden eliminada correctamente" });
+
+  } catch {
+    sendError(res, 500, "Error al eliminar orden");
   }
 };

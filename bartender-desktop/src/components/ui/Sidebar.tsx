@@ -7,11 +7,14 @@ import {
   Armchair,
   Package,
   Wine,
-  LogOut, 
+  LogOut,
   BookOpen,
   Users,
+  Dices,
 } from "lucide-react";
+
 import { useAuthStore } from "../../store/authStore";
+import styles from "../../styles/Sidebar.module.css";
 
 export default function Sidebar() {
   const logout = useAuthStore((state) => state.logout);
@@ -22,53 +25,75 @@ export default function Sidebar() {
     navigate("/", { replace: true });
   };
 
-  const menuItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Productos", path: "/products", icon: Wine },
-    { name: "Menús", path: "/menus", icon: UtensilsCrossed },
-    { name: "Pedidos", path: "/orders", icon: ClipboardList },
-    { name: "Reservas", path: "/reservations", icon: CalendarDays },
-    { name: "Mesas", path: "/tables", icon: Armchair },
-    { name: "Inventario", path: "/inventory", icon: Package },
-    { name: "Recetas", path: "/recipes", icon: BookOpen },
-    { name: "Empleados", path: "/employees", icon: Users },
+  const menuSections = [
+    {
+      title: "General",
+      items: [{ name: "Dashboard", path: "/dashboard", icon: LayoutDashboard }],
+    },
+    {
+      title: "Operación",
+      items: [
+        { name: "Pedidos", path: "/orders", icon: ClipboardList },
+        { name: "Mesas", path: "/tables", icon: Armchair },
+        { name: "Reservas", path: "/reservations", icon: CalendarDays },
+      ],
+    },
+    {
+      title: "Gestión",
+      items: [
+        { name: "Productos", path: "/products", icon: Wine },
+        { name: "Menús", path: "/menus", icon: UtensilsCrossed },
+        { name: "Inventario", path: "/inventory", icon: Package },
+        { name: "Recetas", path: "/recipes", icon: BookOpen },
+      ],
+    },
+    {
+      title: "Sistema",
+      items: [
+        { name: "Empleados", path: "/employees", icon: Users },
+        { name: "Ruleta", path: "/roulette", icon: Dices },
+      ],
+    },
   ];
 
   return (
-    <aside className="w-64 h-screen bg-gray-900 border-r border-gray-800 flex flex-col">
-      {/* Logo */}
-      <div className="p-6 text-xl font-bold text-amber-400 border-b border-gray-800">
-        🍸 Bartender
+    <aside className={styles.sidebar}>
+      {/* LOGO */}
+      <div className={styles.logo}>
+        <div className={styles.brand}>
+          <span className={styles.brandAccent}>🍸</span>
+          Bartender
+        </div>
+        <div className={styles.subtitle}>Panel de control</div>
       </div>
 
-      {/* Navegación */}
-      <nav className="flex-1 space-y-2 px-4 py-4 overflow-y-auto">
-        {menuItems.map(({ name, path, icon: Icon }) => (
-          <NavLink
-            key={name}
-            to={path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-amber-500 text-black font-semibold"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
-              }`
-            }
-          >
-            <Icon size={18} />
-            <span>{name}</span>
-          </NavLink>
+      {/* NAV */}
+      <nav className={styles.nav}>
+        {menuSections.map((section) => (
+          <div key={section.title}>
+            <div className={styles.sectionTitle}>{section.title}</div>
+
+            {section.items.map(({ name, path, icon: Icon }) => (
+              <NavLink
+                key={name}
+                to={path}
+                className={({ isActive }) =>
+                  `${styles.item} ${isActive ? styles.active : ""}`
+                }
+              >
+                <Icon className={styles.icon} size={18} />
+                <span className="text-sm">{name}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
-      {/* Botón de cierre de sesión */}
-      <div className="p-4 border-t border-gray-800">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 w-full p-3 rounded-lg bg-red-500 hover:bg-red-600 transition-colors"
-        >
+      {/* FOOTER */}
+      <div className={styles.footer}>
+        <button onClick={handleLogout} className={styles.logout}>
           <LogOut size={18} />
-          Cerrar sesión
+          <span className="text-sm">Cerrar sesión</span>
         </button>
       </div>
     </aside>

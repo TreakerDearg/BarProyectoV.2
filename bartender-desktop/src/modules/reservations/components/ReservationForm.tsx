@@ -1,160 +1,314 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  X,
+  User,
+  Phone,
+  Users,
+  Calendar,
+  Clock,
+  FileText,
+  Loader2,
+  MapPin,
+  Utensils,
+} from "lucide-react";
+
 import type { Reservation } from "../types/reservation";
+import { getAvailableTables } from "../services/reservationService";
+
+/* =========================
+   TYPES
+========================= */
+interface TableOption {
+  _id: string;
+  number: number;
+  capacity: number;
+  status?: string;
+}
 
 interface Props {
   reservation?: Reservation | null;
-  onSave: (reservation: Reservation) => void;
+  onSave: (reservation: any) => void;
   onClose: () => void;
 }
 
+/* =========================
+   COMPONENT
+========================= */
 export default function ReservationForm({
   reservation,
   onSave,
   onClose,
 }: Props) {
-  const [formData, setFormData] = useState<Reservation>({
+  const [formData, setFormData] = useState<any>({
     customerName: "",
     customerPhone: "",
-    customerEmail: "",
-    date: "",
-    time: "",
+    startTime: "",
+    endTime: "",
     guests: 1,
-    tableNumber: 1,
-    status: "pending",
+    tableId: "",
     notes: "",
   });
 
+  const [tables, setTables] = useState<TableOption[]>([]);
+  const [loadingTables, setLoadingTables] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /* =========================
+     LOAD EDIT MODE
+  ========================= */
   useEffect(() => {
-    if (reservation) {
-      setFormData(reservation);
-    }
+    if (!reservation) return;
+
+    setFormData({
+      customerName: reservation.customerName || "",
+      customerPhone: reservation.customerPhone || "",
+      startTime: reservation.startTime?.slice(0, 16) || "",
+      endTime: reservation.endTime?.slice(0, 16) || "",
+      guests: reservation.guests || 1,
+      tableId: (reservation as any).tableId?._id || "",
+      notes: reservation.notes || "",
+    });
   }, [reservation]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
+  /* =========================
+     AUTO END TIME (SMART)
+     - solo si no hay endTime
+  ========================= */
+  useEffect(() => {
+    if (!formData.startTime || formData.endTime) return;
+
+    const start = new Date(formData.startTime);
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+    setFormData((prev: any) => ({
+      ...prev,
+      endTime: end.toISOString().slice(0, 16),
+    }));
+  }, [formData.startTime]);
+
+  /* =========================
+     VALID DATES MEMO
+  ========================= */
+  const isDateValid = useMemo(() => {
+    if (!formData.startTime || !formData.endTime) return false;
+
+    const start = new Date(formData.startTime);
+    const end = new Date(formData.endTime);
+
+    return end > start;
+  }, [formData.startTime, formData.endTime]);
+
+  /* =========================
+     FETCH TABLES (SMART + DEBOUNCE SIMPLE)
+  ========================= */
+  useEffect(() => {
+    const fetchTables = async () => {
+      if (!formData.startTime || !formData.endTime || !formData.guests) return;
+      if (!isDateValid) return;
+
+      try {
+        setLoadingTables(true);
+        setError(null);
+
+        const data = await getAvailableTables({
+          startTime: new Date(formData.startTime).toISOString(),
+          endTime: new Date(formData.endTime).toISOString(),
+          guests: Number(formData.guests),
+        });
+
+        setTables(data || []);
+      } catch (err: any) {
+        setError(err.message || "Error cargando mesas");
+      } finally {
+        setLoadingTables(false);
+      }
+    };
+
+    const timeout = setTimeout(fetchTables, 400); // anti spam requests
+    return () => clearTimeout(timeout);
+  }, [formData.startTime, formData.endTime, formData.guests]);
+
+  /* =========================
+     HANDLE CHANGE
+  ========================= */
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    setFormData((prev: any) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /* =========================
+     SUBMIT (CLEAN)
+  ========================= */
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      guests: Number(formData.guests),
-      tableNumber: Number(formData.tableNumber),
-    });
+    setError(null);
+
+    if (!formData.customerName || !formData.customerPhone) {
+      return setError("Nombre y teléfono requeridos");
+    }
+
+    if (!isDateValid) {
+      return setError("Rango de tiempo inválido");
+    }
+
+    try {
+      setLoading(true);
+
+      await onSave({
+        ...formData,
+        guests: Number(formData.guests),
+        startTime: new Date(formData.startTime).toISOString(),
+        endTime: new Date(formData.endTime).toISOString(),
+        tableId: formData.tableId || null,
+      });
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  /* =========================
+     UI
+  ========================= */
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-      <form className="bg-gray-900 p-6 rounded-xl w-[500px]" onSubmit={handleSubmit}>
-        <h2 className="text-xl font-bold mb-4">
-          {reservation ? "Editar Reserva" : "Nueva Reserva"}
-        </h2>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
 
-        <input
-          name="customerName"
-          placeholder="Nombre del Cliente"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.customerName}
-          onChange={handleChange}
-          required
-        />
+      <form
+        onSubmit={handleSubmit}
+        className="w-[580px] bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-6 space-y-5"
+      >
 
-        <input
-          name="customerPhone"
-          placeholder="Teléfono"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.customerPhone}
-          onChange={handleChange}
-          required
-        />
+        {/* HEADER */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold text-white">
+            {reservation ? "Editar Reserva" : "Nueva Reserva"}
+          </h2>
 
-        <input
-          name="customerEmail"
-          placeholder="Email"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.customerEmail}
-          onChange={handleChange}
-        />
-
-        <input
-          type="date"
-          name="date"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.date}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="time"
-          name="time"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.time}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="number"
-          name="guests"
-          placeholder="Número de Personas"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.guests}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="number"
-          name="tableNumber"
-          placeholder="Número de Mesa"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.tableNumber}
-          onChange={handleChange}
-          required
-        />
-
-        <select
-          name="status"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.status}
-          onChange={handleChange}
-        >
-          <option value="pending">Pendiente</option>
-          <option value="confirmed">Confirmada</option>
-          <option value="completed">Completada</option>
-          <option value="cancelled">Cancelada</option>
-        </select>
-
-        <textarea
-          name="notes"
-          placeholder="Notas adicionales"
-          className="w-full p-2 mb-3 rounded bg-gray-800"
-          value={formData.notes}
-          onChange={handleChange}
-        />
-
-        <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 rounded"
+            className="text-gray-400 hover:text-white"
+          >
+            <X />
+          </button>
+        </div>
+
+        {/* ERROR */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* CLIENT */}
+        <div className="grid grid-cols-2 gap-3">
+          <Input icon={<User size={16} />} name="customerName" value={formData.customerName} onChange={handleChange} placeholder="Nombre" />
+          <Input icon={<Phone size={16} />} name="customerPhone" value={formData.customerPhone} onChange={handleChange} placeholder="Teléfono" />
+        </div>
+
+        {/* GUESTS */}
+        <Input
+          icon={<Users size={16} />}
+          name="guests"
+          type="number"
+          value={formData.guests}
+          onChange={handleChange}
+          placeholder="Cantidad de personas"
+        />
+
+        {/* TIME */}
+        <div className="grid grid-cols-2 gap-3">
+          <Input icon={<Calendar size={16} />} type="datetime-local" name="startTime" value={formData.startTime} onChange={handleChange} />
+          <Input icon={<Clock size={16} />} type="datetime-local" name="endTime" value={formData.endTime} onChange={handleChange} />
+        </div>
+
+        {/* TABLE SELECT */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-2">
+          <div className="flex items-center gap-2 mb-2 text-sm text-gray-400">
+            <MapPin size={14} /> Mesa disponible
+          </div>
+
+          <select
+            name="tableId"
+            value={formData.tableId}
+            onChange={handleChange}
+            className="w-full bg-transparent outline-none"
+          >
+            <option value="">Asignar automáticamente</option>
+
+            {loadingTables && <option>Cargando mesas...</option>}
+
+            {tables.map((t) => (
+              <option key={t._id} value={t._id}>
+                Mesa {t.number} · {t.capacity} personas
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* NOTES */}
+        <div className="relative">
+          <FileText className="absolute left-2 top-3 text-gray-500" size={16} />
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            placeholder="Notas (VIP, alergias, etc.)"
+            className="w-full pl-8 p-2 bg-gray-800 rounded-lg border border-gray-700"
+          />
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
           >
             Cancelar
           </button>
+
           <button
             type="submit"
-            className="px-4 py-2 bg-amber-500 text-black rounded"
+            disabled={loading}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded-lg font-semibold flex items-center gap-2"
           >
+            {loading && <Loader2 className="animate-spin" size={16} />}
             Guardar
           </button>
         </div>
+
       </form>
+    </div>
+  );
+}
+
+/* =========================
+   INPUT COMPONENT (mini UI system)
+========================= */
+function Input({
+  icon,
+  ...props
+}: any) {
+  return (
+    <div className="relative">
+      <div className="absolute left-2 top-3 text-gray-500">
+        {icon}
+      </div>
+
+      <input
+        {...props}
+        className="w-full pl-8 p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-amber-500 outline-none"
+      />
     </div>
   );
 }

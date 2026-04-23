@@ -1,103 +1,47 @@
 import { Router } from "express";
-
 import {
   getTables,
   getTableById,
   createTable,
   updateTable,
   deleteTable,
-
   openTable,
   closeTable,
-  assignOrderToTable,
-  getTableOrders,
-
-
   addTableTag,
   removeTableTag,
   clearTableTags,
+
 } from "../controllers/table.controller.js";
+
+import { asyncHandler } from "../middlewares/asyncHandler.js";
 
 const router = Router();
 
-/* ==============================
-   BASE
-============================== */
-
-/**
- *  Obtener mesas
- * Query:
- * ?status=available | occupied | reserved
- * ?location=indoor | outdoor | bar
- */
-router.get("/", getTables);
-
-/**
- *  Obtener una mesa
- */
-router.get("/:id", getTableById);
 
 /* ==============================
-   GESTIÓN
+   TABLES
 ============================== */
-
-/**
- *  Crear mesa
- */
-router.post("/", createTable);
-
-/**
- *  Actualizar mesa
- */
-router.put("/:id", updateTable);
-
-/**
- *  Eliminar mesa
- */
-router.delete("/:id", deleteTable);
+router.get("/", asyncHandler(getTables));
+router.get("/:id", asyncHandler(getTableById));
 
 /* ==============================
-   OPERACIONES (CORE)
+   CRUD
 ============================== */
-
-/**
- *  Abrir mesa
- */
-router.patch("/:id/open", openTable);
-
-/**
- *  Cerrar mesa
- */
-router.patch("/:id/close", closeTable);
-
-/**
- *  Asignar orden
- */
-router.post("/:id/orders", assignOrderToTable);
-
-/**
- *  Obtener órdenes
- */
-router.get("/:id/orders", getTableOrders);
+router.post("/", asyncHandler(createTable));
+router.put("/:id", asyncHandler(updateTable));
+router.delete("/:id", asyncHandler(deleteTable));
 
 /* ==============================
-   TAGS 
+   POS ACTIONS
 ============================== */
+router.post("/:id/open", asyncHandler(openTable));
+router.post("/:id/close", asyncHandler(closeTable));
 
-/**
- *  Agregar tag
- * body: { label, type, priority }
- */
-router.post("/:id/tags", addTableTag);
-
-/**
- *  Eliminar tag (por label)
- */
-router.delete("/:id/tags/:label", removeTableTag);
-
-/**
- *  Limpiar todos los tags
- */
-router.delete("/:id/tags", clearTableTags);
+/* ==============================
+   TAGS
+============================== */
+router.post("/:id/tags", asyncHandler(addTableTag));
+router.delete("/:id/tags/:label", asyncHandler(removeTableTag));
+router.delete("/:id/tags", asyncHandler(clearTableTags));
 
 export default router;

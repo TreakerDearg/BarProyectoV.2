@@ -1,24 +1,43 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+
+/* ==============================
+   PAGES PUBLIC
+============================== */
 import Login from "../modules/auth/pages/Login";
+
+/* ==============================
+   CORE MODULES
+============================== */
+import Dashboard from "../modules/dashboard/pages/Dashboard";
+
 import ProductsPage from "../modules/products/pages/ProductsPage";
 import MenusPage from "../modules/menus/pages/MenusPage";
 import InventoryPage from "../modules/inventory/pages/InventoryPage";
 import RecipesPage from "../modules/recipes/pages/RecipesPage";
 import TablesPage from "../modules/tables/pages/TablesPage";
-import EmployeesPage from "../modules/admin/pages/EmployeesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
+import RoulettePage from "../modules/roulette/pages/RoulettePage";
 import OrdersPage from "../modules/orders/pages/OrdersPage";
-import Dashboard from "../modules/dashboard/pages/Dashboard";
-import DashboardLayout from "../layouts/DashboardLayout";
-import { useAuthStore } from "../store/authStore";
 
-// Componente para proteger rutas privadas
+/* ==============================
+   ADMIN MODULE ROUTES
+============================== */
+import { adminRoutes } from "./admin.routes";
+
+/* ==============================
+   PRIVATE ROUTE GUARD
+============================== */
 const PrivateRoute = () => {
-  const { isAuthenticated } = useAuthStore();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };
 
-// Layout para las rutas del dashboard
+/* ==============================
+   DASHBOARD LAYOUT WRAPPER
+============================== */
+import DashboardLayout from "../layouts/DashboardLayout";
+
 const DashboardRoutes = () => {
   return (
     <DashboardLayout>
@@ -27,17 +46,26 @@ const DashboardRoutes = () => {
   );
 };
 
+/* ==============================
+   APP ROUTER
+============================== */
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta pública */}
+
+        {/* ================= PUBLIC ================= */}
         <Route path="/" element={<Login />} />
 
-        {/* Rutas privadas */}
+        {/* ================= PRIVATE ================= */}
         <Route element={<PrivateRoute />}>
+
+          {/* WRAPPED LAYOUT */}
           <Route element={<DashboardRoutes />}>
+
+            {/* ================= CORE SYSTEM ================= */}
             <Route path="/dashboard" element={<Dashboard />} />
+
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/menus" element={<MenusPage />} />
             <Route path="/orders" element={<OrdersPage />} />
@@ -45,12 +73,23 @@ export default function AppRouter() {
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/recipes" element={<RecipesPage />} />
-            <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/roulette" element={<RoulettePage />} />
+
+            {/* ================= ADMIN MODULE (DYNAMIC) ================= */}
+            {adminRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={<route.element />}
+              />
+            ))}
+
           </Route>
         </Route>
 
-        {/* Redirección para rutas inexistentes */}
+        {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

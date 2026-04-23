@@ -6,47 +6,68 @@ import {
   getProfile,
 } from "../controllers/auth.controller.js";
 
-import { protect } from "../middlewares/auth.middleware.js";
+import {
+  protect,
+  authorizeRoles,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-/* ==============================
+/* =========================================================
    PUBLIC ROUTES
-============================== */
+   (Sin autenticación)
+========================================================= */
 
 /**
- * Registro (solo clientes)
+ * Registro de clientes
+ * - fuerza role: client en backend
  */
 router.post("/register", registerUser);
 
 /**
- * Login (clientes + empleados)
+ * Login universal (admin + staff + client)
  */
 router.post("/login", loginUser);
 
-/* ==============================
+/* =========================================================
    PRIVATE ROUTES
-============================== */
+   (JWT requerido)
+========================================================= */
 
 /**
- * Obtener usuario autenticado
+ * Obtener perfil del usuario autenticado
  */
 router.get("/me", protect, getProfile);
 
 /**
- * Logout (cliente limpia token)
+ * Logout (stateless JWT)
+ * - solo frontend elimina token
  */
 router.post("/logout", protect, (req, res) => {
-  res.json({ message: "Logout exitoso" });
+  return res.json({
+    success: true,
+    message: "Logout exitoso",
+  });
 });
 
-/* ==============================
-   FUTURO (RECOMENDADO IMPLEMENTAR)
-============================== */
+/* =========================================================
+   FUTURO / EXTENSIÓN (YA PREPARADO)
+========================================================= */
 
 /**
- * Refresh token (opcional)
+ * Endpoint solo admin (ejemplo base)
+ * útil para testing de roles
  */
-// router.post("/refresh", refreshToken);
+router.get(
+  "/admin-check",
+  protect,
+  authorizeRoles("admin"),
+  (req, res) => {
+    res.json({
+      message: "Acceso de admin confirmado",
+      user: req.user,
+    });
+  }
+);
 
 export default router;

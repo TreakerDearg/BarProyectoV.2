@@ -1,12 +1,16 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-/* ==============================
-   TOKEN GENERATOR
-============================== */
-const generateToken = (id) => {
+/* =========================================================
+   TOKEN GENERATOR (FULL CONTEXT)
+========================================================= */
+const generateToken = (user) => {
   return jwt.sign(
-    { id },
+    {
+      id: user._id,
+      role: user.role,
+      shift: user.shift || null,
+    },
     process.env.JWT_SECRET,
     {
       expiresIn: process.env.JWT_EXPIRES_IN || "8h",
@@ -14,9 +18,9 @@ const generateToken = (id) => {
   );
 };
 
-/* ==============================
+/* =========================================================
    REGISTER (CLIENT ONLY)
-============================== */
+========================================================= */
 export const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -27,10 +31,10 @@ export const registerUser = async (req, res, next) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const exists = await User.findOne({ email });
 
-    if (existingUser) {
-      return res.status(400).json({
+    if (exists) {
+      return res.status(409).json({
         message: "El usuario ya existe",
       });
     }
@@ -39,27 +43,30 @@ export const registerUser = async (req, res, next) => {
       name,
       email,
       password,
-      role: "client", // seguridad
+      role: "client",
+      isActive: true,
+      permissions: {},
+      shift: null,
     });
 
-    res.status(201).json({
-      token: generateToken(user._id),
+    return res.status(201).json({
+      token: generateToken(user),
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        shift: user.shift,
       },
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-/* ==============================
-   LOGIN (PRO)
-============================== */
+/* =========================================================
+   LOGIN (MAIN AUTH FLOW)
+========================================================= */
 export const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -78,66 +85,60 @@ export const loginUser = async (req, res, next) => {
       });
     }
 
-    /* =========================
-       USUARIO DESACTIVADO
-    ========================= */
     if (!user.isActive) {
       return res.status(403).json({
         message: "Usuario desactivado",
       });
     }
 
-    /* =========================
-       BLOQUEO POR SEGURIDAD
-    ========================= */
-    if (user.isLocked()) {
+    if (user.lockUntil && user.lockUntil > Date.now()) {
       return res.status(423).json({
         message: "Cuenta bloqueada temporalmente",
       });
     }
 
-    /* =========================
-       VALIDAR PASSWORD
-    ========================= */
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
       await user.incrementLoginAttempts();
-
       return res.status(401).json({
         message: "Credenciales inválidas",
       });
     }
 
-    /* =========================
-       LOGIN OK
-    ========================= */
     await user.resetLoginAttempts();
 
-    res.json({
-      token: generateToken(user._id),
+    user.lastLogin = new Date();
+    await user.save();
+
+    return res.json({
+      token: generateToken(user),
       user: {
         _id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        shift: user.shift,
+        permissions: user.permissions,
       },
     });
-
   } catch (error) {
     next(error);
   }
 };
 
-/* ==============================
+/* =========================================================
    PROFILE (ME)
-============================== */
+========================================================= */
 export const getProfile = async (req, res) => {
-  res.json({
+  return res.json({
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
     role: req.user.role,
+    shift: req.user.shift,
+    permissions: req.user.permissions,
     lastLogin: req.user.lastLogin,
+    isActive: req.user.isActive,
   });
 };

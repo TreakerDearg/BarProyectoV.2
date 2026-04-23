@@ -1,20 +1,31 @@
 export type ReservationStatus =
   | "pending"
   | "confirmed"
+  | "seated"
+  | "completed"
   | "cancelled"
-  | "completed";
+  | "no-show";
 
 export interface Reservation {
   _id?: string;
+
   customerName: string;
   customerPhone: string;
-  customerEmail?: string;
-  date: string;
-  time: string;
+
+  startTime: string; // ISO
+  endTime: string;   // ISO
+
   guests: number;
-  tableNumber: number;
+
+  tableId: {
+    _id: string;
+    number: number;
+  } | string;
+
   status: ReservationStatus;
+
   notes?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }

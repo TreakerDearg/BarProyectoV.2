@@ -31,9 +31,6 @@ export default function EmployeeForm({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  /* ==============================
-     HANDLE INPUT
-  ============================== */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -43,23 +40,17 @@ export default function EmployeeForm({
     }));
   };
 
-  /* ==============================
-     VALIDATION PRO
-  ============================== */
   const validate = (): string => {
     const emailRegex = /^\S+@\S+\.\S+$/;
 
     if (!form.name.trim()) return "El nombre es obligatorio";
-    if (form.name.trim().length < 2)
-      return "El nombre debe tener al menos 2 caracteres";
+    if (form.name.trim().length < 2) return "Mínimo 2 caracteres";
 
     if (!form.email.trim()) return "El email es obligatorio";
-    if (!emailRegex.test(form.email))
-      return "Email inválido";
+    if (!emailRegex.test(form.email)) return "Email inválido";
 
     if (!form.password) return "La contraseña es obligatoria";
-    if (form.password.length < 6)
-      return "La contraseña debe tener al menos 6 caracteres";
+    if (form.password.length < 6) return "Mínimo 6 caracteres";
 
     if (form.password !== form.confirmPassword)
       return "Las contraseñas no coinciden";
@@ -67,110 +58,137 @@ export default function EmployeeForm({
     return "";
   };
 
-  /* ==============================
-     SUBMIT
-  ============================== */
   const handleSubmit = () => {
     const err = validate();
-    if (err) {
-      setError(err);
-      return;
-    }
+    if (err) return setError(err);
 
     setError("");
 
     const { confirmPassword, ...data } = form;
-
     onSave(data);
   };
 
-  /* ==============================
-     UI
-  ============================== */
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 w-[420px] rounded-2xl p-6 shadow-xl border border-gray-800">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50">
+
+      {/* ================= MODAL ================= */}
+      <div className="w-[440px] rounded-2xl border border-[rgba(255,255,255,0.06)]
+      bg-[#0E131B]/80 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.7)]
+      p-6">
 
         {/* HEADER */}
-        <h2 className="text-xl font-bold text-white mb-4">
-          Crear empleado
-        </h2>
+        <div className="mb-5">
+          <h2 className="text-xl font-semibold text-white">
+            Crear empleado
+          </h2>
+          <p className="text-xs text-[#71717A] mt-1">
+            Terminal de gestión de personal
+          </p>
+
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-[#A78BFA]/30 to-transparent mt-3" />
+        </div>
 
         {/* ERROR */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-300 text-sm p-2 rounded mb-3">
+          <div className="mb-3 text-sm text-[#F87171] bg-[#F87171]/10 border border-[#F87171]/20 p-2 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* NAME */}
-        <input
-          name="name"
-          placeholder="Nombre completo"
-          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={handleChange}
-          value={form.name}
-        />
+        {/* INPUTS */}
+        <div className="space-y-3">
 
-        {/* EMAIL */}
-        <input
-          name="email"
-          placeholder="Email"
-          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={handleChange}
-          value={form.email}
-        />
-
-        {/* PASSWORD */}
-        <div className="relative mb-3">
           <input
-            name="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Contraseña"
-            className="w-full p-2 pr-10 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
+            name="name"
+            placeholder="Nombre completo"
+            className="w-full px-3 py-2.5 rounded-xl
+            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
+            text-white placeholder:text-[#71717A]
+            outline-none focus:border-[#A78BFA]/40
+            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
+            transition"
             onChange={handleChange}
-            value={form.password}
+            value={form.name}
           />
 
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-2 text-gray-400"
+          <input
+            name="email"
+            placeholder="Email"
+            className="w-full px-3 py-2.5 rounded-xl
+            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
+            text-white placeholder:text-[#71717A]
+            outline-none focus:border-[#A78BFA]/40
+            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
+            transition"
+            onChange={handleChange}
+            value={form.email}
+          />
+
+          {/* PASSWORD */}
+          <div className="relative">
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Contraseña"
+              className="w-full px-3 py-2.5 pr-10 rounded-xl
+              bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
+              text-white placeholder:text-[#71717A]
+              outline-none focus:border-[#A78BFA]/40
+              focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
+              transition"
+              onChange={handleChange}
+              value={form.password}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-2.5 text-[#71717A] hover:text-[#A78BFA] transition"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirmar contraseña"
+            className="w-full px-3 py-2.5 rounded-xl
+            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
+            text-white placeholder:text-[#71717A]
+            outline-none focus:border-[#A78BFA]/40
+            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
+            transition"
+            onChange={handleChange}
+            value={form.confirmPassword}
+          />
+
+          {/* ROLE */}
+          <select
+            name="role"
+            className="w-full px-3 py-2.5 rounded-xl
+            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
+            text-white outline-none focus:border-[#A78BFA]/40 transition"
+            onChange={handleChange}
+            value={form.role}
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+            <option value="bartender">Bartender</option>
+            <option value="waiter">Mozo</option>
+            <option value="cashier">Caja</option>
+            <option value="kitchen">Cocina</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
 
-        {/* CONFIRM PASSWORD */}
-        <input
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirmar contraseña"
-          className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={handleChange}
-          value={form.confirmPassword}
-        />
-
-        {/* ROLE */}
-        <select
-          name="role"
-          className="w-full p-2 mb-4 rounded bg-gray-800 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={handleChange}
-          value={form.role}
-        >
-          <option value="bartender">Bartender</option>
-          <option value="waiter">Mozo</option>
-          <option value="cashier">Caja</option>
-          <option value="kitchen">Cocina</option>
-          <option value="admin">Admin</option>
-        </select>
-
         {/* ACTIONS */}
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 mt-5">
+
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white"
+            className="px-4 py-2 rounded-xl
+            bg-[#3F3F46] text-white hover:bg-[#52525B]
+            transition"
           >
             Cancelar
           </button>
@@ -178,12 +196,16 @@ export default function EmployeeForm({
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-2"
+            className="px-4 py-2 rounded-xl
+            bg-[#A78BFA] text-black font-semibold
+            hover:shadow-[0_0_25px_rgba(167,139,250,0.35)]
+            transition flex items-center gap-2"
           >
             {loading && <Loader2 className="animate-spin" size={16} />}
             Crear
           </button>
         </div>
+
       </div>
     </div>
   );

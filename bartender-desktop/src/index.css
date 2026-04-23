@@ -3,50 +3,188 @@
 @tailwind utilities;
 
 /* ===============================
-   CONFIGURACIÓN GLOBAL
+   DESIGN SYSTEM OBSIDIAN BAR
 ================================= */
 :root {
   color-scheme: dark;
+
+  /* ===============================
+     BASE
+  ================================= */
+  --bg: #0B0F14;
+  --surface: #0E131B;
+  --surface-2: #111827;
+  --surface-3: #1A1F2E;
+
+  /* ===============================
+     BORDERS
+  ================================= */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+
+  /* ===============================
+     TEXT
+  ================================= */
+  --text: #F9FAFB;
+  --text-dim: rgba(249, 250, 251, 0.65);
+
+  /* ===============================
+     COLORS CORE SYSTEM
+  ================================= */
+
+  /* Primary (UI / actions principales) */
+  --primary: #A78BFA;
+  --primary-soft: rgba(167, 139, 250, 0.15);
+  --primary-border: rgba(167, 139, 250, 0.35);
+
+  /* Secondary (UI neutral / navegación) */
+  --secondary: #71717A;
+
+  /* Success (estado ok / listo / servido) */
+  --success: #34D399;
+  --success-soft: rgba(52, 211, 153, 0.15);
+
+  /* Neutral deep (estructuras) */
+  --neutral: #3F3F46;
+
+  /* Warning (cocina / atención / calor bar) */
+  --warning: #FB923C;
+  --warning-soft: rgba(251, 146, 60, 0.15);
+
+  /* Danger (errores / cancelaciones) */
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.15);
+
+  /* ===============================
+     SHADOWS
+  ================================= */
+  --shadow-sm: 0 5px 20px rgba(0, 0, 0, 0.3);
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 30px rgba(167, 139, 250, 0.15);
 }
 
-/* Reset básico */
+/* ===============================
+   RESET GLOBAL
+================================= */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Configuración del documento */
+/* ===============================
+   DOCUMENTO BASE
+================================= */
 html,
 body,
 #root {
   height: 100%;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
-/* Estilos del cuerpo */
+/* ===============================
+   BODY BACKGROUND PREMIUM
+================================= */
 body {
-  background-color: #111827; /* gray-900 */
-  color: #f9fafb; /* gray-50 */
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  background:
+    radial-gradient(circle at top, rgba(167, 139, 250, 0.10), transparent 40%),
+    radial-gradient(circle at bottom, rgba(52, 211, 153, 0.05), transparent 50%),
+    var(--bg);
 }
 
-/* Scrollbar personalizada */
+/* ===============================
+   SCROLLBAR OBSIDIAN BAR
+================================= */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937;
+  background: rgba(14, 19, 27, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #f59e0b; /* amber-500 */
-  border-radius: 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(167, 139, 250, 0.7),
+    rgba(52, 211, 153, 0.35)
+  );
+
+  border-radius: 10px;
+  border: 2px solid rgba(11, 15, 20, 0.8);
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d97706; /* amber-600 */
+  background: linear-gradient(
+    180deg,
+    rgba(167, 139, 250, 1),
+    rgba(251, 146, 60, 0.4)
+  );
+}
+
+/* ===============================
+   SELECCIÓN DE TEXTO
+================================= */
+::selection {
+  background: rgba(167, 139, 250, 0.35);
+  color: white;
+}
+
+/* ===============================
+   FOCUS GLOBAL
+================================= */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* ===============================
+   INPUTS / BUTTON RESET
+================================= */
+input,
+button,
+textarea {
+  outline: none;
+}
+
+/* ===============================
+   GLASS SYSTEM COMPONENT
+================================= */
+.glass {
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+/* ===============================
+   UI STATES (IMPORTANTE PARA BAR SYSTEM)
+================================= */
+.state-success {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.state-warning {
+  color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.state-danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.state-primary {
+  color: var(--primary);
+  background: var(--primary-soft);
 }

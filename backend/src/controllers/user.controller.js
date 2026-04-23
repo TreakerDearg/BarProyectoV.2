@@ -1,62 +1,83 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
 
-/* ==============================
+/* =========================================================
    HELPERS
-============================== */
+========================================================= */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-/* ==============================
-   CREATE EMPLOYEE (ADMIN)
-============================== */
+const sendError = (res, status, message, detail = null) => {
+  return res.status(status).json({
+    success: false,
+    message,
+    ...(detail && { detail }),
+  });
+};
+
+const sendSuccess = (res, data, message = "OK") => {
+  return res.json({
+    success: true,
+    message,
+    data,
+  });
+};
+
+/* =========================================================
+   CREATE EMPLOYEE
+   (ADMIN ONLY)
+========================================================= */
 export const createEmployee = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      shift = null,
+      permissions = {},
+    } = req.body;
 
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: "Datos incompletos" });
+      return sendError(res, 400, "Datos incompletos");
     }
 
     const exists = await User.findOne({ email });
 
     if (exists) {
-      return res.status(400).json({ error: "El usuario ya existe" });
+      return sendError(res, 409, "El usuario ya existe");
     }
 
-    const user = new User({
+    const user = await User.create({
       name,
       email,
-      password, 
+      password,
       role,
+      shift,
+      permissions,
       isActive: true,
     });
 
-    await user.save();
-
-    res.status(201).json({
-      message: "Empleado creado correctamente",
-      user,
-    });
+    return sendSuccess(res, user, "Empleado creado correctamente");
   } catch (error) {
-    res.status(500).json({
-      error: "Error creando usuario",
-      detail: error.message,
-    });
+    return sendError(res, 500, "Error creando usuario", error.message);
   }
 };
 
-/* ==============================
+/* =========================================================
    GET EMPLOYEES
-============================== */
+   (ADMIN ONLY)
+========================================================= */
 export const getEmployees = async (req, res) => {
   try {
-    const { role, active } = req.query;
+    const { role, shift, active } = req.query;
 
     const filter = {
       role: { $ne: "client" },
     };
 
     if (role) filter.role = role;
+    if (shift) filter.shift = shift;
+
     if (active !== undefined) {
       filter.isActive = active === "true";
     }
@@ -65,147 +86,189 @@ export const getEmployees = async (req, res) => {
       .select("-password")
       .sort({ createdAt: -1 });
 
-    res.json(users);
+    return sendSuccess(res, users);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return sendError(res, 500, "Error obteniendo empleados", error.message);
   }
 };
 
-/* ==============================
+/* =========================================================
    GET USER BY ID
-============================== */
+========================================================= */
 export const getUser = async (req, res) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return sendError(res, 400, "ID inválido");
     }
 
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(id).select("-password");
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+      return sendError(res, 404, "Usuario no encontrado");
     }
 
-    res.json(user);
+    return sendSuccess(res, user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return sendError(res, 500, "Error obteniendo usuario", error.message);
   }
 };
 
-/* ==============================
-   UPDATE USER (SAFE)
-============================== */
+/* =========================================================
+   UPDATE USER (GENERAL SAFE UPDATE)
+========================================================= */
 export const updateUser = async (req, res) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return sendError(res, 400, "ID inválido");
     }
 
-    const allowedFields = ["name", "role", "isActive"];
+    const allowedFields = [
+      "name",
+      "role",
+      "shift",
+      "permissions",
+      "isActive",
+    ];
 
     const updates = {};
 
-    for (const key of allowedFields) {
-      if (req.body[key] !== undefined) {
-        updates[key] = req.body[key];
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
       }
-    }
+    });
 
-    const updated = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).select("-password");
-
-    if (!updated) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/* ==============================
-   CHANGE PASSWORD (FIXED)
-============================== */
-export const changePassword = async (req, res) => {
-  try {
-    const { password } = req.body;
-
-    if (!password) {
-      return res.status(400).json({ error: "Password requerido" });
-    }
-
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
 
     if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+      return sendError(res, 404, "Usuario no encontrado");
     }
 
-    user.password = password; 
-    await user.save();
-
-    res.json({ message: "Password actualizado correctamente" });
+    return sendSuccess(res, user, "Usuario actualizado");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return sendError(res, 500, "Error actualizando usuario", error.message);
   }
 };
 
-/* ==============================
-   DEACTIVATE USER
-============================== */
-export const deactivateUser = async (req, res) => {
+/* =========================================================
+   CHANGE PASSWORD
+========================================================= */
+export const changePassword = async (req, res) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!isValidId(id)) {
+      return sendError(res, 400, "ID inválido");
     }
 
+    if (!password) {
+      return sendError(res, 400, "Password requerido");
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return sendError(res, 404, "Usuario no encontrado");
+    }
+
+    user.password = password;
+    await user.save();
+
+    return sendSuccess(res, null, "Password actualizado");
+  } catch (error) {
+    return sendError(res, 500, "Error cambiando password", error.message);
+  }
+};
+
+/* =========================================================
+   ACTIVATE / DEACTIVATE
+========================================================= */
+export const deactivateUser = async (req, res) => {
+  try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { isActive: false },
       { new: true }
     ).select("-password");
 
-    if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
+    if (!user) return sendError(res, 404, "Usuario no encontrado");
 
-    res.json({ message: "Usuario desactivado", user });
+    return sendSuccess(res, user, "Usuario desactivado");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return sendError(res, 500, "Error desactivando usuario", error.message);
   }
 };
 
-/* ==============================
-   ACTIVATE USER
-============================== */
 export const activateUser = async (req, res) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { isActive: true },
       { new: true }
     ).select("-password");
 
-    if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
+    if (!user) return sendError(res, 404, "Usuario no encontrado");
+
+    return sendSuccess(res, user, "Usuario activado");
+  } catch (error) {
+    return sendError(res, 500, "Error activando usuario", error.message);
+  }
+};
+
+/* =========================================================
+   PERMISSIONS SYSTEM (CORE FEATURE)
+========================================================= */
+export const updatePermissions = async (req, res) => {
+  try {
+    const { permissions } = req.body;
+
+    if (!permissions || typeof permissions !== "object") {
+      return sendError(res, 400, "Permissions inválidos");
     }
 
-    res.json({ message: "Usuario activado", user });
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { permissions },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return sendError(res, 404, "Usuario no encontrado");
+
+    return sendSuccess(res, user, "Permisos actualizados");
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return sendError(res, 500, "Error actualizando permisos", error.message);
+  }
+};
+
+/* =========================================================
+   SHIFT SYSTEM (TURNOS OPERATIVOS)
+========================================================= */
+export const assignShift = async (req, res) => {
+  try {
+    const { shift } = req.body;
+
+    if (!shift) {
+      return sendError(res, 400, "Shift requerido");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { shift },
+      { new: true }
+    ).select("-password");
+
+    if (!user) return sendError(res, 404, "Usuario no encontrado");
+
+    return sendSuccess(res, user, "Turno asignado");
+  } catch (error) {
+    return sendError(res, 500, "Error asignando turno", error.message);
   }
 };

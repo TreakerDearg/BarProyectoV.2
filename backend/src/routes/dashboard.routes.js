@@ -1,53 +1,63 @@
 import { Router } from "express";
-
-import {
-  getDashboardStats,
-} from "../controllers/dashboard.controller.js";
+import { getDashboardStats } from "../controllers/dashboard.controller.js";
 
 const router = Router();
 
-/* ==============================
-   CORE DASHBOARD
-============================== */
-
-/**
- *  Dashboard general (todo en uno)
- */
+/* =========================================================
+   CORE DASHBOARD (AGREGADO)
+========================================================= */
 router.get("/", getDashboardStats);
 
-/* ==============================
-   FUTURO ESCALADO (READY)
-============================== */
+/* =========================================================
+   MODOS ESPECÍFICOS (FILTERED MODE)
+========================================================= */
 
 /**
- *  Solo ventas (para gráficos grandes)
- * (futuro endpoint separado si se necesitan datos más específicos o pesados)
+ * Solo ventas (menos carga)
  */
-router.get("/sales", getDashboardStats);
+router.get("/sales", (req, res, next) => {
+  req.query.mode = "sales";
+  return getDashboardStats(req, res, next);
+});
 
 /**
- *  Solo bebidas
+ * Solo bebidas
  */
-router.get("/drinks", getDashboardStats);
+router.get("/drinks", (req, res, next) => {
+  req.query.mode = "drinks";
+  return getDashboardStats(req, res, next);
+});
 
 /**
- *  Solo comida
+ * Solo comida
  */
-router.get("/food", getDashboardStats);
+router.get("/food", (req, res, next) => {
+  req.query.mode = "food";
+  return getDashboardStats(req, res, next);
+});
 
 /**
- *  Estado de mesas
+ * Solo mesas
  */
-router.get("/tables", getDashboardStats);
+router.get("/tables", (req, res, next) => {
+  req.query.mode = "tables";
+  return getDashboardStats(req, res, next);
+});
 
 /**
- *  Estado de inventario
+ * Solo inventario
  */
-router.get("/inventory", getDashboardStats);
+router.get("/inventory", (req, res, next) => {
+  req.query.mode = "inventory";
+  return getDashboardStats(req, res, next);
+});
 
-/**
- *  Dashboard live (para polling / websockets)
- */
-router.get("/live", getDashboardStats);
+/* =========================================================
+   LIVE DASHBOARD (FUTURO SOCKET/POLLING)
+========================================================= */
+router.get("/live", (req, res, next) => {
+  req.query.mode = "live";
+  return getDashboardStats(req, res, next);
+});
 
 export default router;

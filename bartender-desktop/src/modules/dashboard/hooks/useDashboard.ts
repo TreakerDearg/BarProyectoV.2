@@ -1,30 +1,54 @@
 // hooks/useDashboard.ts
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { fetchDashboard } from "../services/dashboardService";
 import { useDashboardStore } from "../store/dashboardStore";
 
 export function useDashboard() {
   const { setData, setLoading } = useDashboardStore();
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
+  const abortRef = useRef<AbortController | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-      try {
-        const data = await fetchDashboard();
-        setData(data);
-      } catch (err) {
-        console.error("Dashboard error:", err);
+  const load = async () => {
+    try {
+      // cancelar request anterior si existe
+      if (abortRef.current) {
+        abortRef.current.abort();
       }
 
-      setLoading(false);
-    };
+      const controller = new AbortController();
+      abortRef.current = controller;
 
+      setLoading(true);
+
+      const data = await fetchDashboard(controller.signal);
+
+      setData(data);
+    } catch (err: any) {
+      if (err.name === "CanceledError") return;
+
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     load();
 
-    const interval = setInterval(load, 30000);
+    intervalRef.current = setInterval(() => {
+      load();
+    }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+    };
   }, []);
 
   return useDashboardStore();

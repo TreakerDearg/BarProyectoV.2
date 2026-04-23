@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 
-/* ==============================
-   ORDER ITEM
-============================== */
+/* =========================================================
+   ORDER ITEM SCHEMA
+========================================================= */
 const orderItemSchema = new mongoose.Schema(
   {
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
+      index: true,
     },
 
     quantity: {
@@ -19,76 +20,140 @@ const orderItemSchema = new mongoose.Schema(
 
     price: {
       type: Number,
-      required: true, // precio al momento de la venta
+      required: true,
+      min: 0,
     },
 
-    //  estado individual (clave para cocina/bar)
-    status: {
-      type: String,
-      enum: ["pending", "preparing", "ready", "delivered"],
-      default: "pending",
-    },
-
-    // tipo (para separar cocina/bar automáticamente)
     type: {
       type: String,
       enum: ["drink", "food"],
       required: true,
+      index: true,
+    },
+
+    /* =========================
+       ITEM FLOW STATUS
+       (clave para cocina/bar)
+    ========================= */
+    status: {
+      type: String,
+      enum: ["pending", "preparing", "ready", "served", "cancelled"],
+      default: "pending",
+      index: true,
+    },
+
+    /* =========================
+       TRACKING TIEMPO
+    ========================= */
+    startedAt: Date,
+    readyAt: Date,
+
+    notes: {
+      type: String,
+      default: "",
     },
   },
   { _id: true }
 );
 
-/* ==============================
-   MAIN ORDER
-============================== */
+/* =========================================================
+   ORDER SCHEMA
+========================================================= */
 const orderSchema = new mongoose.Schema(
   {
-    /* ========================
+    /* =========================
        ITEMS
-    ======================== */
-    items: [orderItemSchema],
-
-    /* ========================
-       TOTAL
-    ======================== */
-    total: {
-      type: Number,
-      required: true,
-      default: 0,
+    ========================= */
+    items: {
+      type: [orderItemSchema],
+      default: [],
     },
 
-    /* ========================
-       ESTADO GLOBAL
-    ======================== */
+    /* =========================
+       TOTAL
+    ========================= */
+    total: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    /* =========================
+       GLOBAL ORDER STATUS
+    ========================= */
     status: {
       type: String,
       enum: ["pending", "in-progress", "completed", "cancelled"],
       default: "pending",
+      index: true,
     },
 
-    /* ========================
-       MESA / UBICACIÓN
-    ======================== */
+    /* =========================
+       TABLE RELATION
+    ========================= */
     table: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Table",
+      required: true,
+      index: true,
+    },
+
+    /* =========================
+       SESSION (BAR TICKET)
+    ========================= */
+    sessionId: {
       type: String,
+      index: true,
+    },
+
+    sessionStatus: {
+      type: String,
+      enum: ["open", "closed"],
+      default: "open",
+      index: true,
+    },
+
+    /* =========================
+       PAYMENT FLOW
+    ========================= */
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "partial", "paid"],
+      default: "unpaid",
+      index: true,
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card", "qr", "mixed", null],
       default: null,
     },
 
-    /* ========================
-       USUARIO (FUTURO)
-    ======================== */
+    /* =========================
+       STAFF TRACKING
+    ========================= */
     createdBy: {
-      type: String,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
 
-    /* ========================
-       NOTAS
-    ======================== */
+    servedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    /* =========================
+       NOTES / EXTRA
+    ========================= */
     notes: {
       type: String,
       default: "",
+    },
+
+    priority: {
+      type: String,
+      enum: ["low", "normal", "high"],
+      default: "normal",
     },
   },
   {
@@ -96,10 +161,23 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-/* ==============================
-   INDEXES
-============================== */
-orderSchema.index({ status: 1 });
-orderSchema.index({ createdAt: -1 });
+/* =========================================================
+   AUTO TOTAL CALCULATION
+========================================================= */
+orderSchema.pre("save", function (next) {
+  this.total = this.items.reduce((acc, item) => {
+    const price = item.price || 0;
+    const qty = item.quantity || 0;
+    return acc + price * qty;
+  }, 0);
+
+  next();
+});
+
+/* =========================================================
+   INDEXES (OPTIMIZACIÓN REAL)
+========================================================= */
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ table: 1, sessionStatus: 1 });
 
 export default mongoose.model("Order", orderSchema);

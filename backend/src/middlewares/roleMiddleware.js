@@ -2,40 +2,49 @@ export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     try {
       /* ==============================
-         VALIDAR AUTENTICACIÓN
+         VALIDAR USUARIO
       ============================== */
       if (!req.user) {
-        const error = new Error("No autenticado");
-        error.statusCode = 401;
-        throw error;
+        return res.status(401).json({
+          message: "No autenticado",
+        });
       }
 
       /* ==============================
-         VALIDAR ESTADO DEL USUARIO
+         VALIDAR ESTADO
       ============================== */
-      if (req.user.isActive === false) {
-        const error = new Error("Usuario desactivado");
-        error.statusCode = 403;
-        throw error;
+      if (!req.user.isActive) {
+        return res.status(403).json({
+          message: "Usuario desactivado",
+        });
+      }
+
+      /* ==============================
+         SI NO SE DEFINEN ROLES → SOLO CHECK AUTH
+      ============================== */
+      if (allowedRoles.length === 0) {
+        return next();
       }
 
       /* ==============================
          VALIDAR ROLES
       ============================== */
-      if (
-        allowedRoles.length > 0 &&
-        !allowedRoles.includes(req.user.role)
-      ) {
-        const error = new Error(
-          `Acceso denegado. Roles permitidos: ${allowedRoles.join(", ")}`
-        );
-        error.statusCode = 403;
-        throw error;
+      const hasRole = allowedRoles.includes(req.user.role);
+
+      if (!hasRole) {
+        return res.status(403).json({
+          message: "Acceso denegado",
+          requiredRoles: allowedRoles,
+          userRole: req.user.role,
+        });
       }
 
       next();
     } catch (error) {
-      next(error);
+      return res.status(500).json({
+        message: "Error en autorización",
+        error: error.message,
+      });
     }
   };
 };

@@ -1,11 +1,11 @@
 import xss from "xss";
 
 /* ==============================
-   CLEANER
+   SAFE CLEANER (POS READY)
 ============================== */
 const clean = (value) => {
   if (typeof value === "string") {
-    return xss(value);
+    return xss(value.trim());
   }
 
   if (Array.isArray(value)) {
@@ -14,9 +14,11 @@ const clean = (value) => {
 
   if (value && typeof value === "object") {
     const obj = {};
-    for (const key in value) {
+
+    for (const key of Object.keys(value)) {
       obj[key] = clean(value[key]);
     }
+
     return obj;
   }
 
@@ -24,25 +26,33 @@ const clean = (value) => {
 };
 
 /* ==============================
-   SANITIZE MIDDLEWARE FIXED
+   SANITIZE MIDDLEWARE (FIXED)
 ============================== */
 export const sanitize = (req, res, next) => {
   try {
-    //  NO reasignar req.query (rompe Express)
-    if (req.query) {
-      for (const key in req.query) {
-        req.query[key] = clean(req.query[key]);
-      }
-    }
-
     if (req.body) {
       req.body = clean(req.body);
     }
 
-    if (req.params) {
-      for (const key in req.params) {
-        req.params[key] = clean(req.params[key]);
+    // IMPORTANTE: NO MUTAR req.query DIRECTAMENTE
+    if (req.query) {
+      const cleanedQuery = {};
+
+      for (const key of Object.keys(req.query)) {
+        cleanedQuery[key] = clean(req.query[key]);
       }
+
+      req.query = cleanedQuery;
+    }
+
+    if (req.params) {
+      const cleanedParams = {};
+
+      for (const key of Object.keys(req.params)) {
+        cleanedParams[key] = clean(req.params[key]);
+      }
+
+      req.params = cleanedParams;
     }
 
     next();

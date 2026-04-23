@@ -9,59 +9,19 @@ import {
   getReservationById,
 } from "../controllers/reservation.controller.js";
 
+import { asyncHandler } from "../middlewares/asyncHandler.js";
+
 const router = Router();
 
-/* ==============================
-   BASE
-============================== */
+router.get("/available/tables", asyncHandler(getAvailableTables));
 
-/**
- *  Obtener reservas
- * Query:
- * ?status=pending | confirmed | seated | completed | cancelled | no-show
- */
-router.get("/", getReservations);
+router.get("/", asyncHandler(getReservations));
+router.get("/:id", asyncHandler(getReservationById));
 
-/**
- *  Obtener una reserva
- */
-router.get("/:id", getReservationById);
+router.post("/", asyncHandler(createReservation));
 
-/**
- *  Crear reserva
- */
-router.post("/", createReservation);
+router.patch("/:id/status", asyncHandler(updateReservationStatus));
 
-/* ==============================
-   FLOW
-============================== */
-
-/**
- *  Cambiar estado
- * body: { status }
- */
-router.patch("/:id/status", updateReservationStatus);
-
-/* ==============================
-   UTILIDADES 
-============================== */
-
-/**
- *  Obtener mesas disponibles
- * Query:
- * ?startTime=ISO
- * ?endTime=ISO
- * ?guests=number
- */
-router.get("/available/tables", getAvailableTables);
-
-/* ==============================
-   DELETE
-============================== */
-
-/**
- *  Eliminar reserva
- */
-router.delete("/:id", deleteReservation);
+router.delete("/:id", asyncHandler(deleteReservation));
 
 export default router;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getProducts } from "../../../modules/products/services/productService";
 import { getInventory } from "../../../modules/inventory/services/inventoryService";
 import type { Recipe } from "../types/recipe";
@@ -12,6 +12,11 @@ const EMPTY_INGREDIENT = {
   inventoryItem: "",
   quantity: 1,
   unit: "ml",
+};
+
+const EMPTY_STEP = {
+  stepNumber: 1,
+  instruction: "",
 };
 
 export default function RecipeForm({ onSave, onClose }: Props) {
@@ -30,25 +35,33 @@ export default function RecipeForm({ onSave, onClose }: Props) {
     steps: [],
   });
 
-  const [ingredientDraft, setIngredientDraft] =
-    useState(EMPTY_INGREDIENT);
+  const [ingredientDraft, setIngredientDraft] = useState(EMPTY_INGREDIENT);
 
+  /* =========================
+     LOAD DATA
+  ========================= */
   useEffect(() => {
     getProducts().then(setProducts);
     getInventory().then(setInventory);
   }, []);
 
   /* =========================
-     GLOBAL HANDLERS
+     STEP CONTROL
   ========================= */
   const next = () => setStep((s) => Math.min(s + 1, 5));
   const back = () => setStep((s) => Math.max(s - 1, 1));
 
   /* =========================
-     INGREDIENTS
+     INGREDIENT LOGIC
   ========================= */
   const addIngredient = () => {
     if (!ingredientDraft.inventoryItem) return;
+
+    const exists = form.ingredients.find(
+      (i) => i.inventoryItem === ingredientDraft.inventoryItem
+    );
+
+    if (exists) return alert("Este ingrediente ya está agregado");
 
     setForm((prev) => ({
       ...prev,
@@ -72,7 +85,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   };
 
   /* =========================
-     STEPS
+     STEP LOGIC (PRO)
   ========================= */
   const addStep = () => {
     setForm((prev) => ({
@@ -96,11 +109,54 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   };
 
   const removeStep = (index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      steps: prev.steps.filter((_, i) => i !== index),
-    }));
+    setForm((prev) => {
+      const steps = prev.steps
+        .filter((_, i) => i !== index)
+        .map((s, i) => ({
+          ...s,
+          stepNumber: i + 1,
+        }));
+
+      return { ...prev, steps };
+    });
   };
+
+  const moveStep = (index: number, dir: "up" | "down") => {
+    setForm((prev) => {
+      const steps = [...prev.steps];
+      const newIndex = dir === "up" ? index - 1 : index + 1;
+
+      if (newIndex < 0 || newIndex >= steps.length) return prev;
+
+      [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
+
+      return {
+        ...prev,
+        steps: steps.map((s, i) => ({
+          ...s,
+          stepNumber: i + 1,
+        })),
+      };
+    });
+  };
+
+  /* =========================
+     VALIDATION (SMART)
+  ========================= */
+  const canNext = useMemo(() => {
+    switch (step) {
+      case 1:
+        return !!form.product;
+      case 2:
+        return form.ingredients.length > 0;
+      case 3:
+        return true;
+      case 4:
+        return form.steps.length > 0;
+      default:
+        return true;
+    }
+  }, [step, form]);
 
   /* =========================
      SUBMIT
@@ -109,18 +165,23 @@ export default function RecipeForm({ onSave, onClose }: Props) {
     if (!form.product) return alert("Selecciona producto");
     if (form.ingredients.length === 0)
       return alert("Agrega ingredientes");
+    if (form.steps.length === 0)
+      return alert("Agrega al menos un paso");
 
     onSave(form);
   };
 
   /* =========================
-     UI STEP RENDERER
+     RENDER STEP
   ========================= */
   const renderStep = () => {
     switch (step) {
+      /* =======================
+         STEP 1 - PRODUCT
+      ======================= */
       case 1:
         return (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h3 className="font-bold">1. Producto</h3>
 
             <select
@@ -137,9 +198,23 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                 </option>
               ))}
             </select>
+
+            <select
+              value={form.type}
+              onChange={(e) =>
+                setForm({ ...form, type: e.target.value as any })
+              }
+              className="w-full p-2 bg-gray-800 rounded"
+            >
+              <option value="drink">Drink</option>
+              <option value="food">Food</option>
+            </select>
           </div>
         );
 
+      /* =======================
+         STEP 2 - INGREDIENTS
+      ======================= */
       case 2:
         return (
           <div className="space-y-3">
@@ -197,6 +272,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                       )?.name
                     }
                   </span>
+
                   <span>
                     {i.quantity} {i.unit}
                   </span>
@@ -213,6 +289,9 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           </div>
         );
 
+      /* =======================
+         STEP 3 - METHOD
+      ======================= */
       case 3:
         return (
           <div className="space-y-2">
@@ -224,25 +303,50 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                 setForm({ ...form, method: e.target.value })
               }
               className="w-full p-2 bg-gray-800 rounded"
-              placeholder="Ej: Shake, Stir, Blend..."
+              placeholder="Shake, Stir, Blend..."
             />
           </div>
         );
 
+      /* =======================
+         STEP 4 - STEPS
+      ======================= */
       case 4:
         return (
           <div className="space-y-3">
             <h3 className="font-bold">4. Pasos</h3>
 
             {form.steps.map((s, idx) => (
-              <input
-                key={idx}
-                value={s.instruction}
-                onChange={(e) =>
-                  updateStep(idx, e.target.value)
-                }
-                className="w-full p-2 bg-gray-800 rounded mb-2"
-              />
+              <div key={idx} className="flex gap-2 mb-2">
+                <input
+                  value={s.instruction}
+                  onChange={(e) =>
+                    updateStep(idx, e.target.value)
+                  }
+                  className="flex-1 p-2 bg-gray-800 rounded"
+                />
+
+                <button
+                  onClick={() => moveStep(idx, "up")}
+                  className="px-2 bg-gray-700 rounded"
+                >
+                  ↑
+                </button>
+
+                <button
+                  onClick={() => moveStep(idx, "down")}
+                  className="px-2 bg-gray-700 rounded"
+                >
+                  ↓
+                </button>
+
+                <button
+                  onClick={() => removeStep(idx)}
+                  className="text-red-400"
+                >
+                  x
+                </button>
+              </div>
             ))}
 
             <button
@@ -254,14 +358,13 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           </div>
         );
 
+      /* =======================
+         STEP 5 - PREVIEW
+      ======================= */
       case 5:
         return (
           <div className="space-y-2">
-            <h3 className="font-bold">5. Confirmación</h3>
-
-            <p className="text-sm text-gray-400">
-              Producto: {form.product}
-            </p>
+            <h3 className="font-bold">5. Preview</h3>
 
             <p className="text-sm text-gray-400">
               Ingredientes: {form.ingredients.length}
@@ -312,8 +415,8 @@ export default function RecipeForm({ onSave, onClose }: Props) {
 
           <button
             onClick={next}
-            disabled={step === 5}
-            className="px-3 py-1 bg-amber-500 text-black rounded"
+            disabled={!canNext || step === 5}
+            className="px-3 py-1 bg-amber-500 text-black rounded disabled:opacity-40"
           >
             Siguiente
           </button>

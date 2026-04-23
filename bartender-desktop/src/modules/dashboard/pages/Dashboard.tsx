@@ -2,7 +2,7 @@
 import { useDashboard } from "../hooks/useDashboard";
 import { KpiCard } from "../components/KpiCard";
 import { SalesChart } from "../components/SalesChart";
-import { OrdersChart } from "../components/OrdersChart";
+
 
 export default function DashboardPage() {
   const { data, loading } = useDashboard();
@@ -13,19 +13,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-white">Dashboard</h1>
 
       {/* KPI */}
-      <div className="grid grid-cols-4 gap-4">
-        <KpiCard title="Ventas del Día" value={`$${data.sales}`} />
-        <KpiCard title="Pedidos" value={data.orders} />
-        <KpiCard title="Reservas" value={data.reservations} />
-        <KpiCard title="Mesas" value={data.tables} />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard title="Ventas Totales" value={`$${data.totalSales}`} />
+        <KpiCard title="Pedidos" value={data.totalOrders} />
+        <KpiCard title="Hoy" value={data.todayOrders} />
+        <KpiCard title="Reservas Hoy" value={data.reservationsToday} />
       </div>
 
       {/* Charts */}
-      <SalesChart data={data.salesHistory} />
-      <OrdersChart data={data.ordersHistory} />
+      <SalesChart data={data.salesData} />
     </div>
   );
 }

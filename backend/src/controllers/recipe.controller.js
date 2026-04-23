@@ -7,24 +7,40 @@ import mongoose from "mongoose";
 ============================== */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+/* helper estable */
+const populateRecipe = (query) =>
+  query
+    .populate("product")
+    .populate("ingredients.inventoryItem");
+
 /* ==============================
-   GET ALL RECIPES
+   GET ALL
 ============================== */
 export const getRecipes = async (req, res) => {
   try {
-    const { type } = req.query;
+    const { type, category, search } = req.query;
 
     const filter = {};
-    if (type) filter.type = type;
 
-    const recipes = await Recipe.find(filter)
-      .populate("product")
-      .populate("ingredients.inventoryItem")
-      .sort({ createdAt: -1 });
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+
+    if (search) {
+      filter.$or = [
+        { method: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const recipes = await populateRecipe(
+      Recipe.find(filter).sort({ createdAt: -1 })
+    );
 
     res.json(recipes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error obteniendo recetas",
+      details: error.message,
+    });
   }
 };
 
@@ -39,17 +55,22 @@ export const getRecipe = async (req, res) => {
       return res.status(400).json({ error: "ID inválido" });
     }
 
-    const recipe = await Recipe.findById(id)
-      .populate("product")
-      .populate("ingredients.inventoryItem");
+    const recipe = await populateRecipe(
+      Recipe.findById(id)
+    );
 
     if (!recipe) {
-      return res.status(404).json({ error: "No encontrada" });
+      return res.status(404).json({
+        error: "Receta no encontrada",
+      });
     }
 
     res.json(recipe);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error obteniendo receta",
+      details: error.message,
+    });
   }
 };
 
@@ -58,59 +79,96 @@ export const getRecipe = async (req, res) => {
 ============================== */
 export const createRecipe = async (req, res) => {
   try {
-    const { product, ingredients, type, method, steps } = req.body;
+    const {
+      product,
+      ingredients = [],
+      type,
+      method = "",
+      steps = [],
+      category = "general",
+      image = "",
+    } = req.body;
 
-    if (!product || !Array.isArray(ingredients) || ingredients.length === 0) {
+    /* VALIDACIONES */
+    if (!product || !type) {
       return res.status(400).json({
-        error: "Producto e ingredientes son obligatorios",
+        error: "product y type requeridos",
       });
     }
 
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return res.status(400).json({
+        error: "Ingredientes requeridos",
+      });
+    }
+
+    /* DUPLICADO */
     const exists = await Recipe.findOne({ product });
     if (exists) {
-      return res.status(400).json({
-        error: "Este producto ya tiene receta",
+      return res.status(409).json({
+        error: "Ya existe receta para este producto",
       });
     }
 
-    const inventoryIds = ingredients.map((i) => i.inventoryItem);
+    /* CLEAN INGREDIENTS */
+    const cleanIngredients = ingredients
+      .filter(i => i.inventoryItem && i.quantity > 0)
+      .map(i => ({
+        inventoryItem: i.inventoryItem,
+        quantity: Number(i.quantity),
+        unit: i.unit || "ml",
+        order: i.order || 0,
+      }));
 
-    const inventoryItems = await InventoryItem.find({
-      _id: { $in: inventoryIds },
-    });
+    /* VALIDAR INVENTARIO */
+    const inventory = await InventoryItem.find({
+      _id: { $in: cleanIngredients.map(i => i.inventoryItem) },
+    }).lean();
 
     const map = new Map(
-      inventoryItems.map((i) => [i._id.toString(), i])
+      inventory.map(i => [i._id.toString(), i])
     );
 
-    for (const ing of ingredients) {
-      const item = map.get(ing.inventoryItem);
-
-      if (!item) {
-        return res.status(404).json({ error: "Ingrediente inválido" });
-      }
-
-      if (ing.quantity <= 0) {
-        return res.status(400).json({ error: "Cantidad inválida" });
+    for (const ing of cleanIngredients) {
+      if (!map.has(ing.inventoryItem.toString())) {
+        return res.status(400).json({
+          error: "Ingrediente inválido",
+        });
       }
     }
 
+    /* CLEAN STEPS */
+    const cleanSteps = Array.isArray(steps)
+      ? steps.map((s, i) => ({
+          stepNumber: s.stepNumber || i + 1,
+          instruction:
+            typeof s === "string" ? s : s.instruction || "",
+        }))
+      : [];
+
+    /* CREATE */
     const recipe = await Recipe.create({
       product,
-      ingredients,
+      ingredients: cleanIngredients,
       type,
       method,
-      steps,
+      steps: cleanSteps,
+      category,
+      image,
     });
 
-    const populated = await recipe.populate([
-      "product",
-      "ingredients.inventoryItem",
-    ]);
+    const populated = await populateRecipe(
+      Recipe.findById(recipe._id)
+    );
 
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("CREATE_RECIPE_ERROR:", error);
+
+    res.status(500).json({
+      error: "Error creando receta",
+      details: error.message,
+    });
   }
 };
 
@@ -125,48 +183,28 @@ export const updateRecipe = async (req, res) => {
       return res.status(400).json({ error: "ID inválido" });
     }
 
-    const allowed = ["ingredients", "method", "steps", "image", "category", "type"];
-
-    const updates = Object.fromEntries(
-      Object.entries(req.body).filter(([k]) => allowed.includes(k))
+    const updated = await Recipe.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
     );
 
-    if (updates.ingredients) {
-      const inventoryIds = updates.ingredients.map(i => i.inventoryItem);
-
-      const items = await InventoryItem.find({
-        _id: { $in: inventoryIds },
-      });
-
-      const map = new Map(items.map(i => [i._id.toString(), i]));
-
-      for (const ing of updates.ingredients) {
-        const item = map.get(ing.inventoryItem);
-
-        if (!item) {
-          return res.status(400).json({ error: "Ingrediente inválido" });
-        }
-
-        if (ing.quantity <= 0) {
-          return res.status(400).json({ error: "Cantidad inválida" });
-        }
-      }
-    }
-
-    const updated = await Recipe.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    })
-      .populate("product")
-      .populate("ingredients.inventoryItem");
-
     if (!updated) {
-      return res.status(404).json({ error: "No encontrada" });
+      return res.status(404).json({
+        error: "Receta no encontrada",
+      });
     }
 
-    res.json(updated);
+    const populated = await populateRecipe(
+      Recipe.findById(updated._id)
+    );
+
+    res.json(populated);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error actualizando receta",
+      details: error.message,
+    });
   }
 };
 
@@ -184,12 +222,17 @@ export const deleteRecipe = async (req, res) => {
     const deleted = await Recipe.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.status(404).json({ error: "No encontrada" });
+      return res.status(404).json({
+        error: "Receta no encontrada",
+      });
     }
 
-    res.json({ message: "Eliminada correctamente" });
+    res.json({ message: "Receta eliminada" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error eliminando receta",
+      details: error.message,
+    });
   }
 };
 
@@ -198,12 +241,14 @@ export const deleteRecipe = async (req, res) => {
 ============================== */
 export const getRecipeProtocol = async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id)
-      .populate("product")
-      .populate("ingredients.inventoryItem");
+    const recipe = await populateRecipe(
+      Recipe.findById(req.params.id)
+    );
 
     if (!recipe) {
-      return res.status(404).json({ error: "No encontrada" });
+      return res.status(404).json({
+        error: "Receta no encontrada",
+      });
     }
 
     res.json({
@@ -214,53 +259,55 @@ export const getRecipeProtocol = async (req, res) => {
         quantity: i.quantity,
         unit: i.unit,
       })),
-      method: recipe.method || "Preparación estándar",
-      steps:
-        recipe.steps.length > 0
-          ? recipe.steps
-          : [
-              { stepNumber: 1, instruction: "Preparar ingredientes" },
-              { stepNumber: 2, instruction: "Medir cantidades" },
-              { stepNumber: 3, instruction: "Mezclar / ejecutar" },
-            ],
+      method: recipe.method || "Estándar",
+      steps: recipe.steps.length
+        ? recipe.steps
+        : [
+            { stepNumber: 1, instruction: "Preparar" },
+            { stepNumber: 2, instruction: "Mezclar" },
+          ],
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error protocol",
+      details: error.message,
+    });
   }
 };
 
 /* ==============================
-   AVAILABILITY CHECK
+   AVAILABILITY
 ============================== */
 export const checkRecipeAvailability = async (req, res) => {
   try {
-    const recipe = await Recipe.findById(req.params.id)
-      .populate("ingredients.inventoryItem");
+    const recipe = await populateRecipe(
+      Recipe.findById(req.params.id)
+    );
 
     if (!recipe) {
-      return res.status(404).json({ error: "No encontrada" });
+      return res.status(404).json({
+        error: "Receta no encontrada",
+      });
     }
 
-    const missing = [];
-
-    for (const ing of recipe.ingredients) {
-      const item = ing.inventoryItem;
-
-      if (!item || item.stock < ing.quantity) {
-        missing.push({
-          name: item?.name || "Desconocido",
-          required: ing.quantity,
-          available: item?.stock || 0,
-        });
-      }
-    }
+    const missing = recipe.ingredients.filter(i => {
+      const item = i.inventoryItem;
+      return !item || item.stock < i.quantity;
+    });
 
     res.json({
       available: missing.length === 0,
-      missing,
+      missing: missing.map(i => ({
+        name: i.inventoryItem?.name,
+        required: i.quantity,
+        available: i.inventoryItem?.stock || 0,
+      })),
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error availability",
+      details: error.message,
+    });
   }
 };
 
@@ -275,13 +322,15 @@ export const getRecipesByProduct = async (req, res) => {
       return res.status(400).json({ error: "ID inválido" });
     }
 
-    const recipes = await Recipe.find({ product: productId })
-      .populate("product")
-      .populate("ingredients.inventoryItem")
-      .sort({ createdAt: -1 });
+    const recipes = await populateRecipe(
+      Recipe.find({ product: productId }).sort({ createdAt: -1 })
+    );
 
     res.json(recipes);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: "Error by product",
+      details: error.message,
+    });
   }
 };

@@ -1,32 +1,95 @@
 import mongoose from "mongoose";
 import Reservation from "../models/Reservation.js";
 import Table from "../models/Table.js";
+import { io } from "../server.js";
+
+/* ==============================
+   CONSTANTS
+============================== */
+const ACTIVE_STATUSES = ["pending", "confirmed", "seated"];
 
 /* ==============================
    HELPERS
 ============================== */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const isOverlap = (startA, endA, startB, endB) => {
-  return new Date(startA) < new Date(endB) &&
-         new Date(endA) > new Date(startB);
+const parseDate = (value) => {
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? null : date;
 };
 
 /* ==============================
-   GET RESERVATIONS
+   SOCKET EVENTS (CLEAN & SAFE)
+============================== */
+const emitReservationList = async () => {
+  const reservations = await Reservation.find()
+    .populate("tableId", "number capacity status location")
+    .sort({ startTime: -1 })
+    .lean();
+
+  io.emit("reservation:list", reservations);
+};
+
+const emitReservationCreated = (reservation) => {
+  io.emit("reservation:created", reservation);
+};
+
+const emitReservationUpdated = (reservation) => {
+  io.emit("reservation:update", reservation);
+};
+
+const emitReservationDeleted = (id) => {
+  io.emit("reservation:deleted", id);
+};
+
+const emitTableUpdated = async (tableId) => {
+  const table = await Table.findById(tableId).populate("currentReservation");
+
+  if (table) {
+    io.emit("table:updated", table);
+  }
+};
+
+/* ==============================
+   GET ALL
 ============================== */
 export const getReservations = async (req, res) => {
   try {
     const { status } = req.query;
 
-    const filter = {};
-    if (status) filter.status = status;
+    const filter = status ? { status } : {};
 
     const reservations = await Reservation.find(filter)
-      .populate("tableId")
-      .sort({ startTime: -1 });
+      .populate("tableId", "number capacity status location")
+      .sort({ startTime: -1 })
+      .lean();
 
     res.json(reservations);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* ==============================
+   GET ONE
+============================== */
+export const getReservationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    const reservation = await Reservation.findById(id)
+      .populate("tableId", "number capacity status location")
+      .lean();
+
+    if (!reservation) {
+      return res.status(404).json({ error: "Reserva no encontrada" });
+    }
+
+    res.json(reservation);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -37,67 +100,77 @@ export const getReservations = async (req, res) => {
 ============================== */
 export const createReservation = async (req, res) => {
   try {
-    const { startTime, endTime, guests, tableId } = req.body;
+    const {
+      customerName,
+      customerPhone,
+      customerEmail,
+      startTime,
+      endTime,
+      guests,
+      tableId,
+      notes,
+    } = req.body;
 
-    if (!startTime || !endTime || !guests) {
-      return res.status(400).json({ error: "Datos incompletos" });
+    const start = parseDate(startTime);
+    const end = parseDate(endTime);
+
+    if (!start || !end || !guests) {
+      return res.status(400).json({ error: "Datos inválidos" });
     }
 
-    if (new Date(endTime) <= new Date(startTime)) {
-      return res.status(400).json({ error: "Horario inválido" });
+    if (end <= start) {
+      return res.status(400).json({ error: "Rango inválido" });
     }
 
     let assignedTable = null;
 
-    /* ==========================
-       VALIDACIÓN MESA MANUAL
-    ========================== */
+    /* =========================
+       MANUAL TABLE
+    ========================= */
     if (tableId) {
       if (!isValidId(tableId)) {
-        return res.status(400).json({ error: "ID inválido" });
+        return res.status(400).json({ error: "ID de mesa inválido" });
       }
 
       const table = await Table.findById(tableId);
+
       if (!table) {
-        return res.status(404).json({ error: "Mesa no encontrada" });
+        return res.status(404).json({ error: "Mesa no existe" });
       }
 
       if (table.capacity < guests) {
-        return res.status(400).json({
-          error: "Capacidad insuficiente",
-        });
+        return res.status(400).json({ error: "Capacidad insuficiente" });
       }
 
-      const conflict = await Reservation.findOne({
+      const conflict = await Reservation.exists({
         tableId,
-        status: { $nin: ["cancelled", "completed"] },
-        startTime: { $lt: endTime },
-        endTime: { $gt: startTime },
+        status: { $in: ACTIVE_STATUSES },
+        startTime: { $lt: end },
+        endTime: { $gt: start },
       });
 
       if (conflict) {
-        return res.status(400).json({
-          error: "Mesa ocupada en ese horario",
-        });
+        return res.status(400).json({ error: "Mesa ocupada" });
       }
 
       assignedTable = table._id;
     }
 
-    /* ==========================
-       AUTO ASIGNACIÓN INTELIGENTE
-    ========================== */
+    /* =========================
+       AUTO ASSIGN
+    ========================= */
     if (!assignedTable) {
       const tables = await Table.find({
         capacity: { $gte: guests },
+        status: { $ne: "maintenance" },
       }).sort({ capacity: 1 });
 
       for (const table of tables) {
-        const conflict = await Reservation.findOne({
+        const conflict = await Reservation.exists({
           tableId: table._id,
-          status: { $nin: ["cancelled", "completed"] },
-          startTime: { $lt: endTime },
-          endTime: { $gt: startTime },
+          status: { $in: ACTIVE_STATUSES },
+          startTime: { $lt: end },
+          endTime: { $gt: start },
         });
 
         if (!conflict) {
@@ -107,12 +180,29 @@ export const createReservation = async (req, res) => {
       }
     }
 
+    if (!assignedTable) {
+      return res.status(400).json({ error: "No hay mesas disponibles" });
+    }
+
     const reservation = await Reservation.create({
-      ...req.body,
+      customerName,
+      customerPhone,
+      customerEmail: customerEmail || "",
+      guests: Number(guests),
+      startTime: start,
+      endTime: end,
       tableId: assignedTable,
+      notes: notes || "",
+      status: "pending",
     });
 
-    const populated = await reservation.populate("tableId");
+    const populated = await reservation.populate(
+      "tableId",
+      "number capacity status location"
+    );
+
+    emitReservationCreated(populated);
+    await emitTableUpdated(assignedTable);
 
     res.status(201).json(populated);
   } catch (error) {
@@ -121,146 +211,138 @@ export const createReservation = async (req, res) => {
 };
 
 /* ==============================
-   UPDATE STATUS (FLOW PRO)
+   UPDATE STATUS (FIXED)
 ============================== */
 export const updateReservationStatus = async (req, res) => {
   try {
     const { status } = req.body;
+    const { id } = req.params;
 
-    const validStatus = [
-      "pending",
-      "confirmed",
-      "seated",
-      "completed",
-      "cancelled",
-      "no-show",
-    ];
-
-    if (!validStatus.includes(status)) {
-      return res.status(400).json({ error: "Estado inválido" });
+    if (!status) {
+      return res.status(400).json({ error: "Status requerido" });
     }
 
-    const reservation = await Reservation.findById(req.params.id);
-
-    if (!reservation) {
-      return res.status(404).json({
-        error: "Reservación no encontrada",
-      });
-    }
-
-    reservation.status = status;
-
-    const tableId = reservation.tableId;
-
-    /* ==========================
-       SYNC CON MESA
-    ========================== */
-    if (tableId) {
-      if (status === "seated") {
-        await Table.findByIdAndUpdate(tableId, {
-          status: "occupied",
-          currentReservation: reservation._id,
-          openedAt: new Date(),
-        });
-      }
-
-      if (["completed", "cancelled", "no-show"].includes(status)) {
-        await Table.findByIdAndUpdate(tableId, {
-          status: "available",
-          currentReservation: null,
-          closedAt: new Date(),
-        });
-      }
-    }
-
-    await reservation.save();
-
-    res.json(reservation);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/* ==============================
-   DELETE RESERVATION
-============================== */
-export const deleteReservation = async (req, res) => {
-  try {
-    if (!isValidId(req.params.id)) {
+    if (!isValidId(id)) {
       return res.status(400).json({ error: "ID inválido" });
     }
 
-    const reservation = await Reservation.findById(req.params.id);
+    const reservation = await Reservation.findById(id);
 
     if (!reservation) {
-      return res.status(404).json({
-        error: "Reservación no encontrada",
-      });
+      return res.status(404).json({ error: "No encontrada" });
     }
+
+    reservation.status = status;
+    await reservation.save();
+
+    if (reservation.tableId) {
+      const update = {};
+
+      switch (status) {
+        case "confirmed":
+          update.status = "reserved";
+          update.currentReservation = reservation._id;
+          break;
+
+        case "seated":
+          update.status = "occupied";
+          update.currentSessionId = new mongoose.Types.ObjectId().toString();
+          update.currentReservation = reservation._id;
+          break;
+
+        default:
+          update.status = "available";
+          update.currentReservation = null;
+      }
+
+      await Table.findByIdAndUpdate(reservation.tableId, update);
+      await emitTableUpdated(reservation.tableId);
+    }
+
+    const populated = await Reservation.findById(id)
+      .populate("tableId", "number capacity status location")
+      .lean();
+
+    emitReservationUpdated(populated);
+
+    res.json(populated);
+  } catch (error) {
+    console.error("UPDATE STATUS ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* ==============================
+   DELETE
+============================== */
+export const deleteReservation = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    const reservation = await Reservation.findById(id);
+
+    if (!reservation) {
+      return res.status(404).json({ error: "No encontrada" });
+    }
+
+    const tableId = reservation.tableId;
 
     await reservation.deleteOne();
 
-    res.json({ message: "Reservación eliminada" });
+    if (tableId) {
+      await Table.findByIdAndUpdate(tableId, {
+        status: "available",
+        currentReservation: null,
+      });
+
+      await emitTableUpdated(tableId);
+    }
+
+    emitReservationDeleted(id);
+
+    res.json({ message: "Reserva eliminada" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 /* ==============================
-   AVAILABLE TABLES (OPTIMIZADO)
+   AVAILABLE TABLES (FIXED LOGIC)
 ============================== */
 export const getAvailableTables = async (req, res) => {
   try {
     const { startTime, endTime, guests } = req.query;
 
-    if (!startTime || !endTime || !guests) {
-      return res.status(400).json({
-        error: "Parámetros incompletos",
-      });
+    const start = parseDate(startTime);
+    const end = parseDate(endTime);
+
+    if (!start || !end || !guests) {
+      return res.status(400).json({ error: "Parámetros inválidos" });
     }
 
     const tables = await Table.find({
       capacity: { $gte: Number(guests) },
+      status: { $ne: "maintenance" },
     });
 
     const available = [];
 
     for (const table of tables) {
-      const conflict = await Reservation.findOne({
+      const conflict = await Reservation.exists({
         tableId: table._id,
-        status: { $nin: ["cancelled", "completed"] },
-        startTime: { $lt: endTime },
-        endTime: { $gt: startTime },
+        status: { $in: ACTIVE_STATUSES },
+        startTime: { $lt: end },
+        endTime: { $gt: start },
       });
 
       if (!conflict) available.push(table);
     }
 
     res.json(available);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/* ==============================
-   GET BY ID
-============================== */
-export const getReservationById = async (req, res) => {
-  try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
-    const reservation = await Reservation.findById(req.params.id)
-      .populate("tableId");
-
-    if (!reservation) {
-      return res.status(404).json({
-        error: "Reservación no encontrada",
-      });
-    }
-
-    res.json(reservation);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
