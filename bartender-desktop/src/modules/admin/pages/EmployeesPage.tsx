@@ -19,41 +19,18 @@ export default function EmployeesPage() {
   const [error, setError] = useState<string | null>(null);
 
   /* =====================================================
-     NORMALIZADOR DEFENSIVO (EVITA users.map CRASH)
-  ===================================================== */
-  const normalizeUsers = (data: any): User[] => {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data?.users)) return data.users;
-    if (Array.isArray(data?.data)) return data.data;
-    return [];
-  };
-
-  /* =====================================================
-     FETCH EMPLOYEES (ROBUSTO)
+     FETCH EMPLOYEES (SIMPLIFICADO + SAFE SERVICE)
   ===================================================== */
   const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      const data = await getEmployees();
-      const normalized = normalizeUsers(data);
+    const data = await getEmployees();
 
-      setUsers(normalized);
+    // 👇 service ya garantiza array
+    setUsers(data);
 
-    } catch (err: any) {
-      console.error("Error fetching employees:", err);
-
-      setError(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Error cargando empleados"
-      );
-
-      setUsers([]); // evita crash visual
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -61,48 +38,55 @@ export default function EmployeesPage() {
   }, []);
 
   /* =====================================================
+     LISTEN: USER DISABLED (GLOBAL AUTH EVENT)
+  ===================================================== */
+  useEffect(() => {
+    const handleDisabled = () => {
+      setError("Tu usuario fue desactivado");
+      setUsers([]);
+    };
+
+    window.addEventListener("auth:disabled", handleDisabled);
+
+    return () => {
+      window.removeEventListener("auth:disabled", handleDisabled);
+    };
+  }, []);
+
+  /* =====================================================
      CREATE EMPLOYEE
   ===================================================== */
   const handleCreate = async (form: any) => {
-    try {
-      await createEmployee(form);
-      setOpen(false);
-      await fetchData();
-    } catch (err: any) {
-      console.error("Error creating employee:", err);
+    const res = await createEmployee(form);
 
-      alert(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Error creando empleado"
-      );
+    if (!res) {
+      alert("No se pudo crear el empleado");
+      return;
     }
+
+    setOpen(false);
+    await fetchData();
   };
 
   /* =====================================================
      DEACTIVATE EMPLOYEE
   ===================================================== */
   const handleDeactivate = async (id: string) => {
-    try {
-      const ok = window.confirm("¿Desactivar usuario?");
-      if (!ok) return;
+    const ok = window.confirm("¿Desactivar usuario?");
+    if (!ok) return;
 
-      await deactivateUser(id);
-      await fetchData();
+    const res = await deactivateUser(id);
 
-    } catch (err: any) {
-      console.error("Error deactivating user:", err);
-
-      alert(
-        err?.response?.data?.message ||
-        err?.message ||
-        "Error desactivando usuario"
-      );
+    if (!res) {
+      alert("No se pudo desactivar el usuario");
+      return;
     }
+
+    await fetchData();
   };
 
   /* =====================================================
-     LOADING STATE
+     LOADING
   ===================================================== */
   if (loading) {
     return (
@@ -146,7 +130,7 @@ export default function EmployeesPage() {
         </button>
       </div>
 
-      {/* ================= EMPTY STATE ================= */}
+      {/* ================= EMPTY ================= */}
       {!error && users.length === 0 && (
         <div className="text-sm text-[#71717A]">
           No hay empleados registrados
@@ -154,14 +138,15 @@ export default function EmployeesPage() {
       )}
 
       {/* ================= GRID ================= */}
-      <div className="
+      <div
+        className="
         grid 
         grid-cols-1 
         md:grid-cols-2 
         xl:grid-cols-3 
         gap-5
-      ">
-
+      "
+      >
         {users.map((u) => (
           <div
             key={u._id}
@@ -177,7 +162,6 @@ export default function EmployeesPage() {
             />
           </div>
         ))}
-
       </div>
 
       {/* ================= MODAL ================= */}

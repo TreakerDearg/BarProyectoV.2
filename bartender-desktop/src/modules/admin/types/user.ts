@@ -1,3 +1,6 @@
+/* =========================================================
+   ROLES
+========================================================= */
 export type Role =
   | "admin"
   | "bartender"
@@ -6,14 +9,40 @@ export type Role =
   | "kitchen"
   | "client";
 
-export type Shift = "morning" | "afternoon" | "night" | "event";
+/* =========================================================
+   SHIFT
+========================================================= */
+export type Shift =
+  | "morning"
+  | "afternoon"
+  | "night"
+  | "event";
 
-export type Permissions = Record<string, boolean>;
+/* =========================================================
+   PERMISSIONS (TIPADAS )
+========================================================= */
+export type PermissionKey =
+  | "viewEmployees"
+  | "createEmployee"
+  | "editEmployee"
+  | "deactivateEmployee"
+  | "viewDashboard"
+  | "manageOrders"
+  | "manageInventory"
+  | "manageRecipes"
+  | "accessPOS";
 
+export type Permissions = Partial<Record<PermissionKey, boolean>>;
+
+/* =========================================================
+   USER
+========================================================= */
 export interface User {
   _id: string;
+
   name: string;
   email: string;
+
   role: Role;
 
   shift?: Shift | null;

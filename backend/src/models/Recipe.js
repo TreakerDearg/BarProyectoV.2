@@ -71,6 +71,11 @@ const recipeSchema = new mongoose.Schema(
     category: { type: String, default: "general", index: true },
     image: { type: String, default: "" },
 
+    specifications: {
+      glass: { type: String, default: "STANDARD_GLASS" },
+      ice: { type: String, default: "STANDARD_ICE" }
+    },
+
     totalCost: { type: Number, default: 0 },
 
     isActive: {

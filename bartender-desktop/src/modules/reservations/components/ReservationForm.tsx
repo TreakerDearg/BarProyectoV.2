@@ -180,110 +180,130 @@ export default function ReservationForm({
      UI
   ========================= */
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4 font-mono">
 
       <form
         onSubmit={handleSubmit}
-        className="w-[580px] bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-6 space-y-5"
+        className="w-full max-w-lg bg-void/90 border border-obsidian/60 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.8)] p-8 flex flex-col space-y-6 relative overflow-hidden"
       >
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FF007F] to-[#00FFFF]" />
 
         {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">
-            {reservation ? "Editar Reserva" : "Nueva Reserva"}
-          </h2>
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tighter uppercase">
+              {reservation ? "EDIT_BOOKING" : "NEW_BOOKING"}
+            </h2>
+            <p className="text-[9px] text-[#00FFFF] font-bold tracking-widest uppercase mt-1">NIGHT_OPS // PROTOCOL_04</p>
+          </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-500 hover:text-white transition bg-obsidian/50 p-1.5 rounded"
           >
-            <X />
+            <X size={16} />
           </button>
         </div>
 
         {/* ERROR */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-2 rounded-lg text-sm">
-            {error}
+          <div className="bg-bar-red/10 border border-bar-red/30 text-bar-red p-3 rounded text-[10px] tracking-widest font-bold uppercase">
+            ERR: {error}
           </div>
         )}
 
         {/* CLIENT */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input icon={<User size={16} />} name="customerName" value={formData.customerName} onChange={handleChange} placeholder="Nombre" />
-          <Input icon={<Phone size={16} />} name="customerPhone" value={formData.customerPhone} onChange={handleChange} placeholder="Teléfono" />
+        <div>
+          <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">Client Details</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Input icon={<User size={14} />} name="customerName" value={formData.customerName} onChange={handleChange} placeholder="FULL_NAME" />
+            <Input icon={<Phone size={14} />} name="customerPhone" value={formData.customerPhone} onChange={handleChange} placeholder="CONTACT_NO" />
+          </div>
         </div>
 
         {/* GUESTS */}
-        <Input
-          icon={<Users size={16} />}
-          name="guests"
-          type="number"
-          value={formData.guests}
-          onChange={handleChange}
-          placeholder="Cantidad de personas"
-        />
-
-        {/* TIME */}
-        <div className="grid grid-cols-2 gap-3">
-          <Input icon={<Calendar size={16} />} type="datetime-local" name="startTime" value={formData.startTime} onChange={handleChange} />
-          <Input icon={<Clock size={16} />} type="datetime-local" name="endTime" value={formData.endTime} onChange={handleChange} />
-        </div>
-
-        {/* TABLE SELECT */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-2">
-          <div className="flex items-center gap-2 mb-2 text-sm text-gray-400">
-            <MapPin size={14} /> Mesa disponible
-          </div>
-
-          <select
-            name="tableId"
-            value={formData.tableId}
+        <div>
+          <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">Party Size</p>
+          <Input
+            icon={<Users size={14} />}
+            name="guests"
+            type="number"
+            value={formData.guests}
             onChange={handleChange}
-            className="w-full bg-transparent outline-none"
-          >
-            <option value="">Asignar automáticamente</option>
-
-            {loadingTables && <option>Cargando mesas...</option>}
-
-            {tables.map((t) => (
-              <option key={t._id} value={t._id}>
-                Mesa {t.number} · {t.capacity} personas
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* NOTES */}
-        <div className="relative">
-          <FileText className="absolute left-2 top-3 text-gray-500" size={16} />
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            placeholder="Notas (VIP, alergias, etc.)"
-            className="w-full pl-8 p-2 bg-gray-800 rounded-lg border border-gray-700"
+            placeholder="HEADCOUNT"
           />
         </div>
 
+        {/* TIME */}
+        <div>
+          <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">Time Slot</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Input icon={<Calendar size={14} />} type="datetime-local" name="startTime" value={formData.startTime} onChange={handleChange} />
+            <Input icon={<Clock size={14} />} type="datetime-local" name="endTime" value={formData.endTime} onChange={handleChange} />
+          </div>
+        </div>
+
+        {/* TABLE SELECT */}
+        <div>
+          <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2 flex items-center justify-between">
+            <span>Assignment</span>
+            {loadingTables && <span className="text-[#00FFFF] flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> SCANNING...</span>}
+          </p>
+          <div className="bg-obsidian/30 border border-obsidian rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2 text-[10px] text-gray-400 font-bold tracking-widest uppercase">
+              <MapPin size={12} className="text-[#8B5CF6]" /> Target Zone / Table
+            </div>
+
+            <select
+              name="tableId"
+              value={formData.tableId}
+              onChange={handleChange}
+              className="w-full bg-transparent outline-none text-white text-xs font-bold tracking-wider appearance-none cursor-pointer"
+            >
+              <option value="" className="bg-void">AUTO_ASSIGN (SYSTEM DEFAULT)</option>
+              {tables.map((t) => (
+                <option key={t._id} value={t._id} className="bg-void">
+                  T-{t.number} [{t.capacity} PAX]
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* NOTES */}
+        <div>
+           <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">Operational Directives</p>
+           <div className="relative">
+             <FileText className="absolute left-3 top-3 text-gray-500" size={14} />
+             <textarea
+               name="notes"
+               value={formData.notes}
+               onChange={handleChange}
+               placeholder="VIP_STATUS, ALLERGIES, SPECIAL_REQ..."
+               rows={2}
+               className="w-full pl-9 p-3 bg-obsidian/30 text-white rounded-lg border border-obsidian focus:border-[#FF007F]/50 outline-none text-xs custom-scrollbar resize-none transition"
+             />
+           </div>
+        </div>
+
         {/* ACTIONS */}
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 pt-4 border-t border-obsidian/40">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
+            className="flex-1 px-4 py-3 bg-obsidian/50 hover:bg-obsidian border border-obsidian text-white rounded-lg text-xs font-bold tracking-widest uppercase transition"
           >
-            Cancelar
+            Abort
           </button>
 
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded-lg font-semibold flex items-center gap-2"
+            className="flex-1 px-4 py-3 bg-[#FF007F] hover:bg-[#D90066] text-white rounded-lg text-xs font-black tracking-widest uppercase transition shadow-[0_0_15px_rgba(255,0,127,0.3)] flex items-center justify-center gap-2"
           >
-            {loading && <Loader2 className="animate-spin" size={16} />}
-            Guardar
+            {loading && <Loader2 className="animate-spin" size={14} />}
+            Commit Booking
           </button>
         </div>
 
@@ -293,7 +313,7 @@ export default function ReservationForm({
 }
 
 /* =========================
-   INPUT COMPONENT (mini UI system)
+   INPUT COMPONENT
 ========================= */
 function Input({
   icon,
@@ -301,13 +321,13 @@ function Input({
 }: any) {
   return (
     <div className="relative">
-      <div className="absolute left-2 top-3 text-gray-500">
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
         {icon}
       </div>
 
       <input
         {...props}
-        className="w-full pl-8 p-2 bg-gray-800 rounded-lg border border-gray-700 focus:border-amber-500 outline-none"
+        className="w-full pl-9 p-3 bg-obsidian/30 text-white rounded-lg border border-obsidian focus:border-[#00FFFF]/50 outline-none text-xs transition uppercase"
       />
     </div>
   );

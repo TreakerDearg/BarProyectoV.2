@@ -2,9 +2,18 @@ import api from "../../../services/api";
 import type { AuthResponse, LoginData, User } from "../../../types/auth";
 
 /* =========================================================
+   ERROR NORMALIZER
+========================================================= */
+const getErrorMessage = (error: any): string => {
+  return (
+    error?.response?.data?.message ||
+    error?.message ||
+    "Error inesperado"
+  );
+};
+
+/* =========================================================
    LOGIN
-   - Maneja errores correctamente
-   - Devuelve respuesta tipada
 ========================================================= */
 export const login = async (
   credentials: LoginData
@@ -17,42 +26,30 @@ export const login = async (
 
     return data;
   } catch (error: any) {
-    const message =
-      error?.response?.data?.message ||
-      "Error al iniciar sesión";
-
-    // IMPORTANTE: no pierdas contexto del backend
-    throw new Error(message);
+    throw new Error(getErrorMessage(error));
   }
 };
 
 /* =========================================================
-   GET CURRENT USER (ME)
-   - Usado para auto-login y refresh de sesión
+   GET CURRENT USER
 ========================================================= */
 export const getMe = async (): Promise<User> => {
   try {
     const { data } = await api.get<User>("/auth/me");
     return data;
   } catch (error: any) {
-    throw new Error(
-      error?.response?.data?.message ||
-        "No se pudo obtener el usuario"
-    );
+    throw new Error(getErrorMessage(error));
   }
 };
 
 /* =========================================================
-   LOGOUT
-   - Backend opcional (JWT es stateless)
-   - Siempre debe funcionar aunque falle API
+   LOGOUT (SAFE)
 ========================================================= */
-export const logoutRequest = async () => {
+export const logoutRequest = async (): Promise<void> => {
   try {
     await api.post("/auth/logout");
-  } catch (error) {
-    // silencioso intencional:
-    // logout local nunca debe fallar
-    console.warn("Logout backend error (ignored)");
+  } catch {
+    // logout nunca debe romper UI
+    console.warn("Logout backend error ignored");
   }
 };

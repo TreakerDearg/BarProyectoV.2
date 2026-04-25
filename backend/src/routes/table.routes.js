@@ -1,47 +1,40 @@
 import { Router } from "express";
 import {
-  getTables,
-  getTableById,
-  createTable,
-  updateTable,
-  deleteTable,
-  openTable,
-  closeTable,
-  addTableTag,
-  removeTableTag,
-  clearTableTags,
-
+  getTables, getTableById, createTable, updateTable, deleteTable,
+  openTable, closeTable, addTableTag, removeTableTag, clearTableTags
 } from "../controllers/table.controller.js";
-
-import { asyncHandler } from "../middlewares/asyncHandler.js";
+import { validate } from "../middlewares/validate.js";
+import { createTableSchema } from "../utils/schemas.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
+/* =========================================================
+   READ ROUTES
+========================================================= */
+router.get("/", getTables);
+router.get("/:id", getTableById);
 
-/* ==============================
-   TABLES
-============================== */
-router.get("/", asyncHandler(getTables));
-router.get("/:id", asyncHandler(getTableById));
+/* =========================================================
+   POS FLOW (abrir/cerrar mesa)
+========================================================= */
+// En el futuro, protect y validar roles de POS
+router.post("/:id/open", openTable);
+router.post("/:id/close", closeTable);
 
-/* ==============================
-   CRUD
-============================== */
-router.post("/", asyncHandler(createTable));
-router.put("/:id", asyncHandler(updateTable));
-router.delete("/:id", asyncHandler(deleteTable));
+/* =========================================================
+   CRUD TABLES (ADMIN ONLY)
+========================================================= */
+router.post("/", ...adminOnly, validate(createTableSchema), createTable);
+router.put("/:id", ...adminOnly, updateTable);
+router.delete("/:id", ...adminOnly, deleteTable);
 
-/* ==============================
-   POS ACTIONS
-============================== */
-router.post("/:id/open", asyncHandler(openTable));
-router.post("/:id/close", asyncHandler(closeTable));
-
-/* ==============================
+/* =========================================================
    TAGS
-============================== */
-router.post("/:id/tags", asyncHandler(addTableTag));
-router.delete("/:id/tags/:label", asyncHandler(removeTableTag));
-router.delete("/:id/tags", asyncHandler(clearTableTags));
+========================================================= */
+router.post("/:id/tags", addTableTag);
+router.delete("/:id/tags/:label", removeTableTag);
+router.delete("/:id/tags", clearTableTags);
 
 export default router;

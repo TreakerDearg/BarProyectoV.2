@@ -1,63 +1,41 @@
 import mongoose from "mongoose";
-import Table from "../models/Table.js";
-import Order from "../models/Order.js";
-import { io } from "../server.js";
+import Table   from "../models/Table.js";
+import Order   from "../models/Order.js";
+import { io }  from "../server.js";
+import { logger } from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound, conflict,
+} from "../utils/response.js";
 
-/* ==============================
-   HELPERS
-============================== */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const badRequest = (res, msg) =>
-  res.status(400).json({ error: msg });
-
-const notFound = (res, msg) =>
-  res.status(404).json({ error: msg });
-
-const serverError = (res, error, ctx = "") => {
-  console.error("TABLE ERROR:", ctx, error);
-  return res.status(500).json({
-    error: error.message,
-    context: ctx,
-  });
-};
-
-/* ==============================
-   SOCKET HELPERS
-============================== */
+/* =========================================================
+   SOCKET — Emitir update de mesa
+========================================================= */
 const emitTableUpdate = async (tableId) => {
-  const table = await Table.findById(tableId)
-    .populate("currentReservation")
-    .lean();
-
+  const table = await Table.findById(tableId).lean();
   if (!table) return;
-
   io.emit("table:update", table);
   io.to(`table:${tableId}`).emit("table:update", table);
 };
 
-/* ==============================
-   GET TABLES
-============================== */
-export const getTables = async (req, res) => {
+/* =========================================================
+   GET ALL TABLES (con órdenes activas adjuntas)
+========================================================= */
+export const getTables = async (req, res, next) => {
   try {
     const { status, location } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
+    if (status)   filter.status   = status;
     if (location) filter.location = location;
 
-    const tables = await Table.find(filter)
-      .sort({ number: 1 })
-      .lean();
+    const tables = await Table.find(filter).sort({ number: 1 }).lean();
 
+    /* Adjuntar órdenes abiertas por mesa */
     const tableIds = tables.map((t) => t._id);
-
-    const orders = await Order.find({
-      table: { $in: tableIds },
-      sessionStatus: "open",
-    })
-      .populate("items.product")
+    const orders   = await Order.find({ table: { $in: tableIds }, sessionStatus: "open" })
+      .populate("items.product", "name type")
       .lean();
 
     const grouped = orders.reduce((acc, o) => {
@@ -67,288 +45,225 @@ export const getTables = async (req, res) => {
       return acc;
     }, {});
 
-    res.json(
-      tables.map((t) => ({
-        ...t,
-        orders: grouped[t._id.toString()] || [],
-      }))
-    );
-  } catch (error) {
-    return serverError(res, error, "getTables");
-  }
+    const data = tables.map((t) => ({
+      ...t,
+      orders: grouped[t._id.toString()] || [],
+    }));
+
+    return ok(res, data);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   OPEN TABLE
-============================== */
-export const openTable = async (req, res) => {
+/* =========================================================
+   GET ONE (con órdenes abiertas)
+========================================================= */
+export const getTableById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    if (!isValidId(id)) return badRequest(res, "Invalid ID");
+    const table = await Table.findById(id).lean();
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    const orders = await Order.find({ table: id, sessionStatus: "open" })
+      .populate("items.product", "name type price")
+      .lean();
+
+    return ok(res, { ...table, orders });
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   CREATE TABLE
+========================================================= */
+export const createTable = async (req, res, next) => {
+  try {
+    const { number, capacity, location = "indoor" } = req.body;
+
+    if (!number || !capacity) {
+      return badRequest(res, "number y capacity son obligatorios");
+    }
+
+    const exists = await Table.findOne({ number });
+    if (exists) return conflict(res, `La mesa #${number} ya existe`);
+
+    const table = await Table.create({ number, capacity, location });
+
+    logger.info(`[Table] Creada: mesa #${number}`);
+    await emitTableUpdate(table._id);
+
+    return created(res, table, `Mesa #${number} creada correctamente`);
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   UPDATE TABLE
+========================================================= */
+export const updateTable = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const ALLOWED = ["number", "capacity", "location", "notes"];
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
+    );
+
+    const table = await Table.findByIdAndUpdate(id, updates, {
+      new: true, runValidators: true,
+    });
+
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    await emitTableUpdate(id);
+    return ok(res, table, "Mesa actualizada correctamente");
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   DELETE TABLE
+========================================================= */
+export const deleteTable = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const activeOrders = await Order.countDocuments({ table: id, sessionStatus: "open" });
+    if (activeOrders > 0) {
+      return badRequest(res, "No puedes eliminar una mesa con órdenes activas");
+    }
+
+    const table = await Table.findByIdAndDelete(id);
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    io.emit("table:deleted", { tableId: id });
+    logger.info(`[Table] Eliminada: mesa #${table.number}`);
+
+    return ok(res, null, "Mesa eliminada correctamente");
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   OPEN TABLE (START SESSION)
+========================================================= */
+export const openTable = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const table = await Table.findById(id);
-    if (!table) return notFound(res, "Table not found");
+    if (!table) return notFound(res, "Mesa no encontrada");
 
+    /* Ya está ocupada → devolver sessionId existente */
     if (table.status === "occupied") {
-      return badRequest(res, "Table already in use");
+      return ok(res, { sessionId: table.currentSessionId, table }, "Mesa ya activa");
     }
 
     const sessionId = new mongoose.Types.ObjectId().toString();
-
-    table.status = "occupied";
-    table.currentSessionId = sessionId;
-    table.statusChangedAt = new Date();
-
+    table.startSession(sessionId);
     await table.save();
 
     await emitTableUpdate(id);
-
     io.emit("table:opened", { tableId: id, sessionId });
 
-    return res.json({
-      ...table.toObject(),
-      sessionId,
-    });
-  } catch (error) {
-    return serverError(res, error, "openTable");
-  }
+    logger.info(`[Table] Abierta: mesa #${table.number} (session: ${sessionId})`);
+    return ok(res, { sessionId, table }, "Mesa abierta correctamente");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   CLOSE TABLE
-============================== */
-export const closeTable = async (req, res) => {
+/* =========================================================
+   CLOSE TABLE (END SESSION)
+========================================================= */
+export const closeTable = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
     const { id } = req.params;
-
-    if (!isValidId(id)) return badRequest(res, "Invalid ID");
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     session.startTransaction();
 
     const table = await Table.findById(id).session(session);
-    if (!table) {
-      await session.abortTransaction();
-      return notFound(res, "Table not found");
-    }
+    if (!table) { await session.abortTransaction(); return notFound(res, "Mesa no encontrada"); }
+    if (!table.currentSessionId) { await session.abortTransaction(); return badRequest(res, "Mesa sin sesión activa"); }
 
+    /* Cerrar órdenes abiertas */
     await Order.updateMany(
       { table: id, sessionStatus: "open" },
-      {
-        $set: {
-          sessionStatus: "closed",
-          closedAt: new Date(),
-        },
-      },
+      { $set: { sessionStatus: "closed", closedAt: new Date() } },
       { session }
     );
 
-    table.status = "available";
-    table.currentSessionId = null;
-    table.statusChangedAt = new Date();
-
+    table.release();
+    table.lastSessionClosedAt = new Date();
     await table.save({ session });
 
     await session.commitTransaction();
 
     await emitTableUpdate(id);
-
     io.emit("table:closed", { tableId: id });
 
-    return res.json({
-      message: "Mesa cerrada correctamente",
-      table,
-    });
-
+    logger.info(`[Table] Cerrada: mesa #${table.number}`);
+    return ok(res, table, "Mesa cerrada correctamente");
   } catch (error) {
     await session.abortTransaction();
-    return serverError(res, error, "closeTable");
+    next(error);
   } finally {
     session.endSession();
   }
 };
 
-/* ==============================
-   CREATE TABLE
-============================== */
-export const createTable = async (req, res) => {
-  try {
-    const { number, capacity, location = "indoor" } = req.body;
-
-    const exists = await Table.findOne({ number });
-    if (exists) return badRequest(res, "Table already exists");
-
-    const table = await Table.create({
-      number,
-      capacity,
-      location,
-    });
-
-    await emitTableUpdate(table._id);
-
-    return res.status(201).json(table);
-  } catch (error) {
-    return serverError(res, error, "createTable");
-  }
-};
-
-/* ==============================
-   UPDATE TABLE
-============================== */
-export const updateTable = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!isValidId(id)) return badRequest(res, "Invalid ID");
-
-    const allowed = ["number", "capacity", "location", "notes"];
-
-    const updates = Object.fromEntries(
-      Object.entries(req.body).filter(([k]) =>
-        allowed.includes(k)
-      )
-    );
-
-    const table = await Table.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!table) return notFound(res, "Table not found");
-
-    await emitTableUpdate(id);
-
-    return res.json(table);
-  } catch (error) {
-    return serverError(res, error, "updateTable");
-  }
-};
-
-/* ==============================
-   DELETE TABLE
-============================== */
-export const deleteTable = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!isValidId(id)) return badRequest(res, "Invalid ID");
-
-    const activeOrders = await Order.countDocuments({
-      table: id,
-      sessionStatus: "open",
-    });
-
-    if (activeOrders > 0) {
-      return badRequest(res, "Table has active orders");
-    }
-
-    await Table.findByIdAndDelete(id);
-
-    io.emit("table:deleted", { tableId: id });
-
-    return res.json({ message: "Table deleted" });
-  } catch (error) {
-    return serverError(res, error, "deleteTable");
-  }
-};
-
-/* ==============================
+/* =========================================================
    TAG SYSTEM
-============================== */
-export const addTableTag = async (req, res) => {
+========================================================= */
+export const addTableTag = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { label, type = "other", priority = "low" } = req.body;
 
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+    if (!label)         return badRequest(res, "label es obligatorio");
+
     const table = await Table.findById(id);
-    if (!table) return notFound(res, "Table not found");
+    if (!table) return notFound(res, "Mesa no encontrada");
 
-    const exists = table.tags.some(
-      (t) => t.label.toLowerCase() === label.toLowerCase()
-    );
-
-    if (exists) return badRequest(res, "Tag already exists");
+    const exists = table.tags.some((t) => t.label.toLowerCase() === label.toLowerCase());
+    if (exists) return conflict(res, "El tag ya existe en esta mesa");
 
     table.tags.push({ label, type, priority });
     await table.save();
-
     await emitTableUpdate(id);
 
-    return res.json(table);
-  } catch (error) {
-    return serverError(res, error, "addTableTag");
-  }
+    return ok(res, table, "Tag agregado");
+  } catch (error) { next(error); }
 };
 
-export const removeTableTag = async (req, res) => {
+export const removeTableTag = async (req, res, next) => {
   try {
     const { id, label } = req.params;
 
     const table = await Table.findById(id);
-    if (!table) return notFound(res, "Table not found");
+    if (!table) return notFound(res, "Mesa no encontrada");
 
-    table.tags = table.tags.filter(
-      (t) => t.label.toLowerCase() !== label.toLowerCase()
-    );
-
+    table.tags = table.tags.filter((t) => t.label.toLowerCase() !== label.toLowerCase());
     await table.save();
-
     await emitTableUpdate(id);
 
-    return res.json(table);
-  } catch (error) {
-    return serverError(res, error, "removeTableTag");
-  }
+    return ok(res, table, "Tag eliminado");
+  } catch (error) { next(error); }
 };
 
-export const clearTableTags = async (req, res) => {
+export const clearTableTags = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const table = await Table.findById(id);
-    if (!table) return notFound(res, "Table not found");
+    if (!table) return notFound(res, "Mesa no encontrada");
 
     table.tags = [];
     await table.save();
-
     await emitTableUpdate(id);
 
-    return res.json(table);
-  } catch (error) {
-    return serverError(res, error, "clearTableTags");
-  }
-};
-
-/* ==============================
-   GET TABLE BY ID
-============================== */
-export const getTableById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!isValidId(id)) {
-      return badRequest(res, "Invalid ID");
-    }
-
-    const table = await Table.findById(id).lean();
-
-    if (!table) return notFound(res, "Table not found");
-
-    const orders = await Order.find({
-      table: id,
-      sessionStatus: "open",
-    })
-      .populate("items.product")
-      .lean();
-
-    res.json({
-      ...table,
-      orders,
-    });
-
-  } catch (error) {
-    return serverError(res, error, "getTableById");
-  }
+    return ok(res, table, "Tags eliminados");
+  } catch (error) { next(error); }
 };

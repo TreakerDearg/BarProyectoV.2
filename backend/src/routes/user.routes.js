@@ -1,136 +1,41 @@
 import express from "express";
-
 import {
-  createEmployee,
-  getEmployees,
-  getUser,
-  updateUser,
-  deactivateUser,
-  activateUser,
-  changePassword,
-  updatePermissions,
-  assignShift,
+  createEmployee, getEmployees, getUser, updateUser,
+  deactivateUser, activateUser, changePassword,
+  updatePermissions, assignShift,
 } from "../controllers/user.controller.js";
 
-import { protect } from "../middlewares/auth.middleware.js";
-import { authorizeRoles } from "../middlewares/roleMiddleware.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validate.js";
+import { createEmployeeSchema, assignShiftSchema, changePasswordSchema } from "../utils/schemas.js";
 
 const router = express.Router();
+const adminOnly = [protect, authorizeRoles("admin")];
 
 /* =========================================================
-   EMPLOYEES (ADMIN ONLY)
+   EMPLOYEES MODULE
 ========================================================= */
-
-/**
- * Crear empleado (con role + shift + permissions)
- */
-router.post(
-  "/employees",
-  protect,
-  authorizeRoles("admin"),
-  createEmployee
-);
-
-/**
- * Listar empleados
- * filtros:
- * ?role=bartender
- * ?shift=morning
- * ?active=true
- */
-router.get(
-  "/employees",
-  protect,
-  authorizeRoles("admin"),
-  getEmployees
-);
+router.post("/employees", ...adminOnly, validate(createEmployeeSchema), createEmployee);
+router.get("/employees", ...adminOnly, getEmployees);
 
 /* =========================================================
    USER CORE MANAGEMENT
 ========================================================= */
-
-/**
- * Obtener usuario por ID
- */
-router.get(
-  "/:id",
-  protect,
-  authorizeRoles("admin"),
-  getUser
-);
-
-/**
- * Actualizar usuario (role / shift / permissions / status)
- */
-router.put(
-  "/:id",
-  protect,
-  authorizeRoles("admin"),
-  updateUser
-);
+router.get("/:id", ...adminOnly, getUser);
+// Nota: updateUser puede requerir validación parcial, por ahora lo pasamos directo o agregar schema updateEmployeeSchema
+router.put("/:id", ...adminOnly, updateUser);
 
 /* =========================================================
-   SECURITY
+   SECURITY & STATUS
 ========================================================= */
-
-/**
- * Cambiar contraseña
- */
-router.patch(
-  "/:id/password",
-  protect,
-  authorizeRoles("admin"),
-  changePassword
-);
+router.patch("/:id/password", ...adminOnly, validate(changePasswordSchema), changePassword);
+router.patch("/:id/deactivate", ...adminOnly, deactivateUser);
+router.patch("/:id/activate", ...adminOnly, activateUser);
 
 /* =========================================================
-   STATUS CONTROL
+   PERMISSIONS & SHIFTS
 ========================================================= */
-
-/**
- * Desactivar usuario
- */
-router.patch(
-  "/:id/deactivate",
-  protect,
-  authorizeRoles("admin"),
-  deactivateUser
-);
-
-/**
- * Activar usuario
- */
-router.patch(
-  "/:id/activate",
-  protect,
-  authorizeRoles("admin"),
-  activateUser
-);
-
-/* =========================================================
-   ACCESS SYSTEM 
-========================================================= */
-
-/**
- * Actualizar permisos dinámicos
- * (Sistema de módulos del frontend)
- */
-router.patch(
-  "/:id/permissions",
-  protect,
-  authorizeRoles("admin"),
-  updatePermissions
-);
-
-/**
- * Asignar turno operativo
- * (morning / afternoon / night / event)
- */
-router.patch(
-  "/:id/shift",
-  protect,
-  authorizeRoles("admin"),
-  assignShift
-);
+router.patch("/:id/permissions", ...adminOnly, updatePermissions);
+router.patch("/:id/shift", ...adminOnly, validate(assignShiftSchema), assignShift);
 
 export default router;

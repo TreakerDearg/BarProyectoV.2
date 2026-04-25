@@ -5,12 +5,14 @@ import api from "../../../services/api";
 ========================================================= */
 export interface TopProduct {
   name: string;
-  value: number;
+  qty: number;
+  revenue: number;
   type: "drink" | "food";
 }
 
 export interface SalesData {
   date: string;
+  orders: number;
   total: number;
 }
 
@@ -19,24 +21,44 @@ export interface TableStats {
   count: number;
 }
 
-export interface DashboardStats {
-  totalSales: number;
-  totalOrders: number;
-  todayOrders: number;
+export interface HourlyData {
+  time: string;
+  sales: number;
+  discounts: number;
+}
 
-  topProduct: string;
+export interface DashboardStats {
+  kpis: {
+    totalSales: number;
+    totalOrders: number;
+    todayOrders: number;
+    avgTicket: number;
+    reservationsToday: number;
+  };
   topProducts: TopProduct[];
   topDrinks: TopProduct[];
   topFoods: TopProduct[];
-
+  versusStats: {
+    radarData: { subject: string; classic: number; author: number; fullMark: number }[];
+    headToHead: { rank: number; name: string; category: string; sold: number; profit: string; perf: number }[];
+    classicVelocity: number;
+    authorVelocity: number;
+    classicRevShare: number;
+    authorRevShare: number;
+  };
   salesData: SalesData[];
-
-  lowStock: number;
-  outOfStock: number;
-
-  tablesStats: TableStats[];
-
-  reservationsToday: number;
+  hourlyData: HourlyData[];
+  discountsGiven: number;
+  rouletteSpins: {
+    total: number;
+    accepted: number;
+    rejected: number;
+  };
+  inventory: {
+    lowStock: number;
+    outOfStock: number;
+  };
+  tables: TableStats[];
 }
 
 /* =========================================================
@@ -49,11 +71,11 @@ export async function fetchDashboard(
   signal?: AbortSignal
 ): Promise<DashboardStats> {
   try {
-    const { data } = await api.get<DashboardStats>("/dashboard", {
+    const response: any = await api.get("/dashboard", {
       signal,
     });
 
-    return data;
+    return response.data; // El interceptor devuelve { success, data, message }, y aquí sacamos 'data'
   } catch (error: any) {
     const status = error?.response?.status;
     const message =

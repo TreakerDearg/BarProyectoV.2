@@ -1,305 +1,208 @@
-import InventoryItem from "../models/InventoryItem.js";
 import mongoose from "mongoose";
+import InventoryItem from "../models/InventoryItem.js";
+import { logger } from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound,
+} from "../utils/response.js";
 
-/* ==============================
-   HELPERS
-============================== */
-const isValidObjectId = (id) =>
-  mongoose.Types.ObjectId.isValid(id);
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const sanitizeNumber = (value, def = 0) =>
-  value !== undefined ? Number(value) : def;
-
-/* ==============================
-   GET ALL (con filtros avanzados)
-============================== */
-export const getInventory = async (req, res) => {
+/* =========================================================
+   GET ALL (filtros + paginación)
+========================================================= */
+export const getInventory = async (req, res, next) => {
   try {
     const {
-      category,
-      search,
-      sector,
-      lowStock,
-      page = 1,
-      limit = 50,
+      category, search, sector, location, lowStock, isActive,
+      page = 1, limit = 50,
     } = req.query;
 
     const filter = {};
+    if (category && category !== "all") filter.category = category;
+    if (sector   && sector   !== "all") filter.sector   = sector;
+    if (location && location !== "all") filter.location = location;
+    if (isActive !== undefined) filter.isActive = isActive === "true";
+    if (search)  filter.$text = { $search: search };
+    if (lowStock === "true") filter.$expr = { $lte: ["$stock", "$minStock"] };
 
-    if (category && category !== "all") {
-      filter.category = category;
-    }
+    const skip  = (Number(page) - 1) * Number(limit);
+    const [items, total] = await Promise.all([
+      InventoryItem.find(filter).sort({ name: 1 }).skip(skip).limit(Number(limit)).lean(),
+      InventoryItem.countDocuments(filter),
+    ]);
 
-    if (sector && sector !== "all") {
-      filter.sector = sector;
-    }
-
-    if (search) {
-      filter.name = { $regex: search, $options: "i" };
-    }
-
-    if (lowStock === "true") {
-      filter.$expr = { $lte: ["$stock", "$minStock"] };
-    }
-
-    const items = await InventoryItem.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
-
-    const total = await InventoryItem.countDocuments(filter);
-
-    res.json({
-      data: items,
+    return ok(res, items, "OK", {
       total,
-      page: Number(page),
-      totalPages: Math.ceil(total / limit),
+      page:       Number(page),
+      totalPages: Math.ceil(total / Number(limit)),
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  } catch (error) { next(error); }
 };
 
-/* ==============================
+/* =========================================================
    GET ONE
-============================== */
-export const getInventoryItem = async (req, res) => {
+========================================================= */
+export const getInventoryItem = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "ID inválido" });
-    }
+    const item = await InventoryItem.findById(id).lean();
+    if (!item) return notFound(res, "Item no encontrado");
 
-    const item = await InventoryItem.findById(id);
-
-    if (!item) {
-      return res.status(404).json({
-        message: "Item no encontrado",
-      });
-    }
-
-    res.json(item);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    return ok(res, item);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
+/* =========================================================
    CREATE
-============================== */
-export const createInventoryItem = async (req, res) => {
+========================================================= */
+export const createInventoryItem = async (req, res, next) => {
   try {
-    let {
-      name,
-      stock,
-      unit,
-      category,
-      minStock,
-      maxStock,
-      cost, // 👈 ahora correcto
-      sector,
-      supplier,
-      location,
-    } = req.body;
-
+    const { name, category } = req.body;
     if (!name || !category) {
-      return res.status(400).json({
-        message: "Nombre y categoría son obligatorios",
-      });
+      return badRequest(res, "name y category son obligatorios");
     }
 
-    const newItem = new InventoryItem({
-      name: name.trim(),
-      stock: Number(stock ?? 0),
-      unit,
-      category: category.trim().toLowerCase(),
-      minStock: Number(minStock ?? 5),
-      maxStock: Number(maxStock ?? 100),
-      cost: Number(cost ?? 0),
-      sector,
-      supplier,
-      location,
+    const item = await InventoryItem.create({
+      ...req.body,
+      name:     req.body.name.trim(),
+      category: req.body.category.trim().toLowerCase(),
     });
 
-    const saved = await newItem.save();
-
-    return res.status(201).json(saved);
-  } catch (error) {
-    console.error("CREATE INVENTORY ERROR:", error);
-
-    return res.status(500).json({
-      message: "Error creando item de inventario",
-      error: error.message,
-    });
-  }
+    logger.info(`[Inventory] Creado: ${item.name}`);
+    return created(res, item, "Item creado correctamente");
+  } catch (error) { next(error); }
 };
-/* ==============================
-   UPDATE (controlado)
-============================== */
-export const updateInventoryItem = async (req, res) => {
+
+/* =========================================================
+   UPDATE
+========================================================= */
+export const updateInventoryItem = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const updated = await InventoryItem.findByIdAndUpdate(
-      id,
-      {
-        ...req.body,
-        category: req.body.category?.toLowerCase(),
-      },
-      { new: true, runValidators: true }
+    const ALLOWED = [
+      "name", "description", "stock", "minStock", "maxStock",
+      "unit", "cost", "supplier", "sector", "category", "location", "isActive",
+    ];
+
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
 
-    if (!updated) {
-      return res.status(404).json({ message: "No encontrado" });
-    }
+    if (updates.category) updates.category = updates.category.toLowerCase();
 
-    res.json(updated);
-  } catch (error) {
-    console.error(error);
+    const updated = await InventoryItem.findByIdAndUpdate(
+      id, updates, { new: true, runValidators: true }
+    ).lean();
 
-    res.status(500).json({
-      message: "Error actualizando item",
-      error: error.message,
-    });
-  }
+    if (!updated) return notFound(res, "Item no encontrado");
+
+    logger.info(`[Inventory] Actualizado: ${updated.name}`);
+    return ok(res, updated, "Item actualizado correctamente");
+  } catch (error) { next(error); }
 };
-/* ==============================
-   DELETE (seguro)
-============================== */
-export const deleteInventoryItem = async (req, res) => {
+
+/* =========================================================
+   DELETE
+========================================================= */
+export const deleteInventoryItem = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "ID inválido" });
-    }
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const deleted = await InventoryItem.findByIdAndDelete(id);
+    if (!deleted) return notFound(res, "Item no encontrado");
 
-    if (!deleted) {
-      return res.status(404).json({
-        message: "Item no encontrado",
-      });
-    }
-
-    res.json({ message: "Item eliminado correctamente" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    logger.info(`[Inventory] Eliminado: ${deleted.name}`);
+    return ok(res, null, "Item eliminado correctamente");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   AJUSTE DE STOCK (PRO)
-============================== */
-export const adjustStock = async (req, res) => {
+/* =========================================================
+   ADJUST STOCK
+========================================================= */
+export const adjustStock = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    let { amount, type } = req.body;
+    const { id }           = req.params;
+    const { amount, type, reason } = req.body;
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ message: "ID inválido" });
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const parsedAmount = Number(amount);
+    if (!parsedAmount || parsedAmount <= 0) {
+      return badRequest(res, "amount debe ser un número positivo");
     }
 
-    amount = sanitizeNumber(amount, 0);
-
-    if (amount <= 0) {
-      return res.status(400).json({ message: "Amount inválido" });
+    if (!["add", "subtract"].includes(type)) {
+      return badRequest(res, "type debe ser 'add' o 'subtract'");
     }
 
     const item = await InventoryItem.findById(id);
+    if (!item) return notFound(res, "Item no encontrado");
 
-    if (!item) {
-      return res.status(404).json({ message: "Item no encontrado" });
-    }
+    const prevStock = item.stock;
 
-    if (type === "add") item.stock += amount;
-    if (type === "subtract") item.stock -= amount;
+    if (type === "add")      item.stock += parsedAmount;
+    if (type === "subtract") item.stock -= parsedAmount;
 
     if (item.stock < 0) {
-      return res.status(400).json({ message: "Stock insuficiente" });
+      return badRequest(res, `Stock insuficiente. Disponible: ${prevStock}`);
     }
+
+    /* Registrar movimiento en el historial */
+    item.movements.push({
+      type:          type === "add" ? "in" : "out",
+      quantity:      parsedAmount,
+      reason:        reason || "",
+      costAtMoment:  item.cost,
+    });
 
     await item.save();
 
-    res.json(item);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error ajustando stock",
-      error: error.message,
-    });
-  }
+    logger.info(`[Inventory] Stock ajustado: ${item.name} (${prevStock} → ${item.stock})`);
+    return ok(res, item, `Stock ${type === "add" ? "aumentado" : "reducido"} correctamente`);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
+/* =========================================================
    GET CATEGORIES
-============================== */
-export const getInventoryCategories = async (req, res) => {
+========================================================= */
+export const getInventoryCategories = async (req, res, next) => {
   try {
     const categories = await InventoryItem.distinct("category");
-
-    categories.sort((a, b) => a.localeCompare(b));
-
-    res.json(categories);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    return ok(res, categories.sort((a, b) => a.localeCompare(b)));
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   STATS (MEJORADO)
-============================== */
-export const getInventoryStats = async (req, res) => {
+/* =========================================================
+   STATS
+========================================================= */
+export const getInventoryStats = async (req, res, next) => {
   try {
-    const totalItems = await InventoryItem.countDocuments();
-
-    const stockData = await InventoryItem.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalStock: { $sum: "$stock" },
-          averageStock: { $avg: "$stock" },
-        },
-      },
+    const [totalItems, stockData, lowStockItems, outOfStockItems, categories] = await Promise.all([
+      InventoryItem.countDocuments(),
+      InventoryItem.aggregate([{
+        $group: { _id: null, totalStock: { $sum: "$stock" }, averageStock: { $avg: "$stock" } },
+      }]),
+      InventoryItem.countDocuments({ $expr: { $lte: ["$stock", "$minStock"] } }),
+      InventoryItem.countDocuments({ stock: { $lte: 0 } }),
+      InventoryItem.aggregate([
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $project: { name: "$_id", value: "$count", _id: 0 } },
+        { $sort: { value: -1 } },
+      ]),
     ]);
 
-    const lowStockItems = await InventoryItem.countDocuments({
-      $expr: { $lte: ["$stock", "$minStock"] },
-    });
-
-    const outOfStockItems = await InventoryItem.countDocuments({
-      stock: { $lte: 0 },
-    });
-
-    const categories = await InventoryItem.aggregate([
-      {
-        $group: {
-          _id: "$category",
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          name: "$_id",
-          value: "$count",
-          _id: 0,
-        },
-      },
-      { $sort: { value: -1 } },
-    ]);
-
-    res.json({
+    return ok(res, {
       totalItems,
-      totalStock: stockData[0]?.totalStock || 0,
-      averageStock: Math.round(stockData[0]?.averageStock || 0),
+      totalStock:    stockData[0]?.totalStock   || 0,
+      averageStock:  Math.round(stockData[0]?.averageStock || 0),
       lowStockItems,
       outOfStockItems,
       categories,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error al obtener estadísticas",
-      error: error.message,
-    });
-  }
+  } catch (error) { next(error); }
 };

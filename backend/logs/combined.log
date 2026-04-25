@@ -1,0 +1,613 @@
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:31:05"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:31:05"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:31:24"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:31:24"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:31:44"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:31:44"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:31:58"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:31:58"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:32:27"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:32:27"}
+{"level":"info","message":"[WS] Conectado → VDdFbCrEpD9iZKuEAAAB","timestamp":"2026-04-24 21:32:28"}
+{"level":"info","message":"[WS] Conectado → pxF64ppkh_CPdJMiAAAD","timestamp":"2026-04-24 21:32:28"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:32:28"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:32:28"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"[WS] Conectado → 0n4ZUCr9zyHiWH-kAAAB","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"[WS] Conectado → Vf2rI2fkoE12DVQ4AAAD","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:32:52"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:33:42"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:33:42"}
+{"level":"info","message":"[WS] Conectado → rSb8vD-SBBXDbaLlAAAC","timestamp":"2026-04-24 21:33:42"}
+{"level":"info","message":"[WS] Conectado → J6N8asUTAGgXzKmJAAAD","timestamp":"2026-04-24 21:33:42"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:33:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:33:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 21:36:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 21:36:08"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 21:36:09"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 21:36:09"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 21:36:10"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 21:36:10"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 21:36:11"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 21:36:11"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:36:58"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:36:58"}
+{"level":"info","message":"[WS] Conectado → E2nU5Yo0PmEaRbk6AAAB","timestamp":"2026-04-24 21:36:58"}
+{"level":"info","message":"[WS] Conectado → 3-lNatuDNG1osV7CAAAD","timestamp":"2026-04-24 21:36:59"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:36:59"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:36:59"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:37:20"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:37:20"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:37:22"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:37:22"}
+{"level":"info","message":"[WS] Conectado → oj92KTWNdPXQWKEyAAAB","timestamp":"2026-04-24 21:37:23"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:37:23"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:37:23"}
+{"level":"info","message":"[WS] Conectado → X5LQPczyZ4LZjsO1AAAD","timestamp":"2026-04-24 21:37:24"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"[WS] Conectado → TCjDoA-aQU50T6ngAAAB","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"[WS] Conectado → PwwRwrTFVKomxnQtAAAD","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:38:20"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:38:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:38:43"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:38:44"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:38:44"}
+{"level":"info","message":"[WS] Conectado → fY-8GTDWEoeaUmgmAAAB","timestamp":"2026-04-24 21:38:46"}
+{"level":"info","message":"[WS] Conectado → K3aTdYv7TGpbDWgzAAAD","timestamp":"2026-04-24 21:38:46"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:39:48"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:39:48"}
+{"level":"info","message":"[WS] Conectado → F88GBX_KJMDn1J9KAAAB","timestamp":"2026-04-24 21:39:48"}
+{"level":"info","message":"[WS] Conectado → 5GM6PnC7ehTNCmXwAAAD","timestamp":"2026-04-24 21:39:48"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:39:49"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:39:49"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 21:40:10"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:40:17"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:40:17"}
+{"level":"info","message":"[WS] Conectado → vPW6GOaUoNpblOxCAAAB","timestamp":"2026-04-24 21:40:17"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:40:18"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:40:18"}
+{"level":"info","message":"[WS] Conectado → KArXzLJzQv7F4O0WAAAD","timestamp":"2026-04-24 21:40:21"}
+{"level":"info","message":"→ GET /api/reservations/available/tables?startTime=2026-04-24T06%3A40%3A00.000Z&endTime=2026-04-24T11%3A40%3A00.000Z&guests=2","timestamp":"2026-04-24 21:40:33"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:41:00"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:41:00"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:41:00"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:41:00"}
+{"level":"info","message":"[WS] Conectado → EvMjTIDOntFvTnAMAAAC","timestamp":"2026-04-24 21:41:05"}
+{"level":"info","message":"[WS] Conectado → x-b2D8Xyz-0NZpKZAAAD","timestamp":"2026-04-24 21:41:05"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 21:41:11"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 21:41:11"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 21:41:12"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:41:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:41:43"}
+{"level":"info","message":"[WS] Conectado → zktAr0XBC33LqPAcAAAB","timestamp":"2026-04-24 21:41:44"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:41:44"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:41:45"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:41:50"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:41:50"}
+{"level":"info","message":"[WS] Conectado → 0WeGKX83Rgd-1vx0AAAB","timestamp":"2026-04-24 21:41:50"}
+{"level":"info","message":"[WS] Conectado → yuel1q6WDBL8gavPAAAD","timestamp":"2026-04-24 21:41:50"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:41:51"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:41:51"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:01"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:01"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:03"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:03"}
+{"level":"info","message":"[WS] Conectado → ZFW2ZdhbPbFbKsofAAAC","timestamp":"2026-04-24 21:51:04"}
+{"level":"info","message":"[WS] Conectado → Ylg4jNfFpnhBWh_GAAAD","timestamp":"2026-04-24 21:51:04"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:51:04"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:51:04"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"[WS] Conectado → J3Ibf_3eOpkw_QRfAAAB","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"[WS] Conectado → ssF_S8jL4jk9gnlMAAAD","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:51:22"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:25"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:25"}
+{"level":"info","message":"[WS] Conectado → z1wMxCccjqQou_Q7AAAC","timestamp":"2026-04-24 21:51:26"}
+{"level":"info","message":"[WS] Conectado → U8PocwXyHzIklHf4AAAD","timestamp":"2026-04-24 21:51:26"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"[WS] Conectado → vVHYYpXUq4EzOmOhAAAB","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"[WS] Conectado → ZEvTAlrtL_SIazzXAAAD","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:51:28"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:45"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:45"}
+{"level":"info","message":"[WS] Conectado → DSS6VhBCEu9pYsjJAAAB","timestamp":"2026-04-24 21:51:45"}
+{"level":"info","message":"[WS] Conectado → d7Lkb9aZKqLTySnSAAAD","timestamp":"2026-04-24 21:51:46"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:47"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:47"}
+{"level":"info","message":"[WS] Conectado → sa0T6ULhsgJbYInDAAAB","timestamp":"2026-04-24 21:51:47"}
+{"level":"info","message":"[WS] Conectado → g0XtY-cunQxHMU4eAAAD","timestamp":"2026-04-24 21:51:48"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:51:49"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:51:49"}
+{"level":"info","message":"[WS] Conectado → IPdPrrUcr8g_2KVjAAAC","timestamp":"2026-04-24 21:51:50"}
+{"level":"info","message":"[WS] Conectado → gewzdGhHVnLM7jbwAAAD","timestamp":"2026-04-24 21:51:50"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:51:50"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:51:50"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:52:11"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:52:11"}
+{"level":"info","message":"[WS] Conectado → nxpLoKsGvt9FvWFXAAAB","timestamp":"2026-04-24 21:52:11"}
+{"level":"info","message":"[WS] Conectado → U1PrSfAQpFyI0PlfAAAD","timestamp":"2026-04-24 21:52:11"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:52:13"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:52:13"}
+{"level":"info","message":"[WS] Conectado → IW7rZ6KCYa3-FJYtAAAC","timestamp":"2026-04-24 21:52:13"}
+{"level":"info","message":"[WS] Conectado → FNRYKUohl5Q5Kz5ZAAAD","timestamp":"2026-04-24 21:52:13"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 21:52:15"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 21:52:15"}
+{"level":"info","message":"[WS] Conectado → t_k8sS8ZTLQSYmmXAAAC","timestamp":"2026-04-24 21:52:15"}
+{"level":"info","message":"[WS] Conectado → VZAuu_2F8zqPMmstAAAD","timestamp":"2026-04-24 21:52:15"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 21:52:16"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 21:52:16"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:07:19"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:07:19"}
+{"level":"info","message":"[WS] Conectado → 8djJrnPEJETLzNdHAAAB","timestamp":"2026-04-24 22:07:20"}
+{"level":"info","message":"[WS] Conectado → IlFvUFGmaz1QyBUoAAAD","timestamp":"2026-04-24 22:07:20"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:07:20"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:07:20"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:07:44"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:07:44"}
+{"level":"info","message":"[WS] Conectado → av0vHC_UvY4R-HqZAAAC","timestamp":"2026-04-24 22:07:44"}
+{"level":"info","message":"[WS] Conectado → DHEsPJRQDVMFdb6FAAAD","timestamp":"2026-04-24 22:07:44"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:07:45"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:07:45"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:08:38"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:08:38"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:08:38"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:08:53"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:09:01"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:09:01"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:09:02"}
+{"level":"info","message":"[WS] Conectado → fCUqH3L0o_EbuVyNAAAF","timestamp":"2026-04-24 22:09:02"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:09:02"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:09:03"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:09:03"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:09:04"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:09:04"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:09:09"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:09:09"}
+{"level":"info","message":"→ GET /api/reservations/available/tables?startTime=2026-04-24T05%3A09%3A00.000Z&endTime=2026-04-24T10%3A09%3A00.000Z&guests=4","timestamp":"2026-04-24 22:09:21"}
+{"level":"info","message":"→ POST /api/reservations","timestamp":"2026-04-24 22:09:21"}
+{"level":"info","message":"[Reservation] Creada: saa → 24/4/2026, 02:09:00","timestamp":"2026-04-24 22:09:22"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:09:24"}
+{"level":"info","message":"→ PATCH /api/reservations/69ec1442f7885c168cde6c97/status","timestamp":"2026-04-24 22:09:27"}
+{"level":"info","message":"[Reservation] Status → confirmed: 69ec1442f7885c168cde6c97","timestamp":"2026-04-24 22:09:27"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:09:29"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:09:29"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:09:32"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:13:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:43"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:44"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:45"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:46"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:13:48"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:13:48"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:49"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:50"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:13:51"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:13:51"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:13:52"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:13:52"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:53"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:53"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:53"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:53"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:55"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:55"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:56"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:13:56"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:57"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:13:57"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:58"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:13:59"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:14:01"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:14:01"}
+{"level":"info","message":"[WS] Desconectado → DHEsPJRQDVMFdb6FAAAD (transport close)","timestamp":"2026-04-24 22:15:58"}
+{"level":"info","message":"[WS] Desconectado → fCUqH3L0o_EbuVyNAAAF (transport close)","timestamp":"2026-04-24 22:15:58"}
+{"level":"info","message":"[WS] Desconectado → av0vHC_UvY4R-HqZAAAC (transport close)","timestamp":"2026-04-24 22:15:58"}
+{"level":"info","message":"[WS] Conectado → -uEUOa2SoO6FeEC9AAAH","timestamp":"2026-04-24 22:25:46"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:25:47"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:25:47"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:25:47"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:26:07"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:26:07"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:26:08"}
+{"level":"info","message":"[WS] Conectado → 0ss2PUKAPIGm1XHTAAAJ","timestamp":"2026-04-24 22:26:08"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:26:08"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:26:08"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:26:09"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:26:09"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:26:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:27:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:27:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:28:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:28:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:29:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:29:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:30:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:30:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:31:10"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:31:23"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:31:23"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:31:24"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:31:24"}
+{"level":"info","message":"[WS] Conectado → JGefa5Sk-ADrfPawAAAC","timestamp":"2026-04-24 22:31:25"}
+{"level":"info","message":"[WS] Conectado → _lQdLo8hxfWLUw0TAAAD","timestamp":"2026-04-24 22:31:25"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:31:40"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:31:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:31:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:32:42"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:32:42"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:32:42"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:33:10"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:33:10"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:33:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:33:40"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:33:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:33:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:34:10"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:34:10"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:34:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:34:40"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:34:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:34:40"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:35:10"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:35:10"}
+{"level":"info","message":"[WS] Conectado → FzESQfsDQ7TwUyeWAAAB","timestamp":"2026-04-24 22:35:10"}
+{"level":"info","message":"[WS] Conectado → 3HxZIawyNqAZT2URAAAD","timestamp":"2026-04-24 22:35:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:35:10"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:35:12"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:35:12"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:35:12"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:35:12"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:35:40"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:35:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:35:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:36:10"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:36:10"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:36:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:36:39"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:36:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:36:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:37:10"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:37:10"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:37:10"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:37:40"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:37:40"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:37:40"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:38:42"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:38:42"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:38:42"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:39:42"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:39:42"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:39:42"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:40:42"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:40:42"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:40:42"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:41:21"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:41:21"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:41:21"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:28"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:29"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:38"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:48"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:41:50"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:41:50"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:41:50"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:51"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:51"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:52"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:41:52"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:53"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:53"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:41:54"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:41:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:55"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:41:55"}
+{"level":"info","message":"→ POST /api/tables/69e4160f70fa8a3afbc6500f/open","timestamp":"2026-04-24 22:41:57"}
+{"level":"info","message":"[Table] Abierta: mesa #1 (session: 69ec1be5fee638c445e9a6b2)","timestamp":"2026-04-24 22:41:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:41:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:41:57"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:42:06"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:42:06"}
+{"level":"info","message":"[WS] Conectado → 6fJ1kGVhbWsNAwtpAAAB","timestamp":"2026-04-24 22:42:06"}
+{"level":"info","message":"[WS] Conectado → fuuKSx5MMFP3MTeAAAAD","timestamp":"2026-04-24 22:42:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:06"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:42:07"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:42:07"}
+{"level":"info","message":"→ POST /api/tables/69e4169970fa8a3afbc65010/open","timestamp":"2026-04-24 22:42:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:08"}
+{"level":"info","message":"→ POST /api/tables/69e4169970fa8a3afbc65010/open","timestamp":"2026-04-24 22:42:08"}
+{"level":"info","message":"[Table] Abierta: mesa #2 (session: 69ec1bf05fbfc757b449fc46)","timestamp":"2026-04-24 22:42:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:11"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:42:11"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:42:13"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:42:18"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:42:21"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:44:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:44:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:44:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:44:58"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:08"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:18"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:28"}
+{"level":"info","message":"[WS] Desconectado → 6fJ1kGVhbWsNAwtpAAAB (transport close)","timestamp":"2026-04-24 22:45:37"}
+{"level":"info","message":"[WS] Desconectado → fuuKSx5MMFP3MTeAAAAD (transport close)","timestamp":"2026-04-24 22:45:37"}
+{"level":"info","message":"[WS] Conectado → 5iZFh9dMBZCAYBKvAAAF","timestamp":"2026-04-24 22:45:38"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:45:38"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:45:38"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:45:38"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:45:38"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:45:38"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:40"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:40"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:50"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:57"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:45:57"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:47:39"}
+{"level":"info","message":"[WS] Conectado → 1LrGdaJDAdcY6sOAAAAH","timestamp":"2026-04-24 22:47:39"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:47:39"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:47:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:47:40"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:47:42"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:47:53"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:48:00"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:48:00"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:48:03"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-24 22:48:03"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:48:04"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:48:04"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:48:06"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:48:06"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:48:26"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:48:26"}
+{"level":"info","message":"→ GET /api/recipes/product/69e3e175f4a504fb43197394","timestamp":"2026-04-24 22:48:30"}
+{"level":"info","message":"→ GET /api/recipes/product/69e548c471134ae369d5ea95","timestamp":"2026-04-24 22:48:31"}
+{"level":"info","message":"→ GET /api/recipes/product/69e3e175f4a504fb43197394","timestamp":"2026-04-24 22:48:32"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:48:36"}
+{"level":"info","message":"→ PATCH /api/orders/69ebbaa84a3cd3fe7c15e229/status","timestamp":"2026-04-24 22:48:44"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:48:46"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:48:56"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:06"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:16"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:26"}
+{"level":"info","message":"→ GET /api/recipes/product/69e548c471134ae369d5ea95","timestamp":"2026-04-24 22:49:28"}
+{"level":"info","message":"→ GET /api/recipes/product/69ea554e57f5bb679569e83f","timestamp":"2026-04-24 22:49:29"}
+{"level":"info","message":"→ DELETE /api/orders/69ebb8627c161c73e7163bb0","timestamp":"2026-04-24 22:49:36"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:36"}
+{"level":"info","message":"[Order] Eliminada: 69ebb8627c161c73e7163bb0","timestamp":"2026-04-24 22:49:36"}
+{"level":"info","message":"→ DELETE /api/orders/69ebbaa84a3cd3fe7c15e229","timestamp":"2026-04-24 22:49:38"}
+{"level":"info","message":"[Order] Eliminada: 69ebbaa84a3cd3fe7c15e229","timestamp":"2026-04-24 22:49:38"}
+{"level":"info","message":"→ DELETE /api/orders/69ebbaa34a3cd3fe7c15e226","timestamp":"2026-04-24 22:49:41"}
+{"level":"info","message":"[Order] Eliminada: 69ebbaa34a3cd3fe7c15e226","timestamp":"2026-04-24 22:49:41"}
+{"level":"info","message":"→ DELETE /api/orders/69ebba314a3cd3fe7c15e21b","timestamp":"2026-04-24 22:49:43"}
+{"level":"info","message":"[Order] Eliminada: 69ebba314a3cd3fe7c15e21b","timestamp":"2026-04-24 22:49:43"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:49:44"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:49:44"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:49:44"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:49:48"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:49:50"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:49:50"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:49:50"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:50:07"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:50:08"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-24 22:50:08"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:50:09"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-24 22:50:09"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:50:27"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-24 22:50:28"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:51:14"}
+{"level":"error","message":"[Dashboard] Error: mongoose is not defined","timestamp":"2026-04-24 22:51:14"}
+{"level":"error","message":"[GET] /api/dashboard → 500 — mongoose is not defined","method":"GET","path":"/api/dashboard","stack":"ReferenceError: mongoose is not defined\n    at getDashboardStats (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/dashboard.controller.js:29:7)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:582:12)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\index.js:291:5)\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:90:7","timestamp":"2026-04-24 22:51:14"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 22:51:39"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 22:51:39"}
+{"level":"info","message":"[WS] Conectado → _X8XR_F1fqiGorRyAAAB","timestamp":"2026-04-24 22:51:40"}
+{"level":"info","message":"[WS] Conectado → GDwDBDYq180HT-XUAAAD","timestamp":"2026-04-24 22:51:40"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 22:51:41"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 22:51:41"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:51:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:52:13"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:52:13"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:52:14"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:52:15"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:52:15"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:52:16"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:52:16"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:55:57"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:55:57"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:55:59"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:55:59"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:55:59"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:55:59"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:56:03"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:56:03"}
+{"level":"info","message":"→ POST /api/tables/69e4169970fa8a3afbc65010/close","timestamp":"2026-04-24 22:56:04"}
+{"level":"info","message":"[Table] Cerrada: mesa #2","timestamp":"2026-04-24 22:56:04"}
+{"level":"info","message":"→ POST /api/tables/69e4160f70fa8a3afbc6500f/close","timestamp":"2026-04-24 22:56:05"}
+{"level":"info","message":"[Table] Cerrada: mesa #1","timestamp":"2026-04-24 22:56:05"}
+{"level":"info","message":"→ POST /api/tables/69e4169b70fa8a3afbc65011/open","timestamp":"2026-04-24 22:56:06"}
+{"level":"info","message":"[Table] Abierta: mesa #3 (session: 69ec1f368a4366f790a3e637)","timestamp":"2026-04-24 22:56:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:56:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:56:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:56:12"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 22:56:12"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 22:56:14"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:56:31"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 22:56:31"}
+{"level":"info","message":"→ DELETE /api/orders/69ebba234a3cd3fe7c15e217","timestamp":"2026-04-24 22:56:33"}
+{"level":"info","message":"[Order] Eliminada: 69ebba234a3cd3fe7c15e217","timestamp":"2026-04-24 22:56:33"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:56:34"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:57:04"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:57:09"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:57:09"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:57:10"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:57:10"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:57:22"}
+{"level":"info","message":"[WS] Conectado → o9MqkkOOSOyXvsCNAAAF","timestamp":"2026-04-24 22:57:23"}
+{"level":"info","message":"[WS] Desconectado → _X8XR_F1fqiGorRyAAAB (transport close)","timestamp":"2026-04-24 22:57:31"}
+{"level":"info","message":"[WS] Desconectado → o9MqkkOOSOyXvsCNAAAF (transport close)","timestamp":"2026-04-24 22:57:31"}
+{"level":"info","message":"[WS] Desconectado → GDwDBDYq180HT-XUAAAD (transport close)","timestamp":"2026-04-24 22:57:31"}
+{"level":"info","message":"[WS] Conectado → qM3oDohtX8DpsIERAAAH","timestamp":"2026-04-24 22:57:34"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:57:34"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:57:34"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:57:34"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:57:38"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:57:38"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:57:38"}
+{"level":"info","message":"[WS] Conectado → ElpY7CZrsil10aYkAAAJ","timestamp":"2026-04-24 22:57:38"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:57:38"}
+{"level":"info","message":"[WS] Desconectado → qM3oDohtX8DpsIERAAAH (transport close)","timestamp":"2026-04-24 22:58:00"}
+{"level":"info","message":"[WS] Desconectado → ElpY7CZrsil10aYkAAAJ (transport close)","timestamp":"2026-04-24 22:58:00"}
+{"level":"info","message":"[WS] Conectado → AHd4dpKRsLwN_2rGAAAL","timestamp":"2026-04-24 22:58:00"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:58:00"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 22:58:00"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:58:01"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:58:32"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:58:34"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:58:34"}
+{"level":"info","message":"→ PATCH /api/reservations/69ec1442f7885c168cde6c97/status","timestamp":"2026-04-24 22:58:46"}
+{"level":"info","message":"[Reservation] Status → seated: 69ec1442f7885c168cde6c97","timestamp":"2026-04-24 22:58:46"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 22:58:46"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 22:58:54"}
+{"level":"info","message":"[WS] Conectado → ClBjOu2exXJ2Q0sqAAAN","timestamp":"2026-04-24 22:58:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:58:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 22:58:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"[WS] Conectado → JFPUx0fauS2fNA4fAAAP","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"[WS] Desconectado → AHd4dpKRsLwN_2rGAAAL (transport close)","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"[WS] Desconectado → JFPUx0fauS2fNA4fAAAP (transport close)","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"[WS] Desconectado → ClBjOu2exXJ2Q0sqAAAN (transport close)","timestamp":"2026-04-24 23:01:18"}
+{"level":"info","message":"[WS] Conectado → uWXTs5aoAiKbzRNQAAAR","timestamp":"2026-04-24 23:01:19"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 23:01:19"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-24 23:01:19"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 23:01:19"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:01:21"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:01:21"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:01:22"}
+{"level":"info","message":"[WS] Conectado → MddU_Svvd1uaBj1cAAAT","timestamp":"2026-04-24 23:01:22"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:01:23"}
+{"level":"info","message":"→ POST /api/tables/69ebb27c71156f67b5d12305/close","timestamp":"2026-04-24 23:01:38"}
+{"level":"info","message":"→ POST /api/tables/69ebb27c71156f67b5d12305/open","timestamp":"2026-04-24 23:01:46"}
+{"level":"info","message":"[Table] Abierta: mesa #13 (session: 69ec208a8a4366f790a3e63b)","timestamp":"2026-04-24 23:01:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:01:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:01:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:01:56"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:01:56"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:01:58"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:20"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:21"}
+{"level":"info","message":"→ GET /api/reservations/available/tables?startTime=2026-04-26T02%3A05%3A00.000Z&endTime=2026-04-26T07%3A05%3A00.000Z&guests=1","timestamp":"2026-04-24 23:05:31"}
+{"level":"info","message":"→ GET /api/reservations/available/tables?startTime=2026-04-26T02%3A05%3A00.000Z&endTime=2026-04-26T07%3A05%3A00.000Z&guests=4","timestamp":"2026-04-24 23:05:33"}
+{"level":"info","message":"→ POST /api/reservations","timestamp":"2026-04-24 23:05:37"}
+{"level":"info","message":"[Reservation] Creada: asda → 25/4/2026, 11:05:00","timestamp":"2026-04-24 23:05:37"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:37"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:44"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:50"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:51"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:52"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:52"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:53"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:53"}
+{"level":"info","message":"→ PATCH /api/reservations/69ec21718a4366f790a3e63c/status","timestamp":"2026-04-24 23:05:54"}
+{"level":"info","message":"[Reservation] Status → seated: 69ec21718a4366f790a3e63c","timestamp":"2026-04-24 23:05:55"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-24 23:05:55"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:58"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:05:58"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:06:03"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:06:03"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:06:05"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:07:49"}
+{"level":"info","message":"→ POST /api/tables","timestamp":"2026-04-24 23:08:07"}
+{"level":"info","message":"[Table] Creada: mesa #14","timestamp":"2026-04-24 23:08:07"}
+{"level":"info","message":"→ POST /api/tables/69ec22078a4366f790a3e63e/close","timestamp":"2026-04-24 23:08:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:08:32"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:08:32"}
+{"level":"info","message":"→ DELETE /api/orders/69ebb911f4870b6bb0702b70","timestamp":"2026-04-24 23:08:36"}
+{"level":"info","message":"[Order] Eliminada: 69ebb911f4870b6bb0702b70","timestamp":"2026-04-24 23:08:36"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:08:43"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:08:53"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:03"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:13"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:23"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:33"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-24 23:09:37"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:09:41"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:09:41"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-24 23:09:42"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:09:43"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:09:43"}
+{"level":"info","message":"→ POST /api/tables/69ec22078a4366f790a3e63e/open","timestamp":"2026-04-24 23:09:47"}
+{"level":"info","message":"[Table] Abierta: mesa #14 (session: 69ec226b8a4366f790a3e641)","timestamp":"2026-04-24 23:09:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:09:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:09:48"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:09:53"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:09:53"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:09:56"}
+{"level":"info","message":"[WS] Desconectado → uWXTs5aoAiKbzRNQAAAR (ping timeout)","timestamp":"2026-04-24 23:10:24"}
+{"level":"info","message":"[WS] Desconectado → MddU_Svvd1uaBj1cAAAT (ping timeout)","timestamp":"2026-04-24 23:10:28"}
+{"level":"info","message":"[WS] Conectado → AATrM-h6_2DvlWh9AAAV","timestamp":"2026-04-24 23:13:59"}
+{"level":"info","message":"[WS] Conectado → rhrX2Q2fH3rPTM_VAAAX","timestamp":"2026-04-24 23:13:59"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:16:11"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:16:11"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:16:13"}
+{"body":{"items":[{"productId":"69e548c471134ae369d5ea95","quantity":1},{"productId":"69e3e175f4a504fb43197394","quantity":1}],"sessionId":"69ec226b8a4366f790a3e641","table":"69ec22078a4366f790a3e63e"},"level":"error","message":"[POST] /api/orders → 500 — Cannot read properties of undefined (reading 'map')","method":"POST","path":"/api/orders","stack":"TypeError: Cannot read properties of undefined (reading 'map')\n    at file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/validate.js:13:42\n    at Layer.handleRequest (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at protect (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/middlewares/auth.middleware.js:57:5)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-04-24 23:16:13"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:19:19"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 23:20:06"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 23:20:06"}
+{"level":"info","message":"[WS] Conectado → KWDy2-Qv3oMCc2x3AAAB","timestamp":"2026-04-24 23:20:06"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:20:07"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 23:20:07"}
+{"level":"info","message":"[WS] Conectado → QNx68XSgP7SGk-nVAAAD","timestamp":"2026-04-24 23:20:11"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"[WS] Conectado → Q5N5K0Q6NCb2CVfLAAAB","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"[WS] Conectado → WDoMtuuLhd3KAr-8AAAD","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 23:23:50"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"[WS] Conectado → gWFzZTNuXDAlV3QAAAAB","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"[WS] Conectado → yZ9QsFBnrWIYN5vkAAAD","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 23:24:41"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:26:53"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-24 23:27:00"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:27:05"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:27:05"}
+{"level":"info","message":"→ POST /api/products","timestamp":"2026-04-24 23:27:26"}
+{"level":"info","message":"→ POST /api/products","timestamp":"2026-04-24 23:27:30"}
+{"level":"info","message":"[Product] Creado: fagfagsadssd","timestamp":"2026-04-24 23:27:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:27:31"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:27:35"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-24 23:27:35"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:27:38"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-24 23:27:38"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-24 23:36:18"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-24 23:36:18"}
+{"level":"info","message":"[WS] Conectado → j55T6daK-1Joys-dAAAC","timestamp":"2026-04-24 23:36:25"}
+{"level":"info","message":"[WS] Conectado → WwdZFZEy_5sXJHkZAAAD","timestamp":"2026-04-24 23:36:25"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:36:27"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-24 23:36:27"}
+{"level":"info","message":"[DB] Estado → disconnected","timestamp":"2026-04-24 23:38:44"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:38:44"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-04-24 23:40:58"}

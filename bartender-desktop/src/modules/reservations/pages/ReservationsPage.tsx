@@ -1,15 +1,15 @@
-"use client";
-
 import { useEffect, useState } from "react";
-import { Plus, Play, Loader2, RefreshCcw } from "lucide-react";
+import {
+  Play,
+  Loader2,
+  RefreshCcw,
+} from "lucide-react";
 
-import ReservationCard from "../components/ReservationCard";
 import ReservationForm from "../components/ReservationForm";
 
 import {
   getReservations,
   createReservation,
-  deleteReservation,
   updateReservationStatus,
   getAvailableTables,
 } from "../services/reservationService";
@@ -18,7 +18,7 @@ import type { Reservation } from "../types/reservation";
 import socket from "../../../services/socket";
 
 /* =========================
-   NORMALIZER (CRITICAL FIX)
+   NORMALIZER SAFE
 ========================= */
 const normalizeReservations = (data: any): Reservation[] => {
   if (Array.isArray(data)) return data;
@@ -37,7 +37,7 @@ export default function ReservationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [loadingTables, setLoadingTables] = useState(false);
+  const [, setLoadingTables] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -51,9 +51,8 @@ export default function ReservationsPage() {
 
       const data = await getReservations();
       setReservations(normalizeReservations(data));
-
     } catch (err: any) {
-      setError(err.message || "Error cargando reservas");
+      setError(err.message || "Error Loading Reservations");
       setReservations([]);
     } finally {
       setLoading(false);
@@ -70,10 +69,8 @@ export default function ReservationsPage() {
   }) => {
     try {
       setLoadingTables(true);
-
       const data = await getAvailableTables(params || {});
       setTables(Array.isArray(data) ? data : []);
-
     } catch {
       setTables([]);
     } finally {
@@ -89,48 +86,33 @@ export default function ReservationsPage() {
   }, []);
 
   /* =========================
-     SOCKET (CLEAN SINGLE SOURCE)
+     SOCKETS
   ========================= */
   useEffect(() => {
     const handleList = (data: any) => {
       setReservations(normalizeReservations(data));
     };
 
-    const handleUpdate = (data: any) => {
+    const handleUpdate = (updated: Reservation) => {
       setReservations((prev) => {
-        const list = normalizeReservations(prev);
+        const list = [...prev];
+        const index = list.findIndex((r) => r._id === updated._id);
 
-        const index = list.findIndex(
-          (r) => r._id === data._id
-        );
+        if (index >= 0) list[index] = updated;
+        else list.unshift(updated);
 
-        if (index >= 0) {
-          list[index] = data;
-          return [...list];
-        }
-
-        return [data, ...list];
+        return list;
       });
     };
 
     const handleDelete = (id: string) => {
       setReservations((prev) =>
-        normalizeReservations(prev).filter(
-          (r) => r._id !== id
-        )
+        prev.filter((r) => r._id !== id)
       );
     };
 
     socket.on("reservation:list", handleList);
-   socket.on("reservation:update", (updated: Reservation) => {
-  setReservations((prev) => {
-    if (!Array.isArray(prev)) return [updated];
-
-    return prev.map((r) =>
-      r._id === updated._id ? updated : r
-    );
-  });
-});
+    socket.on("reservation:update", handleUpdate);
     socket.on("reservation:delete", handleDelete);
 
     return () => {
@@ -141,40 +123,21 @@ export default function ReservationsPage() {
   }, []);
 
   /* =========================
-     CREATE
+     SAVE
   ========================= */
   const handleSave = async (reservation: any) => {
     try {
       await createReservation(reservation);
       setIsModalOpen(false);
       setSelectedReservation(null);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  /* =========================
-     DELETE OPTIMISTIC SAFE
-  ========================= */
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar reserva?")) return;
-
-    setReservations((prev) =>
-      normalizeReservations(prev).filter(
-        (r) => r._id !== id
-      )
-    );
-
-    try {
-      await deleteReservation(id);
-    } catch {
-      setError("Error eliminando reserva");
       fetchReservations();
+    } catch (err: any) {
+      setError(err.message || "Error creating reservation");
     }
   };
 
   /* =========================
-     STATUS FLOW
+     STATUS UPDATE
   ========================= */
   const handleStatus = async (
     id: string,
@@ -182,150 +145,141 @@ export default function ReservationsPage() {
   ) => {
     try {
       await updateReservationStatus(id, status);
+      fetchReservations();
     } catch {
-      setError("Error actualizando estado");
+      setError("Error updating status");
     }
   };
 
-  /* =========================
-     MODAL
-  ========================= */
-  const openNewReservation = () => {
-    setSelectedReservation(null);
-    setTables([]);
-    setIsModalOpen(true);
-  };
-
-  const openEditReservation = (res: Reservation) => {
-    setSelectedReservation(res);
-
-    fetchTables({
-      startTime: res.startTime,
-      endTime: res.endTime,
-      guests: res.guests,
-    });
-
-    setIsModalOpen(true);
-  };
 
   /* =========================
-     SAFE SORT
+     SORT SAFE
   ========================= */
-  const sortedReservations = Array.isArray(reservations)
-    ? [...reservations].sort(
-        (a, b) =>
-          new Date(b.startTime).getTime() -
-          new Date(a.startTime).getTime()
-      )
-    : [];
+  const sortedReservations = [...reservations].sort(
+    (a, b) =>
+      new Date(a.startTime).getTime() -
+      new Date(b.startTime).getTime()
+  );
+
+  /* =========================
+     STATS SAFE
+  ========================= */
+  const totalBookings = sortedReservations.length;
+
+  const seatedBookings = sortedReservations.filter(
+    (r) => r.status === "seated"
+  ).length;
+
+  const pendingBookings = sortedReservations.filter(
+    (r) => r.status === "pending" || r.status === "confirmed"
+  ).length;
+
+  const occupancyRatio =
+    totalBookings > 0 ? seatedBookings / totalBookings : 0;
 
   /* =========================
      UI
   ========================= */
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full bg-void text-white font-mono space-y-6">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-white">
-            Sistema de Reservas
+          <h1 className="text-4xl font-black tracking-tighter mb-1">
+            RESERVATIONS
           </h1>
-          <p className="text-gray-400 text-sm">
-            Tiempo real + control de mesas
+          <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+            CENTRAL COMMAND / NIGHT PHASE 04
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-4">
           <button
             onClick={fetchReservations}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"
+            className="p-2 border border-obsidian rounded-lg"
           >
-            <RefreshCcw size={18} />
-          </button>
-
-          <button
-            onClick={openNewReservation}
-            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-black px-4 py-2 rounded-lg font-semibold"
-          >
-            <Plus size={18} /> Nueva Reserva
+            <RefreshCcw size={16} />
           </button>
         </div>
       </div>
 
       {/* ERROR */}
       {error && (
-        <div className="bg-red-500/20 text-red-400 p-3 rounded-lg">
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-3 text-xs rounded">
           {error}
         </div>
       )}
 
-      {/* LOADING */}
-      {loading && (
-        <div className="flex justify-center py-10">
-          <Loader2 className="animate-spin text-amber-500" />
-        </div>
-      )}
+      {/* STATS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      {/* EMPTY */}
-      {!loading && sortedReservations.length === 0 && (
-        <div className="text-center text-gray-400 py-10">
-          No hay reservas aún
+        {/* OCCUPATION */}
+        <div className="p-6 border border-[#8B5CF6]/40 rounded-xl">
+          <p className="text-[10px] text-gray-400 uppercase mb-2">
+            LIVE OCCUPATION
+          </p>
+
+          <div className="text-5xl font-black">
+            {seatedBookings}/{totalBookings}
+          </div>
+
+          <div className="flex gap-1 mt-3 h-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className={`flex-1 rounded-sm ${i < occupancyRatio * 6
+                    ? "bg-[#8B5CF6]"
+                    : "bg-obsidian"
+                  }`}
+              />
+            ))}
+          </div>
         </div>
-      )}
+
+        {/* TOTAL */}
+        <div className="p-6 border border-obsidian rounded-xl">
+          <p className="text-[10px] text-gray-400 uppercase mb-2">
+            TOTAL BOOKINGS
+          </p>
+          <div className="text-5xl font-black">{totalBookings}</div>
+        </div>
+
+        {/* PENDING */}
+        <div className="p-6 border border-obsidian rounded-xl">
+          <p className="text-[10px] text-gray-400 uppercase mb-2">
+            PENDING ARRIVALS
+          </p>
+          <div className="text-5xl font-black">{pendingBookings}</div>
+        </div>
+      </div>
 
       {/* LIST */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {sortedReservations.map((r) => (
-          <div
-            key={r._id}
-            className="bg-gray-900 rounded-xl p-2"
-          >
-            <ReservationCard
-              reservation={r}
-              onEdit={openEditReservation}
-              onDelete={handleDelete}
-            />
+      <div className="flex-1 overflow-y-auto space-y-4">
+        {loading ? (
+          <Loader2 className="animate-spin" />
+        ) : sortedReservations.length === 0 ? (
+          <p className="text-gray-500 text-xs">NO RESERVATIONS</p>
+        ) : (
+          sortedReservations.map((r) => (
+            <div key={r._id} className="border p-4 rounded">
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-bold">{r.customerName}</p>
+                  <p className="text-xs text-gray-400">
+                    {r.guests} PAX
+                  </p>
+                </div>
 
-            <div className="flex gap-2 mt-2">
-
-              {r.status === "pending" && (
                 <button
-                  onClick={() =>
-                    handleStatus(r._id!, "confirmed")
-                  }
-                  className="bg-blue-500 text-black px-2 py-1 rounded text-xs"
+                  onClick={() => handleStatus(r._id!, "seated")}
                 >
-                  Confirmar
+                  <Play size={14} />
                 </button>
-              )}
-
-              {r.status === "confirmed" && (
-                <button
-                  onClick={() =>
-                    handleStatus(r._id!, "seated")
-                  }
-                  className="bg-green-500 text-black px-2 py-1 rounded text-xs flex items-center gap-1"
-                >
-                  <Play size={12} />
-                  Sentar
-                </button>
-              )}
-
-              {r.status !== "cancelled" && (
-                <button
-                  onClick={() =>
-                    handleStatus(r._id!, "cancelled")
-                  }
-                  className="bg-red-500 text-black px-2 py-1 rounded text-xs"
-                >
-                  Cancelar
-                </button>
-              )}
-
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* MODAL */}
@@ -340,14 +294,6 @@ export default function ReservationsPage() {
             setSelectedReservation(null);
           }}
         />
-      )}
-
-      {/* LOADING TABLES */}
-      {loadingTables && isModalOpen && (
-        <div className="fixed bottom-4 right-4 bg-gray-900 px-4 py-2 rounded-lg text-sm text-gray-300 flex items-center gap-2">
-          <Loader2 size={14} className="animate-spin" />
-          Buscando mesas...
-        </div>
       )}
     </div>
   );

@@ -1,64 +1,30 @@
 import { Router } from "express";
-
 import {
-  getProducts,
-  getProduct,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  syncProductAvailability,
-  getProductStats,
+  getProducts, getProduct, createProduct, updateProduct, deleteProduct,
+  syncProductAvailability, getProductStats, toggleProductAvailability
 } from "../controllers/product.controller.js";
+import { validate } from "../middlewares/validate.js";
+import { createProductSchema, updateProductSchema } from "../utils/schemas.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
-/* ==============================
-   BASE
-============================== */
-
-/**
- *  Obtener productos
- * Query:
- * ?type=drink | food
- * ?category=cocktails
- * ?available=true
- * ?tags=vegan,celiac
- * ?search=mojito
- */
+/* =========================================================
+   PUBLIC / BASIC ROUTES
+========================================================= */
 router.get("/", getProducts);
-
-/**
- *  Estadísticas ( dashboard)
- */
 router.get("/stats", getProductStats);
-
-/**
- *  Sincronizar disponibilidad
- */
-router.post("/sync-availability", syncProductAvailability);
-
-/**
- * Obtener un producto
- */
 router.get("/:id", getProduct);
 
-/* ==============================
-   CRUD
-============================== */
+/* =========================================================
+   ADMIN / MANAGEMENT ROUTES
+========================================================= */
+router.post("/sync-availability", ...adminOnly, syncProductAvailability);
+router.patch("/:id/toggle-availability", ...adminOnly, toggleProductAvailability);
 
-/**
- *  Crear producto
- */
-router.post("/", createProduct);
-
-/**
- *  Actualizar producto
- */
-router.put("/:id", updateProduct);
-
-/**
- *  Eliminar producto
- */
-router.delete("/:id", deleteProduct);
+router.post("/", ...adminOnly, validate(createProductSchema), createProduct);
+router.put("/:id", ...adminOnly, validate(updateProductSchema), updateProduct);
+router.delete("/:id", ...adminOnly, deleteProduct);
 
 export default router;

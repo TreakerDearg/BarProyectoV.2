@@ -1,61 +1,42 @@
 import { Router } from "express";
-
 import {
-  getOrders,
-  getOrderById,
-  createOrder,
-  updateOrderStatus,
-  updateOrderItemStatus,
-  deleteOrder,
+  getOrders, getOrderById, createOrder, updateOrderStatus,
+  updateOrderItemStatus, deleteOrder, applyDiscount
 } from "../controllers/order.controller.js";
-
-/* ==============================
-   MIDDLEWARES
-============================== */
-import { validateObjectId } from "../middlewares/validateObjectId.js";
+import { validate } from "../middlewares/validate.js";
+import { createOrderSchema, updateOrderStatusSchema, updateItemStatusSchema } from "../utils/schemas.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
-/* ==============================
-   BASE
-============================== */
-
-// listado con filtros (?status, ?table, ?sessionId)
+/* =========================================================
+   READ
+========================================================= */
 router.get("/", getOrders);
+router.get("/:id", getOrderById);
 
-/* ==============================
-   CREACIÓN
-============================== */
+/* =========================================================
+   CREATE & UPDATE
+========================================================= */
+router.post("/", protect, validate(createOrderSchema), createOrder);
 
-router.post("/", createOrder);
+router.patch("/:id/status", protect, validate(updateOrderStatusSchema), updateOrderStatus);
+router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatusSchema), updateOrderItemStatus);
 
-/* ==============================
-   OPERACIONES
-============================== */
+/* =========================================================
+   DISCOUNTS
+========================================================= */
 
-// orden individual
-router.get("/:id", validateObjectId("id"), getOrderById);
+router.post("/:orderId/discount", protect, applyDiscount);
 
-// actualizar estado global
-router.patch(
-  "/:id/status",
-  validateObjectId("id"),
-  updateOrderStatus
-);
+router.delete("/:orderId/discount/:discountId", ...adminOnly, (req, res) => {
+  res.status(501).json({ success: false, message: "Not implemented yet" });
+});
 
-// actualizar estado de item
-router.patch(
-  "/:orderId/item/:itemId/status",
-  validateObjectId("orderId"),
-  validateObjectId("itemId"),
-  updateOrderItemStatus
-);
-
-// eliminar orden
-router.delete(
-  "/:id",
-  validateObjectId("id"),
-  deleteOrder
-);
+/* =========================================================
+   DELETE
+========================================================= */
+router.delete("/:id", ...adminOnly, deleteOrder);
 
 export default router;

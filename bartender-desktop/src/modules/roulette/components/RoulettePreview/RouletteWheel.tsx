@@ -48,11 +48,11 @@ export default function RouletteWheel({
     const selected = slices.find((s) => s._id === result._id);
     if (!selected) return;
 
-    // 🎯 centro del segmento ganador
+
     const targetAngle =
       selected.startAngle + selected.sliceAngle / 2;
 
-    // 🎡 queremos que el puntero (arriba) apunte a ese segmento
+
     const finalRotation = 360 * 5 + (360 - targetAngle);
 
     setRotation(finalRotation);

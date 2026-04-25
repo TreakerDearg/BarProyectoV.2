@@ -12,6 +12,12 @@ const orderItemSchema = new mongoose.Schema(
       index: true,
     },
 
+    /* snapshot para auditoría */
+    name: {
+      type: String,
+      required: true,
+    },
+
     quantity: {
       type: Number,
       required: true,
@@ -33,7 +39,6 @@ const orderItemSchema = new mongoose.Schema(
 
     /* =========================
        ITEM FLOW STATUS
-       (clave para cocina/bar)
     ========================= */
     status: {
       type: String,
@@ -70,13 +75,35 @@ const orderSchema = new mongoose.Schema(
     },
 
     /* =========================
-       TOTAL
+       FINANCIALS 
     ========================= */
+    subtotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    discountTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     total: {
       type: Number,
       default: 0,
       min: 0,
     },
+
+    /* =========================
+       DISCOUNTS RELATION
+    ========================= */
+    discounts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Discount",
+      },
+    ],
 
     /* =========================
        GLOBAL ORDER STATUS
@@ -162,20 +189,23 @@ const orderSchema = new mongoose.Schema(
 );
 
 /* =========================================================
-   AUTO TOTAL CALCULATION
+   AUTO CALCULATION 
 ========================================================= */
-orderSchema.pre("save", function (next) {
-  this.total = this.items.reduce((acc, item) => {
+orderSchema.pre("save", function () {
+  this.subtotal = this.items.reduce((acc, item) => {
     const price = item.price || 0;
     const qty = item.quantity || 0;
     return acc + price * qty;
   }, 0);
 
-  next();
+  this.total = Math.max(
+    this.subtotal - (this.discountTotal || 0),
+    0
+  );
 });
 
 /* =========================================================
-   INDEXES (OPTIMIZACIÓN REAL)
+   INDEXES
 ========================================================= */
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ table: 1, sessionStatus: 1 });

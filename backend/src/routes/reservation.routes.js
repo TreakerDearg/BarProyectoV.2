@@ -1,27 +1,31 @@
 import { Router } from "express";
-
 import {
-  getReservations,
-  createReservation,
-  updateReservationStatus,
-  deleteReservation,
-  getAvailableTables,
-  getReservationById,
+  getReservations, createReservation, updateReservationStatus,
+  deleteReservation, getAvailableTables, getReservationById
 } from "../controllers/reservation.controller.js";
-
-import { asyncHandler } from "../middlewares/asyncHandler.js";
+import { validate } from "../middlewares/validate.js";
+import { createReservationSchema } from "../utils/schemas.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
-router.get("/available/tables", asyncHandler(getAvailableTables));
+/* =========================================================
+   PUBLIC / CLIENT FLOW
+========================================================= */
+// Buscar disponibilidad no requiere login
+router.get("/available/tables", getAvailableTables);
 
-router.get("/", asyncHandler(getReservations));
-router.get("/:id", asyncHandler(getReservationById));
+// Crear reserva desde la web/app podría ser público o de client, por ahora sin protect
+router.post("/", validate(createReservationSchema), createReservation);
 
-router.post("/", asyncHandler(createReservation));
+/* =========================================================
+   ADMIN FLOW
+========================================================= */
+router.get("/", ...adminOnly, getReservations);
+router.get("/:id", ...adminOnly, getReservationById);
 
-router.patch("/:id/status", asyncHandler(updateReservationStatus));
-
-router.delete("/:id", asyncHandler(deleteReservation));
+router.patch("/:id/status", ...adminOnly, updateReservationStatus);
+router.delete("/:id", ...adminOnly, deleteReservation);
 
 export default router;

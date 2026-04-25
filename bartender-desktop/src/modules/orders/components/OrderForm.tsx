@@ -7,6 +7,18 @@ import { getProducts } from "../../../modules/products/services/productService";
 import { createOrder } from "../services/orderService";
 import type { Product } from "../../../types/product";
 
+/* =========================
+   TYPES
+========================= */
+type LocalItem = {
+  productId: any;
+  product: string; 
+  name: string;
+  quantity: number;
+  price: number;
+  type: "drink" | "food";
+};
+
 interface Props {
   tableId: string;
   tableNumber: number;
@@ -14,14 +26,6 @@ interface Props {
   onClose: () => void;
   onSuccess?: () => void;
 }
-
-type LocalItem = {
-  product: string;
-  name: string;
-  quantity: number;
-  price: number;
-  type: "drink" | "food";
-};
 
 export default function OrderForm({
   tableId,
@@ -39,11 +43,20 @@ export default function OrderForm({
      LOAD PRODUCTS
   ========================= */
   useEffect(() => {
-    getProducts().then(setProducts);
+    const load = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (err) {
+        console.error("Error loading products", err);
+      }
+    };
+
+    load();
   }, []);
 
   /* =========================
-     FILTERED PRODUCTS
+     FILTER
   ========================= */
   const filtered = useMemo(() => {
     return products.filter((p) =>
@@ -55,9 +68,11 @@ export default function OrderForm({
   const food = filtered.filter((p) => p.type === "food");
 
   /* =========================
-     ADD PRODUCT
+     ADD PRODUCT (SNAPSHOT SAFE)
   ========================= */
   const addProduct = (product: Product) => {
+    if (!product._id) return;
+
     setItems((prev) => {
       const exists = prev.find((i) => i.product === product._id);
 
@@ -72,7 +87,7 @@ export default function OrderForm({
       return [
         ...prev,
         {
-          product: product._id!,
+          product: product._id,
           name: product.name,
           quantity: 1,
           price: product.price,
@@ -85,12 +100,12 @@ export default function OrderForm({
   /* =========================
      UPDATE QTY
   ========================= */
-  const updateQty = (id: string, qty: number) => {
+  const updateQty = (productId: string, qty: number) => {
     setItems((prev) =>
       qty <= 0
-        ? prev.filter((i) => i.product !== id)
+        ? prev.filter((i) => i.product !== productId)
         : prev.map((i) =>
-            i.product === id ? { ...i, quantity: qty } : i
+            i.product === productId ? { ...i, quantity: qty } : i
           )
     );
   };
@@ -99,14 +114,14 @@ export default function OrderForm({
      TOTAL
   ========================= */
   const total = useMemo(
-    () => items.reduce((s, i) => s + i.price * i.quantity, 0),
+    () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     [items]
   );
 
   const canSubmit = items.length > 0 && !loading;
 
   /* =========================
-     SUBMIT
+     SUBMIT (BACKEND MATCHED)
   ========================= */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,26 +130,35 @@ export default function OrderForm({
     try {
       setLoading(true);
 
-      await createOrder({
+      console.log("🧾 CREATE ORDER PAYLOAD =>", {
         table: tableId,
         sessionId,
-        items: items.map((i) => ({
-          product: i.product,
-          quantity: i.quantity,
-        })),
+        items,
       });
+
+await createOrder({
+  table: tableId,
+  sessionId,
+  items: items.map((i) => ({
+    product: i.productId, // 👈 FIX CLAVE
+    quantity: i.quantity,
+  })),
+});
 
       setItems([]);
       onSuccess?.();
       onClose();
-
     } catch (err: any) {
+      console.error("ORDER ERROR:", err);
       alert(err.message || "Error creando pedido");
     } finally {
       setLoading(false);
     }
   };
 
+  /* =========================
+     UI
+  ========================= */
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
 
@@ -143,9 +167,7 @@ export default function OrderForm({
         className="w-[900px] h-[600px] bg-gray-950 border border-gray-800 rounded-2xl shadow-2xl flex overflow-hidden"
       >
 
-        {/* =========================
-           LEFT: PRODUCTS
-        ========================= */}
+        {/* LEFT */}
         <div className="w-2/3 p-4 flex flex-col gap-3 border-r border-gray-800">
 
           <div className="flex justify-between items-center">
@@ -153,7 +175,7 @@ export default function OrderForm({
               Mesa {tableNumber}
             </h2>
 
-            <button onClick={onClose} type="button" className="text-gray-400">
+            <button type="button" onClick={onClose} className="text-gray-400">
               ✕
             </button>
           </div>
@@ -162,10 +184,10 @@ export default function OrderForm({
           <div className="relative">
             <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
             <input
-              placeholder="Buscar producto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-8 pr-3 py-2 bg-gray-800 rounded-lg border border-gray-700"
+              placeholder="Buscar producto..."
             />
           </div>
 
@@ -210,12 +232,10 @@ export default function OrderForm({
           </div>
         </div>
 
-        {/* =========================
-           RIGHT: CART
-        ========================= */}
+        {/* RIGHT */}
         <div className="w-1/3 p-4 flex flex-col justify-between">
 
-          <div className="space-y-2 overflow-y-auto">
+          <div className="space-y-2 overflow-y-auto flex-1">
             {items.length === 0 && (
               <p className="text-gray-500 text-sm">
                 No hay productos agregados
@@ -235,21 +255,13 @@ export default function OrderForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => updateQty(i.product, i.quantity - 1)}
-                    className="bg-gray-700 px-2 rounded"
-                  >
+                  <button type="button" onClick={() => updateQty(i.product, i.quantity - 1)}>
                     <Minus size={14} />
                   </button>
 
                   <span>{i.quantity}</span>
 
-                  <button
-                    type="button"
-                    onClick={() => updateQty(i.product, i.quantity + 1)}
-                    className="bg-gray-700 px-2 rounded"
-                  >
+                  <button type="button" onClick={() => updateQty(i.product, i.quantity + 1)}>
                     <Plus size={14} />
                   </button>
                 </div>
@@ -257,7 +269,6 @@ export default function OrderForm({
             ))}
           </div>
 
-          {/* TOTAL */}
           <div className="space-y-3">
             <div className="text-lg font-bold text-amber-400">
               Total: ${total.toFixed(2)}

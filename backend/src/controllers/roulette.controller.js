@@ -1,326 +1,160 @@
-// controllers/roulette.controller.js
-
-import mongoose from "mongoose";
+import mongoose      from "mongoose";
 import RouletteDrink from "../models/RouletteDrink.js";
 import { createLog } from "./rouletteLog.controller.js";
+import { logger }    from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound,
+} from "../utils/response.js";
 
-/* =========================
-   HELPERS
-========================= */
+const isValidId   = (id)    => mongoose.Types.ObjectId.isValid(id);
+const parseWeight = (value) => { const n = Number(value); return Number.isFinite(n) && n > 0 ? n : null; };
 
-const isValidId = (id) =>
-  mongoose.Types.ObjectId.isValid(id);
-
-const parseWeight = (value) => {
-  const num = Number(value);
-  return Number.isFinite(num) && num > 0 ? num : null;
-};
-
-/* =========================
-   GET ALL
-========================= */
-export const getRouletteDrinks = async (req, res) => {
+/* =========================================================
+   GET ALL (con probabilidad calculada)
+========================================================= */
+export const getRouletteDrinks = async (req, res, next) => {
   try {
-    const drinks = await RouletteDrink.find()
-      .select("-__v")
-      .lean();
+    const { activeOnly } = req.query;
+    const filter = activeOnly === "true" ? { active: true, deleted: false } : {};
 
-    const sanitized = drinks.map((d) => {
-      const weight = parseWeight(d.weight) || 1;
+    const drinks = await RouletteDrink.find(filter).select("-__v").lean();
 
-      return {
-        ...d,
-        weight,
-      };
-    });
-
-    const totalWeight = sanitized.reduce(
-      (sum, d) => sum + d.weight,
-      0
-    );
-
-    const result = sanitized.map((d) => ({
+    const sanitized    = drinks.map((d) => ({ ...d, weight: parseWeight(d.weight) || 1 }));
+    const totalWeight  = sanitized.reduce((sum, d) => sum + d.weight, 0);
+    const result       = sanitized.map((d) => ({
       ...d,
-      probability: totalWeight
-        ? (d.weight / totalWeight) * 100
-        : 0,
+      probability: totalWeight ? +((d.weight / totalWeight) * 100).toFixed(2) : 0,
     }));
 
-    res.json(result);
-  } catch (err) {
-    console.error("GET ROULETTE ERROR:", err);
-    res.status(500).json({
-      error: "Error obteniendo tragos",
-    });
-  }
+    return ok(res, result);
+  } catch (error) { next(error); }
 };
 
-/* =========================
+/* =========================================================
    CREATE
-========================= */
-export const createRouletteDrink = async (req, res) => {
+========================================================= */
+export const createRouletteDrink = async (req, res, next) => {
   try {
-    const { name, weight, color, category, price } =
-      req.body;
+    const { name, weight, color, category, price } = req.body;
 
     const parsedWeight = parseWeight(weight);
+    if (!name)         return badRequest(res, "name es obligatorio");
+    if (!parsedWeight) return badRequest(res, "weight debe ser un número positivo");
 
-    if (!name || !parsedWeight) {
-      return res.status(400).json({
-        error: "Nombre y peso válidos son obligatorios",
-      });
-    }
+    const drink = await RouletteDrink.create({ name, weight: parsedWeight, color, category, price });
 
-    const drink = await RouletteDrink.create({
-      name,
-      weight: parsedWeight,
-      color,
-      category,
-      price,
-    });
+    await createLog({ type: "create", message: `"${drink.name}" agregado a la ruleta`, drinkId: drink._id });
+    logger.info(`[Roulette] Creado: ${drink.name}`);
 
-    // LOG
-    await createLog({
-      type: "create",
-      message: `Se agregó "${drink.name}" a la ruleta`,
-      drinkId: drink._id,
-    });
-
-    res.status(201).json(drink);
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(400).json({
-        error: "El trago ya existe",
-      });
-    }
-
-    console.error("CREATE ERROR:", err);
-
-    res.status(500).json({
-      error: "Error creando trago",
-    });
-  }
+    return created(res, drink, `"${drink.name}" agregado a la ruleta`);
+  } catch (error) { next(error); }
 };
 
-/* =========================
+/* =========================================================
    UPDATE
-========================= */
-export const updateRouletteDrink = async (req, res) => {
+========================================================= */
+export const updateRouletteDrink = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { weight, active, color } = req.body;
-
-    if (!isValidId(id)) {
-      return res.status(400).json({
-        error: "ID inválido",
-      });
-    }
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const existing = await RouletteDrink.findById(id);
+    if (!existing) return notFound(res, "Trago no encontrado");
 
-    if (!existing) {
-      return res.status(404).json({
-        error: "Trago no encontrado",
-      });
-    }
-
+    const ALLOWED = ["name", "weight", "active", "color", "category", "price"];
     const updates = {};
 
-    /* ===== WEIGHT ===== */
-    if (weight !== undefined) {
-      const parsed = parseWeight(weight);
+    for (const key of ALLOWED) {
+      if (req.body[key] === undefined) continue;
 
-      if (!parsed) {
-        return res.status(400).json({
-          error: "Peso inválido",
-        });
+      if (key === "weight") {
+        const parsed = parseWeight(req.body.weight);
+        if (!parsed) return badRequest(res, "weight debe ser un número positivo");
+        updates.weight = parsed;
+      } else if (key === "active") {
+        updates.active = Boolean(req.body.active);
+      } else {
+        updates[key] = req.body[key];
       }
-
-      updates.weight = parsed;
     }
 
-    /* ===== ACTIVE ===== */
-    if (active !== undefined) {
-      updates.active = Boolean(active);
-    }
-
-    /* ===== COLOR ===== */
-    if (color !== undefined) {
-      updates.color = color;
-    }
-
-    const drink = await RouletteDrink.findByIdAndUpdate(
-      id,
-      updates,
-      {
-        returnDocument: "after",
-        runValidators: true,
-      }
-    );
-
-    /* =========================
-       LOGS INTELIGENTES
-    ========================= */
-
-    if (
-      updates.weight !== undefined &&
-      updates.weight !== existing.weight
-    ) {
-      await createLog({
-        type: "update",
-        message: `Peso de "${existing.name}" cambiado de ${existing.weight} → ${updates.weight}`,
-        drinkId: id,
-        meta: {
-          from: existing.weight,
-          to: updates.weight,
-        },
-      });
-    }
-
-    if (
-      updates.active !== undefined &&
-      updates.active !== existing.active
-    ) {
-      await createLog({
-        type: "toggle",
-        message: `"${existing.name}" ${
-          updates.active ? "activado" : "desactivado"
-        }`,
-        drinkId: id,
-      });
-    }
-
-    if (
-      updates.color &&
-      updates.color !== existing.color
-    ) {
-      await createLog({
-        type: "update",
-        message: `Color de "${existing.name}" actualizado`,
-        drinkId: id,
-      });
-    }
-
-    res.json(drink);
-  } catch (err) {
-    console.error("UPDATE ERROR:", err);
-
-    res.status(500).json({
-      error: "Error actualizando",
+    const drink = await RouletteDrink.findByIdAndUpdate(id, updates, {
+      new: true, runValidators: true,
     });
-  }
+
+    /* Logs inteligentes */
+    if (updates.weight !== undefined && updates.weight !== existing.weight) {
+      await createLog({ type: "update", message: `Peso de "${existing.name}": ${existing.weight} → ${updates.weight}`, drinkId: id, meta: { from: existing.weight, to: updates.weight } });
+    }
+    if (updates.active !== undefined && updates.active !== existing.active) {
+      await createLog({ type: "toggle", message: `"${existing.name}" ${updates.active ? "activado" : "desactivado"}`, drinkId: id });
+    }
+
+    return ok(res, drink, "Trago actualizado correctamente");
+  } catch (error) { next(error); }
 };
 
-/* =========================
-   DELETE (SOFT)
-========================= */
-export const deleteRouletteDrink = async (req, res) => {
+/* =========================================================
+   DELETE (soft)
+========================================================= */
+export const deleteRouletteDrink = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (!isValidId(id)) {
-      return res.status(400).json({
-        error: "ID inválido",
-      });
-    }
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const drink = await RouletteDrink.findByIdAndUpdate(
-      id,
-      { deleted: true, active: false },
-      { returnDocument: "after" }
+      id, { deleted: true, active: false }, { new: true }
     );
+    if (!drink) return notFound(res, "Trago no encontrado");
 
-    if (!drink) {
-      return res.status(404).json({
-        error: "Trago no encontrado",
-      });
-    }
+    await createLog({ type: "delete", message: `"${drink.name}" eliminado de la ruleta`, drinkId: id });
+    logger.info(`[Roulette] Eliminado: ${drink.name}`);
 
-    // LOG
-    await createLog({
-      type: "delete",
-      message: `"${drink.name}" eliminado de la ruleta`,
-      drinkId: id,
-    });
-
-    res.json({ message: "Trago eliminado" });
-  } catch (err) {
-    console.error("DELETE ERROR:", err);
-
-    res.status(500).json({
-      error: "Error eliminando",
-    });
-  }
+    return ok(res, null, `"${drink.name}" eliminado de la ruleta`);
+  } catch (error) { next(error); }
 };
 
-/* =========================
-   SPIN ROULETTE (PRO)
-========================= */
-export const spinRoulette = async (req, res) => {
+/* =========================================================
+   SPIN ROULETTE (algoritmo ponderado)
+========================================================= */
+export const spinRoulette = async (req, res, next) => {
   try {
-    const drinks = await RouletteDrink.find({
-      active: true,
-      deleted: false,
-    })
-      .select("name weight color price")
+    const drinks = await RouletteDrink.find({ active: true, deleted: false })
+      .select("name weight color price category")
       .lean();
 
-    if (!drinks.length) {
-      return res.status(400).json({
-        error: "No hay tragos activos",
-      });
-    }
+    if (!drinks.length) return badRequest(res, "No hay tragos activos en la ruleta");
 
-    const normalized = drinks.map((d) => ({
-      ...d,
-      weight: parseWeight(d.weight) || 1,
-    }));
+    const normalized  = drinks.map((d) => ({ ...d, weight: parseWeight(d.weight) || 1 }));
+    const totalWeight = normalized.reduce((sum, d) => sum + d.weight, 0);
 
-    const totalWeight = normalized.reduce(
-      (sum, d) => sum + d.weight,
-      0
-    );
+    if (!totalWeight) return badRequest(res, "Todos los pesos son inválidos");
 
-    if (!totalWeight) {
-      return res.status(400).json({
-        error: "Pesos inválidos",
-      });
-    }
-
+    /* Algoritmo de selección ponderada */
     const random = Math.random() * totalWeight;
-
-    let acc = 0;
-    let selected = normalized[0];
+    let acc = 0, selected = normalized[0];
 
     for (const d of normalized) {
       acc += d.weight;
-      if (random <= acc) {
-        selected = d;
-        break;
-      }
+      if (random <= acc) { selected = d; break; }
     }
 
-    //  stats async
+    /* Stats async — no bloquear respuesta */
     RouletteDrink.updateOne(
       { _id: selected._id },
-      {
-        $inc: { totalSpins: 1 },
-        lastSelectedAt: new Date(),
-      }
+      { $inc: { totalSpins: 1 }, lastSelectedAt: new Date() }
     ).exec();
 
-    res.json({
-      result: selected,
-      meta: {
-        totalOptions: normalized.length,
-        totalWeight,
-      },
+    await createLog({
+      type:    "spin",
+      message: `Resultado de ruleta: "${selected.name}"`,
+      drinkId: selected._id,
     });
-  } catch (err) {
-    console.error("SPIN ERROR:", err);
 
-    res.status(500).json({
-      error: "Error en la ruleta",
+    logger.info(`[Roulette] Resultado: ${selected.name}`);
+    return ok(res, {
+      result: selected,
+      meta:   { totalOptions: normalized.length, totalWeight },
     });
-  }
+  } catch (error) { next(error); }
 };

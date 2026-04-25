@@ -1,263 +1,179 @@
 import mongoose from "mongoose";
 import Product from "../models/Product.js";
-import Recipe from "../models/Recipe.js";
+import Recipe  from "../models/Recipe.js";
+import { logger } from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound, conflict, serverError,
+} from "../utils/response.js";
 
-/* ==============================
-   HELPERS
-============================== */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-/* ==============================
-   GET PRODUCTS
-============================== */
-export const getProducts = async (req, res) => {
+/* =========================================================
+   GET ALL PRODUCTS
+========================================================= */
+export const getProducts = async (req, res, next) => {
   try {
-    const {
-      type,
-      category,
-      available,
-      search,
-      tags,
-    } = req.query;
+    const { type, category, available, isActiveForPOS, search, tags, featured } = req.query;
 
     const filter = {};
+    if (type)           filter.type           = type;
+    if (category)       filter.category       = category;
+    if (featured)       filter.featured       = featured === "true";
+    if (isActiveForPOS) filter.isActiveForPOS = isActiveForPOS === "true";
+    if (available !== undefined) filter.available = available === "true";
+    if (tags)  filter.tags  = { $in: tags.split(",").map((t) => t.trim()) };
+    if (search) filter.$text = { $search: search };
 
-    if (type) filter.type = type;
-    if (category) filter.category = category;
+    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
 
-    if (available !== undefined) {
-      filter.available = available === "true";
-    }
-
-    if (tags) {
-      filter.tags = { $in: tags.split(",") };
-    }
-
-    if (search) {
-      filter.$text = { $search: search };
-    }
-
-    const products = await Product.find(filter)
-      .sort({ createdAt: -1 });
-
-    res.json(products);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, products);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   GET ONE PRODUCT
-============================== */
-export const getProduct = async (req, res) => {
+/* =========================================================
+   GET ONE
+========================================================= */
+export const getProduct = async (req, res, next) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).lean();
+    if (!product) return notFound(res, "Producto no encontrado");
 
-    if (!product) {
-      return res.status(404).json({ error: "No encontrado" });
-    }
-
-    res.json(product);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, product);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   CREATE PRODUCT
-============================== */
-export const createProduct = async (req, res) => {
+/* =========================================================
+   CREATE
+========================================================= */
+export const createProduct = async (req, res, next) => {
   try {
     const { name, price, type, category } = req.body;
 
     if (!name || price === undefined || !type || !category) {
-      return res.status(400).json({
-        error: "Campos obligatorios faltantes",
-      });
+      return badRequest(res, "name, price, type y category son obligatorios");
     }
 
-    const exists = await Product.findOne({ name });
+    const exists = await Product.findOne({ name: name.trim().toLowerCase() });
+    if (exists) return conflict(res, "El producto ya existe");
 
-    if (exists) {
-      return res.status(400).json({
-        error: "El producto ya existe",
-      });
-    }
+    const product = await Product.create(req.body);
+    logger.info(`[Product] Creado: ${product.name}`);
 
-    const product = new Product(req.body);
-    const saved = await product.save();
-
-    res.status(201).json(saved);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return created(res, product, "Producto creado correctamente");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   UPDATE PRODUCT (SAFE)
-============================== */
-export const updateProduct = async (req, res) => {
+/* =========================================================
+   UPDATE
+========================================================= */
+export const updateProduct = async (req, res, next) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
 
-    const allowedFields = [
-      "name",
-      "description",
-      "price",
-      "cost",
-      "category",
-      "subcategory",
-      "type",
-      "available",
-      "image",
-      "featured",
-      "tags",
-      "preparationTime",
+    const ALLOWED = [
+      "name", "description", "price", "cost", "category", "subcategory",
+      "type", "available", "isActiveForPOS", "image", "featured",
+      "tags", "preparationTime", "hasRecipe", "isAlcohol", "stockImpact",
     ];
 
-    const updates = {};
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
+    );
 
-    for (const key of allowedFields) {
-      if (req.body[key] !== undefined) {
-        updates[key] = req.body[key];
-      }
+    if (Object.keys(updates).length === 0) {
+      return badRequest(res, "No hay campos válidos para actualizar");
     }
 
     const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+      req.params.id, updates, { new: true, runValidators: true }
+    ).lean();
 
-    if (!updated) {
-      return res.status(404).json({
-        error: "Producto no encontrado",
-      });
-    }
+    if (!updated) return notFound(res, "Producto no encontrado");
 
-    res.json(updated);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    logger.info(`[Product] Actualizado: ${updated.name}`);
+    return ok(res, updated, "Producto actualizado");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   DELETE PRODUCT
-============================== */
-export const deleteProduct = async (req, res) => {
+/* =========================================================
+   DELETE
+========================================================= */
+export const deleteProduct = async (req, res, next) => {
   try {
-    if (!isValidId(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
 
     const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({
-        error: "Producto no encontrado",
-      });
-    }
+    if (!product) return notFound(res, "Producto no encontrado");
 
     await product.deleteOne();
+    logger.info(`[Product] Eliminado: ${product.name}`);
 
-    res.json({ message: "Producto eliminado" });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, null, "Producto eliminado correctamente");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   AUTO AVAILABILITY 
-============================== */
-export const syncProductAvailability = async (req, res) => {
+/* =========================================================
+   TOGGLE AVAILABILITY
+========================================================= */
+export const toggleProductAvailability = async (req, res, next) => {
+  try {
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
+
+    const product = await Product.findById(req.params.id);
+    if (!product) return notFound(res, "Producto no encontrado");
+
+    product.available = !product.available;
+    await product.save();
+
+    return ok(res, product, `Producto ${product.available ? "activado" : "desactivado"}`);
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   SYNC AVAILABILITY — verifica stock de ingredientes
+========================================================= */
+export const syncProductAvailability = async (req, res, next) => {
   try {
     const products = await Product.find({ hasRecipe: true });
+    let updated = 0;
 
     for (const product of products) {
-      const recipe = await Recipe.findOne({
-        productId: product._id,
-      }).populate("ingredients.ingredientId");
+      const recipe = await Recipe.findOne({ product: product._id })
+        .populate("ingredients.inventoryItem")
+        .lean();
 
       if (!recipe) continue;
 
-      let available = true;
+      const available = recipe.ingredients.every(
+        (ing) => ing.inventoryItem && ing.inventoryItem.stock >= ing.quantity
+      );
 
-      for (const ing of recipe.ingredients) {
-        const ingredient = ing.ingredientId;
-
-        if (!ingredient || ingredient.stock < ing.quantity) {
-          available = false;
-          break;
-        }
+      if (product.available !== available) {
+        product.available = available;
+        await product.save();
+        updated++;
       }
-
-      product.available = available;
-      await product.save();
     }
 
-    res.json({ message: "Disponibilidad sincronizada" });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, { updated }, `${updated} productos sincronizados`);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   GET PRODUCT STATS 
-============================== */
-export const getProductStats = async (req, res) => {
+/* =========================================================
+   STATS
+========================================================= */
+export const getProductStats = async (req, res, next) => {
   try {
-    const total = await Product.countDocuments();
-
-    const byType = await Product.aggregate([
-      {
-        $group: {
-          _id: "$type",
-          count: { $sum: 1 },
-        },
-      },
+    const [total, available, unavailable, byType, byCategory] = await Promise.all([
+      Product.countDocuments(),
+      Product.countDocuments({ available: true }),
+      Product.countDocuments({ available: false }),
+      Product.aggregate([{ $group: { _id: "$type", count: { $sum: 1 } } }]),
+      Product.aggregate([{ $group: { _id: "$category", count: { $sum: 1 } } }]),
     ]);
 
-    const byCategory = await Product.aggregate([
-      {
-        $group: {
-          _id: "$category",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    const available = await Product.countDocuments({
-      available: true,
-    });
-
-    const unavailable = await Product.countDocuments({
-      available: false,
-    });
-
-    res.json({
-      total,
-      available,
-      unavailable,
-      byType,
-      byCategory,
-    });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, { total, available, unavailable, byType, byCategory });
+  } catch (error) { next(error); }
 };

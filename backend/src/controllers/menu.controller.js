@@ -1,266 +1,157 @@
-import Menu from "../models/Menu.js";
-import Recipe from "../models/Recipe.js";
-import InventoryItem from "../models/InventoryItem.js";
 import mongoose from "mongoose";
+import Menu          from "../models/Menu.js";
+import Recipe        from "../models/Recipe.js";
+import InventoryItem from "../models/InventoryItem.js";
+import { logger }    from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound,
+} from "../utils/response.js";
 
-/* ==============================
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+const populateMenu = (q) => q.populate("categories.products.product");
+
+/* =========================================================
    HELPER: CHECK AVAILABILITY
-============================== */
+========================================================= */
 const checkAvailability = (recipe, inventoryMap) => {
   if (!recipe) return false;
-
-  for (const ing of recipe.ingredients) {
+  return recipe.ingredients.every((ing) => {
     const item = inventoryMap[ing.inventoryItem?.toString()];
-    if (!item || item.stock < ing.quantity) {
-      return false;
-    }
-  }
-
-  return true;
+    return item && item.stock >= ing.quantity;
+  });
 };
 
-/* ==============================
-   GET MENUS (ADMIN)
-============================== */
-export const getMenus = async (req, res) => {
+/* =========================================================
+   GET ALL MENUS (admin)
+========================================================= */
+export const getMenus = async (req, res, next) => {
   try {
     const { type, active } = req.query;
-
     const filter = {};
-
-    if (type) filter.type = type;
+    if (type)             filter.type   = type;
     if (active !== undefined) filter.active = active === "true";
 
-    const menus = await Menu.find(filter)
-      .populate("categories.products.product")
-      .sort({ createdAt: -1 });
-
-    res.json(menus);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    const menus = await populateMenu(Menu.find(filter).sort({ createdAt: -1 })).lean();
+    return ok(res, menus);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   GET PUBLIC MENU ( INTELIGENTE)
-============================== */
-export const getPublicMenu = async (req, res) => {
+/* =========================================================
+   GET PUBLIC MENU (con disponibilidad por inventario)
+========================================================= */
+export const getPublicMenu = async (req, res, next) => {
   try {
     const { type, hideUnavailable = "false" } = req.query;
 
-    const filter = {
-      active: true,
-      isPublic: true,
-    };
-
+    const filter = { active: true, isPublic: true };
     if (type) filter.type = type;
 
-    let menus = await Menu.find(filter)
-      .populate("categories.products.product");
+    const menus = await populateMenu(Menu.find(filter));
 
-    //  1. Obtener todos los productIds
-    const productIds = [];
-
-    menus.forEach(menu => {
-      menu.categories.forEach(cat => {
-        cat.products.forEach(p => {
-          productIds.push(p.product?._id);
-        });
-      });
-    });
-
-    //  2. Traer recetas
-    const recipes = await Recipe.find({
-      product: { $in: productIds },
-    });
-
-    const recipeMap = {};
-    recipes.forEach(r => {
-      recipeMap[r.product.toString()] = r;
-    });
-
-    //  3. Traer inventario
-    const ingredientIds = recipes.flatMap(r =>
-      r.ingredients.map(i => i.inventoryItem)
+    /* Recolectar IDs de productos */
+    const productIds = menus.flatMap((m) =>
+      m.categories.flatMap((c) => c.products.map((p) => p.product?._id).filter(Boolean))
     );
 
-    const inventoryItems = await InventoryItem.find({
-      _id: { $in: ingredientIds },
-    });
+    /* Traer recetas e inventario en paralelo */
+    const recipes = await Recipe.find({ product: { $in: productIds } }).lean();
+    const ingredientIds = recipes.flatMap((r) => r.ingredients.map((i) => i.inventoryItem));
+    const inventoryItems = await InventoryItem.find({ _id: { $in: ingredientIds } }).lean();
 
-    const inventoryMap = {};
-    inventoryItems.forEach(i => {
-      inventoryMap[i._id.toString()] = i;
-    });
+    const recipeMap    = Object.fromEntries(recipes.map((r) => [r.product.toString(), r]));
+    const inventoryMap = Object.fromEntries(inventoryItems.map((i) => [i._id.toString(), i]));
 
-    //  4. Procesar disponibilidad
-    const result = menus.map(menu => {
+    const result = menus.map((menu) => {
       const m = menu.toObject();
-
-      m.categories = m.categories.map(cat => {
-        let products = cat.products.map(p => {
+      m.categories = m.categories.map((cat) => {
+        let products = cat.products.map((p) => {
           const productId = p.product?._id?.toString();
-          const recipe = recipeMap[productId];
-
-          const available =
-            p.available &&
-            checkAvailability(recipe, inventoryMap);
-
-          return {
-            ...p,
-            available,
-          };
+          const available = p.available && checkAvailability(recipeMap[productId], inventoryMap);
+          return { ...p, available };
         });
 
-        //  ocultar si se pide
         if (hideUnavailable === "true") {
-          products = products.filter(p => p.available);
+          products = products.filter((p) => p.available);
         }
 
-        return {
-          ...cat,
-          products,
-        };
+        return { ...cat, products };
       });
-
       return m;
     });
 
-    res.json(result);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, result);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   GET ONE MENU
-============================== */
-export const getMenuById = async (req, res) => {
+/* =========================================================
+   GET ONE
+========================================================= */
+export const getMenuById = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
 
-    const menu = await Menu.findById(req.params.id)
-      .populate("categories.products.product");
+    const menu = await populateMenu(Menu.findById(req.params.id)).lean();
+    if (!menu) return notFound(res, "Menú no encontrado");
 
-    if (!menu) {
-      return res.status(404).json({
-        error: "Menú no encontrado",
-      });
-    }
-
-    res.json(menu);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    return ok(res, menu);
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   CREATE MENU
-============================== */
-export const createMenu = async (req, res) => {
+/* =========================================================
+   CREATE
+========================================================= */
+export const createMenu = async (req, res, next) => {
   try {
     const { name, categories } = req.body;
 
-    if (!name) {
-      return res.status(400).json({
-        error: "El nombre es obligatorio",
-      });
-    }
-
+    if (!name) return badRequest(res, "name es obligatorio");
     if (categories && !Array.isArray(categories)) {
-      return res.status(400).json({
-        error: "Categorías inválidas",
-      });
+      return badRequest(res, "categories debe ser un array");
     }
 
-    const menu = new Menu(req.body);
+    const menu = await Menu.create(req.body);
+    const populated = await populateMenu(Menu.findById(menu._id)).lean();
 
-    const saved = await menu.save();
+    logger.info(`[Menu] Creado: ${name}`);
+    return created(res, populated, "Menú creado correctamente");
+  } catch (error) { next(error); }
+};
 
-    const populated = await saved.populate(
-      "categories.products.product"
+/* =========================================================
+   UPDATE
+========================================================= */
+export const updateMenu = async (req, res, next) => {
+  try {
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
+
+    const ALLOWED = ["name", "description", "categories", "active", "type", "isPublic"];
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
 
-    res.status(201).json(populated);
+    const updated = await populateMenu(
+      Menu.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true })
+    ).lean();
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    if (!updated) return notFound(res, "Menú no encontrado");
+
+    logger.info(`[Menu] Actualizado: ${updated.name}`);
+    return ok(res, updated, "Menú actualizado correctamente");
+  } catch (error) { next(error); }
 };
 
-/* ==============================
-   UPDATE MENU
-============================== */
-export const updateMenu = async (req, res) => {
+/* =========================================================
+   DELETE
+========================================================= */
+export const deleteMenu = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
-
-    const allowedFields = [
-      "name",
-      "description",
-      "categories",
-      "active",
-      "type",
-      "isPublic",
-    ];
-
-    const updates = {};
-
-    for (const key of allowedFields) {
-      if (req.body[key] !== undefined) {
-        updates[key] = req.body[key];
-      }
-    }
-
-    const updated = await Menu.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).populate("categories.products.product");
-
-    if (!updated) {
-      return res.status(404).json({
-        error: "Menú no encontrado",
-      });
-    }
-
-    res.json(updated);
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-/* ==============================
-   DELETE MENU
-============================== */
-export const deleteMenu = async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ error: "ID inválido" });
-    }
+    if (!isValidId(req.params.id)) return badRequest(res, "ID inválido");
 
     const deleted = await Menu.findByIdAndDelete(req.params.id);
+    if (!deleted) return notFound(res, "Menú no encontrado");
 
-    if (!deleted) {
-      return res.status(404).json({
-        error: "Menú no encontrado",
-      });
-    }
-
-    res.json({ message: "Menú eliminado correctamente" });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    logger.info(`[Menu] Eliminado: ${deleted.name}`);
+    return ok(res, null, "Menú eliminado correctamente");
+  } catch (error) { next(error); }
 };

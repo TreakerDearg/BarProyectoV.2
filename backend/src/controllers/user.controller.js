@@ -1,274 +1,238 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import { logger } from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound, conflict, forbidden,
+} from "../utils/response.js";
 
-/* =========================================================
-   HELPERS
-========================================================= */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const sendError = (res, status, message, detail = null) => {
-  return res.status(status).json({
-    success: false,
-    message,
-    ...(detail && { detail }),
-  });
-};
-
-const sendSuccess = (res, data, message = "OK") => {
-  return res.json({
-    success: true,
-    message,
-    data,
-  });
-};
+const EMPLOYEE_ROLES = ["admin", "bartender", "waiter", "cashier", "kitchen"];
+const VALID_ROLES    = [...EMPLOYEE_ROLES, "client"];
+const VALID_SHIFTS   = ["morning", "afternoon", "night", "event"];
 
 /* =========================================================
-   CREATE EMPLOYEE
-   (ADMIN ONLY)
+   SAFE USER SELECT
 ========================================================= */
-export const createEmployee = async (req, res) => {
+const safeSelect = "-password -refreshToken -loginAttempts -lockUntil";
+
+/* =========================================================
+   CREATE EMPLOYEE (admin only)
+========================================================= */
+export const createEmployee = async (req, res, next) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      role,
-      shift = null,
-      permissions = {},
-    } = req.body;
+    const { name, email, password, role, shift = null, permissions = {} } = req.body;
 
     if (!name || !email || !password || !role) {
-      return sendError(res, 400, "Datos incompletos");
+      return badRequest(res, "name, email, password y role son obligatorios");
+    }
+
+    if (!VALID_ROLES.includes(role)) {
+      return badRequest(res, `Rol inválido. Válidos: ${VALID_ROLES.join(", ")}`);
+    }
+
+    if (shift && !VALID_SHIFTS.includes(shift)) {
+      return badRequest(res, `Turno inválido. Válidos: ${VALID_SHIFTS.join(", ")}`);
     }
 
     const exists = await User.findOne({ email });
-
-    if (exists) {
-      return sendError(res, 409, "El usuario ya existe");
-    }
+    if (exists) return conflict(res, "El email ya está registrado");
 
     const user = await User.create({
-      name,
-      email,
-      password,
-      role,
-      shift,
-      permissions,
+      name, email, password, role, shift, permissions,
+      isEmployee: EMPLOYEE_ROLES.includes(role),
       isActive: true,
     });
 
-    return sendSuccess(res, user, "Empleado creado correctamente");
-  } catch (error) {
-    return sendError(res, 500, "Error creando usuario", error.message);
-  }
+    logger.info(`[User] Empleado creado: ${email} (${role})`);
+
+    const userObj = user.toJSON();
+    return created(res, userObj, "Empleado creado correctamente");
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
    GET EMPLOYEES
-   (ADMIN ONLY)
 ========================================================= */
-export const getEmployees = async (req, res) => {
+export const getEmployees = async (req, res, next) => {
   try {
     const { role, shift, active } = req.query;
 
-    const filter = {
-      role: { $ne: "client" },
-    };
-
-    if (role) filter.role = role;
-    if (shift) filter.shift = shift;
-
-    if (active !== undefined) {
-      filter.isActive = active === "true";
-    }
+    const filter = { isEmployee: true, deletedAt: null };
+    if (role)             filter.role     = role;
+    if (shift)            filter.shift    = shift;
+    if (active !== undefined) filter.isActive = active === "true";
 
     const users = await User.find(filter)
-      .select("-password")
-      .sort({ createdAt: -1 });
+      .select(safeSelect)
+      .sort({ name: 1 })
+      .lean();
 
-    return sendSuccess(res, users);
-  } catch (error) {
-    return sendError(res, 500, "Error obteniendo empleados", error.message);
-  }
+    return ok(res, users);
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
    GET USER BY ID
 ========================================================= */
-export const getUser = async (req, res) => {
+export const getUser = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    if (!isValidId(id)) {
-      return sendError(res, 400, "ID inválido");
-    }
+    const user = await User.findById(id).select(safeSelect).lean();
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    const user = await User.findById(id).select("-password");
-
-    if (!user) {
-      return sendError(res, 404, "Usuario no encontrado");
-    }
-
-    return sendSuccess(res, user);
-  } catch (error) {
-    return sendError(res, 500, "Error obteniendo usuario", error.message);
-  }
+    return ok(res, user);
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
-   UPDATE USER (GENERAL SAFE UPDATE)
+   UPDATE USER
 ========================================================= */
-export const updateUser = async (req, res) => {
+export const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    if (!isValidId(id)) {
-      return sendError(res, 400, "ID inválido");
+    const ALLOWED = ["name", "role", "shift", "permissions", "isActive"];
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
+    );
+
+    if (Object.keys(updates).length === 0) {
+      return badRequest(res, "No hay campos válidos para actualizar");
     }
 
-    const allowedFields = [
-      "name",
-      "role",
-      "shift",
-      "permissions",
-      "isActive",
-    ];
+    if (updates.role && !VALID_ROLES.includes(updates.role)) {
+      return badRequest(res, `Rol inválido. Válidos: ${VALID_ROLES.join(", ")}`);
+    }
 
-    const updates = {};
-
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
+    /* Sincronizar isEmployee automáticamente al cambiar rol */
+    if (updates.role) {
+      updates.isEmployee = EMPLOYEE_ROLES.includes(updates.role);
+    }
 
     const user = await User.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+      new: true, runValidators: true,
+    }).select(safeSelect).lean();
 
-    if (!user) {
-      return sendError(res, 404, "Usuario no encontrado");
-    }
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    return sendSuccess(res, user, "Usuario actualizado");
-  } catch (error) {
-    return sendError(res, 500, "Error actualizando usuario", error.message);
-  }
+    logger.info(`[User] Actualizado: ${id}`);
+    return ok(res, user, "Usuario actualizado correctamente");
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
    CHANGE PASSWORD
 ========================================================= */
-export const changePassword = async (req, res) => {
+export const changePassword = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { password } = req.body;
 
-    if (!isValidId(id)) {
-      return sendError(res, 400, "ID inválido");
-    }
-
-    if (!password) {
-      return sendError(res, 400, "Password requerido");
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+    if (!password || password.length < 6) {
+      return badRequest(res, "La contraseña debe tener al menos 6 caracteres");
     }
 
     const user = await User.findById(id);
-
-    if (!user) {
-      return sendError(res, 404, "Usuario no encontrado");
-    }
+    if (!user) return notFound(res, "Usuario no encontrado");
 
     user.password = password;
     await user.save();
 
-    return sendSuccess(res, null, "Password actualizado");
-  } catch (error) {
-    return sendError(res, 500, "Error cambiando password", error.message);
-  }
+    logger.info(`[User] Contraseña cambiada para: ${id}`);
+    return ok(res, null, "Contraseña actualizada correctamente");
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
    ACTIVATE / DEACTIVATE
 ========================================================= */
-export const deactivateUser = async (req, res) => {
+export const deactivateUser = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    /* Proteger al admin actual */
+    if (req.user?.id === id) {
+      return forbidden(res, "No puedes desactivar tu propia cuenta");
+    }
+
     const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    ).select("-password");
+      id, { isActive: false, deletedAt: new Date() }, { new: true }
+    ).select(safeSelect).lean();
 
-    if (!user) return sendError(res, 404, "Usuario no encontrado");
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    return sendSuccess(res, user, "Usuario desactivado");
-  } catch (error) {
-    return sendError(res, 500, "Error desactivando usuario", error.message);
-  }
+    logger.info(`[User] Desactivado: ${id}`);
+    return ok(res, user, "Usuario desactivado");
+  } catch (error) { next(error); }
 };
 
-export const activateUser = async (req, res) => {
+export const activateUser = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
     const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { isActive: true },
+      id, { isActive: true, deletedAt: null, loginAttempts: 0, lockUntil: null },
       { new: true }
-    ).select("-password");
+    ).select(safeSelect).lean();
 
-    if (!user) return sendError(res, 404, "Usuario no encontrado");
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    return sendSuccess(res, user, "Usuario activado");
-  } catch (error) {
-    return sendError(res, 500, "Error activando usuario", error.message);
-  }
+    logger.info(`[User] Activado: ${id}`);
+    return ok(res, user, "Usuario activado correctamente");
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
-   PERMISSIONS SYSTEM (CORE FEATURE)
+   UPDATE PERMISSIONS
 ========================================================= */
-export const updatePermissions = async (req, res) => {
+export const updatePermissions = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const { permissions } = req.body;
 
-    if (!permissions || typeof permissions !== "object") {
-      return sendError(res, 400, "Permissions inválidos");
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+    if (!permissions || typeof permissions !== "object" || Array.isArray(permissions)) {
+      return badRequest(res, "permissions debe ser un objeto válido");
     }
 
     const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { permissions },
-      { new: true }
-    ).select("-password");
+      id, { permissions }, { new: true }
+    ).select(safeSelect).lean();
 
-    if (!user) return sendError(res, 404, "Usuario no encontrado");
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    return sendSuccess(res, user, "Permisos actualizados");
-  } catch (error) {
-    return sendError(res, 500, "Error actualizando permisos", error.message);
-  }
+    logger.info(`[User] Permisos actualizados: ${id}`);
+    return ok(res, user, "Permisos actualizados correctamente");
+  } catch (error) { next(error); }
 };
 
 /* =========================================================
-   SHIFT SYSTEM (TURNOS OPERATIVOS)
+   ASSIGN SHIFT
 ========================================================= */
-export const assignShift = async (req, res) => {
+export const assignShift = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const { shift } = req.body;
 
-    if (!shift) {
-      return sendError(res, 400, "Shift requerido");
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+    if (!shift || !VALID_SHIFTS.includes(shift)) {
+      return badRequest(res, `Turno inválido. Válidos: ${VALID_SHIFTS.join(", ")}`);
     }
 
     const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { shift },
-      { new: true }
-    ).select("-password");
+      id, { shift }, { new: true }
+    ).select(safeSelect).lean();
 
-    if (!user) return sendError(res, 404, "Usuario no encontrado");
+    if (!user) return notFound(res, "Usuario no encontrado");
 
-    return sendSuccess(res, user, "Turno asignado");
-  } catch (error) {
-    return sendError(res, 500, "Error asignando turno", error.message);
-  }
+    logger.info(`[User] Turno asignado: ${shift} → ${id}`);
+    return ok(res, user, `Turno ${shift} asignado correctamente`);
+  } catch (error) { next(error); }
 };

@@ -16,92 +16,76 @@ export default function Header() {
   const tabs = currentRoute?.children ?? [];
 
   return (
-    <header className="w-full border-b border-[rgba(255,255,255,0.06)] bg-[#0E131B]/70 backdrop-blur-xl">
-
+    <header className="w-full h-16 border-b border-obsidian/40 bg-void/80 backdrop-blur-xl flex flex-col justify-center font-mono relative z-20">
+      
       {/* ================= TOP BAR ================= */}
-      <div className="h-16 flex items-center justify-between px-6">
+      <div className="flex items-center justify-between px-6 h-full">
 
         {/* LEFT */}
         <div className="flex flex-col">
-          <h1 className="text-sm md:text-base font-semibold text-white tracking-wide">
-            {currentRoute?.title || "Sistema"}
-          </h1>
-
-          <span className="text-xs text-[#71717A]">
-            Obsidian Control Center
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-bold text-white tracking-widest uppercase">
+              {currentRoute?.title || "SYSTEM_DASHBOARD"}
+            </h1>
+          </div>
+          <span className="text-[9px] text-[#00FFFF] tracking-widest font-bold mt-1">
+            OBSIDIAN_CONTROL_CENTER
           </span>
         </div>
 
         {/* RIGHT */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
 
           {/* SYSTEM STATUS */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#111827]/40 border border-[rgba(255,255,255,0.06)]">
-
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute h-full w-full rounded-full bg-[#34D399] opacity-60"></span>
-              <span className="relative h-2.5 w-2.5 rounded-full bg-[#34D399]"></span>
+          <div className="flex items-center gap-3 px-4 py-1.5 rounded-lg bg-obsidian/30 border border-obsidian/60 shadow-[0_0_15px_rgba(52,185,100,0.1)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute h-full w-full rounded-full bg-bar-green opacity-60"></span>
+              <span className="relative h-2 w-2 rounded-full bg-bar-green shadow-[0_0_8px_#34B964]"></span>
             </span>
-
-            <span className="text-xs text-[#71717A]">
-              Sistema activo
+            <span className="text-[10px] text-bar-green font-bold tracking-widest">
+              SYSTEM_ACTIVE
             </span>
-
           </div>
 
           {/* USER CARD */}
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-xl bg-[#111827]/50 border border-[rgba(255,255,255,0.06)] shadow-[0_0_25px_rgba(0,0,0,0.35)]">
-
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#34D399] flex items-center justify-center text-xs font-bold text-white">
+          <div className="flex items-center gap-3 px-4 py-1.5 rounded-lg bg-obsidian/30 border border-obsidian/60 transition hover:border-gray-500 cursor-pointer">
+            <div className="h-6 w-6 rounded border border-[#8B5CF6]/40 bg-[#8B5CF6]/10 flex items-center justify-center text-xs font-bold text-[#8B5CF6] shadow-[0_0_8px_rgba(139,92,246,0.2)]">
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
-
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm text-white font-medium">
-                {user?.name || "Usuario"}
+            <div className="flex flex-col">
+              <span className="text-xs text-white font-bold tracking-wider uppercase">
+                {user?.name || "SYS_ADMIN"}
               </span>
-
-              <span className="text-[10px] text-[#71717A]">
-                Administrador
+              <span className="text-[9px] text-gray-500 tracking-widest uppercase">
+                {user?.role || "ACCESS_LEVEL_1"}
               </span>
             </div>
-
           </div>
 
         </div>
       </div>
 
-      {/* ================= AUTO TABS ================= */}
+      {/* ================= AUTO TABS (If any) ================= */}
       {tabs.length > 0 && (
-        <div className="flex items-center gap-2 px-6 pb-3 overflow-x-auto">
-
+        <div className="absolute bottom-0 left-6 flex items-center gap-4 translate-y-full pt-2">
           {tabs.map((tab) => (
             <NavLink
               key={tab.path}
               to={tab.path}
               className={({ isActive }) =>
                 `
-                relative text-xs px-3 py-1.5 rounded-lg border transition whitespace-nowrap
-
+                relative text-[10px] px-3 py-1.5 rounded-lg border font-bold tracking-widest transition whitespace-nowrap uppercase
                 ${
                   isActive
-                    ? "bg-[#A78BFA]/10 text-[#A78BFA] border-[#A78BFA]/30 shadow-[0_0_12px_rgba(167,139,250,0.15)]"
-                    : "text-[#71717A] border-transparent hover:text-white hover:bg-[#111827]/40"
+                    ? "bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/30 shadow-[0_0_10px_rgba(139,92,246,0.2)]"
+                    : "text-gray-500 border-transparent hover:text-white hover:bg-obsidian/40 hover:border-obsidian/60"
                 }
               `
               }
             >
               {tab.name}
-
-              {/* ACTIVE INDICATOR */}
-              {({ isActive }: any) =>
-                isActive && (
-                  <span className="absolute -bottom-[6px] left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#A78BFA]" />
-                )
-              }
             </NavLink>
           ))}
-
         </div>
       )}
     </header>

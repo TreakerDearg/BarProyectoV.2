@@ -1,52 +1,51 @@
 import mongoose from "mongoose";
-import Order from "../models/Order.js";
-import Recipe from "../models/Recipe.js";
-import InventoryItem from "../models/InventoryItem.js";
-import Product from "../models/Product.js";
-import Table from "../models/Table.js";
+import Order        from "../models/Order.js";
+import Product      from "../models/Product.js";
+import Table        from "../models/Table.js";
+import { io }       from "../server.js";
+import { logger }   from "../config/logger.js";
+import {
+  ok, created, badRequest, notFound, serverError,
+} from "../utils/response.js";
 
-import { io } from "../server.js";
+/* =========================================================
+   CONSTANTS
+========================================================= */
+const ORDER_STATUS = ["pending", "in-progress", "completed", "cancelled"];
+const ITEM_STATUS  = ["pending", "preparing", "ready", "served", "cancelled"];
 
-/* ==============================
-   HELPERS
-============================== */
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-const sendError = (res, status, msg) =>
-  res.status(status).json({ error: msg });
-
-const ORDER_STATUS = ["pending", "in-progress", "completed", "cancelled"];
-const ITEM_STATUS = ["pending", "preparing", "ready", "delivered"];
-
-/* ==============================
-   SOCKET HELPERS (CENTRALIZADO)
-============================== */
+/* =========================================================
+   SOCKET HELPERS — Emisión centralizada
+========================================================= */
 const emitOrderUpdate = (order) => {
-  io.emit("order:update", order);
-  io.to(`table:${order.table}`).emit("order:update", order);
+  io.emit(`table:${order.table}`, { event: "order:update", order });
+  io.to("orders:global").emit("order:update", order);
 };
 
 const emitOrderCreate = (order) => {
-  io.emit("order:created", order);
-  io.to(`table:${order.table}`).emit("order:created", order);
+  io.emit(`table:${order.table}`, { event: "order:created", order });
+  io.to("orders:global").emit("order:created",  order);
+  io.to("role:kitchen").emit("order:new",        order);
+  io.to("role:bartender").emit("order:new",      order);
 };
 
 const emitOrderDelete = (order) => {
-  io.emit("order:deleted", order);
-  io.to(`table:${order.table}`).emit("order:deleted", order);
+  io.emit(`table:${order.table}`, { event: "order:deleted", order });
+  io.to("orders:global").emit("order:deleted", order);
 };
 
 const emitTableUpdate = async (tableId) => {
-  const table = await Table.findById(tableId);
+  const table = await Table.findById(tableId).lean();
   if (!table) return;
-
   io.emit("table:update", table);
   io.to(`table:${tableId}`).emit("table:update", table);
 };
 
-/* ==============================
-   TABLE AUTO CLOSE (ROBUSTO)
-============================== */
+/* =========================================================
+   TABLE AUTO-CLOSE
+========================================================= */
 const handleTableAutoClose = async (tableId) => {
   if (!isValidId(tableId)) return;
 
@@ -59,271 +58,175 @@ const handleTableAutoClose = async (tableId) => {
 
   const table = await Table.findById(tableId);
   if (!table) return;
-
   if (["maintenance", "available"].includes(table.status)) return;
 
-  table.status = "maintenance";
+  table.status           = "maintenance";
   table.currentSessionId = null;
-
   await table.save();
 
   await emitTableUpdate(tableId);
 
+  logger.info(`[Order] Mesa ${tableId} → mantenimiento por cierre de sesión`);
+
   setTimeout(async () => {
     const t = await Table.findById(tableId);
-    if (!t) return;
-
-    if (t.status === "maintenance") {
+    if (t && t.status === "maintenance") {
       t.status = "available";
       await t.save();
-
       await emitTableUpdate(tableId);
+      logger.info(`[Order] Mesa ${tableId} → disponible`);
     }
   }, 2 * 60 * 1000);
 };
 
-/* ==============================
-   GET ORDERS
-============================== */
-export const getOrders = async (req, res) => {
+/* =========================================================
+   GET ALL ORDERS
+========================================================= */
+export const getOrders = async (req, res, next) => {
   try {
-    const { status, table, sessionId } = req.query;
+    const { status, table, sessionId, sessionStatus, limit = 100 } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
-    if (sessionId) filter.sessionId = sessionId;
-    if (table) filter.table = table;
+    if (status)        filter.status        = status;
+    if (sessionId)     filter.sessionId     = sessionId;
+    if (table)         filter.table         = table;
+    if (sessionStatus) filter.sessionStatus = sessionStatus;
 
     const orders = await Order.find(filter)
-      .populate("table")
-      .populate("items.product")
+      .populate("table",         "number status")
+      .populate("items.product", "name type")
       .sort({ createdAt: -1 })
+      .limit(Number(limit))
       .lean();
 
-    res.json(
-      orders.map((o) => ({
-        ...o,
-        tableNumber: o.table?.number,
-      }))
-    );
-  } catch {
-    sendError(res, 500, "No se pudieron obtener las órdenes");
+    return ok(res, orders);
+  } catch (error) {
+    next(error);
   }
 };
 
-/* ==============================
-   GET ONE
-============================== */
-export const getOrderById = async (req, res) => {
+/* =========================================================
+   GET ONE ORDER
+========================================================= */
+export const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (!isValidId(id)) {
-      return sendError(res, 400, "ID inválido");
-    }
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const order = await Order.findById(id)
-      .populate("table")
-      .populate("items.product");
+      .populate("table",         "number status")
+      .populate("items.product", "name type price")
+      .populate("createdBy",     "name role")
+      .lean();
 
-    if (!order) {
-      return sendError(res, 404, "Orden no encontrada");
-    }
+    if (!order) return notFound(res, "Orden no encontrada");
 
-    res.json({
-      ...order.toObject(),
-      tableNumber: order.table?.number,
-    });
-  } catch {
-    sendError(res, 500, "Error al obtener la orden");
+    return ok(res, order);
+  } catch (error) {
+    next(error);
   }
 };
 
-/* ==============================
+/* =========================================================
    CREATE ORDER
-============================== */
-export const createOrder = async (req, res) => {
+========================================================= */
+export const createOrder = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
-    const { items, table, sessionId, notes = "" } = req.body;
+    const { items, table, sessionId, notes = "", priority = "normal" } = req.body;
 
-    if (!items?.length) {
-      throw new Error("Debes agregar productos");
-    }
+    /* ─── Validaciones básicas ─── */
+    if (!table)         return badRequest(res, "La mesa es requerida");
+    if (!sessionId)     return badRequest(res, "El sessionId es requerido");
+    if (!items?.length) return badRequest(res, "Debes agregar al menos un producto");
 
+    /* ─── Validar mesa ─── */
     const tableDoc = await Table.findById(table).session(session);
+    if (!tableDoc)                           return notFound(res, "Mesa no encontrada");
+    if (tableDoc.status !== "occupied")      return badRequest(res, "La mesa no está activa");
+    if (tableDoc.currentSessionId !== sessionId) return badRequest(res, "Sesión de mesa inválida");
 
-    if (!tableDoc) throw new Error("Mesa no encontrada");
-
-    if (tableDoc.status !== "occupied") {
-      throw new Error("Mesa no activa");
-    }
-
-    if (tableDoc.currentSessionId !== sessionId) {
-      throw new Error("Sesión inválida");
-    }
-
+    /* ─── Obtener y mapear productos ─── */
     const productIds = items.map((i) => i.product);
-
-    const products = await Product.find({
-      _id: { $in: productIds },
-    }).session(session);
+    const products   = await Product.find({ _id: { $in: productIds }, isActive: true }).session(session);
 
     if (products.length !== productIds.length) {
-      throw new Error("Uno o más productos no existen");
+      return badRequest(res, "Uno o más productos no existen o están inactivos");
     }
 
-    const recipes = await Recipe.find({
-      product: { $in: productIds },
-    }).session(session);
+    const productMap = Object.fromEntries(products.map((p) => [p._id.toString(), p]));
 
-    const inventoryIds = recipes.flatMap((r) =>
-      r.ingredients.map((i) => i.inventoryItem)
-    );
-
-    const inventoryItems = await InventoryItem.find({
-      _id: { $in: inventoryIds },
-    }).session(session);
-
-    const productMap = Object.fromEntries(
-      products.map((p) => [p._id.toString(), p])
-    );
-
-    const recipeMap = Object.fromEntries(
-      recipes.map((r) => [r.product.toString(), r])
-    );
-
-    const inventoryMap = Object.fromEntries(
-      inventoryItems.map((i) => [i._id.toString(), i])
-    );
-
-    /* =========================
-       STOCK VALIDATION
-    ========================= */
-    for (const item of items) {
-      const recipe = recipeMap[item.product];
-      if (!recipe) continue;
-
-      for (const ing of recipe.ingredients) {
-        const inv = inventoryMap[ing.inventoryItem];
-        if (!inv) continue;
-
-        const required = ing.quantity * item.quantity;
-
-        if (inv.stock < required) {
-          throw new Error(`Stock insuficiente: ${inv.name}`);
-        }
-      }
-    }
-
-    /* =========================
-       DECREMENT STOCK
-    ========================= */
-    for (const item of items) {
-      const recipe = recipeMap[item.product];
-      if (!recipe) continue;
-
-      for (const ing of recipe.ingredients) {
-        const inv = inventoryMap[ing.inventoryItem];
-        if (!inv) continue;
-
-        inv.stock -= ing.quantity * item.quantity;
-      }
-    }
-
-    await Promise.all(
-      Object.values(inventoryMap).map((i) =>
-        i.save({ session })
-      )
-    );
-
-    /* =========================
-       BUILD ORDER ITEMS
-    ========================= */
-    let total = 0;
-
+    /* ─── Construir items ─── */
     const orderItems = items.map((item) => {
-      const product = productMap[item.product];
-
-      if (!product) {
-        throw new Error("Producto inválido en items");
-      }
-
-      const price = product.price || 0;
-      const subtotal = price * item.quantity;
-      total += subtotal;
+      const product = productMap[item.product?.toString()];
+      if (!product) throw new Error("Producto inválido");
 
       return {
-        product: product._id,
-        quantity: item.quantity,
-        price,
-        type: product.type || "drink",
-        status: "pending",
+        product:  product._id,
+        name:     product.name,
+        quantity: Math.max(1, Number(item.quantity) || 1),
+        price:    Number(product.price) || 0,
+        type:     product.type === "food" ? "food" : "drink",
+        status:   "pending",
+        notes:    item.notes || "",
       };
     });
 
-    /* =========================
-       CREATE ORDER
-    ========================= */
-    const [order] = await Order.create(
-      [
-        {
-          items: orderItems,
-          total,
-          table,
-          sessionId,
-          notes,
-          sessionStatus: "open",
-          status: "pending",
-        },
-      ],
-      { session }
-    );
+    /* ─── Crear orden ─── */
+const [order] = await Order.create(
+  [{
+    items: orderItems, 
+    table,
+    sessionId,
+    notes,
+    priority,
+    sessionStatus: "open",
+    status: "pending",
+    discountTotal: 0,
+    createdBy: req.user?.id || null,
+  }],
+  { session }
+);
 
     await session.commitTransaction();
 
+    logger.info(`[Order] Nueva orden creada: ${order._id} → mesa ${table}`);
     emitOrderCreate(order);
 
-    res.status(201).json(order);
+    return created(res, order, "Orden creada correctamente");
 
   } catch (error) {
     await session.abortTransaction();
-
-    console.log("CREATE ORDER ERROR:", error.message);
-
-    sendError(res, 400, error.message);
+    next(error);
   } finally {
     session.endSession();
   }
 };
-/* ==============================
+
+/* =========================================================
    UPDATE ORDER STATUS
-============================== */
-export const updateOrderStatus = async (req, res) => {
+========================================================= */
+export const updateOrderStatus = async (req, res, next) => {
   try {
+    const { id }     = req.params;
     const { status } = req.body;
-    const { id } = req.params;
 
     if (!ORDER_STATUS.includes(status)) {
-      return sendError(res, 400, "Estado inválido");
+      return badRequest(res, `Estado inválido. Válidos: ${ORDER_STATUS.join(", ")}`);
     }
 
     const order = await Order.findById(id);
-
-    if (!order) return sendError(res, 404, "Orden no encontrada");
-
-    if (order.sessionStatus === "closed") {
-      return sendError(res, 400, "Orden ya cerrada");
-    }
+    if (!order)                          return notFound(res, "Orden no encontrada");
+    if (order.sessionStatus === "closed") return badRequest(res, "La orden ya está cerrada");
 
     order.status = status;
 
     if (["completed", "cancelled"].includes(status)) {
       order.sessionStatus = "closed";
-      order.closedAt = new Date();
+      order.closedAt      = new Date();
     }
 
     await order.save();
@@ -334,47 +237,45 @@ export const updateOrderStatus = async (req, res) => {
       await handleTableAutoClose(order.table);
     }
 
-    res.json(order);
+    logger.info(`[Order] ${order._id} → status: ${status}`);
 
-  } catch {
-    sendError(res, 500, "Error al actualizar orden");
+    return ok(res, order, `Orden ${status} correctamente`);
+  } catch (error) {
+    next(error);
   }
 };
 
-/* ==============================
+/* =========================================================
    UPDATE ITEM STATUS
-============================== */
-export const updateOrderItemStatus = async (req, res) => {
+========================================================= */
+export const updateOrderItemStatus = async (req, res, next) => {
   try {
     const { orderId, itemId } = req.params;
-    const { status } = req.body;
+    const { status }          = req.body;
 
     if (!ITEM_STATUS.includes(status)) {
-      return sendError(res, 400, "Estado inválido");
+      return badRequest(res, `Estado inválido. Válidos: ${ITEM_STATUS.join(", ")}`);
     }
 
     const order = await Order.findById(orderId);
-
-    if (!order) return sendError(res, 404, "Orden no encontrada");
+    if (!order) return notFound(res, "Orden no encontrada");
 
     const item = order.items.id(itemId);
-    if (!item) return sendError(res, 404, "Item no encontrado");
+    if (!item) return notFound(res, "Item no encontrado");
 
     item.status = status;
 
-    const allDelivered = order.items.every(
-      (i) => i.status === "delivered"
-    );
+    /* ─── Auto estado de orden ─── */
+    const allItems    = order.items;
+    const allServed   = allItems.every((i)  => i.status === "served");
+    const anyPreparing = allItems.some((i)  => i.status === "preparing");
+    const anyReady     = allItems.some((i)  => i.status === "ready");
 
-    const anyPreparing = order.items.some(
-      (i) => i.status === "preparing"
-    );
-
-    if (allDelivered) {
-      order.status = "completed";
+    if (allServed) {
+      order.status        = "completed";
       order.sessionStatus = "closed";
-      order.closedAt = new Date();
-    } else if (anyPreparing) {
+      order.closedAt      = new Date();
+    } else if (anyPreparing || anyReady) {
       order.status = "in-progress";
     }
 
@@ -382,43 +283,90 @@ export const updateOrderItemStatus = async (req, res) => {
 
     emitOrderUpdate(order);
 
+    /* Notificación específica al rol de delivery */
+    if (status === "ready") {
+      io.to("role:bartender").emit("item:ready", { orderId, itemId, item });
+    }
+
     if (order.sessionStatus === "closed") {
       await handleTableAutoClose(order.table);
     }
 
-    res.json(order);
-
-  } catch {
-    sendError(res, 500, "Error al actualizar item");
+    return ok(res, order, "Item actualizado");
+  } catch (error) {
+    next(error);
   }
 };
 
-/* ==============================
+/* =========================================================
    DELETE ORDER
-============================== */
-export const deleteOrder = async (req, res) => {
+========================================================= */
+export const deleteOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (!isValidId(id)) {
-      return sendError(res, 400, "ID inválido");
-    }
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const order = await Order.findById(id);
-
-    if (!order) return sendError(res, 404, "Orden no encontrada");
-
-    if (order.sessionStatus === "open") {
-      return sendError(res, 400, "No puedes eliminar orden activa");
-    }
+    if (!order)                          return notFound(res, "Orden no encontrada");
+    if (order.sessionStatus === "open")  return badRequest(res, "No puedes eliminar una orden activa");
 
     await order.deleteOne();
 
     emitOrderDelete(order);
+    logger.info(`[Order] Eliminada: ${id}`);
 
-    res.json({ message: "Orden eliminada correctamente" });
+    return ok(res, null, "Orden eliminada correctamente");
+  } catch (error) {
+    next(error);
+  }
+};
 
-  } catch {
-    sendError(res, 500, "Error al eliminar orden");
+/* =========================================================
+   APPLY DISCOUNT
+========================================================= */
+export const applyDiscount = async (req, res, next) => {
+  try {
+    const { orderId }                  = req.params;
+    const { type, value, items, reason, note } = req.body;
+
+    if (!isValidId(orderId)) return badRequest(res, "ID inválido");
+
+    const order = await Order.findById(orderId);
+    if (!order)                          return notFound(res, "Orden no encontrada");
+    if (order.sessionStatus === "closed") return badRequest(res, "La orden está cerrada");
+
+    /* ─── Filtrar items objetivo ─── */
+    let targetItems = order.items;
+
+    if (Array.isArray(items) && items.length > 0) {
+      const ids = items.map((id) => id.toString());
+      targetItems = order.items.filter((i) => i?._id && ids.includes(i._id.toString()));
+      if (targetItems.length === 0) return badRequest(res, "Items de descuento inválidos");
+    }
+
+    /* ─── Calcular descuento ─── */
+    const subtotal = targetItems.reduce((acc, i) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
+
+    if (subtotal <= 0) return badRequest(res, "Subtotal inválido para aplicar descuento");
+
+    let discountAmount = type === "PERCENT"
+      ? (subtotal * value) / 100
+      : Number(value);
+
+    if (discountAmount <= 0)        return badRequest(res, "El descuento debe ser mayor a 0");
+    if (discountAmount > subtotal)  return badRequest(res, "El descuento no puede superar el subtotal");
+
+    /* ─── Aplicar ─── */
+    order.discountTotal = (order.discountTotal || 0) + discountAmount;
+    order.discounts.push({ type, value, amount: discountAmount, reason, note, items, appliedAt: new Date() });
+
+    await order.save();
+    emitOrderUpdate(order);
+
+    logger.info(`[Order] Descuento de $${discountAmount} aplicado a ${orderId}`);
+
+    return ok(res, order, `Descuento de $${discountAmount.toFixed(2)} aplicado`);
+  } catch (error) {
+    next(error);
   }
 };

@@ -66,26 +66,36 @@ api.interceptors.request.use(
 /* =========================================================
    RESPONSE INTERCEPTOR
    - Manejo global de auth expirado
+   - Estandarización de respuestas
 ========================================================= */
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Si el backend usa { success, data, message }, devolvemos data directo si se prefiere,
+    // o simplemente devolvemos response.data para tener todo (es mejor para tener el message)
+    return response.data;
+  },
   (error) => {
     const status = error?.response?.status;
+    const backendData = error?.response?.data;
 
     /* =========================
        TOKEN EXPIRADO O INVÁLIDO
     ========================= */
     if (status === 401) {
       removeToken();
-
-      // limpia headers globales
       delete api.defaults.headers.common.Authorization;
-
-      // evento global para logout UI
       window.dispatchEvent(new Event("auth:logout"));
     }
 
-    return Promise.reject(error);
+    // Normalizar el error para el frontend usando el response estándar del backend
+    const normalizedError = {
+      message: backendData?.message || "Ocurrió un error inesperado",
+      success: false,
+      data: backendData?.data || null,
+      status: status || 500,
+    };
+
+    return Promise.reject(normalizedError);
   }
 );
 

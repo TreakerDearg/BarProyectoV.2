@@ -2,189 +2,580 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===============================
-   DESIGN SYSTEM OBSIDIAN BAR
-================================= */
+/* ===============================================================
+   BARTENDER SYSTEM — DESIGN SYSTEM v2.0
+   Paleta: Rojo · Dorado · Naranja · Verde · Obsidian
+   Autor: Bartender System Team
+=============================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
 :root {
   color-scheme: dark;
 
-  /* ===============================
-     BASE
-  ================================= */
-  --bg: #0B0F14;
-  --surface: #0E131B;
-  --surface-2: #111827;
-  --surface-3: #1A1F2E;
+  /* ===============================================================
+     BACKGROUNDS — Deep Obsidian Bar
+  =============================================================== */
+  --bg:           #08090C;        /* fondo raíz — negro bar */
+  --bg-deep:      #050608;        /* abajo del abajo */
+  --surface:      #0D0F14;        /* carta / panel base */
+  --surface-2:    #12151C;        /* elevación 1 */
+  --surface-3:    #171B24;        /* elevación 2 */
+  --surface-4:    #1E232E;        /* elevación 3 — modales */
+  --surface-glow: rgba(13,15,20,0.92);
 
-  /* ===============================
+  /* ===============================================================
      BORDERS
-  ================================= */
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.1);
+  =============================================================== */
+  --border:        rgba(255, 255, 255, 0.055);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --border-gold:   rgba(212, 163, 64, 0.25);
+  --border-red:    rgba(200, 50, 40, 0.25);
+  --border-green:  rgba(52, 185, 100, 0.22);
 
-  /* ===============================
+  /* ===============================================================
      TEXT
-  ================================= */
-  --text: #F9FAFB;
-  --text-dim: rgba(249, 250, 251, 0.65);
+  =============================================================== */
+  --text:         #F5F0E8;        /* marfil cálido */
+  --text-dim:     rgba(245, 240, 232, 0.60);
+  --text-muted:   rgba(245, 240, 232, 0.35);
+  --text-gold:    #D4A340;        /* dorado texto activo */
+  --text-red:     #E05444;
+  --text-green:   #34B964;
 
-  /* ===============================
-     COLORS CORE SYSTEM
-  ================================= */
+  /* ===============================================================
+     ─── PRIMARY: DORADO ───
+     Acción principal, botones CTA, hover activo
+  =============================================================== */
+  --gold:           #D4A340;      /* dorado base */
+  --gold-light:     #E8BC5A;      /* hover / shine */
+  --gold-dark:      #A87C28;      /* pressed / profundo */
+  --gold-soft:      rgba(212, 163, 64, 0.12);
+  --gold-border:    rgba(212, 163, 64, 0.30);
+  --gold-glow:      0 0 24px rgba(212, 163, 64, 0.25);
 
-  /* Primary (UI / actions principales) */
-  --primary: #A78BFA;
-  --primary-soft: rgba(167, 139, 250, 0.15);
-  --primary-border: rgba(167, 139, 250, 0.35);
+  /* ===============================================================
+     ─── SECONDARY: ROJO BAR ───
+     Danger, cancelar, errores, también acento de marca
+  =============================================================== */
+  --red:            #C83228;      /* rojo bar base */
+  --red-light:      #E05444;      /* hover / alerta */
+  --red-dark:       #981E16;      /* pressed */
+  --red-soft:       rgba(200, 50, 40, 0.12);
+  --red-border:     rgba(200, 50, 40, 0.30);
+  --red-glow:       0 0 24px rgba(200, 50, 40, 0.22);
 
-  /* Secondary (UI neutral / navegación) */
-  --secondary: #71717A;
+  /* ===============================================================
+     ─── ACCENT: NARANJA CALIENTE ───
+     Warning, cocina, preparando, states de calor
+  =============================================================== */
+  --orange:         #E07828;      /* naranja vivo */
+  --orange-light:   #F09040;      /* hover */
+  --orange-dark:    #B05A18;      /* sombra */
+  --orange-soft:    rgba(224, 120, 40, 0.12);
+  --orange-border:  rgba(224, 120, 40, 0.28);
+  --orange-glow:    0 0 24px rgba(224, 120, 40, 0.20);
 
-  /* Success (estado ok / listo / servido) */
-  --success: #34D399;
-  --success-soft: rgba(52, 211, 153, 0.15);
+  /* ===============================================================
+     ─── SUCCESS: VERDE BAR ───
+     Completado, disponible, servido, activo
+  =============================================================== */
+  --green:          #34B964;      /* verde fresco */
+  --green-light:    #4AD07C;      /* hover */
+  --green-dark:     #228A46;      /* pressed */
+  --green-soft:     rgba(52, 185, 100, 0.12);
+  --green-border:   rgba(52, 185, 100, 0.28);
+  --green-glow:     0 0 24px rgba(52, 185, 100, 0.18);
 
-  /* Neutral deep (estructuras) */
-  --neutral: #3F3F46;
+  /* ===============================================================
+     ─── NEUTRAL ───
+     Texto secundario, íconos inactivos
+  =============================================================== */
+  --neutral:        #3D4150;
+  --neutral-light:  #565D70;
+  --neutral-dark:   #252830;
 
-  /* Warning (cocina / atención / calor bar) */
-  --warning: #FB923C;
-  --warning-soft: rgba(251, 146, 60, 0.15);
+  /* ===============================================================
+     SEMANTIC ALIASES (mapeo conceptual)
+  =============================================================== */
+  --primary:        var(--gold);
+  --primary-light:  var(--gold-light);
+  --primary-dark:   var(--gold-dark);
+  --primary-soft:   var(--gold-soft);
+  --primary-border: var(--gold-border);
+  --primary-glow:   var(--gold-glow);
 
-  /* Danger (errores / cancelaciones) */
-  --danger: #F87171;
-  --danger-soft: rgba(248, 113, 113, 0.15);
+  --danger:         var(--red);
+  --danger-light:   var(--red-light);
+  --danger-soft:    var(--red-soft);
+  --danger-border:  var(--red-border);
+  --danger-glow:    var(--red-glow);
 
-  /* ===============================
+  --warning:        var(--orange);
+  --warning-light:  var(--orange-light);
+  --warning-soft:   var(--orange-soft);
+  --warning-border: var(--orange-border);
+  --warning-glow:   var(--orange-glow);
+
+  --success:        var(--green);
+  --success-light:  var(--green-light);
+  --success-soft:   var(--green-soft);
+  --success-border: var(--green-border);
+  --success-glow:   var(--green-glow);
+
+  /* ===============================================================
+     GRADIENTES TEMÁTICOS
+  =============================================================== */
+  --grad-gold:   linear-gradient(135deg, #D4A340 0%, #E8BC5A 50%, #A87C28 100%);
+  --grad-red:    linear-gradient(135deg, #981E16 0%, #C83228 50%, #E05444 100%);
+  --grad-orange: linear-gradient(135deg, #B05A18 0%, #E07828 50%, #F09040 100%);
+  --grad-green:  linear-gradient(135deg, #228A46 0%, #34B964 50%, #4AD07C 100%);
+  --grad-brand:  linear-gradient(135deg, #C83228 0%, #D4A340 60%, #E07828 100%);
+  --grad-dark:   linear-gradient(180deg, #0D0F14 0%, #08090C 100%);
+
+  /* ===============================================================
      SHADOWS
-  ================================= */
-  --shadow-sm: 0 5px 20px rgba(0, 0, 0, 0.3);
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
-  --shadow-glow: 0 0 30px rgba(167, 139, 250, 0.15);
+  =============================================================== */
+  --shadow-xs:   0 2px 8px rgba(0,0,0,0.35);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.45);
+  --shadow:      0 8px 32px rgba(0,0,0,0.60);
+  --shadow-lg:   0 16px 56px rgba(0,0,0,0.75);
+  --shadow-gold: 0 4px 24px rgba(212, 163, 64, 0.20);
+  --shadow-red:  0 4px 24px rgba(200, 50, 40, 0.20);
+
+  /* ===============================================================
+     RADII
+  =============================================================== */
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
+  --radius-full: 9999px;
+
+  /* ===============================================================
+     TRANSITIONS
+  =============================================================== */
+  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+  --duration:  220ms;
+  --duration-fast: 140ms;
+  --duration-slow: 380ms;
 }
 
-/* ===============================
+/* ===============================================================
    RESET GLOBAL
-================================= */
-* {
+=============================================================== */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* ===============================
-   DOCUMENTO BASE
-================================= */
-html,
-body,
-#root {
+/* ===============================================================
+   BASE DOCUMENT
+=============================================================== */
+html, body, #root {
   height: 100%;
   background-color: var(--bg);
   color: var(--text);
 }
 
-/* ===============================
-   BODY BACKGROUND PREMIUM
-================================= */
 body {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
+  font-family: "Outfit", "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+  /* Fondo con aura sutil de marca */
   background:
-    radial-gradient(circle at top, rgba(167, 139, 250, 0.10), transparent 40%),
-    radial-gradient(circle at bottom, rgba(52, 211, 153, 0.05), transparent 50%),
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(200, 50, 40, 0.07), transparent),
+    radial-gradient(ellipse 60% 30% at 0% 100%, rgba(212, 163, 64, 0.05), transparent),
+    radial-gradient(ellipse 50% 25% at 100% 80%, rgba(52, 185, 100, 0.04), transparent),
     var(--bg);
 }
 
-/* ===============================
-   SCROLLBAR OBSIDIAN BAR
-================================= */
-::-webkit-scrollbar {
-  width: 10px;
-}
+/* ===============================================================
+   SCROLLBAR — Bar Style
+=============================================================== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
 
 ::-webkit-scrollbar-track {
-  background: rgba(14, 19, 27, 0.8);
+  background: rgba(8, 9, 12, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(
     180deg,
-    rgba(167, 139, 250, 0.7),
-    rgba(52, 211, 153, 0.35)
+    rgba(212, 163, 64, 0.55),
+    rgba(200, 50, 40, 0.30)
   );
-
-  border-radius: 10px;
-  border: 2px solid rgba(11, 15, 20, 0.8);
-  transition: all 0.3s ease;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(8, 9, 12, 0.7);
+  transition: background var(--duration) var(--ease);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     180deg,
-    rgba(167, 139, 250, 1),
-    rgba(251, 146, 60, 0.4)
+    rgba(212, 163, 64, 0.85),
+    rgba(224, 120, 40, 0.55)
   );
 }
 
-/* ===============================
-   SELECCIÓN DE TEXTO
-================================= */
+/* ===============================================================
+   SELECTION
+=============================================================== */
 ::selection {
-  background: rgba(167, 139, 250, 0.35);
-  color: white;
+  background: rgba(212, 163, 64, 0.30);
+  color: #F5F0E8;
 }
 
-/* ===============================
-   FOCUS GLOBAL
-================================= */
+/* ===============================================================
+   FOCUS
+=============================================================== */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--gold);
   outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
-/* ===============================
-   INPUTS / BUTTON RESET
-================================= */
-input,
-button,
-textarea {
-  outline: none;
-}
+/* ===============================================================
+   INPUT / BUTTON / TEXTAREA RESET
+=============================================================== */
+input, button, textarea, select { outline: none; }
 
-/* ===============================
-   GLASS SYSTEM COMPONENT
-================================= */
+/* ===============================================================
+   ─── GLASS SYSTEM ───
+   .glass           → base oscuro con blur
+   .glass-gold      → variante dorada
+   .glass-red       → variante roja
+=============================================================== */
 .glass {
-  background: rgba(17, 24, 39, 0.45);
-  backdrop-filter: blur(14px);
-
+  background: rgba(13, 15, 20, 0.60);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
 
-/* ===============================
-   UI STATES (IMPORTANTE PARA BAR SYSTEM)
-================================= */
-.state-success {
-  color: var(--success);
-  background: var(--success-soft);
+.glass-gold {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--gold-border);
+  box-shadow: var(--shadow), var(--gold-glow);
 }
 
-.state-warning {
-  color: var(--warning);
-  background: var(--warning-soft);
+.glass-red {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--red-border);
+  box-shadow: var(--shadow), var(--red-glow);
 }
 
-.state-danger {
-  color: var(--danger);
-  background: var(--danger-soft);
+/* ===============================================================
+   ─── CARD SYSTEM ───
+=============================================================== */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              transform var(--duration) var(--ease);
 }
 
-.state-primary {
-  color: var(--primary);
-  background: var(--primary-soft);
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow), var(--gold-glow);
+  transform: translateY(-2px);
 }
+
+.card-flat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ===============================================================
+   ─── BADGE SYSTEM ───
+=============================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.badge-gold    { color: var(--gold);    background: var(--gold-soft);    border-color: var(--gold-border);    }
+.badge-red     { color: var(--red-light);     background: var(--red-soft);     border-color: var(--red-border);     }
+.badge-orange  { color: var(--orange-light);  background: var(--orange-soft);  border-color: var(--orange-border);  }
+.badge-green   { color: var(--green-light);   background: var(--green-soft);   border-color: var(--green-border);   }
+.badge-neutral { color: var(--neutral-light); background: rgba(61, 65, 80, 0.25); border-color: rgba(61,65,80,0.4); }
+
+/* ===============================================================
+   ─── STATE SYSTEM (Order / Table statuses) ───
+=============================================================== */
+
+/* pending → naranja */
+.state-pending   { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* preparing → naranja vivo */
+.state-preparing { color: var(--orange-light); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* ready → dorado */
+.state-ready     { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+
+/* served / completed → verde */
+.state-served    { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+.state-completed { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+
+/* cancelled → rojo */
+.state-cancelled { color: var(--red-light);  background: var(--red-soft);  border-color: var(--red-border); }
+
+/* available → verde */
+.state-available { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+
+/* occupied → naranja */
+.state-occupied  { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* reserved → dorado */
+.state-reserved  { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+
+/* maintenance → rojo dim */
+.state-maintenance { color: var(--red-light); background: var(--red-soft); border-color: var(--red-border); }
+
+/* ===============================================================
+   ─── BUTTONS ───
+=============================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--duration) var(--ease);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+/* Gold — acción principal */
+.btn-gold {
+  background: var(--grad-gold);
+  color: #0D0F14;
+  border-color: var(--gold-dark);
+  box-shadow: var(--shadow-gold);
+}
+.btn-gold:hover {
+  filter: brightness(1.10);
+  box-shadow: var(--shadow-gold), var(--gold-glow);
+}
+
+/* Red — acción peligrosa */
+.btn-red {
+  background: var(--grad-red);
+  color: #fff;
+  border-color: var(--red-dark);
+  box-shadow: var(--shadow-red);
+}
+.btn-red:hover {
+  filter: brightness(1.12);
+  box-shadow: var(--shadow-red), var(--red-glow);
+}
+
+/* Orange — warning action */
+.btn-orange {
+  background: var(--grad-orange);
+  color: #0D0F14;
+  border-color: var(--orange-dark);
+}
+.btn-orange:hover { filter: brightness(1.12); }
+
+/* Green — confirmar */
+.btn-green {
+  background: var(--grad-green);
+  color: #0D0F14;
+  border-color: var(--green-dark);
+}
+.btn-green:hover { filter: brightness(1.10); }
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border-color: var(--gold-border);
+}
+
+/* ===============================================================
+   ─── INPUT SYSTEM ───
+=============================================================== */
+.input {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease);
+}
+
+.input::placeholder { color: var(--text-muted); }
+
+.input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 163, 64, 0.15);
+  outline: none;
+}
+
+.input:focus:invalid {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(200, 50, 40, 0.15);
+}
+
+/* ===============================================================
+   ─── TABLE SYSTEM ───
+=============================================================== */
+.table-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table-base {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table-base thead tr {
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--border-gold);
+}
+
+.table-base thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-gold);
+}
+
+.table-base tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.table-base tbody tr:last-child { border-bottom: none; }
+
+.table-base tbody tr:hover { background: rgba(212, 163, 64, 0.04); }
+
+.table-base tbody td {
+  padding: 12px 16px;
+  color: var(--text-dim);
+}
+
+/* ===============================================================
+   ─── SPINNER ───
+=============================================================== */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(212, 163, 64, 0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===============================================================
+   ─── DIVIDER ───
+=============================================================== */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-border),
+    var(--red-border),
+    transparent
+  );
+}
+
+/* ===============================================================
+   ─── GLOW EFFECTS ───
+=============================================================== */
+.glow-gold   { box-shadow: var(--gold-glow);   }
+.glow-red    { box-shadow: var(--red-glow);    }
+.glow-orange { box-shadow: var(--orange-glow); }
+.glow-green  { box-shadow: var(--green-glow);  }
+
+/* ===============================================================
+   ─── GRADIENT TEXT ───
+=============================================================== */
+.text-grad-gold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-grad-brand {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===============================================================
+   ─── ANIMATIONS ───
+=============================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 163, 64, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(212, 163, 64, 0.15); }
+}
+
+.animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
+.animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
+.animate-pulse-gold { animation: pulse-gold 2s ease infinite; }

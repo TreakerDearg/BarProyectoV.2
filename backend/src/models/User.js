@@ -1,12 +1,20 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-/* =========================================================
-    USER SCHEMA 
-========================================================= */
+const ROLES = [
+  "admin",
+  "bartender",
+  "waiter",
+  "cashier",
+  "kitchen",
+  "client",
+];
+
+const SHIFTS = ["morning", "afternoon", "night", "event"];
+
 const userSchema = new mongoose.Schema(
   {
-    /* ================= BASIC INFO ================= */
+    /* ================= BASIC ================= */
     name: {
       type: String,
       required: true,
@@ -32,55 +40,51 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    /* ================= ROLE SYSTEM (RBAC CORE) ================= */
+    /* ================= ROLE ================= */
     role: {
       type: String,
-      enum: ["admin", "bartender", "waiter", "cashier", "kitchen", "client"],
+      enum: ROLES,
       default: "client",
       index: true,
     },
 
-    /* ================= SHIFT SYSTEM (TURNOS) ================= */
+    /* ================= EMPLOYEE ================= */
     shift: {
       type: String,
-      enum: ["morning", "afternoon", "night", "event"],
+      enum: SHIFTS,
       default: null,
-      index: true,
     },
 
-    /* ================= PERMISSIONS (FINE GRAIN CONTROL) ================= */
+    isEmployee: {
+      type: Boolean,
+      default: false,
+    },
+
+    /* ================= PERMISSIONS (FIXED) ================= */
     permissions: {
-      type: Object,
+      type: mongoose.Schema.Types.Mixed,
       default: {},
-      // Ejemplo:
-      // {
-      //   "orders.create": true,
-      //   "orders.delete": false,
-      //   "inventory.edit": true
-      // }
     },
 
     /* ================= STATUS ================= */
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
     },
 
     /* ================= SECURITY ================= */
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
+    lastLogin: Date,
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: Date,
 
-    loginAttempts: {
-      type: Number,
-      default: 0,
-    },
-
-    lockUntil: {
-      type: Date,
-      default: null,
+    refreshToken: {
+      type: String,
+      select: false,
     },
   },
   {
@@ -89,15 +93,11 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-/* =========================================================
-    INDEXES (OPTIMIZACIÓN)
-========================================================= */
+/* ================= INDEXES ================= */
 userSchema.index({ role: 1, isActive: 1 });
-userSchema.index({ shift: 1, isActive: 1 });
+userSchema.index({ isEmployee: 1, isActive: 1 });
 
-/* =========================================================
-    PASSWORD HASHING
-========================================================= */
+/* ================= PASSWORD ================= */
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -105,24 +105,18 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-/* =========================================================
-    METHODS
-========================================================= */
-
-/* COMPARE PASSWORD */
-userSchema.methods.comparePassword = async function (password) {
+/* ================= METHODS ================= */
+userSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-/* CHECK LOCK */
 userSchema.methods.isLocked = function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 };
 
-/* INCREMENT LOGIN ATTEMPTS */
 userSchema.methods.incrementLoginAttempts = async function () {
-  const MAX_ATTEMPTS = 5;
-  const LOCK_TIME = 2 * 60 * 60 * 1000; // 2h
+  const MAX = 5;
+  const LOCK_TIME = 2 * 60 * 60 * 1000;
 
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
@@ -133,16 +127,13 @@ userSchema.methods.incrementLoginAttempts = async function () {
 
   const updates = { $inc: { loginAttempts: 1 } };
 
-  if (this.loginAttempts + 1 >= MAX_ATTEMPTS) {
-    updates.$set = {
-      lockUntil: Date.now() + LOCK_TIME,
-    };
+  if (this.loginAttempts + 1 >= MAX) {
+    updates.$set = { lockUntil: Date.now() + LOCK_TIME };
   }
 
   return this.updateOne(updates);
 };
 
-/* RESET LOGIN ATTEMPTS */
 userSchema.methods.resetLoginAttempts = async function () {
   return this.updateOne({
     loginAttempts: 0,
@@ -151,18 +142,13 @@ userSchema.methods.resetLoginAttempts = async function () {
   });
 };
 
-/* =========================================================
-    CLEAN JSON OUTPUT
-========================================================= */
+/* ================= CLEAN OUTPUT ================= */
 userSchema.set("toJSON", {
   transform: (_, ret) => {
     delete ret.password;
-    delete ret.__v;
+    delete ret.refreshToken;
     return ret;
   },
 });
 
-/* =========================================================
-    EXPORT
-========================================================= */
 export default mongoose.model("User", userSchema);

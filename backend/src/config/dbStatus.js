@@ -1,12 +1,3 @@
-import mongoose from "mongoose";
+import { getDbStatus } from "../config/db.js";
 
-export const getDbStatus = () => {
-  const state = mongoose.connection.readyState;
-
-  return {
-    0: "disconnected",
-    1: "connected",
-    2: "connecting",
-    3: "disconnecting",
-  }[state] || "unknown";
-};
+export { getDbStatus };
