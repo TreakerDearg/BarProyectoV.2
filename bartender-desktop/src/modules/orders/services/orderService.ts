@@ -34,6 +34,7 @@ export const getOrders = async (params?: {
   status?: Order["status"];
   table?: string;
   sessionId?: string;
+  sessionStatus?: "open" | "closed";
 }): Promise<Order[]> => {
   try {
     const { data } = await api.get("/orders", { params });

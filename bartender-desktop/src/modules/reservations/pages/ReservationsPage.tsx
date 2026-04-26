@@ -1,24 +1,20 @@
-import { useEffect, useState } from "react";
-import {
-  Play,
-  Loader2,
-  RefreshCcw,
-} from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { RefreshCcw, Loader2, Plus } from "lucide-react";
 
 import ReservationForm from "../components/ReservationForm";
+import ReservationCard from "../components/ReservationCard";
 
 import {
   getReservations,
   createReservation,
   updateReservationStatus,
-  getAvailableTables,
 } from "../services/reservationService";
 
 import type { Reservation } from "../types/reservation";
 import socket from "../../../services/socket";
 
 /* =========================
-   NORMALIZER SAFE
+   NORMALIZER
 ========================= */
 const normalizeReservations = (data: any): Reservation[] => {
   if (Array.isArray(data)) return data;
@@ -27,22 +23,21 @@ const normalizeReservations = (data: any): Reservation[] => {
   return [];
 };
 
+/* =========================
+   PAGE
+========================= */
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [tables, setTables] = useState<any[]>([]);
-
   const [selectedReservation, setSelectedReservation] =
     useState<Reservation | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [, setLoadingTables] = useState(false);
-
   const [error, setError] = useState<string | null>(null);
 
   /* =========================
-     FETCH RESERVATIONS
+     FETCH
   ========================= */
   const fetchReservations = async () => {
     try {
@@ -52,29 +47,10 @@ export default function ReservationsPage() {
       const data = await getReservations();
       setReservations(normalizeReservations(data));
     } catch (err: any) {
-      setError(err.message || "Error Loading Reservations");
+      setError(err.message || "Error loading reservations");
       setReservations([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  /* =========================
-     FETCH TABLES
-  ========================= */
-  const fetchTables = async (params?: {
-    startTime?: string;
-    endTime?: string;
-    guests?: number;
-  }) => {
-    try {
-      setLoadingTables(true);
-      const data = await getAvailableTables(params || {});
-      setTables(Array.isArray(data) ? data : []);
-    } catch {
-      setTables([]);
-    } finally {
-      setLoadingTables(false);
     }
   };
 
@@ -86,7 +62,7 @@ export default function ReservationsPage() {
   }, []);
 
   /* =========================
-     SOCKETS
+     SOCKETS (REALTIME)
   ========================= */
   useEffect(() => {
     const handleList = (data: any) => {
@@ -123,83 +99,97 @@ export default function ReservationsPage() {
   }, []);
 
   /* =========================
-     SAVE
+     ACTIONS
   ========================= */
   const handleSave = async (reservation: any) => {
     try {
       await createReservation(reservation);
       setIsModalOpen(false);
       setSelectedReservation(null);
-      fetchReservations();
     } catch (err: any) {
       setError(err.message || "Error creating reservation");
     }
   };
 
-  /* =========================
-     STATUS UPDATE
-  ========================= */
-  const handleStatus = async (
-    id: string,
-    status: Reservation["status"]
-  ) => {
+  const handleSeat = async (id: string) => {
     try {
-      await updateReservationStatus(id, status);
-      fetchReservations();
+      await updateReservationStatus(id, "seated");
     } catch {
-      setError("Error updating status");
+      setError("Error seating reservation");
     }
   };
 
+  /* =========================
+     SORT + GROUP
+  ========================= */
+  const sortedReservations = useMemo(() => {
+    return [...reservations].sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() -
+        new Date(b.startTime).getTime()
+    );
+  }, [reservations]);
+
+  const grouped = useMemo(() => {
+    return {
+      arrivals: sortedReservations.filter(
+        (r) =>
+          r.status === "pending" ||
+          r.status === "confirmed"
+      ),
+      seated: sortedReservations.filter(
+        (r) => r.status === "seated"
+      ),
+      done: sortedReservations.filter(
+        (r) =>
+          r.status === "completed" ||
+          r.status === "cancelled"
+      ),
+    };
+  }, [sortedReservations]);
 
   /* =========================
-     SORT SAFE
+     STATS
   ========================= */
-  const sortedReservations = [...reservations].sort(
-    (a, b) =>
-      new Date(a.startTime).getTime() -
-      new Date(b.startTime).getTime()
-  );
-
-  /* =========================
-     STATS SAFE
-  ========================= */
-  const totalBookings = sortedReservations.length;
-
-  const seatedBookings = sortedReservations.filter(
-    (r) => r.status === "seated"
-  ).length;
-
-  const pendingBookings = sortedReservations.filter(
-    (r) => r.status === "pending" || r.status === "confirmed"
-  ).length;
-
-  const occupancyRatio =
-    totalBookings > 0 ? seatedBookings / totalBookings : 0;
+  const total = sortedReservations.length;
+  const seated = grouped.seated.length;
+  const pending = grouped.arrivals.length;
 
   /* =========================
      UI
   ========================= */
   return (
-    <div className="flex flex-col h-full bg-void text-white font-mono space-y-6">
+    <div className="flex flex-col h-full bg-void text-white space-y-6">
 
       {/* HEADER */}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter mb-1">
-            RESERVATIONS
+          <h1 className="text-4xl font-black">
+            RESERVATION BOARD
           </h1>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest">
-            CENTRAL COMMAND / NIGHT PHASE 04
+          <p className="text-xs text-gray-500">
+            Real-time host control panel
           </p>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <button
             onClick={fetchReservations}
             className="p-2 border border-obsidian rounded-lg"
           >
             <RefreshCcw size={16} />
+          </button>
+
+          {/* 🔥 CREATE */}
+          <button
+            onClick={() => {
+              setSelectedReservation(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-black font-bold rounded-lg text-xs tracking-widest"
+          >
+            <Plus size={14} />
+            NEW BOOKING
           </button>
         </div>
       </div>
@@ -212,89 +202,96 @@ export default function ReservationsPage() {
       )}
 
       {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-4">
+        <Stat label="TOTAL" value={total} />
+        <Stat label="SEATED" value={seated} />
+        <Stat label="ARRIVALS" value={pending} />
+      </div>
 
-        {/* OCCUPATION */}
-        <div className="p-6 border border-[#8B5CF6]/40 rounded-xl">
-          <p className="text-[10px] text-gray-400 uppercase mb-2">
-            LIVE OCCUPATION
-          </p>
+      {/* BOARD */}
+      {loading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
 
-          <div className="text-5xl font-black">
-            {seatedBookings}/{totalBookings}
-          </div>
-
-          <div className="flex gap-1 mt-3 h-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className={`flex-1 rounded-sm ${i < occupancyRatio * 6
-                    ? "bg-[#8B5CF6]"
-                    : "bg-obsidian"
-                  }`}
+          {/* ARRIVALS */}
+          <Column title="ARRIVALS">
+            {grouped.arrivals.map((r) => (
+              <ReservationCard
+                key={r._id}
+                r={r}
+                onSeat={handleSeat}
+                onClick={() => {
+                  setSelectedReservation(r);
+                  setIsModalOpen(true);
+                }}
               />
             ))}
-          </div>
+          </Column>
+
+          {/* SEATED */}
+          <Column title="SEATED">
+            {grouped.seated.map((r) => (
+              <ReservationCard
+                key={r._id}
+                r={r}
+                onClick={() => {
+                  setSelectedReservation(r);
+                  setIsModalOpen(true);
+                }}
+              />
+            ))}
+          </Column>
+
+          {/* FINISHED */}
+          <Column title="FINISHED">
+            {grouped.done.map((r) => (
+              <ReservationCard key={r._id} r={r} />
+            ))}
+          </Column>
+
         </div>
-
-        {/* TOTAL */}
-        <div className="p-6 border border-obsidian rounded-xl">
-          <p className="text-[10px] text-gray-400 uppercase mb-2">
-            TOTAL BOOKINGS
-          </p>
-          <div className="text-5xl font-black">{totalBookings}</div>
-        </div>
-
-        {/* PENDING */}
-        <div className="p-6 border border-obsidian rounded-xl">
-          <p className="text-[10px] text-gray-400 uppercase mb-2">
-            PENDING ARRIVALS
-          </p>
-          <div className="text-5xl font-black">{pendingBookings}</div>
-        </div>
-      </div>
-
-      {/* LIST */}
-      <div className="flex-1 overflow-y-auto space-y-4">
-        {loading ? (
-          <Loader2 className="animate-spin" />
-        ) : sortedReservations.length === 0 ? (
-          <p className="text-gray-500 text-xs">NO RESERVATIONS</p>
-        ) : (
-          sortedReservations.map((r) => (
-            <div key={r._id} className="border p-4 rounded">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-bold">{r.customerName}</p>
-                  <p className="text-xs text-gray-400">
-                    {r.guests} PAX
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleStatus(r._id!, "seated")}
-                >
-                  <Play size={14} />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      )}
 
       {/* MODAL */}
       {isModalOpen && (
         <ReservationForm
           reservation={selectedReservation}
-          tables={tables}
-          onFetchTables={fetchTables}
-          onSave={handleSave}
+          onSave={async (data) => {
+            await handleSave(data);
+            fetchReservations(); // 🔥 refresh
+          }}
           onClose={() => {
             setIsModalOpen(false);
             setSelectedReservation(null);
           }}
         />
       )}
+    </div>
+  );
+}
+
+/* =========================
+   UI HELPERS
+========================= */
+function Column({ title, children }: any) {
+  return (
+    <div className="space-y-3">
+      <h2 className="text-xs text-gray-400 tracking-widest">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
+function Stat({ label, value }: any) {
+  return (
+    <div className="p-4 border border-obsidian rounded-lg">
+      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
     </div>
   );
 }

@@ -19,6 +19,10 @@ import TablesPage from "../modules/tables/pages/TablesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
 import OrdersPage from "../modules/orders/pages/OrdersPage";
+import DiscountPage from "../modules/discounts/pages/DiscountPage";
+import DynamicPricingPage from "../modules/discounts/pages/DynamicPricingPage";
+import PromotionsPage from "../modules/discounts/pages/PromotionsPage";
+import DiscountEventsPage from "../modules/discounts/pages/DiscountEventsPage";
 
 /* ==============================
    ADMIN MODULE ROUTES
@@ -69,6 +73,10 @@ export default function AppRouter() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/menus" element={<MenusPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/discounts" element={<DiscountPage />} />
+            <Route path="/discounts/dynamic-pricing" element={<DynamicPricingPage />} />
+            <Route path="/discounts/promotions" element={<PromotionsPage />} />
+            <Route path="/discounts/events" element={<DiscountEventsPage />} />
             <Route path="/reservations" element={<ReservationsPage />} />
             <Route path="/tables" element={<TablesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />

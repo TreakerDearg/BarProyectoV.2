@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import Recipe  from "../models/Recipe.js";
+import Order   from "../models/Order.js";
 import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict, serverError,
@@ -107,9 +108,25 @@ export const deleteProduct = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
     if (!product) return notFound(res, "Producto no encontrado");
 
+    const relatedOrders = await Order.countDocuments({
+      "items.product": product._id,
+    });
+
+    if (relatedOrders > 0) {
+      product.available = false;
+      product.isActiveForPOS = false;
+      await product.save();
+
+      logger.info(`[Product] Desactivado por referencias históricas: ${product.name}`);
+      return ok(
+        res,
+        product,
+        "Producto desactivado (tiene órdenes históricas relacionadas)"
+      );
+    }
+
     await product.deleteOne();
     logger.info(`[Product] Eliminado: ${product.name}`);
-
     return ok(res, null, "Producto eliminado correctamente");
   } catch (error) { next(error); }
 };

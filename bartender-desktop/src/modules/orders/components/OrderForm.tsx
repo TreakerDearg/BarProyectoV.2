@@ -1,31 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Minus, Loader2 } from "lucide-react";
+import { Search, Plus, Minus, Loader2, X } from "lucide-react";
 
 import { getProducts } from "../../../modules/products/services/productService";
 import { createOrder } from "../services/orderService";
 import type { Product } from "../../../types/product";
-
-/* =========================
-   TYPES
-========================= */
-type LocalItem = {
-  productId: any;
-  product: string; 
-  name: string;
-  quantity: number;
-  price: number;
-  type: "drink" | "food";
-};
-
-interface Props {
-  tableId: string;
-  tableNumber: number;
-  sessionId: string;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
 
 export default function OrderForm({
   tableId,
@@ -33,52 +13,37 @@ export default function OrderForm({
   sessionId,
   onClose,
   onSuccess,
-}: Props) {
+}: any) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [items, setItems] = useState<LocalItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<"all" | "drink" | "food">("all");
+  const [loading, setLoading] = useState(false);
 
-  /* =========================
-     LOAD PRODUCTS
-  ========================= */
+  /* ========================= */
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await getProducts();
-        setProducts(data || []);
-      } catch (err) {
-        console.error("Error loading products", err);
-      }
-    };
-
-    load();
+    getProducts().then(setProducts);
   }, []);
 
-  /* =========================
-     FILTER
-  ========================= */
+  /* ========================= */
   const filtered = useMemo(() => {
-    return products.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [products, search]);
+    return products
+      .filter((p) =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+      )
+      .filter((p) =>
+        category === "all" ? true : p.type === category
+      );
+  }, [products, search, category]);
 
-  const drinks = filtered.filter((p) => p.type === "drink");
-  const food = filtered.filter((p) => p.type === "food");
-
-  /* =========================
-     ADD PRODUCT (SNAPSHOT SAFE)
-  ========================= */
-  const addProduct = (product: Product) => {
-    if (!product._id) return;
-
+  /* ========================= */
+  const addProduct = (p: Product) => {
     setItems((prev) => {
-      const exists = prev.find((i) => i.product === product._id);
+      const exists = prev.find((i) => i.product === p._id);
 
       if (exists) {
         return prev.map((i) =>
-          i.product === product._id
+          i.product === p._id
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
@@ -87,174 +52,126 @@ export default function OrderForm({
       return [
         ...prev,
         {
-          product: product._id,
-          name: product.name,
+          product: p._id,
+          name: p.name,
           quantity: 1,
-          price: product.price,
-          type: product.type as "drink" | "food",
+          price: p.price,
         },
       ];
     });
   };
 
-  /* =========================
-     UPDATE QTY
-  ========================= */
-  const updateQty = (productId: string, qty: number) => {
+  const updateQty = (id: string, qty: number) => {
     setItems((prev) =>
       qty <= 0
-        ? prev.filter((i) => i.product !== productId)
+        ? prev.filter((i) => i.product !== id)
         : prev.map((i) =>
-            i.product === productId ? { ...i, quantity: qty } : i
+            i.product === id ? { ...i, quantity: qty } : i
           )
     );
   };
 
-  /* =========================
-     TOTAL
-  ========================= */
   const total = useMemo(
-    () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    () => items.reduce((s, i) => s + i.price * i.quantity, 0),
     [items]
   );
 
-  const canSubmit = items.length > 0 && !loading;
-
-  /* =========================
-     SUBMIT (BACKEND MATCHED)
-  ========================= */
-  const handleSubmit = async (e: React.FormEvent) => {
+  /* ========================= */
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!items.length) return;
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      console.log("🧾 CREATE ORDER PAYLOAD =>", {
-        table: tableId,
-        sessionId,
-        items,
-      });
+    await createOrder({
+      table: tableId,
+      sessionId,
+      items: items.map((i) => ({
+        product: i.product,
+        quantity: i.quantity,
+      })),
+    });
 
-await createOrder({
-  table: tableId,
-  sessionId,
-  items: items.map((i) => ({
-    product: i.productId, // 👈 FIX CLAVE
-    quantity: i.quantity,
-  })),
-});
-
-      setItems([]);
-      onSuccess?.();
-      onClose();
-    } catch (err: any) {
-      console.error("ORDER ERROR:", err);
-      alert(err.message || "Error creando pedido");
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
+    onSuccess?.();
+    onClose();
   };
 
-  /* =========================
-     UI
-  ========================= */
+  /* ========================= */
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
 
       <form
         onSubmit={handleSubmit}
-        className="w-[900px] h-[600px] bg-gray-950 border border-gray-800 rounded-2xl shadow-2xl flex overflow-hidden"
+        className="w-[1000px] h-[650px] bg-gray-950 border border-gray-800 rounded-2xl flex overflow-hidden"
       >
 
         {/* LEFT */}
-        <div className="w-2/3 p-4 flex flex-col gap-3 border-r border-gray-800">
+        <div className="w-2/3 p-4 flex flex-col gap-4">
 
+          {/* HEADER */}
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold text-white">
-              Mesa {tableNumber}
-            </h2>
-
-            <button type="button" onClick={onClose} className="text-gray-400">
-              ✕
+            <h2 className="text-xl font-bold">Mesa {tableNumber}</h2>
+            <button onClick={onClose}>
+              <X />
             </button>
           </div>
 
           {/* SEARCH */}
-          <div className="relative">
-            <Search size={16} className="absolute left-2 top-2.5 text-gray-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 bg-gray-800 rounded-lg border border-gray-700"
-              placeholder="Buscar producto..."
-            />
+          <input
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="bg-gray-800 p-2 rounded"
+          />
+
+          {/* TABS */}
+          <div className="flex gap-2">
+            {["all", "drink", "food"].map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c as any)}
+                className={`px-3 py-1 rounded ${
+                  category === c
+                    ? "bg-purple-500 text-black"
+                    : "bg-gray-800"
+                }`}
+              >
+                {c.toUpperCase()}
+              </button>
+            ))}
           </div>
 
-          {/* DRINKS */}
-          <div>
-            <h3 className="text-sm text-amber-400 mb-1">Bebidas</h3>
-            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-              {drinks.map((p) => (
-                <button
-                  key={p._id}
-                  type="button"
-                  onClick={() => addProduct(p)}
-                  className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg text-left"
-                >
-                  <div className="flex justify-between">
-                    <span>{p.name}</span>
-                    <span className="text-amber-400">${p.price}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* FOOD */}
-          <div>
-            <h3 className="text-sm text-green-400 mb-1">Comida</h3>
-            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-              {food.map((p) => (
-                <button
-                  key={p._id}
-                  type="button"
-                  onClick={() => addProduct(p)}
-                  className="bg-gray-800 hover:bg-gray-700 p-2 rounded-lg text-left"
-                >
-                  <div className="flex justify-between">
-                    <span>{p.name}</span>
-                    <span className="text-green-400">${p.price}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* GRID */}
+          <div className="grid grid-cols-3 gap-2 overflow-y-auto">
+            {filtered.map((p) => (
+              <button
+                key={p._id}
+                type="button"
+                onClick={() => addProduct(p)}
+                className="bg-gray-800 hover:bg-purple-600 p-3 rounded text-left transition"
+              >
+                <p className="font-bold text-sm">{p.name}</p>
+                <p className="text-xs text-gray-400">${p.price}</p>
+              </button>
+            ))}
           </div>
         </div>
 
         {/* RIGHT */}
-        <div className="w-1/3 p-4 flex flex-col justify-between">
+        <div className="w-1/3 p-4 flex flex-col justify-between border-l border-gray-800">
 
           <div className="space-y-2 overflow-y-auto flex-1">
-            {items.length === 0 && (
-              <p className="text-gray-500 text-sm">
-                No hay productos agregados
-              </p>
-            )}
-
             {items.map((i) => (
-              <div
-                key={i.product}
-                className="flex justify-between items-center bg-gray-900 p-2 rounded-lg"
-              >
-                <div>
-                  <p className="text-sm">{i.name}</p>
-                  <p className="text-xs text-gray-400">
-                    ${i.price} x {i.quantity}
-                  </p>
+              <div key={i.product} className="bg-gray-900 p-2 rounded">
+
+                <div className="flex justify-between">
+                  <span>{i.name}</span>
+                  <span>${i.price * i.quantity}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center mt-1">
                   <button type="button" onClick={() => updateQty(i.product, i.quantity - 1)}>
                     <Minus size={14} />
                   </button>
@@ -269,18 +186,17 @@ await createOrder({
             ))}
           </div>
 
-          <div className="space-y-3">
-            <div className="text-lg font-bold text-amber-400">
+          <div>
+            <p className="text-lg font-bold mb-2">
               Total: ${total.toFixed(2)}
-            </div>
+            </p>
 
             <button
-              type="submit"
-              disabled={!canSubmit}
-              className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-black rounded-lg font-semibold flex justify-center items-center gap-2"
+              disabled={!items.length || loading}
+              className="w-full bg-purple-500 py-2 rounded font-bold flex justify-center items-center gap-2"
             >
               {loading && <Loader2 className="animate-spin" size={16} />}
-              {loading ? "Procesando..." : "Crear Pedido"}
+              Crear Pedido
             </button>
           </div>
 

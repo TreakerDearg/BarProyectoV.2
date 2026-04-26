@@ -4,6 +4,13 @@ const HEX_COLOR_REGEX = /^#([0-9A-F]{3}){1,2}$/i;
 
 const rouletteDrinkSchema = new mongoose.Schema(
   {
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      default: null,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
@@ -89,6 +96,10 @@ rouletteDrinkSchema.index(
 
 // Para queries de ruleta
 rouletteDrinkSchema.index({ active: 1, deleted: 1, weight: 1 });
+rouletteDrinkSchema.index(
+  { product: 1 },
+  { unique: true, partialFilterExpression: { product: { $type: "objectId" } } }
+);
 
 /* ==============================
    MIDDLEWARES

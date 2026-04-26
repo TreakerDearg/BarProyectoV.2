@@ -1,5 +1,3 @@
-// types/discount.types.ts
-
 export type DiscountType = "PERCENT" | "FLAT";
 
 export type DiscountReason =
@@ -10,20 +8,32 @@ export type DiscountReason =
   | "OTHER";
 
 export interface OrderItem {
+  _id: string;
   product: string;
   name: string;
   price: number;
   quantity: number;
+  type?: "drink" | "food";
+  status?: "pending" | "preparing" | "ready" | "served" | "cancelled";
 }
 
 export interface Order {
   _id: string;
-  table: string;
-  customerName: string;
+  table: string | { _id?: string; number?: number | string };
   total: number;
+  subtotal?: number;
+  sessionStatus?: "open" | "closed";
+  status?: "pending" | "in-progress" | "completed" | "cancelled";
+  createdAt?: string;
   items: OrderItem[];
 }
 
 export interface SelectedItem extends OrderItem {
   selected: boolean;
+}
+
+export interface DiscountStatsData {
+  todayTotal: number;
+  averagePercent: number;
+  appliedCount: number;
 }

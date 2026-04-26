@@ -98,12 +98,11 @@ const orderSchema = new mongoose.Schema(
     /* =========================
        DISCOUNTS RELATION
     ========================= */
-    discounts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Discount",
-      },
-    ],
+    // Compat incremental: acepta formato canónico embebido y legacy (refs/ObjectId)
+    discounts: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
 
     /* =========================
        GLOBAL ORDER STATUS
@@ -182,6 +181,12 @@ const orderSchema = new mongoose.Schema(
       enum: ["low", "normal", "high"],
       default: "normal",
     },
+
+    closedAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -192,6 +197,26 @@ const orderSchema = new mongoose.Schema(
    AUTO CALCULATION 
 ========================================================= */
 orderSchema.pre("save", function () {
+  if (Array.isArray(this.discounts)) {
+    this.discounts = this.discounts.map((entry) => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+        return entry;
+      }
+      if (entry instanceof mongoose.Types.ObjectId) {
+        return entry;
+      }
+      return {
+        type: entry.type,
+        value: Number(entry.value || 0),
+        amount: Number(entry.amount || 0),
+        reason: entry.reason || "OTHER",
+        note: entry.note || "",
+        items: Array.isArray(entry.items) ? entry.items.map((id) => String(id)) : [],
+        appliedAt: entry.appliedAt || new Date(),
+      };
+    });
+  }
+
   this.subtotal = this.items.reduce((acc, item) => {
     const price = item.price || 0;
     const qty = item.quantity || 0;

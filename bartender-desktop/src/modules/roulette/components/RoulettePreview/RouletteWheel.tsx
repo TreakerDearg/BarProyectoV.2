@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RouletteDrink } from "../../types/roulette";
 import RouletteSlice from "./RouletteSlice";
@@ -6,7 +8,7 @@ import RoulettePointer from "./RoulettePointer";
 interface Props {
   drinks: RouletteDrink[];
   totalWeight: number;
-  result?: RouletteDrink; 
+  result?: RouletteDrink;
   spinning?: boolean;
 }
 
@@ -17,10 +19,11 @@ export default function RouletteWheel({
   spinning,
 }: Props) {
   const [rotation, setRotation] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
   const wheelRef = useRef<SVGSVGElement>(null);
 
   /* ==============================
-     ANGLES CALCULATION
+     CALCULAR SLICES
   ============================== */
   const slices = useMemo(() => {
     let cumulative = 0;
@@ -40,7 +43,7 @@ export default function RouletteWheel({
   }, [drinks, totalWeight]);
 
   /* ==============================
-     SPIN LOGIC
+     SPIN ENGINE PRO 🔥
   ============================== */
   useEffect(() => {
     if (!result || !spinning) return;
@@ -48,18 +51,42 @@ export default function RouletteWheel({
     const selected = slices.find((s) => s._id === result._id);
     if (!selected) return;
 
+    setIsSpinning(true);
 
+    /* 🎯 centro del slice */
     const targetAngle =
       selected.startAngle + selected.sliceAngle / 2;
 
+    /* 🎲 variación random */
+    const randomOffset = Math.random() * 10 - 5;
 
-    const finalRotation = 360 * 5 + (360 - targetAngle);
+    /* 🔥 vueltas + desaceleración */
+    const spins = 5 + Math.random() * 2;
 
-    setRotation(finalRotation);
+    const final =
+      360 * spins + (360 - targetAngle) + randomOffset;
+
+    setRotation(final);
+
+    /* ⏱️ fin animación */
+    const timeout = setTimeout(() => {
+      setIsSpinning(false);
+    }, 4200);
+
+    return () => clearTimeout(timeout);
   }, [result, spinning, slices]);
 
+  /* ==============================
+     HIGHLIGHT WINNER
+  ============================== */
+  const winnerId = result?._id;
+
   return (
-    <div className="relative w-72 h-72">
+    <div className="relative w-80 h-80">
+
+      {/* 🔥 GLOW GLOBAL */}
+      <div className="absolute inset-0 rounded-full bg-blue-500/10 blur-2xl animate-pulse pointer-events-none" />
+
       {/* POINTER */}
       <RoulettePointer />
 
@@ -67,9 +94,12 @@ export default function RouletteWheel({
       <svg
         ref={wheelRef}
         viewBox="0 0 200 200"
-        className="w-full h-full transition-transform duration-[4000ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+        className="w-full h-full"
         style={{
           transform: `rotate(${rotation}deg)`,
+          transition: isSpinning
+            ? "transform 4.2s cubic-bezier(0.15,0.8,0.2,1)"
+            : "none",
         }}
       >
         {slices.map((slice) => (
@@ -79,13 +109,18 @@ export default function RouletteWheel({
             sliceAngle={slice.sliceAngle}
             color={slice.color}
             label={slice.name}
+            isWinner={winnerId === slice._id}
           />
         ))}
       </svg>
 
-      {/* CENTER DISC */}
+      {/* CENTER DISC PRO */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-12 h-12 bg-[#0F172A] border border-gray-700 rounded-full shadow-inner" />
+        <div className="w-14 h-14 rounded-full bg-gradient-to-b from-[#0F172A] to-[#020617] border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center">
+
+          <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse shadow-[0_0_12px_rgba(59,130,246,0.9)]" />
+
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,3 @@
-// pages/DiscountPage.tsx
-
 import { useState, useEffect } from "react";
 import OrderList from "../components/OrderList";
 import OrderDetails from "../components/OrderDetails";
@@ -13,13 +11,58 @@ import { discountService } from "../services/discountService";
 import type { Order, SelectedItem } from "../types/discounts";
 
 export default function DiscountPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<SelectedItem[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [loadingApply, setLoadingApply] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    todayTotal: 0,
+    averagePercent: 0,
+    appliedCount: 0,
+  });
 
   /* =========================
      HOOK CENTRAL
   ========================= */
   const discount = useDiscount({ items });
+
+  const loadOrders = async () => {
+    try {
+      setLoadingOrders(true);
+      const data = await discountService.getActiveOrders();
+      setOrders(data);
+
+      setSelectedOrder((prev) => {
+        if (!prev) return data[0] ?? null;
+        return data.find((o) => o._id === prev._id) ?? data[0] ?? null;
+      });
+    } catch (err: any) {
+      setError(err.message || "Error cargando ordenes");
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      setLoadingStats(true);
+      const data = await discountService.getTodayStats();
+      setStats(data);
+    } catch {
+      // stats no debe bloquear la pantalla
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+    loadStats();
+  }, []);
 
   /* =========================
      CUANDO CAMBIA LA ORDEN
@@ -43,38 +86,66 @@ export default function DiscountPage() {
     if (!selectedOrder) return;
 
     if (!discount.isValid) {
-      console.warn(discount.errors);
+      setError(discount.errors[0] || "Datos de descuento invalidos");
       return;
     }
 
     try {
+      setLoadingApply(true);
+      setError(null);
+      setFeedback(null);
       const payload = discount.buildPayload(selectedOrder._id);
 
       await discountService.applyDiscount(payload);
 
-      // reset UI
+      setFeedback("Descuento aplicado correctamente");
       discount.reset();
-
-      // opcional: refrescar orden
-      console.log("Discount applied");
-    } catch (error) {
-      console.error("Error applying discount", error);
+      await Promise.all([loadOrders(), loadStats()]);
+    } catch (err: any) {
+      setError(err.message || "Error aplicando descuento");
+    } finally {
+      setLoadingApply(false);
     }
   };
 
   return (
-    <div className="p-6 grid grid-cols-12 gap-6">
+    <div className="p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-black tracking-tight text-white">Manual Discount Console</h1>
+        <p className="text-sm text-gray-400 mt-1">
+          Aplica ajustes manuales por orden sin romper el flujo operativo del POS.
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl">
+          {error}
+        </div>
+      )}
+
+      {feedback && (
+        <div className="bg-green-500/10 border border-green-500/30 text-green-300 px-4 py-3 rounded-xl">
+          {feedback}
+        </div>
+      )}
+
+      <div className="grid grid-cols-12 gap-6">
       {/* =========================
           LEFT: ORDERS
       ========================= */}
-      <div className="col-span-4">
-        <OrderList onSelectOrder={setSelectedOrder} />
+      <div className="col-span-12 xl:col-span-4">
+        <OrderList
+          orders={orders}
+          selectedOrderId={selectedOrder?._id}
+          loading={loadingOrders}
+          onSelectOrder={setSelectedOrder}
+        />
       </div>
 
       {/* =========================
           CENTER: ORDER DETAILS
       ========================= */}
-      <div className="col-span-4">
+      <div className="col-span-12 xl:col-span-4">
         {selectedOrder && (
           <OrderDetails
             order={selectedOrder}
@@ -82,29 +153,33 @@ export default function DiscountPage() {
             setItems={setItems}
           />
         )}
+        {!selectedOrder && (
+          <div className="bg-surface-container border border-white/10 p-6 rounded-xl text-sm text-gray-400">
+            Selecciona una orden abierta para ver detalles.
+          </div>
+        )}
       </div>
 
       {/* =========================
           RIGHT: DISCOUNT PANEL
       ========================= */}
-      <div className="col-span-4 flex flex-col gap-4">
+      <div className="col-span-12 xl:col-span-4 flex flex-col gap-4">
         <DiscountKeypad
           type={discount.type}
           setType={discount.setType}
           value={discount.value}
-          setValue={discount.setValue}
+          valueInput={discount.valueInput}
           appendNumber={discount.appendNumber}
           removeLast={discount.removeLast}
         />
 
-        {/* 👇 feedback en tiempo real */}
-        <div className="bg-surface-container p-3 rounded-xl text-sm">
-          <p>Subtotal: ${discount.subtotal.toFixed(2)}</p>
-          <p className="text-primary">
-            Discount: -${discount.discountAmount.toFixed(2)}
+        <div className="bg-surface-container border border-white/10 p-3 rounded-xl text-sm">
+          <p className="text-gray-300">Subtotal selected: ${discount.subtotal.toFixed(2)}</p>
+          <p className="text-primary font-semibold">
+            Target adjustment: -${discount.discountAmount.toFixed(2)}
           </p>
-          <p className="font-bold">
-            Final: ${discount.finalTotal.toFixed(2)}
+          <p className="font-bold text-white">
+            Final after discount: ${discount.finalTotal.toFixed(2)}
           </p>
         </div>
 
@@ -119,7 +194,7 @@ export default function DiscountPage() {
             ERRORS
         ========================= */}
         {!discount.isValid && (
-          <div className="bg-red-500/10 border border-red-500 p-3 rounded">
+          <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-xl">
             {discount.errors.map((err, i) => (
               <p key={i} className="text-red-400 text-xs">
                 {err}
@@ -133,18 +208,19 @@ export default function DiscountPage() {
         ========================= */}
         <button
           onClick={handleApplyDiscount}
-          disabled={!discount.isValid}
-          className="bg-primary text-white py-3 rounded-xl font-bold disabled:opacity-50"
+          disabled={!discount.isValid || !selectedOrder || loadingApply}
+          className="bg-primary text-black py-3 rounded-xl font-bold disabled:opacity-50"
         >
-          APPLY DISCOUNT
+          {loadingApply ? "Applying..." : "Apply Adjustment"}
         </button>
+      </div>
       </div>
 
       {/* =========================
           STATS
       ========================= */}
-      <div className="col-span-12">
-        <DiscountStats />
+      <div>
+        <DiscountStats data={stats} loading={loadingStats} />
       </div>
     </div>
   );

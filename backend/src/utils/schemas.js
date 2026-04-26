@@ -32,6 +32,20 @@ export const createEmployeeSchema = z.object({
 
 export const assignShiftSchema  = z.object({ shift: z.enum(SHIFTS) });
 export const changePasswordSchema = z.object({ password: z.string().min(6) });
+export const updateUserSchema = z.object({
+  name:        z.string().min(2).max(50).trim().optional(),
+  role:        z.enum(ROLES).optional(),
+  shift:       z.enum(SHIFTS).nullable().optional(),
+  permissions: z.record(z.boolean()).optional(),
+  isActive:    z.boolean().optional(),
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "Debes enviar al menos un campo para actualizar" }
+);
+
+export const updatePermissionsSchema = z.object({
+  permissions: z.record(z.boolean()),
+});
 
 /* ─────────────────── PRODUCTS ─────────────────── */
 export const createProductSchema = z.object({
@@ -134,19 +148,29 @@ export const createMenuSchema = z.object({
 
 /* ─────────────────── DISCOUNTS ─────────────────── */
 export const applyDiscountSchema = z.object({
-  orderId: z.string().min(1),
-  items:   z.array(z.object({
-    product:  z.string().min(1),
-    quantity: z.number().int().positive().optional(),
-  })).min(1),
+  orderId: z.string().min(1).optional(),
+  items:   z.array(z.string().min(1)).optional().default([]),
   type:   z.enum(["PERCENT", "FLAT"]),
   value:  z.number().positive(),
   reason: z.enum(["WAIT_TIME", "QUALITY_ISSUE", "COMP", "EMPLOYEE", "OTHER"]),
   note:   z.string().max(500).optional().default(""),
 });
 
+export const applyManualDiscountSchema = z.object({
+  orderId: z.string().min(1),
+  items: z.array(z.object({
+    product: z.string().min(1),
+    quantity: z.number().int().positive().optional(),
+  })).min(1, "Debes indicar al menos un item"),
+  type: z.enum(["PERCENT", "FLAT"]),
+  value: z.number().positive(),
+  reason: z.enum(["WAIT_TIME", "QUALITY_ISSUE", "COMP", "EMPLOYEE", "OTHER"]),
+  note: z.string().max(500).optional().default(""),
+});
+
 /* ─────────────────── ROULETTE ─────────────────── */
 export const createRouletteDrinkSchema = z.object({
+  product:  z.string().optional().nullable(),
   name:     z.string().min(2).trim(),
   weight:   z.number().positive(),
   color:    z.string().optional().default("#D4A340"),

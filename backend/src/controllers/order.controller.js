@@ -16,6 +16,16 @@ const ITEM_STATUS  = ["pending", "preparing", "ready", "served", "cancelled"];
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const DISCOUNT_REASONS = ["WAIT_TIME", "QUALITY_ISSUE", "COMP", "EMPLOYEE", "OTHER"];
+
+const validateActiveTableSession = async (tableId, sessionId, dbSession) => {
+  const tableDoc = await Table.findById(tableId).session(dbSession);
+  if (!tableDoc) return { error: "Mesa no encontrada", code: "notFound" };
+  if (!tableDoc.canAcceptOrders()) return { error: "La mesa no está activa", code: "badRequest" };
+  if (!tableDoc.isValidSession(sessionId)) return { error: "Sesión de mesa inválida", code: "badRequest" };
+  return { tableDoc };
+};
+
 /* =========================================================
    SOCKET HELPERS — Emisión centralizada
 ========================================================= */
@@ -144,14 +154,19 @@ export const createOrder = async (req, res, next) => {
     if (!items?.length) return badRequest(res, "Debes agregar al menos un producto");
 
     /* ─── Validar mesa ─── */
-    const tableDoc = await Table.findById(table).session(session);
-    if (!tableDoc)                           return notFound(res, "Mesa no encontrada");
-    if (tableDoc.status !== "occupied")      return badRequest(res, "La mesa no está activa");
-    if (tableDoc.currentSessionId !== sessionId) return badRequest(res, "Sesión de mesa inválida");
+    const tableValidation = await validateActiveTableSession(table, sessionId, session);
+    if (tableValidation.error) {
+      if (tableValidation.code === "notFound") return notFound(res, tableValidation.error);
+      return badRequest(res, tableValidation.error);
+    }
 
     /* ─── Obtener y mapear productos ─── */
     const productIds = items.map((i) => i.product);
-    const products   = await Product.find({ _id: { $in: productIds }, isActive: true }).session(session);
+    const products = await Product.find({
+      _id: { $in: productIds },
+      available: true,
+      isActiveForPOS: true,
+    }).session(session);
 
     if (products.length !== productIds.length) {
       return badRequest(res, "Uno o más productos no existen o están inactivos");
@@ -331,6 +346,10 @@ export const applyDiscount = async (req, res, next) => {
 
     if (!isValidId(orderId)) return badRequest(res, "ID inválido");
 
+    if (!DISCOUNT_REASONS.includes(reason)) {
+      return badRequest(res, `Razón inválida. Válidas: ${DISCOUNT_REASONS.join(", ")}`);
+    }
+
     const order = await Order.findById(orderId);
     if (!order)                          return notFound(res, "Orden no encontrada");
     if (order.sessionStatus === "closed") return badRequest(res, "La orden está cerrada");
@@ -358,7 +377,19 @@ export const applyDiscount = async (req, res, next) => {
 
     /* ─── Aplicar ─── */
     order.discountTotal = (order.discountTotal || 0) + discountAmount;
-    order.discounts.push({ type, value, amount: discountAmount, reason, note, items, appliedAt: new Date() });
+    const normalizedItemIds = Array.isArray(items)
+      ? items.map((id) => id.toString())
+      : [];
+
+    order.discounts.push({
+      type,
+      value: Number(value),
+      amount: discountAmount,
+      reason,
+      note: note || "",
+      items: normalizedItemIds,
+      appliedAt: new Date(),
+    });
 
     await order.save();
     emitOrderUpdate(order);

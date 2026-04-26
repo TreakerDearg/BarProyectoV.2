@@ -1,3 +1,5 @@
+"use client";
+
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,20 +13,20 @@ import {
   BookOpen,
   Users,
   Dices,
-  Percent, 
+  Percent,
+  ChevronLeft,
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
+import { useUIStore } from "../../store/uiStore";
 
-/* ==============================
-   ROUTES CENTRALIZADAS (PRO)
-============================== */
+/* ============================== */
 const PATHS = {
   DASHBOARD: "/dashboard",
   ORDERS: "/orders",
   TABLES: "/tables",
   RESERVATIONS: "/reservations",
-  DISCOUNTS: "/discounts", 
+  DISCOUNTS: "/discounts",
   PRODUCTS: "/products",
   MENUS: "/menus",
   INVENTORY: "/inventory",
@@ -36,6 +38,9 @@ const PATHS = {
 export default function Sidebar() {
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+
+  const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const toggle = useUIStore((s) => s.toggleSidebar);
 
   const handleLogout = () => {
     logout();
@@ -55,8 +60,6 @@ export default function Sidebar() {
         { name: "Pedidos", path: PATHS.ORDERS, icon: ClipboardList },
         { name: "Mesas", path: PATHS.TABLES, icon: Armchair },
         { name: "Reservas", path: PATHS.RESERVATIONS, icon: CalendarDays },
-
-        
         { name: "Descuentos", path: PATHS.DISCOUNTS, icon: Percent },
       ],
     },
@@ -79,31 +82,59 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="h-full w-64 bg-void/50 border-r border-obsidian/40 flex flex-col font-mono relative overflow-hidden text-gray-400">
-      
-      {/* BACKGROUND DECORATION */}
-      <div className="absolute top-[-5%] left-[-20%] w-48 h-48 bg-[#00FFFF]/5 blur-[60px] pointer-events-none" />
-
-      {/* HEADER / LOGO */}
-      <div className="p-6 border-b border-obsidian/40 flex flex-col items-center justify-center relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded border border-[#00FFFF]/30 bg-[#00FFFF]/10 flex items-center justify-center shadow-[0_0_10px_rgba(0,255,255,0.2)]">
-            <span className="text-xl">🍸</span>
-          </div>
-          <div>
-            <h1 className="text-white font-black tracking-widest text-lg leading-none">BARTENDER</h1>
-            <p className="text-[#00FFFF] text-[9px] tracking-widest font-bold mt-1">SYS_CORE // V.4.0</p>
-          </div>
-        </div>
+    <aside
+      className={`
+        h-full flex flex-col relative
+        transition-all duration-300 ease-in-out
+        ${collapsed ? "w-20" : "w-64"}
+        bg-void/70 border-r border-obsidian/40
+        backdrop-blur-xl
+      `}
+    >
+      {/* ================= ATMOSPHERE ================= */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-20%] w-64 h-64 bg-cyan-400/5 blur-[100px]" />
+        <div className="absolute bottom-[-20%] right-[-20%] w-64 h-64 bg-violet-500/5 blur-[100px]" />
       </div>
 
-      {/* NAV */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 relative z-10">
+      {/* ================= HEADER ================= */}
+      <div className="p-4 border-b border-obsidian/40 flex items-center justify-between relative z-10">
+
+        {!collapsed && (
+          <div className="leading-tight">
+            <h1 className="text-white font-black tracking-widest text-sm">
+              BARTENDER
+            </h1>
+            <p className="text-cyan-400 text-[9px] font-bold tracking-widest">
+              CONTROL_CORE
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={toggle}
+          className="p-2 rounded-lg hover:bg-obsidian/40 transition group"
+        >
+          <ChevronLeft
+            size={16}
+            className={`transition-transform group-hover:scale-110 ${
+              collapsed ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* ================= NAV ================= */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-6 relative z-10">
+
         {menuSections.map((section) => (
           <div key={section.title}>
-            <p className="text-[9px] text-gray-500 tracking-widest mb-3 uppercase font-bold pl-3">
-              {section.title}
-            </p>
+
+            {!collapsed && (
+              <p className="text-[9px] text-gray-500 tracking-widest mb-2 uppercase font-bold pl-3">
+                {section.title}
+              </p>
+            )}
 
             <div className="space-y-1">
               {section.items.map(({ name, path, icon: Icon }) => (
@@ -111,22 +142,61 @@ export default function Sidebar() {
                   key={name}
                   to={path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-300 group ${
+                    `
+                    group relative flex items-center
+                    ${collapsed ? "justify-center" : "gap-3"}
+                    px-3 py-2 rounded-lg text-xs font-bold tracking-wider
+                    transition-all duration-300
+
+                    ${
                       isActive
-                        ? "bg-[#00FFFF]/10 border border-[#00FFFF]/30 text-[#00FFFF] shadow-[0_0_10px_rgba(0,255,255,0.1)]"
-                        : "text-gray-400 border border-transparent hover:border-obsidian/60 hover:bg-obsidian/30 hover:text-white"
-                    }`
+                        ? "text-cyan-400"
+                        : "text-gray-400 hover:text-white"
+                    }
+                  `
                   }
                 >
                   {({ isActive }) => (
                     <>
+                      {/* ACTIVE BAR */}
+                      {isActive && (
+                        <div className="absolute left-0 top-0 h-full w-[3px] bg-cyan-400 shadow-[0_0_10px_#00FFFF]" />
+                      )}
+
+                      {/* ICON */}
                       <Icon
-                        size={16}
-                        className={`transition-colors ${
-                          isActive ? "text-[#00FFFF]" : "text-gray-500 group-hover:text-gray-300"
-                        }`}
+                        size={18}
+                        className={`
+                          transition-all
+                          ${
+                            isActive
+                              ? "text-cyan-400 drop-shadow-[0_0_6px_#00FFFF]"
+                              : "text-gray-500 group-hover:text-white"
+                          }
+                        `}
                       />
-                      <span className="mt-0.5">{name.toUpperCase()}</span>
+
+                      {/* TEXT */}
+                      {!collapsed && (
+                        <span className="mt-[1px]">{name}</span>
+                      )}
+
+                      {/* TOOLTIP PRO */}
+                      {collapsed && (
+                        <span
+                          className="
+                          absolute left-full ml-3 px-3 py-1.5 text-[10px]
+                          bg-[#020617] border border-cyan-400/20
+                          rounded-lg shadow-[0_0_12px_rgba(0,255,255,0.2)]
+                          opacity-0 group-hover:opacity-100
+                          translate-x-2 group-hover:translate-x-0
+                          transition-all duration-200
+                          whitespace-nowrap pointer-events-none
+                        "
+                        >
+                          {name}
+                        </span>
+                      )}
                     </>
                   )}
                 </NavLink>
@@ -134,22 +204,33 @@ export default function Sidebar() {
             </div>
           </div>
         ))}
+
       </nav>
 
-      {/* STATUS / FOOTER */}
-      <div className="p-4 border-t border-obsidian/40 bg-void/80 backdrop-blur-sm relative z-10">
-        <div className="flex items-center gap-2 mb-4 px-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-bar-green shadow-[0_0_5px_#34B964] animate-pulse" />
-          <span className="text-[9px] tracking-widest text-gray-500">SYS_STATUS:</span>
-          <span className="text-[9px] font-bold tracking-widest text-bar-green">NOMINAL</span>
-        </div>
+      {/* ================= FOOTER ================= */}
+      <div className="p-3 border-t border-obsidian/40 relative z-10">
+
+        {!collapsed && (
+          <div className="flex items-center gap-2 mb-3 text-[9px]">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_6px_#34B964]" />
+            <span className="text-gray-500">SYSTEM</span>
+            <span className="text-green-400 font-bold">ONLINE</span>
+          </div>
+        )}
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-bar-red/5 hover:bg-bar-red/10 border border-bar-red/20 hover:border-bar-red/40 text-bar-red rounded-lg text-xs font-bold tracking-widest transition-all duration-300"
+          className="
+            w-full flex items-center justify-center gap-2 py-2
+            bg-red-500/10 hover:bg-red-500/20
+            border border-red-500/20 hover:border-red-500/40
+            text-red-400 rounded-lg text-xs font-bold
+            transition-all duration-300
+            hover:shadow-[0_0_12px_rgba(239,68,68,0.3)]
+          "
         >
           <LogOut size={14} />
-          <span>TERMINATE_SESSION</span>
+          {!collapsed && "LOGOUT"}
         </button>
       </div>
     </aside>

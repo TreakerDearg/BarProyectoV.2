@@ -13,9 +13,10 @@ interface UseDiscountProps {
 
 export function useDiscount({ items }: UseDiscountProps) {
   const [type, setType] = useState<DiscountType>("PERCENT");
-  const [value, setValue] = useState<number>(0);
+  const [valueInput, setValueInput] = useState<string>("0");
   const [reason, setReason] = useState<DiscountReason>("WAIT_TIME");
   const [note, setNote] = useState("");
+  const value = Number(valueInput || 0);
 
   /* =========================
      SUBTOTAL
@@ -69,15 +70,22 @@ export function useDiscount({ items }: UseDiscountProps) {
      KEYPAD HANDLERS
   ========================= */
   const appendNumber = (num: string) => {
-    setValue((prev) => Number(`${prev}${num}`));
+    setValueInput((prev) => {
+      if (num === "." && prev.includes(".")) return prev;
+      if (prev === "0" && num !== ".") return num;
+      return `${prev}${num}`;
+    });
   };
 
   const removeLast = () => {
-    setValue((prev) => Number(prev.toString().slice(0, -1)) || 0);
+    setValueInput((prev) => {
+      const next = prev.slice(0, -1);
+      return next.length > 0 ? next : "0";
+    });
   };
 
   const reset = () => {
-    setValue(0);
+    setValueInput("0");
     setNote("");
   };
 
@@ -87,12 +95,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   const buildPayload = (orderId: string) => {
     const selectedItems = items
       .filter((i) => i.selected)
-      .map((i) => ({
-        product: i.product,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-      }));
+      .map((i) => i._id);
 
     return {
       orderId,
@@ -108,12 +111,13 @@ export function useDiscount({ items }: UseDiscountProps) {
     /* state */
     type,
     value,
+    valueInput,
     reason,
     note,
 
     /* setters */
     setType,
-    setValue,
+    setValue: setValueInput,
     setReason,
     setNote,
 

@@ -241,6 +241,7 @@ export const addTableTag = async (req, res, next) => {
 export const removeTableTag = async (req, res, next) => {
   try {
     const { id, label } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const table = await Table.findById(id);
     if (!table) return notFound(res, "Mesa no encontrada");
@@ -256,6 +257,7 @@ export const removeTableTag = async (req, res, next) => {
 export const clearTableTags = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const table = await Table.findById(id);
     if (!table) return notFound(res, "Mesa no encontrada");

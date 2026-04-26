@@ -1,5 +1,6 @@
 import mongoose      from "mongoose";
 import RouletteDrink from "../models/RouletteDrink.js";
+import Product       from "../models/Product.js";
 import { createLog } from "./rouletteLog.controller.js";
 import { logger }    from "../config/logger.js";
 import {
@@ -17,7 +18,10 @@ export const getRouletteDrinks = async (req, res, next) => {
     const { activeOnly } = req.query;
     const filter = activeOnly === "true" ? { active: true, deleted: false } : {};
 
-    const drinks = await RouletteDrink.find(filter).select("-__v").lean();
+    const drinks = await RouletteDrink.find(filter)
+      .populate("product", "name type available isActiveForPOS")
+      .select("-__v")
+      .lean();
 
     const sanitized    = drinks.map((d) => ({ ...d, weight: parseWeight(d.weight) || 1 }));
     const totalWeight  = sanitized.reduce((sum, d) => sum + d.weight, 0);
@@ -35,15 +39,46 @@ export const getRouletteDrinks = async (req, res, next) => {
 ========================================================= */
 export const createRouletteDrink = async (req, res, next) => {
   try {
-    const { name, weight, color, category, price } = req.body;
+    const { name, weight, color, category, price, product } = req.body;
 
     const parsedWeight = parseWeight(weight);
     if (!name)         return badRequest(res, "name es obligatorio");
     if (!parsedWeight) return badRequest(res, "weight debe ser un número positivo");
 
-    const drink = await RouletteDrink.create({ name, weight: parsedWeight, color, category, price });
+    let resolvedName = name;
+    let resolvedPrice = price;
+    let resolvedProduct = null;
 
-    await createLog({ type: "create", message: `"${drink.name}" agregado a la ruleta`, drinkId: drink._id });
+    if (product) {
+      if (!isValidId(product)) return badRequest(res, "product inválido");
+      const productDoc = await Product.findById(product).lean();
+      if (!productDoc) return badRequest(res, "Producto no encontrado");
+      if (productDoc.type !== "drink") {
+        return badRequest(res, "Solo productos tipo drink pueden estar en roulette");
+      }
+
+      resolvedProduct = productDoc._id;
+      if (!resolvedName) resolvedName = productDoc.name;
+      if (resolvedPrice === undefined || resolvedPrice === null) {
+        resolvedPrice = productDoc.price;
+      }
+    }
+
+    const drink = await RouletteDrink.create({
+      product: resolvedProduct,
+      name: resolvedName,
+      weight: parsedWeight,
+      color,
+      category,
+      price: resolvedPrice,
+    });
+
+    await createLog({
+      type: "create",
+      message: `"${drink.name}" agregado a la ruleta`,
+      drinkId: drink._id,
+      performedBy: req.user?.id || null,
+    });
     logger.info(`[Roulette] Creado: ${drink.name}`);
 
     return created(res, drink, `"${drink.name}" agregado a la ruleta`);
@@ -61,7 +96,7 @@ export const updateRouletteDrink = async (req, res, next) => {
     const existing = await RouletteDrink.findById(id);
     if (!existing) return notFound(res, "Trago no encontrado");
 
-    const ALLOWED = ["name", "weight", "active", "color", "category", "price"];
+    const ALLOWED = ["name", "weight", "active", "color", "category", "price", "product"];
     const updates = {};
 
     for (const key of ALLOWED) {
@@ -73,6 +108,18 @@ export const updateRouletteDrink = async (req, res, next) => {
         updates.weight = parsed;
       } else if (key === "active") {
         updates.active = Boolean(req.body.active);
+      } else if (key === "product") {
+        if (req.body.product === null || req.body.product === "") {
+          updates.product = null;
+          continue;
+        }
+        if (!isValidId(req.body.product)) return badRequest(res, "product inválido");
+        const productDoc = await Product.findById(req.body.product).lean();
+        if (!productDoc) return badRequest(res, "Producto no encontrado");
+        if (productDoc.type !== "drink") {
+          return badRequest(res, "Solo productos tipo drink pueden estar en roulette");
+        }
+        updates.product = productDoc._id;
       } else {
         updates[key] = req.body[key];
       }
@@ -84,10 +131,29 @@ export const updateRouletteDrink = async (req, res, next) => {
 
     /* Logs inteligentes */
     if (updates.weight !== undefined && updates.weight !== existing.weight) {
-      await createLog({ type: "update", message: `Peso de "${existing.name}": ${existing.weight} → ${updates.weight}`, drinkId: id, meta: { from: existing.weight, to: updates.weight } });
+      await createLog({
+        type: "update",
+        message: `Peso de "${existing.name}": ${existing.weight} → ${updates.weight}`,
+        drinkId: id,
+        performedBy: req.user?.id || null,
+        meta: { from: existing.weight, to: updates.weight },
+      });
     }
     if (updates.active !== undefined && updates.active !== existing.active) {
-      await createLog({ type: "toggle", message: `"${existing.name}" ${updates.active ? "activado" : "desactivado"}`, drinkId: id });
+      await createLog({
+        type: "toggle",
+        message: `"${existing.name}" ${updates.active ? "activado" : "desactivado"}`,
+        drinkId: id,
+        performedBy: req.user?.id || null,
+      });
+    }
+    if (updates.product !== undefined && String(updates.product) !== String(existing.product || "")) {
+      await createLog({
+        type: "update",
+        message: `Producto relacionado de "${existing.name}" actualizado`,
+        drinkId: id,
+        performedBy: req.user?.id || null,
+      });
     }
 
     return ok(res, drink, "Trago actualizado correctamente");
@@ -107,7 +173,12 @@ export const deleteRouletteDrink = async (req, res, next) => {
     );
     if (!drink) return notFound(res, "Trago no encontrado");
 
-    await createLog({ type: "delete", message: `"${drink.name}" eliminado de la ruleta`, drinkId: id });
+    await createLog({
+      type: "delete",
+      message: `"${drink.name}" eliminado de la ruleta`,
+      drinkId: id,
+      performedBy: req.user?.id || null,
+    });
     logger.info(`[Roulette] Eliminado: ${drink.name}`);
 
     return ok(res, null, `"${drink.name}" eliminado de la ruleta`);
@@ -149,6 +220,7 @@ export const spinRoulette = async (req, res, next) => {
       type:    "spin",
       message: `Resultado de ruleta: "${selected.name}"`,
       drinkId: selected._id,
+      performedBy: req.user?.id || null,
     });
 
     logger.info(`[Roulette] Resultado: ${selected.name}`);

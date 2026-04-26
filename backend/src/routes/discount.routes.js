@@ -4,7 +4,7 @@ import {
   approveDiscount, rejectDiscount
 } from "../controllers/discount.controller.js";
 import { validate } from "../middlewares/validate.js";
-import { applyDiscountSchema } from "../utils/schemas.js";
+import { applyManualDiscountSchema } from "../utils/schemas.js";
 import { protect, authorizeRoles, authorizePermissions } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -16,7 +16,7 @@ router.post(
   "/",
   protect,
   authorizeRoles("admin", "manager"),
-  validate(applyDiscountSchema),
+  validate(applyManualDiscountSchema),
   applyDiscount
 );
 

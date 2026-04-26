@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { Table as TableIcon, Users, MapPin, Wrench } from "lucide-react";
 import type { Table } from "../types/table";
 
 interface Props {
@@ -16,7 +17,29 @@ const emptyTable: Table = {
   notes: "",
   tags: [],
   _id: "",
-  orders: []
+  orders: [],
+};
+
+/* =========================
+   STATUS CONFIG (🔥 CLAVE)
+========================= */
+const statusConfig = {
+  available: {
+    label: "AVAILABLE",
+    color: "bg-green-500/10 border-green-500/30 text-green-400",
+  },
+  occupied: {
+    label: "OCCUPIED",
+    color: "bg-red-500/10 border-red-500/30 text-red-400",
+  },
+  reserved: {
+    label: "RESERVED",
+    color: "bg-yellow-500/10 border-yellow-500/30 text-yellow-400",
+  },
+  maintenance: {
+    label: "MAINTENANCE",
+    color: "bg-gray-500/10 border-gray-500/30 text-gray-400",
+  },
 };
 
 export default function TableForm({
@@ -30,7 +53,7 @@ export default function TableForm({
   const [error, setError] = useState<string | null>(null);
 
   /* =========================
-     SAFE NEXT NUMBER
+     NEXT NUMBER
   ========================= */
   const nextTableNumber = useMemo(() => {
     const numbers = existingTables.map((t) => t.number || 0);
@@ -38,7 +61,7 @@ export default function TableForm({
   }, [existingTables]);
 
   /* =========================
-     LOAD DATA
+     LOAD
   ========================= */
   useEffect(() => {
     if (table) {
@@ -59,11 +82,7 @@ export default function TableForm({
   /* =========================
      HANDLE CHANGE
   ========================= */
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
@@ -74,7 +93,14 @@ export default function TableForm({
   };
 
   /* =========================
-     TAG NORMALIZER
+     STATUS CHANGE (🔥 UI)
+  ========================= */
+  const setStatus = (status: Table["status"]) => {
+    setFormData((prev) => ({ ...prev, status }));
+  };
+
+  /* =========================
+     TAGS
   ========================= */
   const normalizeTag = (tag: string) => tag.trim().toLowerCase();
 
@@ -118,14 +144,13 @@ export default function TableForm({
     setError(null);
 
     if (formData.capacity < 1) {
-      setError("La capacidad debe ser mayor a 0");
+      setError("Capacidad inválida");
       return;
     }
 
     onSave({
       ...formData,
       number: table ? formData.number : nextTableNumber,
-      status: table ? formData.status : "available",
     });
   };
 
@@ -133,107 +158,110 @@ export default function TableForm({
      UI
   ========================= */
   return (
-    <form className="flex flex-col h-full space-y-5" onSubmit={handleSubmit}>
-      {/* ID */}
-      <div>
-        <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">
-          Table Identifier
-        </p>
+    <form onSubmit={handleSubmit} className="flex flex-col h-full space-y-6">
 
-        <div className="flex gap-3">
-          <div className="flex-1 bg-obsidian/30 border border-obsidian rounded-lg p-2.5 flex items-center">
-            <span className="text-[#00FFFF] font-bold mr-2">T-</span>
-            <input
-              value={table ? formData.number : nextTableNumber}
-              disabled
-              className="bg-transparent text-white font-bold tracking-widest w-full outline-none opacity-70 cursor-not-allowed"
-            />
+      {/* PREVIEW 🔥 */}
+      <div className={`p-4 rounded-xl border ${statusConfig[formData.status].color}`}>
+        <div className="flex justify-between items-center">
+          <div>
+            <p className="text-xs text-gray-400">TABLE</p>
+            <p className="text-2xl font-black">
+              T-{formData.number || nextTableNumber}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-xs text-gray-400">STATUS</p>
+            <p className="text-sm font-bold">
+              {statusConfig[formData.status].label}
+            </p>
           </div>
         </div>
       </div>
 
       {/* CAPACITY */}
-      <div>
-        <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">
-          Capacity (PAX)
-        </p>
-        <input
-          type="number"
-          name="capacity"
-          min={1}
-          value={formData.capacity}
-          onChange={handleChange}
-          className="w-full bg-obsidian/30 border border-obsidian rounded-lg p-2.5 text-white outline-none"
-        />
-      </div>
+      <Input
+        icon={<Users size={14} />}
+        name="capacity"
+        type="number"
+        value={formData.capacity}
+        onChange={handleChange}
+        label="Capacity"
+      />
 
       {/* LOCATION */}
       <div>
-        <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">
-          Zone Assignment
-        </p>
+        <Label>Zone</Label>
         <select
           name="location"
           value={formData.location}
           onChange={handleChange}
-          className="w-full bg-obsidian/30 border border-obsidian rounded-lg p-2.5 text-white outline-none cursor-pointer"
+          className="input"
         >
-          <option value="indoor">ZONE 01: MAIN FLOOR</option>
-          <option value="outdoor">ZONE 02: TERRACE</option>
-          <option value="bar">ZONE 03: BAR HIGH</option>
-          <option value="lounge">ZONE 04: VIP LOUNGE</option>
+          <option value="indoor">MAIN FLOOR</option>
+          <option value="outdoor">TERRACE</option>
+          <option value="bar">BAR</option>
+          <option value="lounge">VIP</option>
         </select>
+      </div>
+
+      {/* STATUS SELECTOR 🔥 */}
+      <div>
+        <Label>Status</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {Object.entries(statusConfig).map(([key, s]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setStatus(key as Table["status"])}
+              className={`p-2 rounded border text-xs font-bold transition ${
+                formData.status === key
+                  ? s.color
+                  : "border-obsidian text-gray-500"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* NOTES */}
       <div>
-        <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">
-          Operational Notes
-        </p>
+        <Label>Notes</Label>
         <textarea
           name="notes"
           value={formData.notes || ""}
           onChange={handleChange}
+          className="input resize-none"
           rows={3}
-          className="w-full bg-obsidian/30 border border-obsidian rounded-lg p-2.5 text-white text-xs outline-none resize-none"
         />
       </div>
 
       {/* TAGS */}
       <div>
-        <p className="text-[10px] text-gray-500 tracking-widest font-bold uppercase mb-2">
-          Element Tags
-        </p>
+        <Label>Tags</Label>
 
         <div className="flex gap-2">
           <input
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" && (e.preventDefault(), addTag())
-            }
-            className="flex-1 bg-obsidian/30 border border-obsidian rounded-lg p-2 text-xs text-white outline-none uppercase"
-            placeholder="ADD TAG..."
+            className="input flex-1"
+            placeholder="vip / window / birthday..."
           />
-          <button
-            type="button"
-            onClick={addTag}
-            className="px-3 bg-obsidian/50 border border-obsidian rounded-lg text-white"
-          >
+          <button type="button" onClick={addTag} className="btn">
             +
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-2">
           {formData.tags?.map((t, i) => (
             <span
               key={i}
-              className="bg-obsidian/50 border border-obsidian px-2 py-1 rounded text-[9px] uppercase flex gap-2"
+              className="px-2 py-1 text-[10px] bg-obsidian border border-obsidian rounded flex gap-1"
             >
               {t.label}
-              <button type="button" onClick={() => removeTag(i)}>
-                ×
-              </button>
+              <button onClick={() => removeTag(i)}>×</button>
             </span>
           ))}
         </div>
@@ -241,28 +269,47 @@ export default function TableForm({
 
       {/* ERROR */}
       {error && (
-        <div className="text-red-400 text-[10px] border border-red-500/30 p-2 rounded">
-          ERR: {error}
+        <div className="text-red-400 text-xs border border-red-500/30 p-2 rounded">
+          {error}
         </div>
       )}
 
       {/* ACTIONS */}
-      <div className="mt-auto pt-4 border-t border-obsidian/40 flex gap-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 bg-obsidian/50 border border-obsidian text-white py-3 rounded-lg text-xs uppercase"
-        >
+      <div className="mt-auto flex gap-3 pt-4 border-t border-obsidian">
+        <button type="button" onClick={onClose} className="btn-secondary">
           Cancel
         </button>
 
-        <button
-          type="submit"
-          className="flex-1 bg-[#8B5CF6] text-white py-3 rounded-lg text-xs uppercase"
-        >
-          {table ? "Update" : "Deploy"}
+        <button type="submit" className="btn-primary">
+          {table ? "Update" : "Create"}
         </button>
       </div>
     </form>
+  );
+}
+
+/* =========================
+   UI HELPERS
+========================= */
+
+function Label({ children }: any) {
+  return (
+    <p className="text-[10px] text-gray-400 uppercase mb-2 font-bold tracking-widest">
+      {children}
+    </p>
+  );
+}
+
+function Input({ icon, label, ...props }: any) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="relative">
+        <div className="absolute left-2 top-2.5 text-gray-500">
+          {icon}
+        </div>
+        <input {...props} className="input pl-8" />
+      </div>
+    </div>
   );
 }

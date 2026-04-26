@@ -39,6 +39,19 @@ const discountSchema = new mongoose.Schema(
       index: true,
     },
 
+    table: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Table",
+      default: null,
+      index: true,
+    },
+
+    sessionId: {
+      type: String,
+      default: null,
+      index: true,
+    },
+
     items: {
       type: [discountItemSchema],
       validate: [(val) => val.length > 0, "Debe incluir al menos un item"],
@@ -156,6 +169,8 @@ const discountSchema = new mongoose.Schema(
 discountSchema.index({ createdAt: -1 });
 discountSchema.index({ order: 1, createdAt: -1 });
 discountSchema.index({ appliedBy: 1, createdAt: -1 });
+discountSchema.index({ table: 1, createdAt: -1 });
+discountSchema.index({ sessionId: 1, createdAt: -1 });
 
 /* =========================================================
    VIRTUALS

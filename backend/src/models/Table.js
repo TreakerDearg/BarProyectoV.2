@@ -158,11 +158,9 @@ tableSchema.virtual("isInMaintenance").get(function () {
  * Puede recibir órdenes?
  */
 tableSchema.methods.canAcceptOrders = function () {
-  return (
-    this.status === "occupied" &&
-    !!this.currentSessionId &&
-    !this.isLocked
-  );
+  // En esta arquitectura, mesa ocupada queda bloqueada por diseño.
+  // El bloqueo evita apertura/cierre concurrente, no la toma de órdenes.
+  return this.status === "occupied" && !!this.currentSessionId;
 };
 
 /**

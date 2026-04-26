@@ -47,6 +47,28 @@ export const routesConfig = [
       },
     ],
   },
+  {
+    path: "/discounts",
+    title: "Descuentos Manuales",
+    children: [
+      {
+        path: "/discounts",
+        name: "Manual Apply",
+      },
+      {
+        path: "/discounts/dynamic-pricing",
+        name: "Dynamic Pricing",
+      },
+      {
+        path: "/discounts/promotions",
+        name: "Promotions",
+      },
+      {
+        path: "/discounts/events",
+        name: "Events",
+      },
+    ],
+  },
 
   /* ===============================
      PRODUCTS / INVENTORY

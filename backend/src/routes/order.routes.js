@@ -4,7 +4,12 @@ import {
   updateOrderItemStatus, deleteOrder, applyDiscount
 } from "../controllers/order.controller.js";
 import { validate } from "../middlewares/validate.js";
-import { createOrderSchema, updateOrderStatusSchema, updateItemStatusSchema } from "../utils/schemas.js";
+import {
+  createOrderSchema,
+  updateOrderStatusSchema,
+  updateItemStatusSchema,
+  applyDiscountSchema,
+} from "../utils/schemas.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -28,7 +33,7 @@ router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatus
    DISCOUNTS
 ========================================================= */
 
-router.post("/:orderId/discount", protect, applyDiscount);
+router.post("/:orderId/discount", protect, validate(applyDiscountSchema), applyDiscount);
 
 router.delete("/:orderId/discount/:discountId", ...adminOnly, (req, res) => {
   res.status(501).json({ success: false, message: "Not implemented yet" });

@@ -1,21 +1,30 @@
-// components/DiscountStats.tsx
+import type { DiscountStatsData } from "../types/discounts";
 
-export default function DiscountStats() {
+interface Props {
+  data: DiscountStatsData;
+  loading?: boolean;
+}
+
+export default function DiscountStats({ data, loading }: Props) {
   return (
     <div className="grid grid-cols-3 gap-4">
-      <div className="p-4 bg-surface-container rounded-xl">
-        <p>Total Today</p>
-        <p className="text-xl font-bold">-$142</p>
+      <div className="p-4 bg-surface-container border border-white/10 rounded-xl">
+        <p className="text-xs text-gray-400 uppercase tracking-wider">Today total</p>
+        <p className="text-xl font-bold text-primary">
+          {loading ? "..." : `-$${data.todayTotal.toFixed(2)}`}
+        </p>
       </div>
 
-      <div className="p-4 bg-surface-container rounded-xl">
-        <p>Approvals</p>
-        <p className="text-xl font-bold">∞</p>
+      <div className="p-4 bg-surface-container border border-white/10 rounded-xl">
+        <p className="text-xs text-gray-400 uppercase tracking-wider">Applied count</p>
+        <p className="text-xl font-bold text-white">{loading ? "..." : data.appliedCount}</p>
       </div>
 
-      <div className="p-4 bg-surface-container rounded-xl">
-        <p>Avg Discount</p>
-        <p className="text-xl font-bold">8.4%</p>
+      <div className="p-4 bg-surface-container border border-white/10 rounded-xl">
+        <p className="text-xs text-gray-400 uppercase tracking-wider">Average percent</p>
+        <p className="text-xl font-bold text-white">
+          {loading ? "..." : `${data.averagePercent.toFixed(1)}%`}
+        </p>
       </div>
     </div>
   );

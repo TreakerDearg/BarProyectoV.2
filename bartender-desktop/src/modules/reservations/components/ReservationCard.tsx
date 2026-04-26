@@ -1,136 +1,123 @@
-"use client";
+import { Play, Clock, Users } from "lucide-react";
 
-import {
-  Trash2,
-  Pencil,
-  Clock,
-  Users,
-  Phone,
-  MapPin,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  Sparkles,
-} from "lucide-react";
+/* =========================
+   SAFE TIME STATUS
+========================= */
+function getTimeStatus(startTime?: string) {
+  if (!startTime) return "unknown";
 
-import type { Reservation } from "../types/reservation";
+  const date = new Date(startTime);
+  if (isNaN(date.getTime())) return "unknown";
 
-const statusConfig: any = {
-  pending: {
-    label: "Pendiente",
-    color: "text-yellow-300",
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/30",
-    icon: AlertCircle,
-  },
-  confirmed: {
-    label: "Confirmada",
-    color: "text-green-300",
-    bg: "bg-green-500/10",
-    border: "border-green-500/30",
-    icon: CheckCircle2,
-  },
-  seated: {
-    label: "EN MESA",
-    color: "text-blue-300",
-    bg: "bg-blue-500/10 animate-pulse",
-    border: "border-blue-500/40",
-    icon: Sparkles,
-  },
-  cancelled: {
-    label: "Cancelada",
-    color: "text-red-300",
-    bg: "bg-red-500/10",
-    border: "border-red-500/30",
-    icon: XCircle,
-  },
+  const diff = (date.getTime() - Date.now()) / 60000;
+
+  if (diff < -10) return "late";
+  if (diff < 0) return "arriving";
+  if (diff < 30) return "soon";
+  return "future";
+}
+
+/* =========================
+   SAFE FORMAT TIME
+========================= */
+function formatTime(startTime?: string) {
+  if (!startTime) return "--:--";
+
+  const d = new Date(startTime);
+  if (isNaN(d.getTime())) return "--:--";
+
+  return d.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/* =========================
+   STATUS COLORS
+========================= */
+const timeStyles = {
+  late: "border-red-500 bg-red-500/10 text-red-400",
+  arriving: "border-yellow-400 bg-yellow-400/10 text-yellow-300",
+  soon: "border-blue-400 bg-blue-400/10 text-blue-300",
+  future: "border-obsidian bg-obsidian/30 text-gray-300",
+  unknown: "border-gray-700 bg-gray-800 text-gray-400",
 };
 
 export default function ReservationCard({
-  reservation,
-  onEdit,
-  onDelete,
-}: any) {
-  const status =
-    statusConfig[reservation.status] ?? statusConfig.pending;
+  r,
+  onSeat,
+}: {
+  r: any;
+  onSeat?: (id: string) => void;
+}) {
+  if (!r) return null;
 
-  const StatusIcon = status.icon;
+  const timeStatus = getTimeStatus(r.startTime);
+  const timeLabel = formatTime(r.startTime);
 
-  const table =
-    typeof reservation.tableId === "object"
-      ? reservation.tableId?.number
-      : "Auto";
+  const customer = r.customerName || "UNKNOWN";
+  const guests = r.guests ?? 0;
+  const tableNumber =
+    typeof r.table === "object"
+      ? r.table?.number
+      : r.table ?? "TBD";
+
+  const isSeated = r.status === "seated";
 
   return (
     <div
-      className={`relative group rounded-2xl border ${status.border} bg-gradient-to-b from-gray-900 to-gray-950 p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+      className={`p-4 rounded-xl border transition-all duration-200 hover:scale-[1.01]
+        ${timeStyles[timeStatus]}
+      `}
     >
-      {/* glow effect when seated */}
-      {reservation.status === "seated" && (
-        <div className="absolute inset-0 rounded-2xl bg-blue-500/5 blur-xl" />
-      )}
-
       {/* HEADER */}
-      <div className="flex justify-between items-start mb-3 relative z-10">
+      <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-white font-semibold text-lg">
-            {reservation.customerName}
-          </h3>
+          <p className="font-bold text-lg tracking-tight">
+            {customer}
+          </p>
 
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <Phone size={14} />
-            {reservation.customerPhone}
+          <div className="flex items-center gap-2 text-xs opacity-80 mt-1">
+            <Users size={12} />
+            {guests} pax
           </div>
         </div>
 
-        <div
-          className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs border ${status.bg} ${status.color} ${status.border}`}
-        >
-          <StatusIcon size={12} />
-          {status.label}
+        <div className="text-right">
+          <p className="text-sm font-bold flex items-center gap-1 justify-end">
+            <Clock size={12} />
+            {timeLabel}
+          </p>
+
+          <p className="text-[10px] uppercase opacity-70">
+            {timeStatus}
+          </p>
         </div>
       </div>
 
       {/* INFO */}
-      <div className="space-y-2 text-sm text-gray-300 relative z-10">
-        <div className="flex items-center gap-2">
-          <Clock size={14} />
-          {new Date(reservation.startTime).toLocaleTimeString()} →{" "}
-          {new Date(reservation.endTime).toLocaleTimeString()}
-        </div>
+      <div className="flex justify-between items-center mt-4">
 
-        <div className="flex items-center gap-2">
-          <MapPin size={14} />
-          Mesa <span className="text-white font-semibold">{table}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Users size={14} />
-          {reservation.guests} personas
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-800 relative z-10">
-        <span className="text-[11px] text-gray-500">
-          #{reservation._id?.slice(-6)}
+        <span className="text-xs opacity-70">
+          Table: {tableNumber}
         </span>
 
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
+        {/* ACTION */}
+        {!isSeated && onSeat && r._id && (
           <button
-            onClick={() => onEdit(reservation)}
-            className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+            onClick={() => onSeat(r._id)}
+            className="flex items-center gap-1 text-green-400 hover:text-green-300 text-xs"
           >
-            <Pencil size={16} />
+            <Play size={14} />
+            SEAT
           </button>
+        )}
 
-          <button
-            onClick={() => onDelete(reservation._id)}
-            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
+        {isSeated && (
+          <span className="text-xs text-green-400 font-bold">
+            SEATED
+          </span>
+        )}
       </div>
     </div>
   );

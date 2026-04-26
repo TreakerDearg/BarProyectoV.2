@@ -1,6 +1,15 @@
 import api from "../../../services/api";
 import type { Product } from "../../../types/product";
 
+const extractError = (error: any): string => {
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Unexpected error"
+  );
+};
+
 /* =========================
    NORMALIZER
 ========================= */
@@ -39,10 +48,13 @@ export const getProducts = async (): Promise<Product[]> => {
 export const createProduct = async (
   product: Product
 ): Promise<Product> => {
-  const payload = normalizeProduct(product);
-
-  const { data } = await api.post("/products", payload);
-  return data;
+  try {
+    const payload = normalizeProduct(product);
+    const { data } = await api.post("/products", payload);
+    return data;
+  } catch (error) {
+    throw new Error(extractError(error));
+  }
 };
 
 /* =========================
@@ -52,15 +64,24 @@ export const updateProduct = async (
   id: string,
   product: Product
 ): Promise<Product> => {
-  const payload = normalizeProduct(product);
+  try {
+    const payload = normalizeProduct(product);
 
-  const { data } = await api.patch(`/products/${id}`, payload);
-  return data;
+    const { data } = await api.put(`/products/${id}`, payload); // 👈 más estándar
+
+    return data;
+  } catch (error) {
+    console.error("UPDATE ERROR:", error);
+    throw new Error(extractError(error));
+  }
 };
-
 /* =========================
    DELETE
 ========================= */
 export const deleteProduct = async (id: string): Promise<void> => {
-  await api.delete(`/products/${id}`);
+  try {
+    await api.delete(`/products/${id}`);
+  } catch (error) {
+    throw new Error(extractError(error));
+  }
 };

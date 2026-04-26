@@ -611,3 +611,1036 @@
 {"level":"info","message":"[DB] Estado → disconnected","timestamp":"2026-04-24 23:38:44"}
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-24 23:38:44"}
 {"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-04-24 23:40:58"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:08:11"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:08:11"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:08:18"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:08:18"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:19"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:19"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:09:20"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:09:20"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:25"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:25"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:09:26"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:09:26"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:30"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:30"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:09:31"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:09:31"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:43"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:09:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:09:43"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:46"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:46"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:09:47"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:09:47"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:09:59"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:09:59"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:10:00"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:10:00"}
+{"level":"info","message":"[WS] Conectado → 5-F0p6l-brZUEcqOAAAB","timestamp":"2026-04-25 00:10:47"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-25 00:10:47"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-25 00:10:48"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:10:49"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:11:19"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:11:23"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:11:23"}
+{"level":"info","message":"[WS] Conectado → gVcqajGmMXWVNQkbAAAB","timestamp":"2026-04-25 00:11:23"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:11:24"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:11:24"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:11:38"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:11:38"}
+{"level":"info","message":"[WS] Conectado → C9LQ_i3n_5jU4PGRAAAB","timestamp":"2026-04-25 00:11:38"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:11:38"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:11:38"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:11:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:11:43"}
+{"level":"info","message":"[WS] Conectado → K5hfapl58CYA3g2uAAAB","timestamp":"2026-04-25 00:11:43"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:11:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:11:43"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:11:49"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:11:55"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:11:55"}
+{"level":"info","message":"[WS] Conectado → Uehjhlgh2CmoK_AwAAAB","timestamp":"2026-04-25 00:11:55"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:11:56"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:11:56"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:12:19"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:12:21"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:12:22"}
+{"level":"info","message":"[WS] Conectado → Wh0KXAFHKqrbSsSpAAAD","timestamp":"2026-04-25 00:12:24"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:12:24"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:12:24"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:12:27"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:12:27"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 00:12:30"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:13:46"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:13:46"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:13:47"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:13:47"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:13:48"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:13:48"}
+{"level":"info","message":"→ PATCH /api/reservations/69e567db94688923b5dd5e0a/status","timestamp":"2026-04-25 00:13:51"}
+{"level":"info","message":"[Reservation] Status → seated: 69e567db94688923b5dd5e0a","timestamp":"2026-04-25 00:13:51"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:13:51"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:13:55"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:14:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:14:20"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:14:21"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:22"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:22"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:14:23"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:14:23"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:14:25"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:14:25"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:26"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:26"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:14:27"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:14:27"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:14:28"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:14:28"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:29"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:29"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:14:31"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 00:14:33"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 00:14:34"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:14:34"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:14:35"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:14:35"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:14:35"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:36"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:36"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:37"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:14:37"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:37"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:14:37"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:37"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:14:38"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:14:39"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:14:39"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:15:38"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:15:39"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:15:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:15:43"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 00:15:44"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ec31e13748356e017454ac → mesa 69ec22078a4366f790a3e63e","timestamp":"2026-04-25 00:15:45"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:15:45"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:15:49"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:15:50"}
+{"level":"info","message":"→ GET /api/recipes/product/69e548c471134ae369d5ea95","timestamp":"2026-04-25 00:15:51"}
+{"level":"info","message":"→ PATCH /api/orders/69ec31e13748356e017454ac/status","timestamp":"2026-04-25 00:15:56"}
+{"level":"info","message":"[Order] 69ec31e13748356e017454ac → status: in-progress","timestamp":"2026-04-25 00:15:56"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:15:58"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:15:58"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:16:10"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:16:10"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:16:16"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:16:16"}
+{"level":"info","message":"→ PATCH /api/orders/69ec31e13748356e017454ac/status","timestamp":"2026-04-25 00:16:21"}
+{"level":"info","message":"[Order] Mesa 69ec22078a4366f790a3e63e → mantenimiento por cierre de sesión","timestamp":"2026-04-25 00:16:21"}
+{"level":"info","message":"[Order] 69ec31e13748356e017454ac → status: completed","timestamp":"2026-04-25 00:16:21"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:16:25"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:16:26"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:16:27"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:16:28"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:16:28"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:16:29"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:16:29"}
+{"level":"info","message":"→ POST /api/tables/69e51e3d477c89f171bb2d6b/close","timestamp":"2026-04-25 00:16:37"}
+{"level":"info","message":"[Table] Cerrada: mesa #8","timestamp":"2026-04-25 00:16:37"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:16:52"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:17:10"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:17:11"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:17:11"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:17:11"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:17:12"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:17:12"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:17:13"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:17:43"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:17:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:17:50"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:17:50"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:00"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:10"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:20"}
+{"level":"info","message":"[Order] Mesa 69ec22078a4366f790a3e63e → disponible","timestamp":"2026-04-25 00:18:21"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:30"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:40"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:18:50"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:19:00"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:19:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:20:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:21:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:22:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:23:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:24:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:25:42"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:26:41"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:26:41"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:26:42"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:26:42"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:26:42"}
+{"level":"info","message":"[WS] Conectado → j19P7f7u6bbw-5mEAAAC","timestamp":"2026-04-25 00:26:44"}
+{"level":"info","message":"[WS] Conectado → PhHD5XZrbOkTvqNSAAAD","timestamp":"2026-04-25 00:26:44"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"[WS] Conectado → kzB24GOms23p4MKBAAAC","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"[WS] Conectado → 6GQC8Bo5sGImpeKiAAAD","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:27:10"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:27:15"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:27:15"}
+{"level":"info","message":"[WS] Conectado → fGCMZFEfggaCGnwXAAAB","timestamp":"2026-04-25 00:27:15"}
+{"level":"info","message":"[WS] Conectado → 9RBfKUsAVQxPiYZbAAAD","timestamp":"2026-04-25 00:27:15"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:27:16"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:27:16"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:27:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:28:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:28:50"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:28:53"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:28:54"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:28:54"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:28:54"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:28:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:29:02"}
+{"level":"info","message":"[WS] Conectado → 2mKV0v0UjLhN751mAAAF","timestamp":"2026-04-25 00:29:02"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:29:02"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:29:02"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:29:02"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:29:04"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:29:04"}
+{"level":"info","message":"→ POST /api/tables/69e45291f7516acfc1ebce9c/open","timestamp":"2026-04-25 00:29:06"}
+{"level":"info","message":"[Table] Abierta: mesa #7 (session: 69ec350295b445db1f7f832f)","timestamp":"2026-04-25 00:29:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:14"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:14"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 00:29:19"}
+{"level":"info","message":"→ POST /api/tables/69e51e3d477c89f171bb2d6b/open","timestamp":"2026-04-25 00:29:28"}
+{"level":"info","message":"[Table] Abierta: mesa #8 (session: 69ec351895b445db1f7f8330)","timestamp":"2026-04-25 00:29:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:32"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:29:32"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 00:29:33"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ec351e95b445db1f7f8331 → mesa 69e51e3d477c89f171bb2d6b","timestamp":"2026-04-25 00:29:34"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:29:34"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:29:38"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:29:38"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:29:44"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:29:44"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:29:44"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:29:44"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:34:50"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:34:50"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:34:50"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:34:50"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:34:55"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:34:55"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:34:56"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:34:56"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:34:56"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:34:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:34:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:34:57"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:35:00"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:35:00"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:35:08"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:35:08"}
+{"level":"info","message":"[WS] Conectado → AOrC1UUreFF_FkqIAAAB","timestamp":"2026-04-25 00:35:08"}
+{"level":"info","message":"[WS] Conectado → 1kjLTxYDQE4dK9tMAAAE","timestamp":"2026-04-25 00:35:08"}
+{"level":"info","message":"[WS] Conectado → Ek5bbj4r0mUQbgXQAAAF","timestamp":"2026-04-25 00:35:08"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:35:09"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:35:09"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"[WS] Conectado → 0ajXJjJErgI0aU2yAAAB","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"[WS] Conectado → Zc_yc9FpS18UWmUAAAAD","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"[WS] Conectado → b-Kuu0cC5oIGC5O7AAAF","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:35:18"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:35:24"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:35:24"}
+{"level":"info","message":"[WS] Conectado → hfhzHmJeWxzNd5BuAAAD","timestamp":"2026-04-25 00:35:24"}
+{"level":"info","message":"[WS] Conectado → RFPWXWKk3dvvJYviAAAE","timestamp":"2026-04-25 00:35:24"}
+{"level":"info","message":"[WS] Conectado → z0uZLDvof3zANYIgAAAF","timestamp":"2026-04-25 00:35:24"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:35:25"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:35:25"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:35:31"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:35:31"}
+{"level":"info","message":"[WS] Conectado → YqjSAKToyHQsMOjbAAAB","timestamp":"2026-04-25 00:35:31"}
+{"level":"info","message":"[WS] Conectado → 9YJHbDpIoxYzliSvAAAD","timestamp":"2026-04-25 00:35:32"}
+{"level":"info","message":"[WS] Conectado → jKwiXQtvdmWkEaHCAAAF","timestamp":"2026-04-25 00:35:32"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:35:32"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:35:32"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:36:03"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:36:03"}
+{"level":"info","message":"[WS] Conectado → 03mIxdttafXig-XxAAAD","timestamp":"2026-04-25 00:36:03"}
+{"level":"info","message":"[WS] Conectado → ck6LXXLb8ZMJHxD6AAAE","timestamp":"2026-04-25 00:36:03"}
+{"level":"info","message":"[WS] Conectado → Xwt2x0tnInUN2Da-AAAF","timestamp":"2026-04-25 00:36:03"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:36:04"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:36:04"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:36:14"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:36:14"}
+{"level":"info","message":"[WS] Conectado → C56dF52dn4fVmhYfAAAB","timestamp":"2026-04-25 00:36:14"}
+{"level":"info","message":"[WS] Conectado → iiD0glGEMTfYKJJgAAAE","timestamp":"2026-04-25 00:36:14"}
+{"level":"info","message":"[WS] Conectado → MKxLp0pH2a-6qtD_AAAF","timestamp":"2026-04-25 00:36:14"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:36:15"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:36:15"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:36:19"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:36:19"}
+{"level":"info","message":"[WS] Conectado → RUwk4rOkhfgCEWvrAAAB","timestamp":"2026-04-25 00:36:19"}
+{"level":"info","message":"[WS] Conectado → lXAnFwbMbd9AbXdZAAAD","timestamp":"2026-04-25 00:36:20"}
+{"level":"info","message":"[WS] Conectado → qWj0DJtzS1QMMM43AAAF","timestamp":"2026-04-25 00:36:20"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:36:20"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:36:20"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 00:36:24"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 00:36:24"}
+{"level":"info","message":"[WS] Conectado → GWcnI1oUOTzQbI-oAAAD","timestamp":"2026-04-25 00:36:24"}
+{"level":"info","message":"[WS] Conectado → bcggpl_Udj1dxzj_AAAE","timestamp":"2026-04-25 00:36:24"}
+{"level":"info","message":"[WS] Conectado → mIE6vNQ-sBIBf03HAAAF","timestamp":"2026-04-25 00:36:24"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 00:36:25"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 00:36:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:39:31"}
+{"level":"info","message":"→ POST /api/roulette","timestamp":"2026-04-25 00:39:34"}
+{"body":{"category":"general","color":"#7A6BFA","name":"adas","price":0,"weight":10},"level":"error","message":"[POST] /api/roulette → 500 — E11000 duplicate key error collection: test.roulettedrinks index: name_1 collation: { locale: \"en\", caseLevel: false, caseFirst: \"off\", strength: 2, numericOrdering: false, alternate: \"non-ignorable\", maxVariable: \"punct\", normalization: false, backwards: false, version: \"57.1\" } dup key: { name: \"CollationKey(0x292f294d0108)\" }","method":"POST","path":"/api/roulette","stack":"MongoServerError: E11000 duplicate key error collection: test.roulettedrinks index: name_1 collation: { locale: \"en\", caseLevel: false, caseFirst: \"off\", strength: 2, numericOrdering: false, alternate: \"non-ignorable\", maxVariable: \"punct\", normalization: false, backwards: false, version: \"57.1\" } dup key: { name: \"CollationKey(0x292f294d0108)\" }\n    at InsertOneOperation.handleOk (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongodb\\lib\\operations\\insert.js:51:19)\n    at tryOperation (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongodb\\lib\\operations\\execute_operation.js:217:34)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async executeOperation (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongodb\\lib\\operations\\execute_operation.js:80:16)\n    at async Collection.insertOne (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongodb\\lib\\collection.js:154:16)\n    at async model.$__save (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongoose\\lib\\model.js:428:16)\n    at async model.save (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongoose\\lib\\model.js:667:5)\n    at async Function.create (C:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend\\node_modules\\mongoose\\lib\\model.js:2754:5)\n    at async createRouletteDrink (file:///C:/Users/Usuario/OneDrive/Escuela/Proyecto%20bartender/bartender-system/backend/src/controllers/roulette.controller.js:67:19)","timestamp":"2026-04-25 00:39:34"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:39"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:39"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:41"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:41"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:41"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:41"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 00:39:42"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 00:39:48"}
+{"level":"info","message":"[Roulette] Resultado: azucar","timestamp":"2026-04-25 00:39:49"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 00:40:03"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:40:17"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:40:17"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:40:23"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:40:23"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:39"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:41"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:42"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:43"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:43"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:50"}
+{"level":"info","message":"→ POST /api/users/employees","timestamp":"2026-04-25 00:40:56"}
+{"level":"info","message":"[User] Empleado creado: le22@gmail.com (bartender)","timestamp":"2026-04-25 00:40:57"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:40:57"}
+{"level":"info","message":"→ POST /api/auth/login","timestamp":"2026-04-25 00:41:08"}
+{"level":"info","message":"[Auth] Login exitoso: le22@gmail.com (bartender)","timestamp":"2026-04-25 00:41:08"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:41:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:11"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:11"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:41:12"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 00:41:12"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:41:15"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 00:41:15"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 00:41:16"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 00:41:16"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:41:17"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 00:41:17"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 00:41:28"}
+{"level":"info","message":"→ POST /api/roulette","timestamp":"2026-04-25 00:41:32"}
+{"level":"info","message":"→ POST /api/roulette","timestamp":"2026-04-25 00:41:32"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:41:38"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:41:38"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 00:41:38"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 00:41:38"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:41:40"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 00:41:40"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:41:42"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 00:41:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:41:44"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 00:41:44"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 00:41:45"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-04-25 00:42:05"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-04-25 20:53:34"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-04-25 20:53:34"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-04-25 20:53:35"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-04-25 20:53:35"}
+{"level":"info","message":"[WS] Conectado → wW_CUNuqy6Dn-verAAAB","timestamp":"2026-04-25 20:54:24"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-25 20:54:24"}
+{"level":"info","message":"→ GET /api/auth/me","timestamp":"2026-04-25 20:54:24"}
+{"level":"info","message":"→ POST /api/auth/login","timestamp":"2026-04-25 20:54:41"}
+{"level":"info","message":"[Auth] Login exitoso: admin@bar.com (admin)","timestamp":"2026-04-25 20:54:41"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 20:54:42"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:54:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:54:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:54:55"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:55:05"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:55:15"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:55:25"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:55:35"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:55:45"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:56:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:57:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:35"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 20:58:37"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 20:58:37"}
+{"level":"info","message":"[WS] Conectado → vX9EEurYuIZw3YINAAAD","timestamp":"2026-04-25 20:58:37"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:38"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:38"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:48"}
+{"level":"info","message":"→ PATCH /api/orders/69ec351e95b445db1f7f8331/status","timestamp":"2026-04-25 20:58:56"}
+{"level":"info","message":"[Order] Mesa 69e51e3d477c89f171bb2d6b → mantenimiento por cierre de sesión","timestamp":"2026-04-25 20:58:56"}
+{"level":"info","message":"[Order] 69ec351e95b445db1f7f8331 → status: completed","timestamp":"2026-04-25 20:58:56"}
+{"level":"info","message":"→ GET /api/recipes/product/69e548c471134ae369d5ea95","timestamp":"2026-04-25 20:58:58"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:58:58"}
+{"level":"info","message":"→ GET /api/recipes/product/69e548c471134ae369d5ea95","timestamp":"2026-04-25 20:58:59"}
+{"level":"info","message":"→ PATCH /api/orders/69ec31e13748356e017454ac/status","timestamp":"2026-04-25 20:59:04"}
+{"level":"info","message":"→ DELETE /api/orders/69ec31e13748356e017454ac","timestamp":"2026-04-25 20:59:08"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:59:08"}
+{"level":"info","message":"[Order] Eliminada: 69ec31e13748356e017454ac","timestamp":"2026-04-25 20:59:08"}
+{"level":"info","message":"→ DELETE /api/orders/69ec351e95b445db1f7f8331","timestamp":"2026-04-25 20:59:10"}
+{"level":"info","message":"[Order] Eliminada: 69ec351e95b445db1f7f8331","timestamp":"2026-04-25 20:59:10"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 20:59:12"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 20:59:12"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 20:59:14"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 20:59:14"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 20:59:15"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ed55540d04332317d38442 → mesa 69ebb27c71156f67b5d12305","timestamp":"2026-04-25 20:59:16"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 20:59:16"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:59:26"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 20:59:26"}
+{"level":"info","message":"→ PATCH /api/orders/69ed55540d04332317d38442/status","timestamp":"2026-04-25 20:59:32"}
+{"level":"info","message":"[Order] 69ed55540d04332317d38442 → status: in-progress","timestamp":"2026-04-25 20:59:32"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 20:59:34"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 20:59:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 20:59:44"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 20:59:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 20:59:46"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 20:59:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 20:59:46"}
+{"level":"info","message":"→ POST /api/orders/69ed55540d04332317d38442/discount","timestamp":"2026-04-25 21:00:00"}
+{"level":"info","message":"[Order] Descuento de $9.84 aplicado a 69ed55540d04332317d38442","timestamp":"2026-04-25 21:00:00"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:00:00"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:00:00"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:00:05"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:00:05"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:00:05"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:00:06"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:00:06"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:00:06"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:00:07"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:00:07"}
+{"level":"info","message":"→ PATCH /api/orders/69ed55540d04332317d38442/status","timestamp":"2026-04-25 21:00:09"}
+{"level":"info","message":"[Order] Mesa 69ebb27c71156f67b5d12305 → mantenimiento por cierre de sesión","timestamp":"2026-04-25 21:00:09"}
+{"level":"info","message":"[Order] 69ed55540d04332317d38442 → status: completed","timestamp":"2026-04-25 21:00:09"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:00:11"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:00:41"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:00:56"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:00:56"}
+{"level":"info","message":"[Order] Mesa 69e51e3d477c89f171bb2d6b → disponible","timestamp":"2026-04-25 21:00:57"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:00:59"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:01:00"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:01:00"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:01:00"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:01:01"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:01:01"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:01:01"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:01:01"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:01:02"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:01:02"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:01:03"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:01:03"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:03"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:03"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:11"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:20"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:28"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:36"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:44"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:01:52"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:00"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:08"}
+{"level":"info","message":"[Order] Mesa 69ebb27c71156f67b5d12305 → disponible","timestamp":"2026-04-25 21:02:09"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:29"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:02:30"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:02:30"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:31"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:31"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:32"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:32"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:32"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:32"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:32"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:33"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:02:38"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:02:39"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:39"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:39"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:39"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:39"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:41"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:41"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:42"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:42"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:02:42"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:02:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:48"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:48"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 21:02:48"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 21:02:48"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 21:02:49"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 21:02:49"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 21:02:50"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 21:02:50"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 21:02:51"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 21:02:51"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:51"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:02:51"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:51"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:02:52"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:52"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:02:52"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 21:02:53"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 21:02:53"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:53"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:54"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:54"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:02:54"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:55"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:02:55"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:03:26"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:03:27"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:03:33"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:03:33"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:03:41"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:03:42"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:03:45"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:03:45"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:03:45"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:03:45"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:03:46"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:03:46"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:06:03"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:06:52"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:06:52"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:07:00"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:07:01"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:07:28"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:07:59"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:08:01"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:08:01"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:08:06"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:08:06"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:09:38"}
+{"level":"info","message":"→ GET /api/reservations/available/tables?startTime=2026-04-27T00%3A09%3A00.000Z&endTime=2026-04-27T05%3A09%3A00.000Z&guests=1","timestamp":"2026-04-25 21:09:46"}
+{"level":"info","message":"→ POST /api/reservations","timestamp":"2026-04-25 21:09:49"}
+{"level":"info","message":"[Reservation] Creada: sasa → 26/4/2026, 09:09:00","timestamp":"2026-04-25 21:09:49"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:09:49"}
+{"level":"info","message":"→ PATCH /api/reservations/69ed57cd0d04332317d38447/status","timestamp":"2026-04-25 21:10:04"}
+{"level":"info","message":"[Reservation] Status → seated: 69ed57cd0d04332317d38447","timestamp":"2026-04-25 21:10:04"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:10:15"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:10:15"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:17"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:17"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:10:19"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:33"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:33"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:10:35"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:42"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:42"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:10:44"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ed58040d04332317d38449 → mesa 69e4169b70fa8a3afbc65011","timestamp":"2026-04-25 21:10:44"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:10:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:48"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:10:48"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:10:50"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ed580a0d04332317d3844b → mesa 69e45291f7516acfc1ebce9c","timestamp":"2026-04-25 21:10:50"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:10:50"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:10:51"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:10:52"}
+{"level":"info","message":"→ PATCH /api/orders/69ed58040d04332317d38449/status","timestamp":"2026-04-25 21:10:54"}
+{"level":"info","message":"[Order] Mesa 69e4169b70fa8a3afbc65011 → mantenimiento por cierre de sesión","timestamp":"2026-04-25 21:10:54"}
+{"level":"info","message":"[Order] 69ed58040d04332317d38449 → status: completed","timestamp":"2026-04-25 21:10:54"}
+{"level":"info","message":"→ PATCH /api/orders/69ed580a0d04332317d3844b/status","timestamp":"2026-04-25 21:10:54"}
+{"level":"info","message":"[Order] Mesa 69e45291f7516acfc1ebce9c → mantenimiento por cierre de sesión","timestamp":"2026-04-25 21:10:55"}
+{"level":"info","message":"[Order] 69ed580a0d04332317d3844b → status: completed","timestamp":"2026-04-25 21:10:55"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:10:59"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:03"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:03"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:11:04"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:11:04"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:12"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:13"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:16"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:11:29"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:11:29"}
+{"level":"info","message":"→ POST /api/tables/69e4169970fa8a3afbc65010/close","timestamp":"2026-04-25 21:11:39"}
+{"level":"info","message":"[Table] Cerrada: mesa #2","timestamp":"2026-04-25 21:11:39"}
+{"level":"info","message":"→ POST /api/tables/69e4160f70fa8a3afbc6500f/close","timestamp":"2026-04-25 21:11:41"}
+{"level":"info","message":"[Table] Cerrada: mesa #1","timestamp":"2026-04-25 21:11:42"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:44"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:11:46"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:11:48"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:12:19"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:12:49"}
+{"level":"info","message":"[Order] Mesa 69e4169b70fa8a3afbc65011 → disponible","timestamp":"2026-04-25 21:12:54"}
+{"level":"info","message":"[Order] Mesa 69e45291f7516acfc1ebce9c → disponible","timestamp":"2026-04-25 21:12:55"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:13:19"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:13:49"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:14:19"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:14:49"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:16:16"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:17:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:18:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:19:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:20:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:21:17"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 21:21:30"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:21:33"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:21:33"}
+{"level":"info","message":"→ PUT /api/tables/69e4169970fa8a3afbc65010","timestamp":"2026-04-25 21:24:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:27:34"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:27:35"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:27:35"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:27:36"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:29:28"}
+{"level":"info","message":"[WS] Conectado → aB8pzWKUp6CIK2cpAAAF","timestamp":"2026-04-25 21:29:28"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:29:28"}
+{"level":"info","message":"→ POST /api/tables/69e567e994688923b5dd5e0b/close","timestamp":"2026-04-25 21:29:34"}
+{"level":"info","message":"→ PUT /api/tables/69e567e994688923b5dd5e0b","timestamp":"2026-04-25 21:29:44"}
+{"level":"info","message":"→ POST /api/tables/69e45291f7516acfc1ebce9c/open","timestamp":"2026-04-25 21:29:54"}
+{"level":"info","message":"[Table] Abierta: mesa #7 (session: 69ed5c820d04332317d3844f)","timestamp":"2026-04-25 21:29:54"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:29:54"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:29:54"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:29:58"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:29:58"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:30:00"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:07"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:30:09"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:15"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:15"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:30:18"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:20"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:21"}
+{"level":"info","message":"→ POST /api/orders","timestamp":"2026-04-25 21:30:23"}
+{"level":"info","message":"[Order] Nueva orden creada: 69ed5c9f0d04332317d38450 → mesa 69e45291f7516acfc1ebce9c","timestamp":"2026-04-25 21:30:23"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:30:23"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 21:30:31"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 21:30:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:31"}
+{"level":"info","message":"→ DELETE /api/products/69ea554e57f5bb679569e83f","timestamp":"2026-04-25 21:30:36"}
+{"level":"info","message":"[Product] Eliminado: adas","timestamp":"2026-04-25 21:30:36"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:36"}
+{"level":"info","message":"→ DELETE /api/products/69e527d22f42315d5e5e09ed","timestamp":"2026-04-25 21:30:39"}
+{"level":"info","message":"[Product] Eliminado: asdad","timestamp":"2026-04-25 21:30:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:40"}
+{"level":"info","message":"→ DELETE /api/products/69e42bb1b656d15507388e5e","timestamp":"2026-04-25 21:30:41"}
+{"level":"info","message":"[Product] Eliminado: sadasdasd","timestamp":"2026-04-25 21:30:41"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:41"}
+{"level":"info","message":"→ DELETE /api/products/69e3e175f4a504fb43197394","timestamp":"2026-04-25 21:30:43"}
+{"level":"info","message":"[Product] Eliminado: asdasda","timestamp":"2026-04-25 21:30:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:30:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:30:56"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 21:30:56"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:30:56"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 21:30:56"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:32:20"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:32:20"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:32:26"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:32:26"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:33:28"}
+{"level":"info","message":"→ PATCH /api/products/69e548c471134ae369d5ea95","timestamp":"2026-04-25 21:35:32"}
+{"level":"info","message":"→ POST /api/products","timestamp":"2026-04-25 21:37:32"}
+{"level":"info","message":"[Product] Creado: azucar2","timestamp":"2026-04-25 21:37:32"}
+{"level":"info","message":"→ PATCH /api/products/69e548c471134ae369d5ea95","timestamp":"2026-04-25 21:38:04"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:38:58"}
+{"level":"info","message":"→ PUT /api/products/69e548c471134ae369d5ea95","timestamp":"2026-04-25 21:38:59"}
+{"level":"info","message":"[Product] Actualizado: azucar","timestamp":"2026-04-25 21:38:59"}
+{"level":"info","message":"→ PUT /api/products/69e548c471134ae369d5ea95","timestamp":"2026-04-25 21:39:07"}
+{"level":"info","message":"[Product] Actualizado: azucar5","timestamp":"2026-04-25 21:39:07"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:42:09"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:24"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:46:24"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:24"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:46:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:25"}
+{"level":"info","message":"→ POST /api/roulette","timestamp":"2026-04-25 21:46:30"}
+{"level":"info","message":"[Roulette] Creado: azucar2","timestamp":"2026-04-25 21:46:30"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:46:36"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 21:46:37"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:38"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:46:38"}
+{"level":"info","message":"→ POST /api/products","timestamp":"2026-04-25 21:47:13"}
+{"level":"info","message":"[Product] Creado: fafsaf","timestamp":"2026-04-25 21:47:13"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:47:25"}
+{"level":"info","message":"→ POST /api/roulette","timestamp":"2026-04-25 21:47:27"}
+{"level":"info","message":"[Roulette] Creado: fafsaf","timestamp":"2026-04-25 21:47:27"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:47:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:47:42"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:49:21"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:52:06"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:52:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:52:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:52:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:52:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:52:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:52:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:52:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:52:17"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:52:17"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:52:17"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:52:17"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 21:52:21"}
+{"level":"info","message":"[Roulette] Resultado: adas","timestamp":"2026-04-25 21:52:21"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 21:54:50"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:54:50"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 21:54:50"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:42"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:45"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:48"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:54"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:54"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:54"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:54"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:55"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:55"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:55"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:55"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:56"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:57"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:58"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:58"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:58"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:58"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:56:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:56:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:56:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:56:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:57:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:57:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:13"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:22"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:22"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:22"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:22"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:22"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 21:57:26"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:57:26"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 21:57:26"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 21:57:26"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:59:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:59:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:59:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 21:59:59"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:00"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:00:02"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:02"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:00:02"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:00:02"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:00:08"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:02:10"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:16"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:19"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:02:23"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:02:23"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:23"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:23"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:25"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:02:28"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:28"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:02:28"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:28"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea46c54bcb87613a42366d","timestamp":"2026-04-25 22:02:29"}
+{"level":"info","message":"→ PATCH /api/roulette/69ea559757f5bb679569e841","timestamp":"2026-04-25 22:02:29"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed60660d04332317d38454","timestamp":"2026-04-25 22:02:29"}
+{"level":"info","message":"→ PATCH /api/roulette/69ed609f0d04332317d38457","timestamp":"2026-04-25 22:02:29"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:02:35"}
+{"level":"info","message":"[Roulette] Resultado: fafsaf","timestamp":"2026-04-25 22:02:35"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:02:35"}
+{"level":"info","message":"[Roulette] Resultado: azucar2","timestamp":"2026-04-25 22:02:36"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:02:36"}
+{"level":"info","message":"[Roulette] Resultado: fafsaf","timestamp":"2026-04-25 22:02:36"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:02:37"}
+{"level":"info","message":"[Roulette] Resultado: fafsaf","timestamp":"2026-04-25 22:02:37"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:04:03"}
+{"level":"info","message":"[Roulette] Resultado: azucar2","timestamp":"2026-04-25 22:04:03"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:30"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:04:30"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:30"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:04:30"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:04:33"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:04:45"}
+{"level":"info","message":"[Roulette] Resultado: azucar2","timestamp":"2026-04-25 22:04:45"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:06:12"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:06:12"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:06:12"}
+{"level":"info","message":"→ POST /api/roulette/spin","timestamp":"2026-04-25 22:06:17"}
+{"level":"info","message":"[Roulette] Resultado: azucar","timestamp":"2026-04-25 22:06:18"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:07:38"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:07:38"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:07:44"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:07:44"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:07:47"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:07:47"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:08:37"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:08:38"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:08:39"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:08:39"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:40"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:08:41"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:08:41"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:08:43"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:08:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:43"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:08:43"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:44"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:08:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:44"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:08:44"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:08:54"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:09:25"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:09:55"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:10:25"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:10:55"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:11:25"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:11:43"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:11:43"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:11:43"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:11:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:11:44"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:11:44"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:11:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:11:46"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:11:46"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:11:46"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:11:49"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:11:49"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:11:49"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:11:49"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:12:22"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:12:22"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:26"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:26"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:27"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:27"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 22:13:29"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 22:13:29"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:13:29"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:13:30"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:13:30"}
+{"level":"info","message":"→ GET /api/users/employees","timestamp":"2026-04-25 22:13:30"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/roulette","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:13:31"}
+{"level":"info","message":"→ GET /api/dashboard","timestamp":"2026-04-25 22:13:35"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:13:48"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:13:48"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:13:48"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:13:48"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:49"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:49"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:13:50"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:13:50"}
+{"level":"info","message":"→ GET /api/discounts?limit=300","timestamp":"2026-04-25 22:13:50"}
+{"level":"info","message":"→ GET /api/orders?sessionStatus=open","timestamp":"2026-04-25 22:13:50"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:52"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:13:52"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:13:52"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:13:52"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:13:54"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:13:54"}
+{"level":"info","message":"→ PATCH /api/orders/69ed5c9f0d04332317d38450/status","timestamp":"2026-04-25 22:13:59"}
+{"level":"info","message":"[Order] Mesa 69e45291f7516acfc1ebce9c → mantenimiento por cierre de sesión","timestamp":"2026-04-25 22:14:00"}
+{"level":"info","message":"[Order] 69ed5c9f0d04332317d38450 → status: completed","timestamp":"2026-04-25 22:14:00"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:02"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:11"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:19"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:27"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:35"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:43"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:51"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:14:59"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:15:17"}
+{"level":"info","message":"[Order] Mesa 69e45291f7516acfc1ebce9c → disponible","timestamp":"2026-04-25 22:16:00"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:16:17"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:17:10"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:17:12"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:17:12"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 22:17:40"}
+{"level":"info","message":"→ GET /api/inventory","timestamp":"2026-04-25 22:17:40"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 22:17:40"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 22:17:41"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:17:45"}
+{"level":"info","message":"→ GET /api/recipes","timestamp":"2026-04-25 22:17:45"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 22:17:47"}
+{"level":"info","message":"→ GET /api/menus","timestamp":"2026-04-25 22:17:47"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:17:48"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:17:48"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:17:55"}
+{"level":"info","message":"→ GET /api/orders","timestamp":"2026-04-25 22:17:55"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:17:56"}
+{"level":"info","message":"→ GET /api/tables","timestamp":"2026-04-25 22:17:56"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:17:56"}
+{"level":"info","message":"→ GET /api/reservations","timestamp":"2026-04-25 22:17:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:17:57"}
+{"level":"info","message":"→ GET /api/products","timestamp":"2026-04-25 22:17:57"}
+{"level":"info","message":"→ PUT /api/products/69ec2693df83856ca74e9b87","timestamp":"2026-04-25 22:18:12"}
+{"level":"info","message":"[Product] Actualizado: fagfagsadssd","timestamp":"2026-04-25 22:18:12"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-04-25 22:18:34"}

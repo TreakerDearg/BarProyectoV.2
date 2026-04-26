@@ -72,6 +72,8 @@ export const applyDiscount = async (req, res, next) => {
 
     const [discount] = await Discount.create([{
       order: orderId,
+      table: order.table || null,
+      sessionId: order.sessionId || null,
       items: validatedItems,
       type, value,
       amountApplied:    discountAmount,

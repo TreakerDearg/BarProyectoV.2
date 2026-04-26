@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   getRouletteDrinks,
   createRouletteDrink,
@@ -13,9 +13,7 @@ import type {
   RouletteSpinResult,
 } from "../types/roulette";
 
-/* ==============================
-   TYPES
-============================== */
+/* ============================== */
 type LogLevel = "system" | "admin" | "event" | "alert";
 
 interface RouletteLog {
@@ -25,14 +23,9 @@ interface RouletteLog {
   timestamp: string;
 }
 
-/* ==============================
-   CONFIG
-============================== */
 const MAX_LOGS = 50;
 
-/* ==============================
-   HOOK
-============================== */
+/* ============================== */
 export const useRoulette = () => {
   const [drinks, setDrinks] = useState<RouletteDrink[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,143 +34,125 @@ export const useRoulette = () => {
     useState<RouletteSpinResult | null>(null);
   const [logs, setLogs] = useState<RouletteLog[]>([]);
 
-  /* ==============================
-     LOG ENGINE (ANTI DUPLICATE)
-  ============================== */
-  const pushLog = useCallback(
-    (level: LogLevel, message: string) => {
-      setLogs((prev) => {
-        // ❗ evitar duplicados consecutivos
-        if (prev[0]?.message === message) return prev;
-
-        return [
-          {
-            id: crypto.randomUUID(),
-            level,
-            message,
-            timestamp: new Date().toISOString(),
-          },
-          ...prev.slice(0, MAX_LOGS - 1),
-        ];
-      });
-    },
-    []
-  );
+  const drinksRef = useRef<RouletteDrink[]>([]);
 
   /* ==============================
-     LOAD (SILENT)
+     KEEP REF SYNC
   ============================== */
-  const load = async (silent = false) => {
+  useEffect(() => {
+    drinksRef.current = drinks;
+  }, [drinks]);
+
+  /* ==============================
+     LOG ENGINE
+  ============================== */
+  const pushLog = useCallback((level: LogLevel, message: string) => {
+    setLogs((prev) => {
+      if (prev[0]?.message === message) return prev;
+
+      return [
+        {
+          id: crypto.randomUUID(),
+          level,
+          message,
+          timestamp: new Date().toISOString(),
+        },
+        ...prev.slice(0, MAX_LOGS - 1),
+      ];
+    });
+  }, []);
+
+  /* ==============================
+     LOAD
+  ============================== */
+  const load = useCallback(async (silent = false) => {
     setLoading(true);
 
     try {
       const data = await getRouletteDrinks();
       setDrinks(data);
 
-      if (!silent) {
-        pushLog("system", "Roulette sync OK");
-      }
-    } catch (err) {
-      console.error(err);
-      pushLog("alert", "Error cargando ruleta");
+      if (!silent) pushLog("system", "Roulette synced");
+    } catch {
+      pushLog("alert", "Error loading roulette");
     } finally {
       setLoading(false);
     }
-  };
+  }, [pushLog]);
 
   /* ==============================
      CREATE
   ============================== */
-  const create = async (drink: Partial<RouletteDrink>) => {
+  const create = useCallback(async (drink: Partial<RouletteDrink>) => {
     try {
       const newDrink = await createRouletteDrink(drink);
 
       setDrinks((prev) => [...prev, newDrink]);
-
-      pushLog(
-        "event",
-        `Added '${newDrink.name}' to roulette`
-      );
+      pushLog("event", `Added '${newDrink.name}'`);
     } catch {
-      pushLog("alert", "Error creando trago");
+      pushLog("alert", "Create failed");
     }
-  };
+  }, [pushLog]);
 
   /* ==============================
-     UPDATE
+     UPDATE (SAFE + NO STALE)
   ============================== */
-  const update = async (
-    id: string,
-    updates: Partial<RouletteDrink>
-  ) => {
-    const prevDrink = drinks.find((d) => d._id === id);
-    if (!prevDrink) return;
+  const update = useCallback(
+    async (id: string, updates: Partial<RouletteDrink>) => {
+      const prev = drinksRef.current;
 
-    // optimistic
-    setDrinks((prev) =>
-      prev.map((d) =>
-        d._id === id ? { ...d, ...updates } : d
-      )
-    );
+      setDrinks((current) =>
+        current.map((d) =>
+          d._id === id ? { ...d, ...updates } : d
+        )
+      );
 
-    try {
-      await updateRouletteDrink(id, updates);
+      try {
+        await updateRouletteDrink(id, updates);
 
-      if (updates.weight !== undefined) {
-        pushLog(
-          "admin",
-          `'${prevDrink.name}' weight ${prevDrink.weight} → ${updates.weight}`
-        );
+        const target = prev.find((d) => d._id === id);
+
+        if (!target) return;
+
+        if (updates.weight !== undefined) {
+          pushLog(
+            "admin",
+            `${target.name}: ${target.weight} → ${updates.weight}`
+          );
+        }
+      } catch {
+        setDrinks(prev);
+        pushLog("alert", "Update failed (rollback)");
       }
-
-      if (updates.active !== undefined) {
-        pushLog(
-          updates.active ? "system" : "alert",
-          `${updates.active ? "Enabled" : "Disabled"} '${prevDrink.name}'`
-        );
-      }
-
-      if (updates.color) {
-        pushLog(
-          "event",
-          `Color changed for '${prevDrink.name}'`
-        );
-      }
-    } catch (err) {
-      console.error(err);
-      pushLog("alert", "Update failed");
-      await load(true);
-    }
-  };
+    },
+    [pushLog]
+  );
 
   /* ==============================
      DELETE
   ============================== */
-  const remove = async (id: string) => {
-    const drink = drinks.find((d) => d._id === id);
+  const remove = useCallback(async (id: string) => {
+    const prev = drinksRef.current;
+    const drink = prev.find((d) => d._id === id);
+
+    setDrinks((current) =>
+      current.filter((d) => d._id !== id)
+    );
 
     try {
       await deleteRouletteDrink(id);
 
-      setDrinks((prev) =>
-        prev.filter((d) => d._id !== id)
-      );
-
-      if (drink) {
-        pushLog(
-          "alert",
-          `Removed '${drink.name}' from roulette`
-        );
-      }
+      if (drink) pushLog("alert", `Removed '${drink.name}'`);
     } catch {
+      setDrinks(prev);
       pushLog("alert", "Delete failed");
     }
-  };
+  }, [pushLog]);
 
   /* ==============================
-     SPIN (PREPARED FOR ANIMATION)
+     SPIN (SMART UPDATE)
   ============================== */
-  const spin = async () => {
+  const spin = useCallback(async () => {
     if (spinning) return;
 
     setSpinning(true);
@@ -185,16 +160,22 @@ export const useRoulette = () => {
     try {
       const result = await spinRoulette();
 
-      // ⚠️ IMPORTANTE:
-      // NO setLastResult todavía si vas a animar la ruleta
-      // lo vamos a usar después en la wheel
-
       setLastResult(result);
 
-      pushLog(
-        "system",
-        `Spin result → '${result.result.name}'`
+      //  actualizar stats localmente
+      setDrinks((prev) =>
+        prev.map((d) =>
+          d._id === result.result._id
+            ? {
+                ...d,
+                totalSpins: (d.totalSpins ?? 0) + 1,
+                lastSelectedAt: new Date().toISOString(),
+              }
+            : d
+        )
       );
+
+      pushLog("system", `Result → ${result.result.name}`);
 
       return result;
     } catch {
@@ -202,53 +183,136 @@ export const useRoulette = () => {
     } finally {
       setSpinning(false);
     }
-  };
+  }, [spinning, pushLog]);
+
+  /* ==============================
+     AUTO BALANCE PRO
+  ============================== */
+  const autoBalance = useCallback(
+    async (mode: "equal" | "smart" | "smooth" = "smart") => {
+      const current = drinksRef.current.filter((d) => d.active);
+
+      if (!current.length) return;
+
+      let updated: RouletteDrink[] = [];
+
+      if (mode === "equal") {
+        const weight = Math.floor(100 / current.length);
+
+        updated = current.map((d) => ({
+          ...d,
+          weight,
+        }));
+      }
+
+      if (mode === "smooth") {
+        const avg =
+          current.reduce((acc, d) => acc + d.weight, 0) /
+          current.length;
+
+        updated = current.map((d) => ({
+          ...d,
+          weight: Math.round((d.weight + avg) / 2),
+        }));
+      }
+
+      if (mode === "smart") {
+        const now = Date.now();
+
+        updated = current.map((d) => {
+          const spins = d.totalSpins ?? 0;
+
+          const last = d.lastSelectedAt
+            ? new Date(d.lastSelectedAt).getTime()
+            : 0;
+
+          const recency =
+            last > 0
+              ? Math.min((now - last) / 3600000, 24)
+              : 24;
+
+          const weight =
+            (1 / (spins + 1)) * 50 +
+            (recency / 24) * 30 +
+            (d.category === "premium" ? 20 : 10);
+
+          return {
+            ...d,
+            weight: Math.round(weight),
+          };
+        });
+      }
+
+      //  APPLY UI
+      setDrinks((prev) =>
+        prev.map((d) => {
+          const found = updated.find((u) => u._id === d._id);
+          return found ? found : d;
+        })
+      );
+
+      //  SINGLE BATCH (mejor práctica real sería endpoint batch)
+      await Promise.all(
+        updated.map((d) =>
+          updateRouletteDrink(d._id, { weight: d.weight })
+        )
+      );
+
+      pushLog("admin", `AutoBalance → ${mode.toUpperCase()}`);
+    },
+    [pushLog]
+  );
 
   /* ==============================
      DERIVED
   ============================== */
   const totalWeight = useMemo(() => {
-    return drinks.reduce((acc, d) => acc + d.weight, 0);
+    return drinks
+      .filter((d) => d.active)
+      .reduce((acc, d) => acc + d.weight, 0);
   }, [drinks]);
 
   const drinksWithProbability = useMemo(() => {
     return drinks.map((d) => ({
       ...d,
-      probability: totalWeight
-        ? (d.weight / totalWeight) * 100
-        : 0,
+      probability:
+        d.active && totalWeight
+          ? (d.weight / totalWeight) * 100
+          : 0,
     }));
   }, [drinks, totalWeight]);
 
   /* ==============================
-     SOCKETS (CONTROLLED)
+     SOCKETS (MERGE SAFE)
   ============================== */
   useEffect(() => {
     rouletteSocket.onUpdate((data) => {
-      setDrinks(data);
+      setDrinks((prev) => {
+        // merge inteligente
+        const map = new Map(prev.map((d) => [d._id, d]));
+
+        data.forEach((d) => map.set(d._id, d));
+
+        return Array.from(map.values());
+      });
+
       pushLog("system", "Realtime sync");
     });
 
     rouletteSocket.onSpin((result) => {
       setLastResult(result);
-
-      pushLog(
-        "event",
-        `Remote spin → '${result.result.name}'`
-      );
+      pushLog("event", `Remote → ${result.result.name}`);
     });
 
-    return () => {
-      rouletteSocket.offAll();
-    };
+    return () => rouletteSocket.offAll();
   }, [pushLog]);
 
   /* ==============================
      INIT
   ============================== */
   useEffect(() => {
-    load(true); // silent first load
-  }, []);
+    load(true);
+  }, [load]);
 
   return {
     drinks: drinksWithProbability,
@@ -264,6 +328,7 @@ export const useRoulette = () => {
       update,
       remove,
       spin,
+      autoBalance, 
     },
   };
 };

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Recipe        from "../models/Recipe.js";
 import InventoryItem from "../models/InventoryItem.js";
+import Product       from "../models/Product.js";
 import { logger }    from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict,
@@ -65,6 +66,12 @@ export const createRecipe = async (req, res, next) => {
       return badRequest(res, "Debes agregar al menos un ingrediente");
     }
 
+    const productDoc = await Product.findById(product);
+    if (!productDoc) return badRequest(res, "Producto no encontrado");
+    if (productDoc.type !== type) {
+      return badRequest(res, "El tipo de receta debe coincidir con el tipo del producto");
+    }
+
     const exists = await Recipe.findOne({ product });
     if (exists) return conflict(res, "Ya existe una receta para este producto");
 
@@ -97,6 +104,11 @@ export const createRecipe = async (req, res, next) => {
       product, ingredients: cleanIngredients, type, method,
       steps: cleanSteps, category, image,
     });
+
+    if (!productDoc.hasRecipe) {
+      productDoc.hasRecipe = true;
+      await productDoc.save();
+    }
 
     const populated = await populateRecipe(Recipe.findById(recipe._id)).lean();
 
@@ -139,8 +151,16 @@ export const deleteRecipe = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const deleted = await Recipe.findByIdAndDelete(id);
+    const recipe = await Recipe.findById(id);
+    if (!recipe) return notFound(res, "Receta no encontrada");
+
+    const productId = recipe.product?.toString();
+    const deleted = await recipe.deleteOne();
     if (!deleted) return notFound(res, "Receta no encontrada");
+
+    if (productId) {
+      await Product.findByIdAndUpdate(productId, { hasRecipe: false });
+    }
 
     logger.info(`[Recipe] Eliminada: ${id}`);
     return ok(res, null, "Receta eliminada correctamente");
