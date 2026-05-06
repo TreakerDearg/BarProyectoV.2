@@ -1,0 +1,340 @@
+:root {
+  /* 🍯 Gama miel */
+  --honey: #fbbf24;
+  --honey-soft: rgba(251, 191, 36, 0.12);
+  --honey-strong: #f59e0b;
+
+  /* 🌌 Superficies */
+  --surface-glass: rgba(255, 255, 255, 0.04);
+  --surface-elevated: rgba(255, 255, 255, 0.06);
+
+  /* ✨ Glow */
+  --glow-gold: 0 0 25px rgba(212, 163, 64, 0.25);
+  --glow-honey: 0 0 20px rgba(251, 191, 36, 0.25);
+
+  /* 🌌 Gradientes */
+  --grad-nebula: radial-gradient(
+      ellipse at top,
+      rgba(212, 163, 64, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      rgba(251, 191, 36, 0.08),
+      transparent 70%
+    );
+}
+
+/* 🌌 CONTENEDOR */
+.pageContainer {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+}
+
+.pageContainer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grad-nebula);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 🧠 HEADER */
+.pageHeader {
+  text-align: center;
+}
+
+.pageIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  box-shadow: var(--glow-honey);
+  transition: all 0.25s ease;
+}
+
+.pageIcon:hover {
+  transform: scale(1.05);
+}
+
+.pageTitle {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pageSubtitle {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+/* 🧊 CARD */
+.pageSection {
+  border-radius: var(--radius-xl);
+  background: var(--surface-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+}
+
+.pageSection:hover {
+  border-color: var(--gold-border);
+  box-shadow: var(--glow-gold);
+}
+
+/* 🧩 SECTION HEADER */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0.04),
+    transparent
+  );
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sectionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  box-shadow: var(--glow-honey);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sectionContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* 🧾 FORM */
+.formGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 480px) {
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formFieldFull {
+  grid-column: 1 / -1;
+}
+
+.formLabel {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* ✨ INPUTS */
+.formInput,
+.formTextarea,
+.formSelect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+.formInput:focus,
+.formTextarea:focus,
+.formSelect:focus {
+  border-color: var(--honey);
+  box-shadow: 0 0 0 2px var(--honey-soft);
+  outline: none;
+}
+
+.formTextarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+/* 👥 GUEST */
+.guestCounter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+}
+
+.guestBtn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guestBtn:hover {
+  background: var(--honey-soft);
+  border-color: var(--honey);
+  color: var(--honey);
+}
+
+.guestValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--honey);
+}
+
+.guestLabel {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* 🪑 TABLES */
+.tablesGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .tablesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tableCard {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.tableCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-gold);
+}
+
+.tableCardSelected {
+  background: linear-gradient(
+    135deg,
+    var(--gold-soft),
+    var(--honey-soft)
+  );
+  border-color: var(--honey);
+  box-shadow: var(--glow-honey);
+}
+
+/* 🔘 BOTONES */
+.submitBtn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--gold),
+    var(--honey)
+  );
+  border: none;
+  font-weight: 700;
+  color: var(--bg-deep);
+  box-shadow: var(--glow-gold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+}
+
+.secondaryBtn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.secondaryBtn:hover {
+  background: var(--honey-soft);
+  border-color: var(--honey);
+}
+
+/* 🚨 ALERTAS */
+.alertSuccess {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    135deg,
+    var(--green-soft),
+    rgba(16,185,129,0.08)
+  );
+  color: var(--green-light);
+  text-align: center;
+}
+
+.alertError {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    135deg,
+    var(--red-soft),
+    rgba(239,68,68,0.08)
+  );
+  color: var(--red-light);
+  text-align: center;
+}
+
+/* 🔄 SPINNER */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

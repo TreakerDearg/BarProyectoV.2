@@ -1,48 +1,108 @@
+import { useState, useEffect } from "react";
+import { pricingService, type PricingEvent } from "../services/pricingService";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
+import { Activity, Clock, ShieldAlert, AlertCircle, CheckCircle2, Info } from "lucide-react";
+
 export default function DiscountEventsPage() {
+  const [events, setEvents] = useState<PricingEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadEvents();
+    const interval = setInterval(loadEvents, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      const data = await pricingService.getPricingEvents();
+      setEvents(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getLevelConfig = (level: string) => {
+    switch (level) {
+      case "ok": 
+        return { color: "text-lime", bg: "bg-lime/5", border: "border-lime/20", icon: <CheckCircle2 size={16} className="text-lime" /> };
+      case "warn": 
+        return { color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20", icon: <AlertCircle size={16} className="text-amber-400" /> };
+      case "error": 
+        return { color: "text-red", bg: "bg-red/5", border: "border-red/20", icon: <ShieldAlert size={16} className="text-red" /> };
+      default: 
+        return { color: "text-blue-400", bg: "bg-blue-400/5", border: "border-blue-400/20", icon: <Info size={16} className="text-blue-400" /> };
+    }
+  };
+
+  if (loading) return <div className="p-10 text-ivory text-sm">Cargando...</div>;
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight text-white">Discount Events</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Trazabilidad operativa de eventos de pricing y descuentos para auditoria y soporte.
-        </p>
+    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
+      {/* ATMOSPHERIC GLOW */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+
+      {/* ================= HEADER ================= */}
+      <div className="flex items-end justify-between relative z-10">
+        <div className="flex items-center gap-6">
+          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
+            <Activity className="text-amber-400" size={32} />
+          </div>
+          <div>
+            <p className="text-[10px] text-amber-400 font-black uppercase tracking-[0.4em] mb-1">
+              Registro de Auditoría
+            </p>
+            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+              Discount Events
+            </h1>
+            <p className="text-xs text-muted font-bold tracking-widest uppercase mt-2">
+              Trazabilidad operativa y de seguridad
+            </p>
+          </div>
+        </div>
       </div>
 
-      <section className="bg-surface-container border border-white/10 rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm uppercase tracking-wider text-gray-400">System events</h2>
-          <span className="text-xs text-gray-500">Auto refresh: 30s</span>
+      <section className="bg-surface-2 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 shadow-royale relative z-10">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+          <h2 className="text-xs font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
+            <Clock size={16} className="text-amber-400" />
+            Flujo de Eventos
+          </h2>
+          <span className="px-3 py-1 bg-black/40 border border-white/5 rounded text-[10px] font-black text-lime uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse"></span>
+            Auto refresh: 30s
+          </span>
         </div>
 
-        <div className="space-y-3">
-          {[
-            {
-              title: "Base multiplier applied",
-              detail: "Manager V. ajusto multiplicador global de 1.20x a 1.25x.",
-              time: "Just now",
-              level: "ok",
-            },
-            {
-              title: "Scheduled reset: Happy Hour",
-              detail: "Campaign 'Friday Night' programada para cierre a las 19:00.",
-              time: "14 mins ago",
-              level: "info",
-            },
-            {
-              title: "Capacity warning: Kitchen",
-              detail: "Wait-time promedio excedio 40 min. Recomendado +0.15x en mains.",
-              time: "29 mins ago",
-              level: "warn",
-            },
-          ].map((event) => (
-            <article key={event.title} className="p-3 rounded-lg border border-white/10 bg-surface-container-high">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-white">{event.title}</h3>
-                <span className="text-xs text-gray-500">{event.time}</span>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">{event.detail}</p>
-            </article>
-          ))}
+        <div className="space-y-4">
+          {events.length === 0 ? (
+            <div className="p-10 text-center border border-dashed border-white/10 rounded-2xl">
+              <p className="text-xs text-muted font-bold uppercase tracking-widest">No hay eventos recientes en el sistema.</p>
+            </div>
+          ) : (
+            events.map((event) => {
+              const config = getLevelConfig(event.level);
+              return (
+                <article key={event._id} className={`p-5 rounded-2xl border ${config.bg} ${config.border} flex gap-4 transition-all hover:scale-[1.01]`}>
+                  <div className="mt-0.5">
+                    {config.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className={`text-sm font-black uppercase tracking-wider ${config.color}`}>{event.title}</h3>
+                      <span className="text-[10px] text-muted font-bold tracking-widest uppercase">
+                        {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true, locale: es })}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-2 text-ivory font-medium leading-relaxed opacity-80">{event.detail}</p>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       </section>
     </div>

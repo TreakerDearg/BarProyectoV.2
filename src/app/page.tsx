@@ -1,37 +1,44 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { LandingFooter } from "@/components/landing/LandingFooter";
+import { LandingHero } from "@/components/landing/LandingHero";
+import { LandingNav } from "@/components/landing/LandingNav";
 
-export default function Home() {
-  const router = useRouter();
+// nuevos (los vamos a crear después)
+import { NebulaIntro } from "@/components/landing/NebulaIntro";
+import { FeaturedMenu } from "@/components/landing/FeaturedMenu";
+import { CTASection } from "@/components/landing/CTASection";
 
+export default function HomePage() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center gap-6">
+    <div className="relative min-h-screen overflow-hidden bg-[#0a0a0a] text-white">
+      
+      {/* 🌌 Fondo Nebula mejorado */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212,163,64,0.18), transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, rgba(120, 50, 200, 0.12), transparent),
+            radial-gradient(ellipse 40% 30% at 0% 20%, rgba(200,50,40,0.08), transparent)
+          `,
+        }}
+      />
 
-      <h1 className="text-3xl neon-text">
-        🍸 BARTENDER SYSTEM
-      </h1>
+      {/* 🌑 overlay oscuro */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
 
-      <p className="text-sm text-zinc-400">
-        Select mode
-      </p>
+      <div className="relative z-10">
+        <LandingNav />
+        <LandingHero />
 
-      <div className="flex gap-4">
+        {/* ✨ nuevas secciones */}
+        <NebulaIntro />
+        <FeaturedMenu />
+        <CTASection />
 
-        <button
-          onClick={() => router.push("/menu")}
-          className="px-6 py-2 rounded-lg bg-[var(--neon-purple)] hover:shadow-[var(--glow-purple)]"
-        >
-          CLIENT
-        </button>
-
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="px-6 py-2 rounded-lg bg-[var(--neon-cyan)] hover:shadow-[var(--glow-cyan)]"
-        >
-          ADMIN
-        </button>
-
+        <LandingFooter />
       </div>
     </div>
   );

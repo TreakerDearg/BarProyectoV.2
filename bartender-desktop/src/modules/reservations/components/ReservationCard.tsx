@@ -1,124 +1,222 @@
-import { Play, Clock, Users } from "lucide-react";
+"use client";
 
-/* =========================
-   SAFE TIME STATUS
-========================= */
-function getTimeStatus(startTime?: string) {
-  if (!startTime) return "unknown";
+import { 
+  Users, 
+  Clock, 
+  ChevronRight, 
+  Phone, 
+  Trash2, 
+  CheckCircle2,
+  MapPin,
+  X,
+  ShieldCheck,
+  Zap,
+  Club,
+  Spade,
+  Heart,
+  Diamond,
+  Calendar,
+  AlertCircle
+} from "lucide-react";
+import type { Reservation } from "../types/reservation";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
-  const date = new Date(startTime);
-  if (isNaN(date.getTime())) return "unknown";
-
-  const diff = (date.getTime() - Date.now()) / 60000;
-
-  if (diff < -10) return "late";
-  if (diff < 0) return "arriving";
-  if (diff < 30) return "soon";
-  return "future";
+interface Props {
+  r: Reservation;
+  onSeat?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onClick?: () => void;
 }
 
-/* =========================
-   SAFE FORMAT TIME
-========================= */
-function formatTime(startTime?: string) {
-  if (!startTime) return "--:--";
-
-  const d = new Date(startTime);
-  if (isNaN(d.getTime())) return "--:--";
-
-  return d.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/* =========================
-   STATUS COLORS
-========================= */
-const timeStyles = {
-  late: "border-red-500 bg-red-500/10 text-red-400",
-  arriving: "border-yellow-400 bg-yellow-400/10 text-yellow-300",
-  soon: "border-blue-400 bg-blue-400/10 text-blue-300",
-  future: "border-obsidian bg-obsidian/30 text-gray-300",
-  unknown: "border-gray-700 bg-gray-800 text-gray-400",
+const statusConfig: any = {
+  pending: {
+    label: "Por Confirmar",
+    badge: "badge-ember",
+    glow: "shadow-ember/40",
+    icon: <Clock size={14} className="animate-pulse" />,
+    bg: "bg-ember/10",
+    accent: "text-orange-light",
+    suit: <Spade size={24} className="opacity-10 absolute -right-2 -bottom-2 rotate-12" />,
+  },
+  confirmed: {
+    label: "Confirmada",
+    badge: "badge-gold",
+    glow: "shadow-gold/40",
+    icon: <ShieldCheck size={14} />,
+    bg: "bg-gold/10",
+    accent: "text-gold",
+    suit: <Diamond size={24} className="opacity-10 text-gold absolute -right-2 -bottom-2 rotate-12" />,
+  },
+  seated: {
+    label: "En Mesa",
+    badge: "badge-lime",
+    glow: "shadow-lime/40",
+    icon: <Zap size={14} />,
+    bg: "bg-lime/10",
+    accent: "text-green-light",
+    suit: <Club size={24} className="opacity-10 text-green absolute -right-2 -bottom-2 rotate-12" />,
+  },
+  completed: {
+    label: "Finalizada",
+    badge: "badge-neutral",
+    glow: "",
+    icon: <CheckCircle2 size={14} />,
+    bg: "bg-white/5",
+    accent: "text-muted",
+    suit: <Heart size={24} className="opacity-5 absolute -right-2 -bottom-2 rotate-12" />,
+  },
+  cancelled: {
+    label: "Cancelada",
+    badge: "badge-red",
+    glow: "",
+    icon: <X size={14} />,
+    bg: "bg-red/10",
+    accent: "text-red-light",
+    suit: <Heart size={24} className="opacity-10 text-red absolute -right-2 -bottom-2 rotate-12" />,
+  },
 };
 
-export default function ReservationCard({
-  r,
-  onSeat,
-}: {
-  r: any;
-  onSeat?: (id: string) => void;
-}) {
-  if (!r) return null;
-
-  const timeStatus = getTimeStatus(r.startTime);
-  const timeLabel = formatTime(r.startTime);
-
-  const customer = r.customerName || "UNKNOWN";
-  const guests = r.guests ?? 0;
-  const tableNumber =
-    typeof r.table === "object"
-      ? r.table?.number
-      : r.table ?? "TBD";
-
-  const isSeated = r.status === "seated";
+export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props) {
+  const config = statusConfig[r.status] || statusConfig.pending;
+  const startTime = new Date(r.startTime);
+  const timeStr = isNaN(startTime.getTime()) ? "--:--" : format(startTime, "HH:mm 'hs'", { locale: es });
+  const dateStr = isNaN(startTime.getTime()) ? "---" : format(startTime, "EEEE dd 'de' MMMM", { locale: es });
 
   return (
     <div
-      className={`p-4 rounded-xl border transition-all duration-200 hover:scale-[1.01]
-        ${timeStyles[timeStatus]}
+      className={`
+        glass p-0 rounded-[2.5rem] border border-white/5 transition-all duration-500
+        group relative overflow-hidden flex flex-col cursor-pointer
+        hover:translate-y-[-8px] hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
+        active:scale-[0.97]
+        ${config.glow}
       `}
+      onClick={onClick}
     >
-      {/* HEADER */}
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="font-bold text-lg tracking-tight">
-            {customer}
-          </p>
+      {/* CASINO DECOR BAR */}
+      <div className={`h-2.5 w-full ${config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-40 shadow-lg`} />
 
-          <div className="flex items-center gap-2 text-xs opacity-80 mt-1">
-            <Users size={12} />
-            {guests} pax
+      <div className="p-8 space-y-7 relative">
+        
+        {/* BACKGROUND SUIT */}
+        {config.suit}
+
+        {/* HEADER */}
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase group-hover:text-gold transition-all duration-500 group-hover:tracking-normal">
+                {r.customerName}
+              </h3>
+              {(r as any).isVIP && (
+                <div className="p-1.5 bg-grad-gold rounded-lg shadow-gold-glow animate-pulse">
+                  <Crown size={12} className="text-bg" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-[10px] text-muted font-black tracking-widest uppercase bg-surface-4/80 px-3 py-1.5 rounded-xl border border-white/5">
+                <Phone size={12} className="text-gold" />
+                {r.customerPhone}
+              </div>
+              {(r as any).deposit > 0 && (
+                <div className="flex items-center gap-2 text-[10px] text-green-light font-black tracking-widest uppercase bg-green/10 px-3 py-1.5 rounded-xl border border-green/20">
+                  <Wallet size={12} />
+                  ${(r as any).deposit}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={`badge ${config.badge} flex items-center gap-3 py-2.5 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl border border-white/10 backdrop-blur-md`}>
+            {config.icon}
+            {config.label}
           </div>
         </div>
 
-        <div className="text-right">
-          <p className="text-sm font-bold flex items-center gap-1 justify-end">
-            <Clock size={12} />
-            {timeLabel}
-          </p>
-
-          <p className="text-[10px] uppercase opacity-70">
-            {timeStatus}
-          </p>
+        {/* DATE & TIME (CASINO TOKEN STYLE) */}
+        <div className="bg-surface-3/30 rounded-[2rem] p-5 border border-white/5 space-y-4 group-hover:border-gold/20 transition-colors">
+          <div className="flex items-center gap-3 text-muted">
+            <Calendar size={14} className="text-gold opacity-50" />
+            <p className="text-[10px] font-black uppercase tracking-[0.3em]">{dateStr}</p>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mb-1">Check-in</p>
+              <p className={`text-2xl font-black tracking-widest ${config.accent}`}>{timeStr}</p>
+            </div>
+            
+            <div className="flex flex-col items-end">
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mb-1">Invitados</p>
+              <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-2xl border border-white/5">
+                <Users size={16} className="text-gold" />
+                <span className="text-lg font-black text-ivory">{r.guests}</span>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* TABLE & ACTIONS */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-3xl bg-grad-dark border border-white/10 flex items-center justify-center shadow-2xl group-hover:border-gold/60 transition-all -rotate-3 group-hover:rotate-0">
+              <span className="text-xl font-black text-grad-gold">
+                {r.tableId ? `${r.tableNumber || '?'}` : '--'}
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em]">Asignación</p>
+              <p className="text-xs font-black text-ivory uppercase tracking-widest">
+                {r.tableId ? `Mesa Asignada` : 'Pendiente'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            {onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(r._id!);
+                }}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 active:scale-90 shadow-lg"
+                title="Eliminar Registro"
+              >
+                <Trash2 size={20} />
+              </button>
+            )}
+
+            {(r.status === "pending" || r.status === "confirmed") && onSeat && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSeat(r._id!);
+                }}
+                className="btn btn-gold !h-12 !px-8 !rounded-2xl gap-3 text-xs shadow-gold/20 hover:shadow-gold/40 border-gold/40 group/btn"
+              >
+                SENTAR
+                <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* NOTES STRIP */}
+        {r.notes && (
+          <div className="pt-6 border-t border-white/10 flex items-start gap-4">
+            <div className="p-2 rounded-xl bg-surface-4 border border-white/5 shadow-inner">
+              <AlertCircle size={14} className="text-gold opacity-60" />
+            </div>
+            <p className="text-xs text-muted italic line-clamp-2 leading-relaxed font-medium flex-1">
+              {r.notes}
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* INFO */}
-      <div className="flex justify-between items-center mt-4">
-
-        <span className="text-xs opacity-70">
-          Table: {tableNumber}
-        </span>
-
-        {/* ACTION */}
-        {!isSeated && onSeat && r._id && (
-          <button
-            onClick={() => onSeat(r._id)}
-            className="flex items-center gap-1 text-green-400 hover:text-green-300 text-xs"
-          >
-            <Play size={14} />
-            SEAT
-          </button>
-        )}
-
-        {isSeated && (
-          <span className="text-xs text-green-400 font-bold">
-            SEATED
-          </span>
-        )}
-      </div>
+      {/* CASINO GLOW DECOR */}
+      <div className={`absolute -bottom-32 -right-32 w-64 h-64 ${config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-0 group-hover:opacity-10 blur-[120px] transition-all duration-1000`} />
     </div>
   );
 }

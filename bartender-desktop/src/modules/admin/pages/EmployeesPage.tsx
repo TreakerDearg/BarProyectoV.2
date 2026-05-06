@@ -97,43 +97,52 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden">
+
+      {/* ATMOSPHERIC GLOW */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between relative z-10">
 
-        <div>
-          <h1 className="text-2xl font-bold text-white">
-            Empleados
-          </h1>
-
-          <p className="text-sm text-[#71717A] mt-1">
-            Gestión de personal del sistema de bar
-          </p>
-
-          {error && (
-            <p className="text-xs text-red-400 mt-2">
-              {error}
+        <div className="flex items-center gap-6">
+          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
+            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+              Directorio
+            </h1>
+          </div>
+          <div>
+            <p className="text-[10px] text-gold font-black uppercase tracking-[0.4em] mb-1">
+              Operaciones Umbra
             </p>
-          )}
+            <p className="text-xs text-muted font-bold tracking-widest uppercase">
+              Gestión de Personal Elite
+            </p>
+
+            {error && (
+              <p className="text-[10px] text-red font-black tracking-widest mt-2 bg-red/10 px-2 py-1 rounded">
+                {error}
+              </p>
+            )}
+          </div>
         </div>
 
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl
-          bg-[#A78BFA] text-black font-semibold
-          hover:shadow-[0_0_25px_rgba(167,139,250,0.35)]
-          transition"
+          className="flex items-center gap-3 h-14 px-6 rounded-2xl
+          bg-grad-gold text-bg shadow-gold/30
+          hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
+          transition-all"
         >
-          <Plus size={18} />
-          Nuevo empleado
+          <Plus size={20} className="text-bg" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nuevo Colaborador</span>
         </button>
       </div>
 
       {/* ================= EMPTY ================= */}
       {!error && users.length === 0 && (
-        <div className="text-sm text-[#71717A]">
-          No hay empleados registrados
+        <div className="text-[10px] font-black text-muted uppercase tracking-widest bg-surface-2 p-6 rounded-2xl text-center border border-white/5">
+          No hay colaboradores en el sistema
         </div>
       )}
 
@@ -142,20 +151,14 @@ export default function EmployeesPage() {
         className="
         grid 
         grid-cols-1 
-        md:grid-cols-2 
-        xl:grid-cols-3 
-        gap-5
+        xl:grid-cols-2 
+        2xl:grid-cols-3 
+        gap-6
+        relative z-10
       "
       >
         {users.map((u) => (
-          <div
-            key={u._id}
-            className="rounded-2xl border border-[rgba(255,255,255,0.06)]
-            bg-[#0E131B]/60 backdrop-blur-xl
-            shadow-[0_0_25px_rgba(0,0,0,0.4)]
-            hover:border-[#A78BFA]/20
-            transition"
-          >
+          <div key={u._id}>
             <EmployeeCard
               user={u}
               onDeactivate={handleDeactivate}

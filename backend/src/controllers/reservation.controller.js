@@ -26,26 +26,42 @@ const emitTableUpdate = async (tableId) => {
 };
 
 /* =========================================================
-   GET ALL
-========================================================= */
+   GET ALL (with Pagination & Search)
+========================= */
 export const getReservations = async (req, res, next) => {
   try {
-    const { status, date } = req.query;
+    const { status, date, search, page = 1, limit = 100 } = req.query;
 
     const filter = {};
     if (status) filter.status = status;
+    
     if (date) {
       const start = new Date(date); start.setHours(0, 0, 0, 0);
       const end   = new Date(date); end.setHours(23, 59, 59, 999);
       filter.startTime = { $gte: start, $lte: end };
     }
 
+    if (search) {
+      filter.$or = [
+        { customerName: { $regex: search, $options: "i" } },
+        { customerPhone: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const total = await Reservation.countDocuments(filter);
     const reservations = await Reservation.find(filter)
       .populate("tableId", POPULATE_TABLE)
       .sort({ startTime: 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
       .lean();
 
-    return ok(res, reservations);
+    return ok(res, {
+      reservations,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) { next(error); }
 };
 
@@ -71,7 +87,10 @@ export const getReservationById = async (req, res, next) => {
 ========================================================= */
 export const createReservation = async (req, res, next) => {
   try {
-    const { customerName, customerPhone, customerEmail, startTime, endTime, guests, tableId, notes, source } = req.body;
+    const { 
+      customerName, customerPhone, customerEmail, startTime, endTime, 
+      guests, tableId, notes, source, isVIP, deposit 
+    } = req.body;
 
     const start = parseDate(startTime);
     const end   = parseDate(endTime);
@@ -113,11 +132,15 @@ export const createReservation = async (req, res, next) => {
     const reservation = await Reservation.create({
       customerName, customerPhone,
       customerEmail: customerEmail || "",
-      guests: Number(guests), startTime: start, endTime: end,
+      guests: Number(guests), 
+      startTime: start, 
+      endTime: end,
       tableId: assignedTable,
       notes: notes || "",
       source: source || "admin",
       status: "pending",
+      isVIP: Boolean(isVIP),
+      deposit: Number(deposit || 0),
     });
 
     const populated = await reservation.populate("tableId", POPULATE_TABLE);
@@ -176,9 +199,9 @@ export const updateReservationStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-/* =========================================================
+/* ================================/* =========================================================
    DELETE
-========================================================= */
+========================= */
 export const deleteReservation = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -195,10 +218,11 @@ export const deleteReservation = async (req, res, next) => {
       await emitTableUpdate(tableId);
     }
 
-    emitReservation("reservation:deleted", { id });
+    // Emitir ID directamente para consistencia con frontend
+    emitReservation("reservation:delete", id); 
     logger.info(`[Reservation] Eliminada: ${id}`);
 
-    return ok(res, null, "Reserva eliminada correctamente");
+    return ok(res, { id }, "Reserva eliminada correctamente");
   } catch (error) { next(error); }
 };
 
@@ -229,4 +253,47 @@ export const getAvailableTables = async (req, res, next) => {
 
     return ok(res, available);
   } catch (error) { next(error); }
+};
+
+/* =========================================================
+   CHECK SLOT AVAILABILITY ( estilo Booking)
+========================================================= */
+export const checkAvailability = async (req, res, next) => {
+  try {
+    const { start, end, guests } = req.query;
+
+    const startTime = parseDate(start);
+    const endTime   = parseDate(end);
+
+    if (!startTime || !endTime || !guests) {
+      return badRequest(res, "start, end y guests son obligatorios");
+    }
+
+    /* ─── Buscar mesas posibles ─── */
+    const tables = await Table.find({
+      capacity: { $gte: Number(guests) },
+      status: { $ne: "maintenance" },
+    }).lean();
+
+    let available = false;
+
+    /* ─── Check rápido ─── */
+    for (const table of tables) {
+      const isFree = await Reservation.isTableAvailable(
+        table._id,
+        startTime,
+        endTime
+      );
+
+      if (isFree) {
+        available = true;
+        break;
+      }
+    }
+
+    return ok(res, { available });
+
+  } catch (error) {
+    next(error);
+  }
 };

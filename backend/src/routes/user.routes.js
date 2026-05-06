@@ -2,7 +2,7 @@ import express from "express";
 import {
   createEmployee, getEmployees, getUser, updateUser,
   deactivateUser, activateUser, changePassword,
-  updatePermissions, assignShift,
+  updatePermissions, updateRolePermissions, updateShiftPermissions, assignShift,
 } from "../controllers/user.controller.js";
 
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
@@ -38,8 +38,10 @@ router.patch("/:id/deactivate", ...adminOnly, deactivateUser);
 router.patch("/:id/activate", ...adminOnly, activateUser);
 
 /* =========================================================
-   PERMISSIONS & SHIFTS
+   PERMISSIONS & BULK ACTIONS
 ========================================================= */
+router.patch("/role/:role/permissions", ...adminOnly, validate(updatePermissionsSchema), updateRolePermissions);
+router.patch("/shift/:shift/permissions", ...adminOnly, validate(updatePermissionsSchema), updateShiftPermissions);
 router.patch("/:id/permissions", ...adminOnly, validate(updatePermissionsSchema), updatePermissions);
 router.patch("/:id/shift", ...adminOnly, validate(assignShiftSchema), assignShift);
 

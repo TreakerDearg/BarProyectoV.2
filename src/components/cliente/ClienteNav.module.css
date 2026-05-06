@@ -1,0 +1,267 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: rgba(8, 9, 12, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--umbra-border);
+}
+
+.navInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+}
+
+.logoText {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .logoText {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.logoTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.logoSubtitle {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.navLinks {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .navLinks {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.navLink:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.navLinkActive {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-border);
+}
+
+.navLinkIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menuBtn:hover {
+  border-color: var(--gold-border);
+  color: var(--text);
+}
+
+@media (min-width: 1024px) {
+  .menuBtn {
+    display: none;
+  }
+}
+
+.menuIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.mobileMenu {
+  position: fixed;
+  inset: 0;
+  top: 3.75rem;
+  z-index: 90;
+  background: rgba(8, 9, 12, 0.98);
+  backdrop-filter: blur(20px);
+  overflow-y: auto;
+}
+
+@media (min-width: 1024px) {
+  .mobileMenu {
+    display: none;
+  }
+}
+
+.mobileMenuInner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.mobileLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.mobileLink:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.mobileLinkActive {
+  color: var(--gold);
+  background: var(--gold-soft);
+  border-color: var(--gold-border);
+}
+
+.mobileLinkIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.dock {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+}
+
+@media (min-width: 1024px) {
+  .dock {
+    display: none;
+  }
+}
+
+.dockInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: var(--radius-xl);
+  background: rgba(13, 15, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--umbra-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dockLink {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0.5rem;
+  text-decoration: none;
+}
+
+.dockIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+}
+
+.dockLinkActive .dockIcon {
+  background: var(--gold);
+  color: var(--bg-deep);
+  box-shadow: 0 0 20px rgba(212, 163, 64, 0.3);
+}
+
+.dockLabel {
+  margin-top: 0.25rem;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.dockLinkActive .dockLabel {
+  color: var(--gold);
+}
+
+.dockIndicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--gold);
+}

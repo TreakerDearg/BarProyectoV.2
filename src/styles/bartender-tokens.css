@@ -1,0 +1,112 @@
+/* ===============================================================
+   Bartender System — tokens alineados con bartender-desktop index.css
+   (paleta v2: rojo · dorado · naranja · verde · obsidiana)
+=============================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #08090c;
+  --bg-deep: #050608;
+  --surface: #0d0f14;
+  --surface-2: #12151c;
+  --surface-3: #171b24;
+  --surface-4: #1e232e;
+  --surface-glow: rgba(13, 15, 20, 0.92);
+
+  --border: rgba(255, 255, 255, 0.055);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --border-gold: rgba(212, 163, 64, 0.25);
+  --border-red: rgba(200, 50, 40, 0.25);
+  --border-green: rgba(52, 185, 100, 0.22);
+
+  --text: #f5f0e8;
+  --text-dim: rgba(245, 240, 232, 0.6);
+  --text-muted: rgba(245, 240, 232, 0.35);
+  --text-gold: #d4a340;
+  --text-red: #e05444;
+  --text-green: #34b964;
+
+  --gold: #d4a340;
+  --gold-light: #e8bc5a;
+  --gold-dark: #a87c28;
+  --gold-soft: rgba(212, 163, 64, 0.12);
+  --gold-border: rgba(212, 163, 64, 0.3);
+  --gold-glow: 0 0 24px rgba(212, 163, 64, 0.25);
+
+  --red: #c83228;
+  --red-light: #e05444;
+  --red-dark: #981e16;
+  --red-soft: rgba(200, 50, 40, 0.12);
+  --red-border: rgba(200, 50, 40, 0.3);
+  --red-glow: 0 0 24px rgba(200, 50, 40, 0.22);
+
+  --orange: #e07828;
+  --orange-light: #f09040;
+  --orange-dark: #b05a18;
+  --orange-soft: rgba(224, 120, 40, 0.12);
+  --orange-border: rgba(224, 120, 40, 0.28);
+  --orange-glow: 0 0 24px rgba(224, 120, 40, 0.2);
+
+  --green: #34b964;
+  --green-light: #4ad07c;
+  --green-dark: #228a46;
+  --green-soft: rgba(52, 185, 100, 0.12);
+  --green-border: rgba(52, 185, 100, 0.28);
+  --green-glow: 0 0 24px rgba(52, 185, 100, 0.18);
+
+  --neutral: #3d4150;
+  --neutral-light: #565d70;
+  --neutral-dark: #252830;
+
+  --primary: var(--gold);
+  --primary-light: var(--gold-light);
+  --primary-dark: var(--gold-dark);
+  --primary-soft: var(--gold-soft);
+  --primary-border: var(--gold-border);
+  --primary-glow: var(--gold-glow);
+
+  --danger: var(--red);
+  --danger-light: var(--red-light);
+  --danger-soft: var(--red-soft);
+  --danger-border: var(--red-border);
+  --danger-glow: var(--red-glow);
+
+  --warning: var(--orange);
+  --warning-light: var(--orange-light);
+  --warning-soft: var(--orange-soft);
+  --warning-border: var(--orange-border);
+  --warning-glow: var(--orange-glow);
+
+  --success: var(--green);
+  --success-light: var(--green-light);
+  --success-soft: var(--green-soft);
+  --success-border: var(--green-border);
+  --success-glow: var(--green-glow);
+
+  --grad-gold: linear-gradient(135deg, #d4a340 0%, #e8bc5a 50%, #a87c28 100%);
+  --grad-red: linear-gradient(135deg, #981e16 0%, #c83228 50%, #e05444 100%);
+  --grad-orange: linear-gradient(135deg, #b05a18 0%, #e07828 50%, #f09040 100%);
+  --grad-green: linear-gradient(135deg, #228a46 0%, #34b964 50%, #4ad07c 100%);
+  --grad-brand: linear-gradient(135deg, #c83228 0%, #d4a340 60%, #e07828 100%);
+  --grad-dark: linear-gradient(180deg, #0d0f14 0%, #08090c 100%);
+
+  --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.75);
+  --shadow-gold: 0 4px 24px rgba(212, 163, 64, 0.2);
+  --shadow-red: 0 4px 24px rgba(200, 50, 40, 0.2);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --duration: 220ms;
+  --duration-fast: 140ms;
+}

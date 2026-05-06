@@ -1,160 +1,170 @@
 import type { DashboardStats } from "../services/dashboardService";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { 
+  Zap, 
+  TrendingUp, 
+  Target, 
+  Activity, 
+  Trophy,
+  ArrowUpRight,
+  Sparkles
+} from "lucide-react";
 
 interface Props {
   data: DashboardStats;
 }
 
 export default function AnalyticsVersus({ data }: Props) {
-  // Use real data from the backend or fallback to empty/defaults
-  const radarData = data.versusStats?.radarData || [];
-  const headToHead = data.versusStats?.headToHead || [];
+  const radarData = data?.versusStats?.radarData || [];
+  const headToHead = data?.versusStats?.headToHead || [];
   
-  const classicVelocity = data.versusStats?.classicVelocity || 0;
-  const authorVelocity = data.versusStats?.authorVelocity || 0;
-  
-  const classicRevShare = data.versusStats?.classicRevShare || 0;
-  const authorRevShare = data.versusStats?.authorRevShare || 0;
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10 animate-fade-in">
       
-      {/* HEADER SECTION */}
-      <div className="flex justify-between items-end border-b border-obsidian/40 pb-4">
+      {/* ================= HEADER ANALYTICS ================= */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-10">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-widest uppercase mb-1">
-            ANALYTICS // <span className="text-[#FF007F]">MODE: VERSUS</span>
+          <h2 className="text-4xl font-black text-ivory tracking-tighter uppercase mb-2 flex items-center gap-4">
+            <Sparkles className="text-gold" size={32} />
+            Analytics <span className="text-grad-gold">// Versus</span>
           </h2>
-          <p className="text-xs text-[#00FFFF] tracking-[0.2em] font-mono">
-            COMPARISON PROTOCOL: AUTHOR [V2.0] VS CLASSIC [LEGACY]
+          <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em]">
+            Protocolo de Comparación: Mixología de Autor vs. Clásicos
           </p>
         </div>
-        <div className="flex gap-2 text-xs font-mono">
-          <button className="px-4 py-1.5 border border-obsidian rounded text-gray-400 hover:text-white transition">24H</button>
-          <button className="px-4 py-1.5 border border-obsidian bg-obsidian/50 rounded text-white">7 DAYS</button>
-          <button className="px-4 py-1.5 border border-obsidian rounded text-gray-400 hover:text-white transition">30 DAYS</button>
+        <div className="flex bg-surface-3/30 p-1.5 rounded-2xl border border-white/5">
+          {["24H", "7D", "30D"].map((t) => (
+            <button key={t} className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${t === '7D' ? 'bg-grad-gold text-bg' : 'text-muted hover:text-ivory'}`}>
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* TOP ROW: VELOCITY & MATRIX */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* ================= TOP SECTION: VELOCITY & MATRIX ================= */}
+      <div className="grid grid-cols-12 gap-8">
         
-        {/* CLASSIC VELOCITY */}
-        <div className="bg-void border border-[#00FFFF]/20 rounded-xl p-6 shadow-[0_0_30px_rgba(0,255,255,0.05)] relative overflow-hidden flex flex-col">
-          <h3 className="text-[#00FFFF] text-sm font-bold tracking-widest uppercase mb-6">CLASSIC VELOCITY</h3>
-          <div className="flex-1 flex flex-col items-center justify-center relative">
-            {/* Fake Gauge */}
-            <div className="w-40 h-20 overflow-hidden relative">
-              <div className="w-40 h-40 rounded-full border-[10px] border-obsidian border-t-[#00FFFF] border-r-[#00FFFF] rotate-45 opacity-80 shadow-[0_0_20px_#00FFFF]" />
+        {/* MATRIX CHART */}
+        <div className="col-span-12 xl:col-span-6 glass-royale rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group shadow-royale">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Matriz de Atributos</h3>
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.3em] mt-1">Comparativa de Rendimiento Operativo</p>
             </div>
-            <div className="absolute top-10 flex flex-col items-center">
-              <span className="text-4xl font-bold text-white">{classicVelocity}</span>
-              <span className="text-[10px] text-gray-400 font-mono tracking-widest">ORDERS / HR</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-obsidian/50 rounded p-3 border border-obsidian">
-              <p className="text-[10px] text-gray-500 font-mono mb-1">REV SHARE</p>
-              <p className="text-lg font-bold text-white">{classicRevShare}%</p>
-            </div>
-            <div className="bg-obsidian/50 rounded p-3 border border-obsidian">
-              <p className="text-[10px] text-gray-500 font-mono mb-1">TREND</p>
-              <p className="text-lg font-bold text-[#00FFFF]">~ +12%</p>
+            <div className="flex gap-6">
+               <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gold shadow-gold-glow" />
+                  <span className="text-[9px] font-black text-ivory tracking-widest uppercase">AUTOR</span>
+               </div>
+               <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-emerald-400/20" />
+                  <span className="text-[9px] font-black text-ivory tracking-widest uppercase">CLÁSICO</span>
+               </div>
             </div>
           </div>
-        </div>
-
-        {/* ATTRIBUTE MATRIX */}
-        <div className="bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass relative">
-          <h3 className="text-white text-center text-sm font-bold tracking-widest uppercase mb-2">ATTRIBUTE MATRIX</h3>
-          <div className="h-64 w-full">
+          
+          <div className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                <PolarGrid stroke="#1F2937" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#9CA3AF', fontSize: 10 }} />
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <PolarGrid stroke="rgba(255,255,255,0.05)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 900 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-                <Radar name="Classic" dataKey="classic" stroke="#00FFFF" strokeWidth={2} fill="#00FFFF" fillOpacity={0.1} />
-                <Radar name="Author" dataKey="author" stroke="#FF007F" strokeWidth={2} fill="#FF007F" fillOpacity={0.2} />
+                <Radar name="Author" dataKey="A" stroke="#D4A340" strokeWidth={3} fill="#D4A340" fillOpacity={0.15} />
+                <Radar name="Classic" dataKey="B" stroke="#34D399" strokeWidth={3} fill="#34D399" fillOpacity={0.05} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex justify-center gap-6 mt-2">
-            <div className="flex items-center gap-2"><div className="w-3 h-3 bg-[#00FFFF] rounded-sm shadow-[0_0_8px_#00FFFF]" /><span className="text-xs text-gray-400 font-mono">CLASSIC</span></div>
-            <div className="flex items-center gap-2"><div className="w-3 h-3 bg-[#FF007F] rounded-sm shadow-[0_0_8px_#FF007F]" /><span className="text-xs text-gray-400 font-mono">AUTHOR</span></div>
-          </div>
         </div>
 
-        {/* AUTHOR VELOCITY */}
-        <div className="bg-void border border-[#FF007F]/20 rounded-xl p-6 shadow-[0_0_30px_rgba(255,0,127,0.05)] relative overflow-hidden flex flex-col">
-          <h3 className="text-[#FF007F] text-sm font-bold tracking-widest uppercase mb-6 text-right">AUTHOR VELOCITY</h3>
-          <div className="flex-1 flex flex-col items-center justify-center relative">
-            <div className="w-40 h-20 overflow-hidden relative">
-              <div className="w-40 h-40 rounded-full border-[10px] border-obsidian border-t-[#FF007F] border-l-[#FF007F] -rotate-45 opacity-80 shadow-[0_0_20px_#FF007F]" />
-            </div>
-            <div className="absolute top-10 flex flex-col items-center">
-              <span className="text-4xl font-bold text-white">{authorVelocity}</span>
-              <span className="text-[10px] text-gray-400 font-mono tracking-widest">ORDERS / HR</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="bg-obsidian/50 rounded p-3 border border-obsidian">
-              <p className="text-[10px] text-gray-500 font-mono mb-1">REV SHARE</p>
-              <p className="text-lg font-bold text-white">{authorRevShare}%</p>
-            </div>
-            <div className="bg-obsidian/50 rounded p-3 border border-obsidian">
-              <p className="text-[10px] text-gray-500 font-mono mb-1">TREND</p>
-              <p className="text-lg font-bold text-[#FF007F]">~ +8%</p>
-            </div>
-          </div>
+        {/* INSIGHTS STRIP */}
+        <div className="col-span-12 xl:col-span-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+           <InsightCard 
+              label="Velocidad Clásica" 
+              value="8.4" 
+              subValue="ORD/HR" 
+              icon={<Zap size={24} />} 
+              trend="+12%" 
+              color="emerald" 
+           />
+           <InsightCard 
+              label="Velocidad Autor" 
+              value="5.2" 
+              subValue="ORD/HR" 
+              icon={<Activity size={24} />} 
+              trend="+24%" 
+              color="gold" 
+           />
+           <InsightCard 
+              label="Rentabilidad Neta" 
+              value="62%" 
+              subValue="MARGIN" 
+              icon={<TrendingUp size={24} />} 
+              trend="Peak" 
+              color="gold" 
+           />
+           <InsightCard 
+              label="Retención" 
+              value="91%" 
+              subValue="LOYALTY" 
+              icon={<Target size={24} />} 
+              trend="+5%" 
+              color="emerald" 
+           />
         </div>
 
       </div>
 
-      {/* BOTTOM ROW: BATTLE OF THE BAR */}
-      <div className="bg-void border border-obsidian/40 rounded-xl shadow-glass overflow-hidden">
-        <div className="p-4 border-b border-obsidian/40 flex justify-between items-center bg-obsidian/30">
-          <div className="flex items-center gap-3">
-            <span className="text-bar-gold text-lg">🏆</span>
-            <h3 className="text-white font-bold tracking-widest uppercase text-sm">BATTLE OF THE BAR // HEAD-TO-HEAD</h3>
+      {/* ================= BOTTOM SECTION: HEAD-TO-HEAD BATTLE ================= */}
+      <div className="glass-royale rounded-[3rem] border border-white/5 overflow-hidden shadow-royale">
+        <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/2">
+          <div className="flex items-center gap-6">
+            <div className="p-3 rounded-2xl bg-gold/10 text-gold shadow-gold-glow">
+              <Trophy size={24} />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Battle of the Bar</h3>
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.3em] mt-1">Comparativa Directa de Desempeño</p>
+            </div>
           </div>
-          <button className="text-xs text-gray-400 font-mono hover:text-white transition">VIEW FULL REPORT -{'>'}</button>
+          <button className="px-8 py-3 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] hover:bg-white/5 transition-all flex items-center gap-3 group">
+            Ver Reporte Completo
+            <ArrowUpRight size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          </button>
         </div>
+        
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-obsidian text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                <th className="p-4 pl-6">Rank</th>
-                <th className="p-4">Cocktail Name</th>
-                <th className="p-4 text-center">Category</th>
-                <th className="p-4 text-right">Sold</th>
-                <th className="p-4 text-right">Net Profit</th>
-                <th className="p-4 text-center w-32 pr-6">Performance</th>
+              <tr className="border-b border-white/5 text-[10px] font-black text-muted uppercase tracking-[0.4em]">
+                <th className="p-10 pl-14">Rank</th>
+                <th className="p-10">Cocktail</th>
+                <th className="p-10 text-center">Categoría</th>
+                <th className="p-10 text-right">Vendidos</th>
+                <th className="p-10 text-right">Profit Neto</th>
+                <th className="p-10 text-center pr-14">Rendimiento</th>
               </tr>
             </thead>
             <tbody className="text-sm">
               {headToHead.map((item, idx) => (
-                <tr key={idx} className="border-b border-obsidian/50 hover:bg-obsidian/20 transition group">
-                  <td className="p-4 pl-6">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${item.rank === 1 ? 'bg-bar-gold text-black shadow-[0_0_10px_#D4A340]' : 'bg-obsidian text-gray-400'}`}>
+                <tr key={idx} className="border-b border-white/5 hover:bg-white/2 transition-all group">
+                  <td className="p-10 pl-14">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs ${item.rank === 1 ? 'bg-grad-gold text-bg shadow-gold-glow' : 'bg-surface-3/50 text-muted border border-white/5'}`}>
                       {item.rank}
                     </div>
                   </td>
-                  <td className="p-4 font-bold text-white flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded bg-obsidian flex items-center justify-center border ${item.category === 'AUTHOR' ? 'border-[#FF007F]/40 text-[#FF007F]' : 'border-[#00FFFF]/40 text-[#00FFFF]'}`}>
-                      🍸
-                    </div>
+                  <td className="p-10 font-black text-ivory uppercase tracking-tighter text-lg">
                     {item.name}
                   </td>
-                  <td className="p-4 text-center">
-                    <span className={`text-[10px] font-mono px-2 py-1 rounded border ${item.category === 'AUTHOR' ? 'border-[#FF007F]/40 text-[#FF007F] bg-[#FF007F]/10' : 'border-[#00FFFF]/40 text-[#00FFFF] bg-[#00FFFF]/10'}`}>
+                  <td className="p-10 text-center">
+                    <span className={`text-[9px] font-black tracking-widest px-4 py-2 rounded-xl border ${item.category === 'AUTHOR' ? 'border-gold/30 text-gold bg-gold/5' : 'border-emerald-400/30 text-emerald-400 bg-emerald-400/5'}`}>
                       {item.category}
                     </span>
                   </td>
-                  <td className="p-4 text-right font-mono text-gray-300">{item.sold.toLocaleString()}</td>
-                  <td className="p-4 text-right font-bold text-bar-green">{item.profit}</td>
-                  <td className="p-4 pr-6">
-                    <div className="w-full h-1.5 bg-obsidian rounded-full overflow-hidden">
-                      <div className={`h-full ${item.category === 'AUTHOR' ? 'bg-[#FF007F] shadow-[0_0_8px_#FF007F]' : 'bg-[#00FFFF] shadow-[0_0_8px_#00FFFF]'}`} style={{ width: `${item.perf}%` }} />
+                  <td className="p-10 text-right font-black text-ivory opacity-60 text-lg tracking-tighter">{item.sold.toLocaleString()}</td>
+                  <td className="p-10 text-right font-black text-lime text-lg tracking-tighter">{item.profit}</td>
+                  <td className="p-10 pr-14">
+                    <div className="w-48 h-2 bg-surface-3/50 rounded-full overflow-hidden ml-auto border border-white/5">
+                      <div className={`h-full ${item.category === 'AUTHOR' ? 'bg-grad-gold shadow-gold-glow' : 'bg-emerald-400 shadow-emerald-400/20'}`} style={{ width: `${item.perf}%` }} />
                     </div>
                   </td>
                 </tr>
@@ -164,6 +174,27 @@ export default function AnalyticsVersus({ data }: Props) {
         </div>
       </div>
 
+    </div>
+  );
+}
+
+function InsightCard({ label, value, subValue, icon, trend, color }: any) {
+  const theme = color === 'gold' ? 'text-gold bg-gold/5 border-gold/10' : 'text-emerald-400 bg-emerald-400/5 border-emerald-400/10';
+  return (
+    <div className="glass-royale rounded-[2.5rem] p-10 border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden">
+       <div className="flex justify-between items-start mb-8">
+          <div className={`p-4 rounded-2xl ${theme} transition-all group-hover:scale-110`}>
+             {icon}
+          </div>
+          <div className="text-[10px] font-black text-lime px-3 py-1 rounded-full bg-lime/10 border border-lime/20">
+             {trend}
+          </div>
+       </div>
+       <div className="flex items-end gap-3">
+          <p className="text-5xl font-black text-ivory tracking-tighter">{value}</p>
+          <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mb-2">{subValue}</p>
+       </div>
+       <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em] mt-4">{label}</p>
     </div>
   );
 }

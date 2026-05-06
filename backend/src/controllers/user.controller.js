@@ -213,6 +213,44 @@ export const updatePermissions = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+export const updateRolePermissions = async (req, res, next) => {
+  try {
+    const { role } = req.params;
+    const { permissions } = req.body;
+
+    if (!VALID_ROLES.includes(role)) {
+      return badRequest(res, `Rol inválido. Válidos: ${VALID_ROLES.join(", ")}`);
+    }
+    if (!permissions || typeof permissions !== "object" || Array.isArray(permissions)) {
+      return badRequest(res, "permissions debe ser un objeto válido");
+    }
+
+    await User.updateMany({ role }, { $set: { permissions } });
+
+    logger.info(`[User] Permisos masivos actualizados para rol: ${role}`);
+    return ok(res, null, `Permisos actualizados para el rol ${role}`);
+  } catch (error) { next(error); }
+};
+
+export const updateShiftPermissions = async (req, res, next) => {
+  try {
+    const { shift } = req.params;
+    const { permissions } = req.body;
+
+    if (!VALID_SHIFTS.includes(shift)) {
+      return badRequest(res, `Turno inválido. Válidos: ${VALID_SHIFTS.join(", ")}`);
+    }
+    if (!permissions || typeof permissions !== "object" || Array.isArray(permissions)) {
+      return badRequest(res, "permissions debe ser un objeto válido");
+    }
+
+    await User.updateMany({ shift }, { $set: { permissions } });
+
+    logger.info(`[User] Permisos masivos actualizados para turno: ${shift}`);
+    return ok(res, null, `Permisos actualizados para el turno ${shift}`);
+  } catch (error) { next(error); }
+};
+
 /* =========================================================
    ASSIGN SHIFT
 ========================================================= */

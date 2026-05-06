@@ -25,6 +25,15 @@
   --surface-glow: rgba(13,15,20,0.92);
 
   /* ===============================================================
+     BACKGROUNDS — Umbra (Purple Depth)
+  =============================================================== */
+  --umbra:        #1A1423;
+  --umbra-light:  #2A2240;
+  --umbra-dark: #0F0A18;
+  --umbra-soft: rgba(26, 20, 35, 0.12);
+  --umbra-border: rgba(42, 34, 64, 0.30);
+
+  /* ===============================================================
      BORDERS
   =============================================================== */
   --border:        rgba(255, 255, 255, 0.055);
@@ -88,6 +97,17 @@
   --green-glow:     0 0 24px rgba(52, 185, 100, 0.18);
 
   /* ===============================================================
+     ─── COMPLEMENTARY: ÁMBAR MIEL ───
+     Warm accent, bar vibe, highlight secondary
+  =============================================================== */
+  --amber:          #E8A838;
+  --amber-light:    #F0C060;
+  --amber-dark:    #B88630;
+  --amber-soft:    rgba(232, 168, 56, 0.12);
+  --amber-border:   rgba(232, 168, 56, 0.30);
+  --amber-glow:     0 0 24px rgba(232, 168, 56, 0.22);
+
+  /* ===============================================================
      ─── NEUTRAL ───
      Texto secundario, íconos inactivos
   =============================================================== */
@@ -132,6 +152,8 @@
   --grad-green:  linear-gradient(135deg, #228A46 0%, #34B964 50%, #4AD07C 100%);
   --grad-brand:  linear-gradient(135deg, #C83228 0%, #D4A340 60%, #E07828 100%);
   --grad-dark:   linear-gradient(180deg, #0D0F14 0%, #08090C 100%);
+  --grad-umbra: linear-gradient(135deg, #1A1423 0%, #2A2240 50%, #1A1423 100%);
+  --grad-amber: linear-gradient(135deg, #B88630 0%, #E8A838 50%, #F0C060 100%);
 
   /* ===============================================================
      SHADOWS
@@ -142,6 +164,7 @@
   --shadow-lg:   0 16px 56px rgba(0,0,0,0.75);
   --shadow-gold: 0 4px 24px rgba(212, 163, 64, 0.20);
   --shadow-red:  0 4px 24px rgba(200, 50, 40, 0.20);
+  --shadow-umbra: 0 4px 24px rgba(26, 20, 35, 0.25);
 
   /* ===============================================================
      RADII
@@ -579,3 +602,82 @@ input, button, textarea, select { outline: none; }
 .animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
 .animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
 .animate-pulse-gold { animation: pulse-gold 2s ease infinite; }
+
+/* ===============================================================
+   ROYALE UI UTILITIES — Casino Edition
+=============================================================== */
+.input-royale {
+  width: 100%;
+  background-color: var(--surface-4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.input-royale::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.input-royale:focus {
+  border-color: rgba(212, 163, 64, 0.4);
+  box-shadow: 0 0 0 4px rgba(212, 163, 64, 0.05),
+              inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.group:hover .input-royale {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-royale {
+  background-color: var(--surface-glow);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.badge-royale {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-royale {
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+.glow-gold-lg {
+  box-shadow: 0 0 50px -10px rgba(212, 163, 64, 0.3);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}

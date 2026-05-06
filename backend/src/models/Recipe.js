@@ -1,5 +1,21 @@
 import mongoose from "mongoose";
 
+/* ==============================
+   UNIT SYSTEM (NORMALIZACIÓN REAL)
+============================== */
+const UNIT_CONVERSION = {
+  ml: 1,
+  l: 1000,
+  g: 1,
+  kg: 1000,
+  oz: 29.5735,
+  unit: 1,
+  portion: 1,
+};
+
+/* ==============================
+   INGREDIENT SCHEMA
+============================== */
 const recipeIngredientSchema = new mongoose.Schema(
   {
     inventoryItem: {
@@ -12,7 +28,7 @@ const recipeIngredientSchema = new mongoose.Schema(
     quantity: {
       type: Number,
       required: true,
-      min: 0.01,
+      min: 0.0001,
     },
 
     unit: {
@@ -26,7 +42,6 @@ const recipeIngredientSchema = new mongoose.Schema(
       default: 0,
     },
 
-    //  factor de conversión más claro
     baseUnitMultiplier: {
       type: Number,
       default: 1,
@@ -35,6 +50,9 @@ const recipeIngredientSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/* ==============================
+   STEP SCHEMA
+============================== */
 const stepSchema = new mongoose.Schema(
   {
     stepNumber: { type: Number, required: true },
@@ -43,13 +61,16 @@ const stepSchema = new mongoose.Schema(
   { _id: false }
 );
 
+/* ==============================
+   MAIN SCHEMA
+============================== */
 const recipeSchema = new mongoose.Schema(
   {
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
-      unique: true,
+      unique: true, // 1 receta por producto
       index: true,
     },
 
@@ -62,21 +83,37 @@ const recipeSchema = new mongoose.Schema(
 
     ingredients: {
       type: [recipeIngredientSchema],
-      default: [],
+      validate: {
+        validator: (v) => v.length > 0,
+        message: "La receta debe tener al menos un ingrediente",
+      },
     },
 
     method: { type: String, default: "" },
-    steps: { type: [stepSchema], default: [] },
 
-    category: { type: String, default: "general", index: true },
+    steps: {
+      type: [stepSchema],
+      default: [],
+    },
+
+    category: {
+      type: String,
+      default: "general",
+      index: true,
+    },
+
     image: { type: String, default: "" },
 
     specifications: {
       glass: { type: String, default: "STANDARD_GLASS" },
-      ice: { type: String, default: "STANDARD_ICE" }
+      ice: { type: String, default: "STANDARD_ICE" },
     },
 
-    totalCost: { type: Number, default: 0 },
+    totalCost: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
 
     isActive: {
       type: Boolean,
@@ -93,7 +130,7 @@ const recipeSchema = new mongoose.Schema(
 recipeSchema.index({ type: 1, category: 1 });
 
 /* ==============================
-   COST CALCULATION (FIXED)
+   COST CALCULATION (PRO)
 ============================== */
 async function calculateCost(doc) {
   const InventoryItem = mongoose.model("InventoryItem");
@@ -103,30 +140,39 @@ async function calculateCost(doc) {
     return;
   }
 
-  const ids = doc.ingredients.map(i => i.inventoryItem);
+  const ids = doc.ingredients.map((i) => i.inventoryItem);
 
-  const items = await InventoryItem.find({ _id: { $in: ids } })
+  const items = await InventoryItem.find({
+    _id: { $in: ids },
+  })
     .select("cost unit")
     .lean();
 
   const map = new Map(
-    items.map(i => [i._id.toString(), i])
+    items.map((i) => [i._id.toString(), i])
   );
 
   let total = 0;
 
   for (const ing of doc.ingredients) {
     const item = map.get(ing.inventoryItem.toString());
-
     if (!item) continue;
 
-    const costPerUnit = item.cost || 0;
+    /* =========================
+       NORMALIZACIÓN DE UNIDADES
+    ========================= */
+    const recipeUnit = UNIT_CONVERSION[ing.unit] || 1;
+    const inventoryUnit = UNIT_CONVERSION[item.unit] || 1;
 
-    //  NORMALIZACIÓN SEGURA
     const normalizedQty =
-      ing.quantity * (ing.baseUnitMultiplier || 1);
+      ing.quantity *
+      recipeUnit *
+      (ing.baseUnitMultiplier || 1);
 
-    total += costPerUnit * normalizedQty;
+    const costPerBaseUnit =
+      (item.cost || 0) / inventoryUnit;
+
+    total += costPerBaseUnit * normalizedQty;
   }
 
   doc.totalCost = Number(total.toFixed(2));
@@ -140,27 +186,72 @@ recipeSchema.pre("save", async function () {
 });
 
 /* ==============================
-   FIX: UPDATE HOOK (ROBUSTO)
+   UPDATE HOOK (ROBUSTO)
 ============================== */
 recipeSchema.pre("findOneAndUpdate", async function () {
   const update = this.getUpdate();
-
   if (!update) return;
+
+  const data = update.$set || update;
 
   const doc = await this.model.findOne(this.getQuery());
   if (!doc) return;
 
-  // merge seguro
-  if (update.ingredients) {
-    doc.ingredients = update.ingredients;
-  }
-
-  if (update.type) doc.type = update.type;
-  if (update.product) doc.product = update.product;
+  if (data.ingredients) doc.ingredients = data.ingredients;
+  if (data.type) doc.type = data.type;
+  if (data.product) doc.product = data.product;
 
   await calculateCost(doc);
 
-  update.totalCost = doc.totalCost;
+  if (update.$set) {
+    update.$set.totalCost = doc.totalCost;
+  } else {
+    update.totalCost = doc.totalCost;
+  }
+});
+
+/* ==============================
+   POST SYNC WITH PRODUCT
+============================== */
+recipeSchema.post("save", async function (doc) {
+  const Product = mongoose.model("Product");
+  await Product.findByIdAndUpdate(doc.product, {
+    hasRecipe: true,
+    cost: doc.totalCost
+  });
+});
+
+recipeSchema.post("findOneAndUpdate", async function (doc) {
+  if (doc) {
+    const Product = mongoose.model("Product");
+    await Product.findByIdAndUpdate(doc.product, {
+      hasRecipe: true,
+      cost: doc.totalCost
+    });
+  }
+});
+
+/* ==============================
+   POPULATE AUTO (PRO)
+============================== */
+recipeSchema.pre(/^find/, function () {
+  this.populate("product", "name price")
+      .populate("ingredients.inventoryItem", "name cost unit");
+});
+
+/* ==============================
+   VIRTUALS
+============================== */
+recipeSchema.virtual("margin").get(function () {
+  if (!this.totalCost || !this.product?.price) return 0;
+
+  return Number(
+    (
+      ((this.product.price - this.totalCost) /
+        this.product.price) *
+      100
+    ).toFixed(2)
+  );
 });
 
 /* ==============================

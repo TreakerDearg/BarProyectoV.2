@@ -100,6 +100,11 @@ export const createTableSchema = z.object({
   capacity: z.number().int().min(1),
   location: z.enum(["indoor", "outdoor", "bar"]).optional().default("indoor"),
   notes:    z.string().optional().default(""),
+  x:        z.number().optional().default(0),
+  y:        z.number().optional().default(0),
+  width:    z.number().optional().default(120),
+  height:   z.number().optional().default(120),
+  shape:    z.enum(["rect", "circle", "square"]).optional().default("square"),
 });
 
 /* ─────────────────── ORDERS ─────────────────── */
@@ -134,6 +139,8 @@ export const createReservationSchema = z.object({
   tableId:       z.string().optional(),
   notes:         z.string().optional().default(""),
   source:        z.enum(["web", "app", "admin"]).optional().default("admin"),
+  isVIP:         z.boolean().optional().default(false),
+  deposit:       z.number().optional().default(0),
 });
 
 /* ─────────────────── MENUS ─────────────────── */

@@ -1,166 +1,149 @@
-import { ShieldAlert, CheckCircle2, Flame } from "lucide-react";
+"use client";
+
+import { 
+  ClipboardList, 
+  Clock, 
+  MessageSquare, 
+  User, 
+  Hash, 
+  ChevronRight,
+  Zap,
+  Info,
+  ShieldCheck,
+  Timer,
+  AlertTriangle,
+  Activity
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   selectedItem: any;
-  recipeData?: any;
-  onMarkReady?: () => void;
 }
 
-export default function FocusPanel({
-  selectedItem,
-  recipeData,
-  onMarkReady,
-}: Props) {
+export default function FocusPanel({ selectedItem }: Props) {
   if (!selectedItem) {
     return (
-      <div className="w-full xl:w-96 border border-obsidian/60 bg-void/50 p-6 rounded-xl shadow-glass flex flex-col items-center justify-center text-center opacity-50">
-        <ShieldAlert className="w-12 h-12 mb-4 text-gray-600" />
-        <p className="text-xs tracking-widest uppercase font-bold text-gray-500">
-          NO_ITEM_SELECTED
-        </p>
-        <p className="text-[10px] text-gray-600 mt-2 max-w-[200px]">
-          Selecciona un item para ver receta y telemetría
+      <div className="h-full flex flex-col items-center justify-center p-12 text-center bg-surface-2 rounded-[2.5rem] border border-white/5 opacity-40">
+        <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-8">
+          <Info size={40} className="text-muted" />
+        </div>
+        <h3 className="text-lg font-black text-white/50 uppercase tracking-widest">Inspector de Plato</h3>
+        <p className="text-[10px] text-muted font-bold uppercase tracking-[0.3em] mt-4 leading-relaxed">
+          Seleccione un ítem del tablero para<br/>desglosar las especificaciones
         </p>
       </div>
     );
   }
 
-  const name =
-    selectedItem.name ||
-    selectedItem.product?.name ||
-    "PRODUCT";
+  const isReady = selectedItem.status === "ready" || selectedItem.status === "served";
+  const isCancelled = selectedItem.status === "cancelled";
 
   return (
-    <div className="w-full xl:w-96 border border-obsidian/60 bg-void/60 p-6 rounded-xl shadow-glass flex flex-col min-h-[600px] xl:sticky xl:top-6">
-
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="h-full flex flex-col bg-surface-2 rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl relative"
+    >
       {/* HEADER */}
-      <div className="mb-6">
-        <span className="px-3 py-1 rounded-full text-[9px] font-bold border border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#8B5CF6] mb-3 inline-block">
-          FOCUS_MODE
-        </span>
+      <div className="p-10 pb-6 relative">
+        <div className="flex items-center gap-4 mb-8">
+           <div className="p-3.5 rounded-2xl bg-gold/10 text-gold border border-gold/20 shadow-gold-glow/20">
+              <ClipboardList size={24} />
+           </div>
+           <div>
+              <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">Análisis</h2>
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mt-2">Operational Detail v4.0</p>
+           </div>
+        </div>
 
-        <h2 className="text-xl font-black text-white leading-tight">
-          {name.toUpperCase().replace(/\s+/g, "_")}
-        </h2>
-
-        <p className="text-[10px] text-gray-500 tracking-widest">
-          LIVE_PREPARATION_PANEL
-        </p>
+        <div className="grid grid-cols-2 gap-4">
+           <div className={`p-5 rounded-3xl border ${isReady ? 'bg-green-500/10 border-green-500/20' : isCancelled ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/5'}`}>
+              <p className="text-[8px] font-black text-muted uppercase tracking-[0.2em] mb-1">Estado</p>
+              <p className={`text-[10px] font-black uppercase tracking-widest ${isReady ? 'text-green-400' : isCancelled ? 'text-red-500' : 'text-gold'}`}>
+                 {selectedItem.status || "PENDIENTE"}
+              </p>
+           </div>
+           <div className="p-5 rounded-3xl bg-white/5 border border-white/5">
+              <p className="text-[8px] font-black text-muted uppercase tracking-[0.2em] mb-1">Volumen</p>
+              <p className="text-[10px] font-black text-white uppercase tracking-widest">
+                 {selectedItem.quantity} Unidades
+              </p>
+           </div>
+        </div>
       </div>
 
-      {/* CONTENT */}
-      {!recipeData ? (
-        <div className="flex-1 flex flex-col items-center justify-center opacity-50">
-          <Flame className="w-8 h-8 mb-2 text-gray-500 animate-pulse" />
-          <p className="text-[10px] tracking-widest">
-            FETCHING_RECIPE...
-          </p>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-6">
-
-          {/* SPECS */}
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold mb-2 tracking-widest">
-              SPECIFICATIONS
-            </p>
-
-            <div className="grid grid-cols-2 gap-2">
-              <SpecBox label="GLASS" value={recipeData.specifications?.glass} icon="🍸" />
-              <SpecBox label="ICE" value={recipeData.specifications?.ice} icon="❄️" />
+      {/* BODY */}
+      <div className="flex-1 p-10 pt-4 space-y-10 overflow-y-auto custom-scrollbar">
+         
+         {/* PRODUCT SPECS */}
+         <section className="space-y-4">
+            <div className="flex items-center gap-2">
+               <ShieldCheck size={12} className="text-gold opacity-50" />
+               <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Especificaciones Técnicas</h4>
             </div>
-          </div>
-
-          {/* STEPS */}
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold mb-2 tracking-widest">
-              RECIPE
-            </p>
-
-            <div className="space-y-3">
-              {recipeData.steps?.map((step: any, i: number) => (
-                <div key={i} className="flex gap-3">
-                  <StepIndex i={i} />
-                  <p className="text-xs text-gray-300 uppercase">
-                    {step.instruction}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* INGREDIENTS */}
-          <div>
-            <p className="text-[10px] text-gray-400 font-bold mb-2 tracking-widest">
-              INVENTORY
-            </p>
-
-            <div className="space-y-2">
-              {recipeData.ingredients?.map((ing: any, i: number) => {
-                const low =
-                  ing.inventoryItem?.stock <=
-                  (ing.inventoryItem?.minStock || 1);
-
-                return (
-                  <div
-                    key={i}
-                    className={`flex justify-between p-2 rounded border text-xs ${
-                      low
-                        ? "bg-red-500/10 border-red-500/30 text-red-400"
-                        : "bg-obsidian/20 border-obsidian text-green-400"
-                    }`}
-                  >
-                    <span>
-                      {ing.inventoryItem?.name?.toUpperCase()}
-                    </span>
-
-                    <span>
-                      {low
-                        ? "LOW"
-                        : `${ing.inventoryItem?.stock}${ing.unit}`}
-                    </span>
+            
+            <div className="p-8 bg-black/20 rounded-[2rem] border border-white/5 space-y-6">
+               <div>
+                  <p className="text-[9px] text-muted font-black uppercase tracking-widest mb-2">Denominación</p>
+                  <h3 className="text-2xl font-black text-grad-gold uppercase tracking-tighter leading-none">
+                     {selectedItem.product?.name || "Sin definir"}
+                  </h3>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-8 pt-4 border-t border-white/5">
+                  <div>
+                     <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Categoría</p>
+                     <p className="text-[10px] font-black text-white/70 uppercase">{selectedItem.product?.category || "General"}</p>
                   </div>
-                );
-              })}
+                  <div>
+                     <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Departamento</p>
+                     <p className="text-[10px] font-black text-white/70 uppercase">{selectedItem.product?.type || "Cocina"}</p>
+                  </div>
+               </div>
             </div>
-          </div>
-        </div>
-      )}
+         </section>
 
-      {/* ACTION */}
-      <div className="mt-6">
-        <button
-          onClick={onMarkReady}
-          className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-black font-bold py-3 rounded flex items-center justify-center gap-2"
-        >
-          <CheckCircle2 size={18} />
-          MARK_ITEM_READY
-        </button>
+         {/* SERVICE NOTES */}
+         <section className="space-y-4">
+            <div className="flex items-center gap-2">
+               <MessageSquare size={12} className="text-gold opacity-50" />
+               <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Notas de Servicio</h4>
+            </div>
+            <div className={`p-8 rounded-[2rem] border ${selectedItem.notes ? 'bg-amber-500/10 border-amber-500/20' : 'bg-white/5 border-white/5'}`}>
+               <p className={`text-xs font-bold leading-relaxed ${selectedItem.notes ? 'text-white' : 'text-muted'}`}>
+                  {selectedItem.notes || "No se han adjuntado instrucciones especiales para este ítem."}
+               </p>
+            </div>
+         </section>
+
+         {/* PERFORMANCE */}
+         <section className="space-y-4">
+            <div className="flex items-center gap-2">
+               <Timer size={12} className="text-gold opacity-50" />
+               <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Métricas de Producción</h4>
+            </div>
+            <div className="flex items-center gap-4 p-6 bg-black/20 rounded-3xl border border-white/5">
+               <Activity size={24} className="text-muted opacity-40" />
+               <div>
+                  <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none mb-1">Carga Estimada</p>
+                  <div className="flex items-center gap-4">
+                     <span className="text-sm font-black text-white">12:00 MIN</span>
+                     <div className="w-20 h-1 rounded-full bg-white/5 overflow-hidden">
+                        <div className="w-2/3 h-full bg-gold shadow-gold-glow" />
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </section>
       </div>
-    </div>
-  );
-}
 
-/* =========================
-   SUB COMPONENTS
-========================= */
-
-function SpecBox({ label, value, icon }: any) {
-  return (
-    <div className="bg-obsidian/30 border border-obsidian rounded p-3 text-center">
-      <div className="text-lg">{icon}</div>
-      <div className="text-[9px] text-gray-400">{label}</div>
-      <div className="text-xs font-bold text-white">
-        {(value || "N/A").toUpperCase()}
+      {/* FOOTER */}
+      <div className="p-10 bg-black/10 border-t border-white/5">
+         <button className="w-full h-16 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between px-8 group hover:bg-gold/10 hover:border-gold/30 transition-all">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted group-hover:text-gold transition-colors">Ficha de Preparación</span>
+            <ChevronRight size={18} className="text-muted group-hover:text-gold transition-all group-hover:translate-x-1" />
+         </button>
       </div>
-    </div>
-  );
-}
-
-function StepIndex({ i }: { i: number }) {
-  return (
-    <span className="w-5 h-5 flex items-center justify-center text-[9px] border border-[#8B5CF6]/30 text-[#8B5CF6] rounded">
-      {(i + 1).toString().padStart(2, "0")}
-    </span>
+    </motion.div>
   );
 }

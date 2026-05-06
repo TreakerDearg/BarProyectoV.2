@@ -1,6 +1,6 @@
-// components/RouletteStats.tsx
+"use client";
 
-import { Activity, Flame, Percent, Shuffle } from "lucide-react";
+import { Activity, Flame, Percent, Shuffle, Zap, Trophy, Target } from "lucide-react";
 import type { RouletteSpinResult, RouletteDrink } from "../types/roulette";
 
 interface Props {
@@ -20,39 +20,57 @@ export default function RouletteStats({
     active.reduce((acc, d) => acc + d.weight, 0) /
     (active.length || 1);
 
+  const mostFrequent = [...drinks].sort((a, b) => (b.totalSpins || 0) - (a.totalSpins || 0))[0];
+
   return (
-    <div className="grid md:grid-cols-4 gap-4">
-      <Stat icon={<Activity />} label="ACTIVE" value={active.length} />
-      <Stat icon={<Flame />} label="AVG WEIGHT" value={avgWeight.toFixed(1)} />
-      <Stat icon={<Percent />} label="TOTAL" value={totalWeight} />
-      <Stat icon={<Shuffle />} label="LAST" value={lastResult?.result.name || "-"} />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <PremiumStat 
+        icon={<Activity size={24} />} 
+        label="Pool Activo" 
+        value={active.length} 
+        sub="Drinks configurados"
+        color="gold"
+      />
+      <PremiumStat 
+        icon={<Target size={24} />} 
+        label="Peso Promedio" 
+        value={avgWeight.toFixed(1)} 
+        sub="Distribución de carga"
+        color="emerald"
+      />
+      <PremiumStat 
+        icon={<Trophy size={24} />} 
+        label="Más Popular" 
+        value={mostFrequent?.name || "N/A"} 
+        sub={`${mostFrequent?.totalSpins || 0} selecciones`}
+        color="gold"
+      />
+      <PremiumStat 
+        icon={<Zap size={24} />} 
+        label="Último Drop" 
+        value={lastResult?.result.name || "---"} 
+        sub={lastResult?.meta.rarity || "Esperando spin"}
+        color="emerald"
+      />
     </div>
   );
 }
 
-/* ============================== */
-
-function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: any;
-}) {
+function PremiumStat({ icon, label, value, sub, color }: any) {
+  const theme = color === 'gold' ? 'text-gold' : 'text-emerald-400';
   return (
-    <div className="bg-gradient-to-b from-[#0F172A] to-[#020617] border border-blue-500/10 rounded-xl p-4 flex items-center gap-3 shadow-[0_0_15px_rgba(59,130,246,0.08)]">
-
-      <div className="text-blue-400">{icon}</div>
-
-      <div>
-        <div className="text-[10px] text-gray-500 tracking-wide">
-          {label}
-        </div>
-        <div className="text-white font-bold text-lg">
+    <div className="glass-royale p-8 rounded-[2rem] border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden shadow-royale">
+      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+        {icon}
+      </div>
+      <div className="relative z-10">
+        <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em] mb-4">{label}</p>
+        <p className={`text-3xl font-black ${theme} tracking-tighter truncate uppercase`}>
           {value}
-        </div>
+        </p>
+        <p className="text-[9px] font-black text-muted/60 uppercase tracking-[0.2em] mt-2">
+          {sub}
+        </p>
       </div>
     </div>
   );

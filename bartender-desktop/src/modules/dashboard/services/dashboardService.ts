@@ -28,23 +28,20 @@ export interface HourlyData {
 }
 
 export interface DashboardStats {
-  kpis: {
-    totalSales: number;
-    totalOrders: number;
-    todayOrders: number;
-    avgTicket: number;
-    reservationsToday: number;
-  };
+  // Common KPIs
+  totalSales: number;
+  totalOrders: number;
+  todayOrders: number;
+  avgTicket: number;
+  reservationsToday: number;
+  
+  // Specific views might flatten these or group them
   topProducts: TopProduct[];
   topDrinks: TopProduct[];
   topFoods: TopProduct[];
   versusStats: {
-    radarData: { subject: string; classic: number; author: number; fullMark: number }[];
+    radarData: { subject: string; A: number; B: number; fullMark: number }[];
     headToHead: { rank: number; name: string; category: string; sold: number; profit: string; perf: number }[];
-    classicVelocity: number;
-    authorVelocity: number;
-    classicRevShare: number;
-    authorRevShare: number;
   };
   salesData: SalesData[];
   hourlyData: HourlyData[];
@@ -57,38 +54,32 @@ export interface DashboardStats {
   inventory: {
     lowStock: number;
     outOfStock: number;
+    stockValue?: number;
+    criticalItems?: any[];
   };
   tables: TableStats[];
+  activeOrdersCount?: number;
+  kitchenLoad?: number;
+  barLoad?: number;
 }
 
 /* =========================================================
    FETCH DASHBOARD
-   - robusto
-   - abortable
-   - logging útil para debug
 ========================================================= */
 export async function fetchDashboard(
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  view: string = "all",
+  range: string = "7"
 ): Promise<DashboardStats> {
   try {
     const response: any = await api.get("/dashboard", {
       signal,
+      params: { view, range }
     });
 
-    return response.data; // El interceptor devuelve { success, data, message }, y aquí sacamos 'data'
+    return response.data;
   } catch (error: any) {
-    const status = error?.response?.status;
-    const message =
-      error?.response?.data?.message ||
-      error?.message ||
-      "Error al obtener dashboard";
-
-    console.error("📊 Dashboard error:", {
-      status,
-      message,
-      data: error?.response?.data,
-    });
-
+    const message = error?.response?.data?.message || error?.message || "Error al obtener dashboard";
     throw new Error(message);
   }
 }

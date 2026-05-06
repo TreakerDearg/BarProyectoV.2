@@ -1,0 +1,32 @@
+/**
+ * Capa visual área cliente — usa variables de bartender-tokens.css + utilidades Tailwind donde convenga.
+ */
+
+.shell {
+  min-height: 100vh;
+  padding-bottom: 5.5rem;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(200, 50, 40, 0.07), transparent),
+    radial-gradient(ellipse 60% 30% at 0% 100%, rgba(212, 163, 64, 0.05), transparent),
+    radial-gradient(ellipse 50% 25% at 100% 80%, rgba(52, 185, 100, 0.04), transparent),
+    var(--bg);
+}
+
+@media (min-width: 640px) {
+  .shell {
+    padding-bottom: 2rem;
+  }
+}
+
+.main {
+  margin-inline: auto;
+  max-width: 72rem;
+  padding: 2rem 1rem 3rem;
+}
+
+@media (min-width: 640px) {
+  .main {
+    padding-inline: 1.5rem;
+  }
+}

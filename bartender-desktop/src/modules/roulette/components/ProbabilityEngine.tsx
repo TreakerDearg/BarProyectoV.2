@@ -1,7 +1,8 @@
 "use client";
 
-import { Wand2, Sparkles } from "lucide-react";
-import type { RouletteDrink } from "../types/roulette";
+import { Wand2, Sparkles, TrendingUp, Filter, Settings2 } from "lucide-react";
+import type { RouletteDrink, RouletteRarity } from "../types/roulette";
+import RarityBadge from "./RarityBadge";
 
 interface Props {
   drinks: RouletteDrink[];
@@ -14,168 +15,131 @@ export default function ProbabilityEngine({
   onUpdate,
   onAutoBalance,
 }: Props) {
-
-  const maxWeight = Math.max(...drinks.map(d => d.weight || 1), 1);
+  const maxWeight = Math.max(...drinks.map((d) => d.weight || 1), 1);
 
   return (
-    <div className="relative bg-gradient-to-b from-[#0A0F1F] to-[#020617] border border-blue-500/10 rounded-2xl p-5 shadow-[0_0_50px_rgba(59,130,246,0.12)] overflow-hidden">
-
-      {/* 🔥 GLOBAL GLOW */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent pointer-events-none" />
+    <div className="relative glass-royale border border-white/5 rounded-[2.5rem] p-10 shadow-royale overflow-hidden">
+      
+      {/* GLOW DE FONDO */}
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-gold/5 blur-[100px] rounded-full pointer-events-none" />
 
       {/* ================= HEADER ================= */}
-      <div className="flex justify-between items-center mb-6 relative z-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 relative z-10">
         <div>
-          <h2 className="text-white font-semibold tracking-wide flex items-center gap-2">
-            <Sparkles size={14} className="text-blue-400" />
-            Probability Engine
+          <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase flex items-center gap-4">
+            <TrendingUp size={24} className="text-gold" />
+            Probability <span className="text-grad-gold">Engine</span>
           </h2>
-          <p className="text-xs text-gray-500">
-            Adaptive weight distribution system
+          <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mt-1">
+            Sistema Adaptativo de Pesos y Rarezas
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex bg-surface-3/30 p-1.5 rounded-2xl border border-white/5">
           <button
             onClick={() => onAutoBalance("smart")}
-            className="flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-500/20 transition"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black tracking-widest text-gold hover:bg-gold/10 transition-all"
           >
-            <Wand2 size={12} />
-            Smart
+            <Wand2 size={14} /> SMART
           </button>
-
           <button
             onClick={() => onAutoBalance("smooth")}
-            className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-3 py-1.5 rounded-lg text-xs hover:bg-cyan-500/20 transition"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black tracking-widest text-emerald-400 hover:bg-emerald-400/10 transition-all"
           >
-            Smooth
+            SMOOTH
           </button>
-
           <button
             onClick={() => onAutoBalance("equal")}
-            className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-lg text-xs hover:bg-amber-500/20 transition"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black tracking-widest text-muted hover:bg-white/5 transition-all"
           >
-            Equal
+            EQUAL
           </button>
         </div>
       </div>
 
       {/* ================= LIST ================= */}
-      <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 relative z-10">
-
+      <div className="space-y-6 max-h-[600px] overflow-y-auto pr-6 custom-scrollbar relative z-10">
         {drinks.map((drink) => {
           const percent = drink.probability ?? 0;
           const dominance = drink.weight / maxWeight;
-
           const isDominant = dominance > 0.75;
 
           return (
             <div
               key={drink._id}
               className={`
-                group relative p-4 rounded-xl border transition-all
-                bg-[#020617]
+                group relative p-8 rounded-3xl border transition-all duration-500
+                bg-surface-3/20
                 ${
                   drink.active
-                    ? "border-blue-500/20 hover:border-blue-500/40"
-                    : "border-gray-800 opacity-50"
+                    ? "border-white/5 hover:border-white/10 hover:bg-surface-3/40"
+                    : "border-gray-900 opacity-30 grayscale"
                 }
-                ${isDominant ? "shadow-[0_0_15px_rgba(59,130,246,0.25)]" : ""}
+                ${isDominant && drink.active ? "border-gold/20 shadow-gold-glow/5" : ""}
               `}
             >
+              {/* HEADER DE ITEM */}
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+                <div className="flex items-center gap-6">
+                   <div className="w-14 h-14 rounded-2xl bg-surface-3 flex items-center justify-center text-2xl shadow-inner border border-white/5">
+                      🍸
+                   </div>
+                   <div>
+                      <h4 className="text-lg font-black text-ivory tracking-tighter uppercase group-hover:text-gold transition-colors">
+                        {drink.name}
+                      </h4>
+                      <div className="flex items-center gap-3 mt-1">
+                         <RarityBadge rarity={drink.rarity} size="sm" />
+                         <span className="text-[9px] text-muted font-black uppercase tracking-widest">
+                           {drink.category}
+                         </span>
+                      </div>
+                   </div>
+                </div>
 
-              {/* 🔥 DOMINANCE GLOW */}
-              {isDominant && (
-                <div className="absolute inset-0 rounded-xl bg-blue-500/5 pointer-events-none" />
-              )}
-
-              {/* HEADER */}
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-white text-sm font-medium">
-                  {drink.name}
-                </span>
-
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-gray-400">
-                    {drink.weight}
-                  </span>
-
-                  <span className="text-blue-400 font-semibold">
-                    {percent.toFixed(1)}%
-                  </span>
+                <div className="flex flex-col items-end gap-2">
+                   <div className="flex items-center gap-4">
+                      <select 
+                        value={drink.rarity}
+                        onChange={(e) => onUpdate(drink._id, { rarity: e.target.value as RouletteRarity })}
+                        className="bg-surface-3 border border-white/10 rounded-xl px-3 py-1.5 text-[9px] font-black text-ivory uppercase tracking-widest focus:outline-none focus:border-gold/50"
+                      >
+                         <option value="COMMON">Common</option>
+                         <option value="RARE">Rare</option>
+                         <option value="EPIC">Epic</option>
+                         <option value="LEGENDARY">Legendary</option>
+                      </select>
+                      <div className="flex flex-col items-end">
+                         <span className="text-2xl font-black text-grad-gold tracking-tighter leading-none">
+                            {percent.toFixed(1)}%
+                         </span>
+                         <span className="text-[8px] text-muted font-black uppercase tracking-widest mt-1">PROBABILIDAD</span>
+                      </div>
+                   </div>
                 </div>
               </div>
 
-              {/* ================= PROGRESS ================= */}
-              <div className="relative w-full h-2 bg-gray-800 rounded-full mb-3 overflow-hidden">
-
-                <div
-                  className="h-full transition-all duration-500 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-300"
-                  style={{ width: `${percent}%` }}
-                />
-
-                {/* glow overlay */}
-                <div
-                  className="absolute inset-0 blur-md opacity-40"
-                  style={{
-                    background: `linear-gradient(90deg, #3b82f6, #22d3ee)`,
-                    width: `${percent}%`,
-                  }}
-                />
-              </div>
-
-              {/* ================= SLIDER PRO ================= */}
-              <input
-                type="range"
-                min={1}
-                max={100}
-                value={drink.weight}
-                onChange={(e) =>
-                  onUpdate(drink._id, {
-                    weight: Number(e.target.value),
-                  })
-                }
-                className="
-                  w-full appearance-none bg-transparent cursor-pointer
-
-                  [&::-webkit-slider-runnable-track]:h-2
-                  [&::-webkit-slider-runnable-track]:bg-gray-800
-                  [&::-webkit-slider-runnable-track]:rounded-full
-
-                  [&::-webkit-slider-thumb]:appearance-none
-                  [&::-webkit-slider-thumb]:h-5
-                  [&::-webkit-slider-thumb]:w-5
-                  [&::-webkit-slider-thumb]:rounded-full
-                  [&::-webkit-slider-thumb]:bg-blue-500
-                  [&::-webkit-slider-thumb]:shadow-[0_0_12px_rgba(59,130,246,0.9)]
-                  [&::-webkit-slider-thumb]:-mt-1.5
-
-                  hover:[&::-webkit-slider-thumb]:scale-110
-                  active:[&::-webkit-slider-thumb]:scale-125
-                  transition-all
-                "
-              />
-
-              {/* ================= FOOT ================= */}
-              <div className="flex justify-between items-center text-[10px] text-gray-500 mt-2">
-
-                <span>
-                  {drink.category}
-                </span>
-
-                <div className="flex gap-2">
-                  {isDominant && (
-                    <span className="text-cyan-400">
-                      Dominant
-                    </span>
-                  )}
-
-                  {!drink.active && (
-                    <span className="text-red-400">
-                      Disabled
-                    </span>
-                  )}
-                </div>
+              {/* CONTROL DE PESO */}
+              <div className="flex items-center gap-6">
+                 <div className="flex-1 relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none px-4">
+                       <span className="text-[8px] font-black text-muted uppercase tracking-widest">Peso: {drink.weight}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={drink.weight}
+                      onChange={(e) => onUpdate(drink._id, { weight: Number(e.target.value) })}
+                      className="premium-slider w-full"
+                    />
+                 </div>
+                 <button 
+                  onClick={() => onUpdate(drink._id, { active: !drink.active })}
+                  className={`p-3 rounded-xl border transition-all ${drink.active ? 'border-emerald-400/20 text-emerald-400 bg-emerald-400/5' : 'border-red/20 text-red bg-red/5'}`}
+                 >
+                    <Settings2 size={16} />
+                 </button>
               </div>
             </div>
           );
@@ -183,8 +147,14 @@ export default function ProbabilityEngine({
       </div>
 
       {/* ================= FOOTER ================= */}
-      <div className="text-right text-xs text-green-400 mt-5 font-semibold relative z-10">
-        Total Probability: 100%
+      <div className="flex justify-between items-center mt-10 pt-10 border-t border-white/5 relative z-10">
+         <div className="flex items-center gap-4">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-emerald-400/50" />
+            <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Engine v4.5 • Operational Intelligence Active</span>
+         </div>
+         <div className="bg-emerald-400/10 text-emerald-400 px-6 py-2 rounded-full border border-emerald-400/20 text-[10px] font-black tracking-widest">
+            STABLE 100%
+         </div>
       </div>
     </div>
   );

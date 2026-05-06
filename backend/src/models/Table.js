@@ -51,6 +51,19 @@ const tableSchema = new mongoose.Schema(
     },
 
     /* =========================
+       SPATIAL INFO (FLOOR PLAN)
+    ========================= */
+    x: { type: Number, default: 0 },
+    y: { type: Number, default: 0 },
+    width: { type: Number, default: 120 },
+    height: { type: Number, default: 120 },
+    shape: { 
+      type: String, 
+      enum: ["rect", "circle", "square"], 
+      default: "square" 
+    },
+
+    /* =========================
        STATE MACHINE (CORE FIX)
     ========================= */
     status: {

@@ -1,36 +1,23 @@
+import type { OrderItem as IOrderItem } from "../../types/order";
 import OrderItem from "./OrderItem";
 
 interface Props {
-  items: any[];
+  items: IOrderItem[];
   status: string;
   onSelectItem?: (item: any) => void;
   selectedItemId?: string;
 }
 
-export default function OrderItems({
-  items,
-  status,
-  onSelectItem,
-  selectedItemId,
-}: Props) {
-  if (!items?.length) {
-    return (
-      <div className="mb-6 text-center text-xs text-gray-500 italic">
-        Sin items
-      </div>
-    );
-  }
-
+export default function OrderItems({ items, status, onSelectItem, selectedItemId }: Props) {
   return (
-    <div className="space-y-3 mb-6 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-      {items.map((item, i) => (
+    <div className="space-y-2.5 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+      {items.map((item, idx) => (
         <OrderItem
-          key={item._id || i}
+          key={idx}
           item={item}
-          index={i}
           status={status}
-          onClick={() => onSelectItem?.(item)}
-          selected={selectedItemId === item._id}
+          onSelect={onSelectItem}
+          isActive={selectedItemId === item._id}
         />
       ))}
     </div>

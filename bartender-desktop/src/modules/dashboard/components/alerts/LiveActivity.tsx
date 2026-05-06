@@ -1,56 +1,58 @@
-export default function LiveActivity() {
-  const activities = [
-    {
-      title: "New High-Value Order",
-      desc: "Table 12 • $428.00",
-      time: "2 min ago",
-      color: "bg-[#8B5CF6]" // Violeta original para diferenciar
-    },
-    {
-      title: "Table 04 Cleared",
-      desc: "Ready for seating",
-      time: "5 min ago",
-      color: "bg-bar-green"
-    },
-    {
-      title: "Shift Change Complete",
-      desc: "Night staff logged in",
-      time: "14 min ago",
-      color: "bg-gray-500"
-    }
-  ];
+"use client";
+
+import { Activity, Clock, ArrowUpRight, Zap, Users } from "lucide-react";
+
+interface Props {
+  reservations?: any[];
+}
+
+export default function LiveActivity({ reservations = [] }: Props) {
+  const activities = reservations.map((res: any) => ({
+    title: "Nueva Reserva VIP",
+    desc: `${res.name} · ${res.partySize} Pax`,
+    time: new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    icon: <Users size={12} />,
+    color: "text-emerald-400 bg-emerald-400/10 shadow-emerald-400/20"
+  }));
+
+  if (activities.length === 0) {
+    activities.push({
+      title: "Sistema en Modo Espera",
+      desc: "Esperando nuevas solicitudes...",
+      time: "AHORA",
+      icon: <Activity size={12} />,
+      color: "text-muted bg-white/5"
+    });
+  }
 
   return (
-    <div className="bg-void border border-obsidian/40 rounded-xl flex-1 flex flex-col shadow-glass">
-      <div className="p-4 border-b border-obsidian/40">
-        <h3 className="font-bold text-gray-400 text-xs tracking-widest uppercase">Live Activity</h3>
-      </div>
-      
-      <div className="p-4 flex-1 space-y-6">
+    <div className="space-y-8 flex-1 flex flex-col">
+      <div className="flex-1 space-y-8">
         {activities.map((act, i) => (
-          <div key={i} className="flex gap-4 relative">
-            {/* linea conectora */}
+          <div key={i} className="flex gap-6 relative group cursor-default">
+            {/* LINK LINE */}
             {i !== activities.length - 1 && (
-              <div className="absolute left-2 top-6 bottom-[-1.5rem] w-px bg-obsidian" />
+              <div className="absolute left-6 top-10 bottom-[-2rem] w-px bg-white/5 group-hover:bg-gold/20 transition-colors" />
             )}
             
-            <div className={`w-4 h-4 rounded-full mt-1 flex-shrink-0 ${act.color} shadow-[0_0_8px_currentColor] border-2 border-void relative z-10`} />
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/5 transition-all group-hover:scale-110 ${act.color}`}>
+              {act.icon}
+            </div>
             
-            <div>
-              <p className="text-sm font-bold text-white">{act.title}</p>
-              <div className="flex gap-2 text-xs text-gray-500 mt-0.5">
+            <div className="pt-1">
+              <div className="flex items-center gap-3">
+                 <p className="text-xs font-black text-ivory uppercase tracking-tighter group-hover:text-gold transition-colors">{act.title}</p>
+                 <ArrowUpRight size={10} className="text-muted opacity-0 group-hover:opacity-100 transition-all" />
+              </div>
+              <div className="flex gap-3 text-[9px] font-black text-muted uppercase tracking-widest mt-1.5">
                 <span>{act.desc}</span>
-                <span>•</span>
-                <span>{act.time}</span>
+                <span className="opacity-20">|</span>
+                <span className="text-gold/50">{act.time}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
-
-      <button className="p-3 border-t border-obsidian/40 w-full text-xs font-bold text-gray-400 hover:text-white transition uppercase tracking-widest">
-        View All Activity
-      </button>
     </div>
   );
 }

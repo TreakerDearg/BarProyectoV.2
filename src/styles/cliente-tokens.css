@@ -1,0 +1,613 @@
+/* ===============================================================
+   BARTENDER SYSTEM — DESIGN SYSTEM v2.0 (Cliente)
+   Copia de bartender-desktop/index.css
+   Paleta: Rojo · Dorado · Naranja · Verde · Obsidian
+   =============================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
+:root {
+  color-scheme: dark;
+
+  /* ===============================================================
+     BACKGROUNDS — Deep Obsidian Bar
+  =============================================================== */
+  --bg:           #08090C;
+  --bg-deep:      #050608;
+  --surface:      #0D0F14;
+  --surface-2:    #12151C;
+  --surface-3:    #171B24;
+  --surface-4:    #1E232E;
+  --surface-glow: rgba(13,15,20,0.92);
+
+  /* ===============================================================
+     BACKGROUNDS — Umbra (Purple Depth)
+  =============================================================== */
+  --umbra:        #1A1423;
+  --umbra-light:  #2A2240;
+  --umbra-dark: #0F0A18;
+  --umbra-soft: rgba(26, 20, 35, 0.12);
+  --umbra-border: rgba(42, 34, 64, 0.30);
+
+  /* ===============================================================
+     BORDERS
+  =============================================================== */
+  --border:        rgba(255, 255, 255, 0.055);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --border-gold:   rgba(212, 163, 64, 0.25);
+  --border-red:    rgba(200, 50, 40, 0.25);
+  --border-green:  rgba(52, 185, 100, 0.22);
+
+  /* ===============================================================
+     TEXT
+  =============================================================== */
+  --text:         #F5F0E8;
+  --text-dim:     rgba(245, 240, 232, 0.60);
+  --text-muted:   rgba(245, 240, 232, 0.35);
+  --text-gold:    #D4A340;
+  --text-red:     #E05444;
+  --text-green:   #34B964;
+
+  /* ===============================================================
+     ─── PRIMARY: DORADO ───
+     Acción principal, botones CTA, hover activo
+  =============================================================== */
+  --gold:           #D4A340;
+  --gold-light:     #E8BC5A;
+  --gold-dark:      #A87C28;
+  --gold-soft:      rgba(212, 163, 64, 0.12);
+  --gold-border:    rgba(212, 163, 64, 0.30);
+  --gold-glow:      0 0 24px rgba(212, 163, 64, 0.25);
+
+  /* ===============================================================
+     ─── SECONDARY: ROJO BAR ───
+     Danger, cancelar, errores, también acento de marca
+  =============================================================== */
+  --red:            #C83228;
+  --red-light:      #E05444;
+  --red-dark:       #981E16;
+  --red-soft:       rgba(200, 50, 40, 0.12);
+  --red-border:     rgba(200, 50, 40, 0.30);
+  --red-glow:       0 0 24px rgba(200, 50, 40, 0.22);
+
+  /* ===============================================================
+     ─── ACCENT: NARANJA CALIENTE ───
+     Warning, cocina, preparando, states de calor
+  =============================================================== */
+  --orange:         #E07828;
+  --orange-light:   #F09040;
+  --orange-dark:    #B05A18;
+  --orange-soft:    rgba(224, 120, 40, 0.12);
+  --orange-border:  rgba(224, 120, 40, 0.28);
+  --orange-glow:    0 0 24px rgba(224, 120, 40, 0.20);
+
+  /* ===============================================================
+     ─── SUCCESS: VERDE BAR ───
+     Completado, disponible, servido, activo
+  =============================================================== */
+  --green:          #34B964;
+  --green-light:    #4AD07C;
+  --green-dark:     #228A46;
+  --green-soft:     rgba(52, 185, 100, 0.12);
+  --green-border:   rgba(52, 185, 100, 0.28);
+  --green-glow:     0 0 24px rgba(52, 185, 100, 0.18);
+
+  /* ===============================================================
+     ─── COMPLEMENTARY: ÁMBAR MIEL ───
+     Warm accent, bar vibe, highlight secondary
+  =============================================================== */
+  --amber:          #E8A838;
+  --amber-light:    #F0C060;
+  --amber-dark:    #B88630;
+  --amber-soft:    rgba(232, 168, 56, 0.12);
+  --amber-border:   rgba(232, 168, 56, 0.30);
+  --amber-glow:     0 0 24px rgba(232, 168, 56, 0.22);
+
+  /* ===============================================================
+     ─── NEUTRAL ───
+     Texto secundario, íconos inactivos
+  =============================================================== */
+  --neutral:        #3D4150;
+  --neutral-light:  #565D70;
+  --neutral-dark:   #252830;
+
+  /* ===============================================================
+     SEMANTIC ALIASES (mapeo conceptual)
+  =============================================================== */
+  --primary:        var(--gold);
+  --primary-light:  var(--gold-light);
+  --primary-dark:   var(--gold-dark);
+  --primary-soft:   var(--gold-soft);
+  --primary-border: var(--gold-border);
+  --primary-glow:   var(--gold-glow);
+
+  --danger:         var(--red);
+  --danger-light:   var(--red-light);
+  --danger-soft:    var(--red-soft);
+  --danger-border:  var(--red-border);
+  --danger-glow:    var(--red-glow);
+
+  --warning:        var(--orange);
+  --warning-light:  var(--orange-light);
+  --warning-soft:   var(--orange-soft);
+  --warning-border: var(--orange-border);
+  --warning-glow:   var(--orange-glow);
+
+  --success:        var(--green);
+  --success-light:  var(--green-light);
+  --success-soft:   var(--green-soft);
+  --success-border: var(--green-border);
+  --success-glow:   var(--green-glow);
+
+  /* ===============================================================
+     GRADIENTES TEMÁTICOS
+  =============================================================== */
+  --grad-gold:   linear-gradient(135deg, #D4A340 0%, #E8BC5A 50%, #A87C28 100%);
+  --grad-red:    linear-gradient(135deg, #981E16 0%, #C83228 50%, #E05444 100%);
+  --grad-orange: linear-gradient(135deg, #B05A18 0%, #E07828 50%, #F09040 100%);
+  --grad-green:  linear-gradient(135deg, #228A46 0%, #34B964 50%, #4AD07C 100%);
+  --grad-brand:  linear-gradient(135deg, #C83228 0%, #D4A340 60%, #E07828 100%);
+  --grad-dark:   linear-gradient(180deg, #0D0F14 0%, #08090C 100%);
+  --grad-umbra: linear-gradient(135deg, #1A1423 0%, #2A2240 50%, #1A1423 100%);
+  --grad-amber: linear-gradient(135deg, #B88630 0%, #E8A838 50%, #F0C060 100%);
+
+  /* ===============================================================
+     SHADOWS
+  =============================================================== */
+  --shadow-xs:   0 2px 8px rgba(0,0,0,0.35);
+  --shadow-sm:   0 4px 16px rgba(0,0,0,0.45);
+  --shadow:      0 8px 32px rgba(0,0,0,0.60);
+  --shadow-lg:   0 16px 56px rgba(0,0,0,0.75);
+  --shadow-gold: 0 4px 24px rgba(212, 163, 64, 0.20);
+  --shadow-red:  0 4px 24px rgba(200, 50, 40, 0.20);
+  --shadow-umbra: 0 4px 24px rgba(26, 20, 35, 0.25);
+
+  /* ===============================================================
+     RADII
+  =============================================================== */
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
+  --radius-full: 9999px;
+
+  /* ===============================================================
+     TRANSITIONS
+  =============================================================== */
+  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+  --duration:  220ms;
+  --duration-fast: 140ms;
+  --duration-slow: 380ms;
+}
+
+/* ===============================================================
+   RESET GLOBAL
+=============================================================== */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===============================================================
+   BASE DOCUMENT
+=============================================================== */
+html, body, #root {
+  height: 100%;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: "Outfit", "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(200, 50, 40, 0.07), transparent),
+    radial-gradient(ellipse 60% 30% at 0% 100%, rgba(212, 163, 64, 0.05), transparent),
+    radial-gradient(ellipse 50% 25% at 100% 80%, rgba(52, 185, 100, 0.04), transparent),
+    var(--bg);
+}
+
+/* ===============================================================
+   SCROLLBAR — Bar Style
+=============================================================== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+
+::-webkit-scrollbar-track {
+  background: rgba(8, 9, 12, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(212, 163, 64, 0.55),
+    rgba(200, 50, 40, 0.30)
+  );
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(8, 9, 12, 0.7);
+  transition: background var(--duration) var(--ease);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(212, 163, 64, 0.85),
+    rgba(224, 120, 40, 0.55)
+  );
+}
+
+/* ===============================================================
+   SELECTION
+=============================================================== */
+::selection {
+  background: rgba(212, 163, 64, 0.30);
+  color: #F5F0E8;
+}
+
+/* ===============================================================
+   FOCUS
+=============================================================== */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ===============================================================
+   INPUT / BUTTON / TEXTAREA RESET
+=============================================================== */
+input, button, textarea, select { outline: none; }
+
+/* ===============================================================
+   ─── GLASS SYSTEM ───
+   .glass           → base oscuro con blur
+   .glass-gold      → variante dorada
+   .glass-red       → variante roja
+=============================================================== */
+.glass {
+  background: rgba(13, 15, 20, 0.60);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.glass-gold {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--gold-border);
+  box-shadow: var(--shadow), var(--gold-glow);
+}
+
+.glass-red {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--red-border);
+  box-shadow: var(--shadow), var(--red-glow);
+}
+
+/* ===============================================================
+   ─── CARD SYSTEM ───
+=============================================================== */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              transform var(--duration) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow), var(--gold-glow);
+  transform: translateY(-2px);
+}
+
+.card-flat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ===============================================================
+   ─── BADGE SYSTEM ───
+=============================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.badge-gold    { color: var(--gold);    background: var(--gold-soft);    border-color: var(--gold-border);    }
+.badge-red     { color: var(--red-light);     background: var(--red-soft);     border-color: var(--red-border);     }
+.badge-orange  { color: var(--orange-light);  background: var(--orange-soft);  border-color: var(--orange-border);  }
+.badge-green   { color: var(--green-light);   background: var(--green-soft);   border-color: var(--green-border);   }
+.badge-neutral { color: var(--neutral-light); background: rgba(61, 65, 80, 0.25); border-color: rgba(61,65,80,0.4); }
+
+/* ===============================================================
+   ─── STATE SYSTEM (Order / Table statuses) ───
+=============================================================== */
+
+.state-pending   { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+.state-preparing { color: var(--orange-light); background: var(--orange-soft); border-color: var(--orange-border); }
+.state-ready     { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+.state-served    { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+.state-completed { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+.state-cancelled { color: var(--red-light);  background: var(--red-soft);  border-color: var(--red-border); }
+.state-available { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+.state-occupied  { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+.state-reserved  { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+.state-maintenance { color: var(--red-light); background: var(--red-soft); border-color: var(--red-border); }
+
+/* ===============================================================
+   ─── BUTTONS ───
+=============================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--duration) var(--ease);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+.btn-gold {
+  background: var(--grad-gold);
+  color: #0D0F14;
+  border-color: var(--gold-dark);
+  box-shadow: var(--shadow-gold);
+}
+.btn-gold:hover {
+  filter: brightness(1.10);
+  box-shadow: var(--shadow-gold), var(--gold-glow);
+}
+
+.btn-red {
+  background: var(--grad-red);
+  color: #fff;
+  border-color: var(--red-dark);
+  box-shadow: var(--shadow-red);
+}
+.btn-red:hover {
+  filter: brightness(1.12);
+  box-shadow: var(--shadow-red), var(--red-glow);
+}
+
+.btn-orange {
+  background: var(--grad-orange);
+  color: #0D0F14;
+  border-color: var(--orange-dark);
+}
+.btn-orange:hover { filter: brightness(1.12); }
+
+.btn-green {
+  background: var(--grad-green);
+  color: #0D0F14;
+  border-color: var(--green-dark);
+}
+.btn-green:hover { filter: brightness(1.10); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border-color: var(--gold-border);
+}
+
+/* ===============================================================
+   ─── INPUT SYSTEM ───
+=============================================================== */
+.input {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease);
+}
+
+.input::placeholder { color: var(--text-muted); }
+
+.input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 163, 64, 0.15);
+  outline: none;
+}
+
+.input:focus:invalid {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(200, 50, 40, 0.15);
+}
+
+/* ===============================================================
+   ─── SPINNER ───
+=============================================================== */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(212, 163, 64, 0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===============================================================
+   ─── DIVIDER ───
+=============================================================== */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-border),
+    var(--red-border),
+    transparent
+  );
+}
+
+/* ===============================================================
+   ─── GLOW EFFECTS ───
+=============================================================== */
+.glow-gold   { box-shadow: var(--gold-glow);   }
+.glow-red    { box-shadow: var(--red-glow);    }
+.glow-orange { box-shadow: var(--orange-glow); }
+.glow-green  { box-shadow: var(--green-glow);  }
+
+/* ===============================================================
+   ─── GRADIENT TEXT ───
+=============================================================== */
+.text-grad-gold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-grad-brand {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===============================================================
+    ─── ANIMATIONS
+  =============================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
+.animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
+.animate-card-in { animation: cardSlideIn var(--duration) var(--ease-out) both; }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 163, 64, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(212, 163, 64, 0.15); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
+.animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
+.animate-slide-right { animation: slideInRight var(--duration-slow) var(--ease-out) both; }
+.animate-pulse-gold { animation: pulse-gold 2s ease infinite; }
+.animate-shake      { animation: shake 0.3s ease-in-out; }
+.animate-float      { animation: float 4s ease-in-out infinite; }
+.animate-scale-in   { animation: scaleIn var(--duration) var(--ease-out) both; }
+.animate-shimmer    { animation: shimmer 1.5s ease-in-out infinite; }
+
+/* ===============================================================
+   UTILIDADES ADICIONALES — Cliente
+=============================================================== */
+
+/* Touch targets mínimos para POS */
+.touch-target {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+/* Overlay para modales */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+}
+
+/* Safe area para móviles */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Text truncation */
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,10 +1,17 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import {
-  Package,
+  X,
+  CheckCircle,
   AlertTriangle,
+  Package,
   Tag,
   DollarSign,
-  Warehouse,
+  Loader2,
+  Zap,
+  Target,
+  ShieldCheck
 } from "lucide-react";
 
 import type { InventoryItem } from "../types/inventory";
@@ -25,13 +32,13 @@ const EMPTY_FORM: InventoryItem = {
   category: "",
   cost: 0,
   supplier: "",
-  location: "storage",
-  isActive: false
+  location: "Bóveda Central",
+  isActive: true
 };
 
-const UNIT_OPTIONS = ["ml", "l", "g", "kg", "unit", "oz", "portion"];
+const UNIT_OPTIONS = ["ml", "l", "g", "kg", "unit", "oz", "portion", "box"];
 const SECTOR_OPTIONS = ["bar", "kitchen", "general"];
-const LOCATION_OPTIONS = ["bar", "kitchen", "storage"];
+const LOCATION_OPTIONS = ["Bóveda Central", "Barra Principal", "Cocina VIP", "Bodega Externa"];
 
 export default function InventoryForm({
   item,
@@ -40,23 +47,17 @@ export default function InventoryForm({
 }: Props) {
   const [formData, setFormData] = useState<InventoryItem>(EMPTY_FORM);
   const [errors, setErrors] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  /* =========================
-     INIT / EDIT MODE
-  ========================= */
   useEffect(() => {
     setFormData(item ? { ...EMPTY_FORM, ...item } : EMPTY_FORM);
     setErrors([]);
   }, [item]);
 
-  /* =========================
-     HANDLERS
-  ========================= */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: ["stock", "minStock", "maxStock", "cost"].includes(name)
@@ -65,246 +66,209 @@ export default function InventoryForm({
     }));
   };
 
-  /* =========================
-     VALIDATION
-  ========================= */
   const validate = () => {
     const err: string[] = [];
-
-    if (!formData.name.trim()) err.push("Nombre requerido");
-    if (!formData.category.trim()) err.push("Categoría requerida");
-
-    if (formData.stock < 0) err.push("Stock inválido");
-    if (formData.minStock < 0) err.push("Min stock inválido");
-    if (formData.maxStock <= 0) err.push("Max stock inválido");
-
-    if (formData.minStock > formData.maxStock) {
-      err.push("Min stock no puede ser mayor a max stock");
-    }
-
+    if (!formData.name.trim()) err.push("Se requiere identificar el insumo");
+    if (!formData.category.trim()) err.push("Categoría Umbra requerida");
+    if (formData.minStock > formData.maxStock) err.push("Conflicto en límites de stock");
     setErrors(err);
     return err.length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validate()) return;
-
-    onSave(formData);
+    setLoading(true);
+    await onSave(formData);
+    setLoading(false);
   };
 
-  /* =========================
-     DERIVED STATE
-  ========================= */
   const stockPercent = useMemo(() => {
     if (!formData.maxStock) return 0;
-    return Math.min(
-      (formData.stock / formData.maxStock) * 100,
-      100
-    );
+    return Math.min((formData.stock / formData.maxStock) * 100, 100);
   }, [formData.stock, formData.maxStock]);
 
-  const isLowStock = formData.stock <= formData.minStock;
+  const isCritical = formData.stock <= formData.minStock;
 
-  /* =========================
-     UI
-  ========================= */
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in overflow-y-auto">
+      
+      {/* ATMOSPHERE */}
+      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-cyan-400/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
+      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-gold/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
+
       <form
         onSubmit={handleSubmit}
-        className="w-[560px] bg-gradient-to-b from-gray-900 to-gray-950 border border-gray-800 rounded-3xl shadow-2xl p-6 space-y-5"
+        className="w-full max-w-2xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto"
       >
         {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold flex items-center gap-2">
-              <Warehouse size={18} />
-              {item ? "Editar insumo" : "Nuevo insumo"}
-            </h2>
-
-            <p className="text-xs text-gray-500">
-              Gestión de inventario del bar
-            </p>
+        <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <div className="p-4 bg-grad-gold rounded-2xl shadow-gold-glow">
+              <Package className="text-bg" size={32} />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-grad-gold tracking-tighter uppercase leading-none">
+                {item ? "Audit de Insumo" : "Ingreso a Bóveda"}
+              </h2>
+              <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
+                Logística Umbra VIP v3.0
+              </p>
+            </div>
           </div>
+          <button type="button" onClick={onClose} className="w-14 h-14 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
+            <X size={28} />
+          </button>
+        </div>
 
-          {isLowStock && (
-            <span className="flex items-center gap-1 text-red-400 text-xs">
-              <AlertTriangle size={14} />
-              Stock bajo
-            </span>
+        <div className="p-10 md:p-12 space-y-10">
+          
+          {/* ERRORS */}
+          {errors.length > 0 && (
+            <div className="p-5 bg-red/5 border border-red/20 rounded-2xl space-y-2 animate-shake">
+              {errors.map((e, i) => (
+                <p key={i} className="text-[9px] font-black text-red uppercase tracking-widest flex items-center gap-2">
+                  <AlertTriangle size={10} /> {e}
+                </p>
+              ))}
+            </div>
           )}
+
+          {/* BASIC INFO */}
+          <div className="space-y-6">
+            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+              <Target size={14} /> Identificación de Activo
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Estratégico</label>
+                <div className="relative group">
+                  <Package className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                  <input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Ej: Gin Mare Premium"
+                    className="input-royale !pl-14"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clasificación Umbra</label>
+                <div className="relative group">
+                  <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                  <input
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    placeholder="Ej: Destilados G"
+                    className="input-royale !pl-14"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* STOCK LOGISTICS */}
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                <Zap size={14} /> Control de Existencias
+              </p>
+              <div className={`px-4 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${isCritical ? 'bg-red/10 border-red/30 text-red animate-pulse' : 'bg-lime/10 border-lime/30 text-lime'}`}>
+                {isCritical ? 'ESTADO CRÍTICO' : 'ESTADO ESTABLE'}
+              </div>
+            </div>
+            
+            <div className="bg-surface-3/30 p-8 rounded-[2.5rem] border border-white/5 space-y-8 shadow-inner">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Stock Actual</label>
+                  <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="input-royale text-center text-xl font-black" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Límite Mínimo</label>
+                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="input-royale text-center text-xl font-black border-red/20" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máx</label>
+                  <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="input-royale text-center text-xl font-black" />
+                </div>
+              </div>
+
+              {/* DYNAMIC PROGRESS */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-[9px] font-black text-muted uppercase tracking-widest">
+                  <span>Proyección de Bóveda</span>
+                  <span className={isCritical ? 'text-red' : 'text-gold'}>{stockPercent.toFixed(0)}% OCUPACIÓN</span>
+                </div>
+                <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-0.5">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${isCritical ? 'bg-red shadow-red-glow' : 'bg-grad-gold shadow-gold-glow'}`}
+                    style={{ width: `${stockPercent}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SPECS & ORIGIN */}
+          <div className="space-y-6">
+            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+              <ShieldCheck size={14} /> Especificaciones Técnicas
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Unidad de Medida</label>
+                  <select name="unit" value={formData.unit} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
+                    {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Sector Operativo</label>
+                  <select name="sector" value={formData.sector} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
+                    {SECTOR_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Costo por Unidad</label>
+                  <div className="relative group">
+                    <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-300 transition-colors" size={18} />
+                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-emerald-400 font-mono font-bold" />
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación Bóveda</label>
+                  <select name="location" value={formData.location} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
+                    {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* ERRORES */}
-        {errors.length > 0 && (
-          <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl text-sm text-red-300">
-            {errors.map((e, i) => (
-              <p key={i}>• {e}</p>
-            ))}
-          </div>
-        )}
-
-        {/* =========================
-            BASIC INFO
-        ========================= */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="relative">
-            <Package className="absolute left-3 top-3 text-gray-500" size={16} />
-            <input
-              name="name"
-              placeholder="Nombre del insumo"
-              value={formData.name}
-              onChange={handleChange}
-              className="input pl-10"
-            />
-          </div>
-
-          <div className="relative">
-            <Tag className="absolute left-3 top-3 text-gray-500" size={16} />
-            <input
-              name="category"
-              placeholder="Categoría"
-              value={formData.category}
-              onChange={handleChange}
-              className="input pl-10"
-            />
-          </div>
-        </div>
-
-        {/* =========================
-            STOCK PANEL VISUAL
-        ========================= */}
-        <div className="bg-gray-800/40 border border-gray-800 p-4 rounded-2xl space-y-3">
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>Stock actual</span>
-            <span>{formData.stock} unidades</span>
-          </div>
-
-          <input
-            name="stock"
-            type="number"
-            value={formData.stock}
-            onChange={handleChange}
-            className="input"
-          />
-
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              name="minStock"
-              type="number"
-              placeholder="Mínimo"
-              value={formData.minStock}
-              onChange={handleChange}
-              className="input"
-            />
-
-            <input
-              name="maxStock"
-              type="number"
-              placeholder="Máximo"
-              value={formData.maxStock}
-              onChange={handleChange}
-              className="input"
-            />
-          </div>
-
-          {/* PROGRESS BAR */}
-          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-300 ${
-                isLowStock ? "bg-red-500" : "bg-emerald-500"
-              }`}
-              style={{ width: `${stockPercent}%` }}
-            />
-          </div>
-
-          <p className="text-xs text-gray-500 text-right">
-            {Math.round(stockPercent)}% capacidad
-          </p>
-        </div>
-
-        {/* =========================
-            SELECTS
-        ========================= */}
-        <div className="grid grid-cols-3 gap-2">
-          <select
-            name="unit"
-            value={formData.unit}
-            onChange={handleChange}
-            className="input"
-          >
-            {UNIT_OPTIONS.map((u) => (
-              <option key={u}>{u}</option>
-            ))}
-          </select>
-
-          <select
-            name="sector"
-            value={formData.sector}
-            onChange={handleChange}
-            className="input"
-          >
-            {SECTOR_OPTIONS.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-
-          <select
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            className="input"
-          >
-            {LOCATION_OPTIONS.map((l) => (
-              <option key={l}>{l}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* =========================
-            COST / SUPPLIER
-        ========================= */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="relative">
-            <DollarSign className="absolute left-3 top-3 text-gray-500" size={16} />
-            <input
-              name="cost"
-              type="number"
-              placeholder="Costo"
-              value={formData.cost}
-              onChange={handleChange}
-              className="input pl-10"
-            />
-          </div>
-
-          <input
-            name="supplier"
-            placeholder="Proveedor"
-            value={formData.supplier}
-            onChange={handleChange}
-            className="input"
-          />
-        </div>
-
-        {/* =========================
-            ACTIONS
-        ========================= */}
-        <div className="flex justify-end gap-2 pt-2">
+        {/* FOOTER */}
+        <div className="p-10 bg-surface-3 border-t border-white/10 flex gap-6 shadow-royale">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm"
+            className="flex-1 h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all"
           >
-            Cancelar
+            CANCELAR
           </button>
-
+          
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-semibold text-sm"
+            disabled={loading}
+            className="flex-[2] h-16 rounded-[1.5rem] bg-grad-gold text-bg shadow-gold/30 flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:opacity-50"
           >
-            Guardar insumo
+            {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
+            <span className="text-sm font-black uppercase tracking-[0.3em]">{item ? 'CONFIRMAR AUDIT' : 'REGISTRAR INSUMO'}</span>
           </button>
         </div>
       </form>

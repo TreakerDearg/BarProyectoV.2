@@ -185,10 +185,32 @@ inventorySchema.virtual("stockStatus").get(function () {
    SAFE HOOKS
 ========================= */
 inventorySchema.pre("save", function () {
-  if (this.stock < 0) this.stock = 0;
-
   if (this.maxStock < this.minStock) {
     this.maxStock = this.minStock;
+  }
+});
+
+/* =========================
+   COST CASCADE SYNC
+========================= */
+inventorySchema.post("save", async function (doc) {
+  // Solo recalculamos si el costo cambió o es nuevo
+  const Recipe = mongoose.model("Recipe");
+  const relatedRecipes = await Recipe.find({ "ingredients.inventoryItem": doc._id });
+  
+  for (const recipe of relatedRecipes) {
+    await recipe.save(); // El pre-save de Recipe se encarga del cálculo y del sync con Product
+  }
+});
+
+inventorySchema.post("findOneAndUpdate", async function (doc) {
+  if (doc) {
+    const Recipe = mongoose.model("Recipe");
+    const relatedRecipes = await Recipe.find({ "ingredients.inventoryItem": doc._id });
+    
+    for (const recipe of relatedRecipes) {
+      await recipe.save();
+    }
   }
 });
 

@@ -1,7 +1,11 @@
 import { Router } from "express";
 import {
-  getRouletteDrinks, createRouletteDrink, updateRouletteDrink,
-  deleteRouletteDrink, spinRoulette
+  getRouletteDrinks,
+  getPublicRouletteDrinks,
+  createRouletteDrink,
+  updateRouletteDrink,
+  deleteRouletteDrink,
+  spinRoulette,
 } from "../controllers/roulette.controller.js";
 import { getRouletteLogs } from "../controllers/rouletteLog.controller.js";
 import { validate } from "../middlewares/validate.js";
@@ -12,8 +16,9 @@ const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
 /* =========================================================
-   PUBLIC / CLIENT FLOW (requiere auth base)
+   PUBLIC / CLIENT FLOW
 ========================================================= */
+router.get("/public", getPublicRouletteDrinks);
 router.post("/spin", protect, spinRoulette);
 
 /* =========================================================

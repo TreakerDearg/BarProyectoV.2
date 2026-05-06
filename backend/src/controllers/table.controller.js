@@ -104,7 +104,7 @@ export const updateTable = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const ALLOWED = ["number", "capacity", "location", "notes"];
+    const ALLOWED = ["number", "capacity", "location", "notes", "x", "y", "width", "height", "shape"];
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );

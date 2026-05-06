@@ -1,21 +1,18 @@
+import type { Order } from "../../types/order";
+import { MapPin } from "lucide-react";
+
 interface Props {
-  order: any;
-  tableLabel: string | number;
+  order: Order;
+  tableLabel: string;
 }
 
-export default function OrderTableInfo({ order, tableLabel }: Props) {
+export default function OrderTableInfo({ tableLabel }: Props) {
   return (
-    <div>
-      <h2 className="text-xl font-bold tracking-wider mb-1 text-white">
-        MESA_{tableLabel}
-      </h2>
-
-      <p className="text-xs text-gray-500 tracking-widest">
-        S_ID:{" "}
-        {order.sessionId
-          ? order.sessionId.slice(-6).toUpperCase()
-          : "N/A"}
-      </p>
+    <div className="flex items-center gap-2">
+      <MapPin size={12} className="text-gold" />
+      <span className="text-sm font-black text-ivory uppercase tracking-tighter">
+        {tableLabel}
+      </span>
     </div>
   );
 }

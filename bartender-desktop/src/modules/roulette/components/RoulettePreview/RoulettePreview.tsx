@@ -1,15 +1,18 @@
 "use client";
 
 import type { RouletteDrink } from "../../types/roulette";
-import RouletteWheel from "./RouletteWheel";
+import RouletteWheelRoyale from "./RouletteWheelRoyale";
 import {
   RotateCw,
   Activity,
   Layers,
   Percent,
   Sparkles,
+  Trophy,
+  History
 } from "lucide-react";
 import { useMemo } from "react";
+import RarityBadge from "../RarityBadge";
 
 interface Props {
   drinks: RouletteDrink[];
@@ -32,141 +35,96 @@ export default function RoulettePreview({
     [drinks]
   );
 
-  const avgWeight = useMemo(() => {
-    if (!drinks.length) return 0;
-    return totalWeight / drinks.length;
-  }, [totalWeight, drinks]);
-
   return (
-    <div className="relative bg-gradient-to-b from-[#0B1220] to-[#020617] p-5 rounded-2xl border border-blue-500/10 shadow-[0_0_40px_rgba(59,130,246,0.08)] space-y-5 overflow-hidden">
+    <div className="flex flex-col items-center w-full max-w-4xl mx-auto space-y-12">
 
-      {/* 🔥 BACKGROUND GLOW */}
-      <div className="absolute inset-0 bg-blue-500/5 blur-2xl pointer-events-none" />
-
-      {/* ================= HEADER ================= */}
-      <div className="flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2 text-blue-400 text-sm font-semibold tracking-wide">
-          <RotateCw size={16} />
-          ROULETTE PREVIEW
-        </div>
-
-        {/* STATUS */}
-        <div className="flex items-center gap-2 text-xs text-green-400">
-          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-md" />
-          {spinning ? "SPINNING" : "READY"}
-        </div>
-      </div>
-
-      {/* ================= WHEEL ================= */}
-      <div className="flex justify-center py-4 relative z-10">
-        <div className="relative">
-
-          {/* glow behind wheel */}
-          <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full" />
-
-          <RouletteWheel
-            drinks={drinks}
-            totalWeight={totalWeight}
-            result={result}
-            spinning={spinning}
-          />
-        </div>
-      </div>
-
-      {/* ================= RESULT ================= */}
-      {result && !spinning && (
-        <div className="relative z-10 flex items-center justify-center gap-2 text-sm bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-2 rounded-xl">
-          <Sparkles size={14} />
-          Winner: <span className="font-bold">{result.name}</span>
-        </div>
-      )}
-
-      {/* ================= LEGEND ================= */}
-      <div className="grid grid-cols-2 gap-2 relative z-10 max-h-40 overflow-y-auto pr-1">
-
-        {drinks.map((d) => {
-          const isWinner = result?._id === d._id;
-
-          return (
-            <div
-              key={d._id}
-              className={`
-                flex items-center justify-between px-3 py-2 rounded-lg text-xs border transition-all
-                bg-[#020617]
-                ${
-                  isWinner
-                    ? "border-amber-400/50 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
-                    : "border-gray-800 hover:border-blue-500/40"
-                }
-              `}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div
-                  className="w-2.5 h-2.5 rounded-full shadow"
-                  style={{ background: d.color }}
-                />
-
-                <span className="text-gray-300 truncate max-w-[90px]">
-                  {d.name}
-                </span>
-              </div>
-
-              <span className="text-blue-400 font-medium">
-                {d.probability?.toFixed(1)}%
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ================= STATS ================= */}
-      <div className="grid grid-cols-3 gap-3 text-xs relative z-10">
-
-        <Stat icon={<Layers />} label="OPTIONS" value={drinks.length} />
-
-        <Stat icon={<Activity />} label="ACTIVE" value={activeCount} />
-
-        <Stat
-          icon={<Percent />}
-          label="AVG WEIGHT"
-          value={avgWeight.toFixed(1)}
+      {/* ================= WHEEL CONTAINER ================= */}
+      <div className="relative flex items-center justify-center w-full min-h-[500px]">
+        {/* EFECTOS DE FONDO */}
+        <div className="absolute inset-0 bg-gold/5 blur-[120px] rounded-full opacity-30" />
+        
+        <RouletteWheelRoyale
+          drinks={drinks}
+          totalWeight={totalWeight}
+          result={result}
+          spinning={spinning}
         />
       </div>
 
-      {/* ================= FOOTER ================= */}
-      <div className="text-[11px] text-gray-500 text-center border-t border-gray-800 pt-3 relative z-10">
-        Real-time weighted probability system
+      {/* ================= RESULT OVERLAY (TICKET STYLE) ================= */}
+      {result && !spinning && (
+        <div className="w-full glass-royale border border-gold/30 bg-gold/5 rounded-[2rem] p-8 animate-fade-in flex flex-col md:flex-row items-center justify-between gap-8 shadow-gold-glow/10 border-dashed">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-2xl bg-gold flex items-center justify-center text-4xl shadow-gold-glow">
+                 🏆
+              </div>
+              <div>
+                 <div className="flex items-center gap-3 mb-2">
+                    <RarityBadge rarity={result.rarity} size="sm" />
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{result.category}</span>
+                 </div>
+                 <h2 className="text-3xl font-black text-ivory tracking-tighter uppercase">{result.name}</h2>
+              </div>
+           </div>
+           <div className="flex flex-col items-end">
+              <span className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Costo de Trago</span>
+              <span className="text-3xl font-black text-grad-gold tracking-tighter">${result.price || 0}</span>
+           </div>
+        </div>
+      )}
+
+      {/* ================= QUICK STATS & LEGEND ================= */}
+      <div className="w-full grid grid-cols-12 gap-8">
+         
+         <div className="col-span-12 lg:col-span-4 space-y-6">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
+               <Activity size={14} className="text-gold" />
+               Engine Diagnostics
+            </h3>
+            <div className="grid grid-cols-1 gap-4">
+               <MiniStat label="Opciones" value={drinks.length} icon={<Layers size={14} />} />
+               <MiniStat label="Activos" value={activeCount} icon={<Activity size={14} />} />
+               <MiniStat label="Prob. Media" value={`${(100 / (activeCount || 1)).toFixed(1)}%`} icon={<Percent size={14} />} />
+            </div>
+         </div>
+
+         <div className="col-span-12 lg:col-span-8 space-y-6">
+            <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
+               <History size={14} className="text-gold" />
+               Current Pool Weights
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+               {drinks.filter(d => d.active).slice(0, 9).map((d) => (
+                  <div key={d._id} className="flex items-center justify-between p-4 rounded-2xl bg-surface-3/30 border border-white/5 hover:border-gold/30 transition-all group">
+                     <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                        <span className="text-[10px] font-black text-ivory/60 truncate uppercase">{d.name}</span>
+                     </div>
+                     <span className="text-[10px] font-black text-gold ml-2">{d.probability?.toFixed(0)}%</span>
+                  </div>
+               ))}
+               {drinks.length > 9 && (
+                  <div className="flex items-center justify-center p-4 rounded-2xl bg-surface-3/10 border border-dashed border-white/10">
+                     <span className="text-[8px] font-black text-muted uppercase">+{drinks.length - 9} más</span>
+                  </div>
+               )}
+            </div>
+         </div>
+
       </div>
+
     </div>
   );
 }
 
-/* ==============================
-   STAT COMPONENT
-============================== */
-function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: any;
-}) {
-  return (
-    <div className="bg-[#020617] border border-blue-500/10 rounded-xl p-3 text-center hover:border-blue-500/30 transition">
-
-      <div className="flex justify-center mb-1 text-blue-400">
-        {icon}
+function MiniStat({ label, value, icon }: any) {
+   return (
+      <div className="flex items-center justify-between p-5 rounded-2xl bg-surface-3/50 border border-white/5">
+         <div className="flex items-center gap-4">
+            <div className="text-gold opacity-50">{icon}</div>
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest">{label}</span>
+         </div>
+         <span className="text-sm font-black text-ivory uppercase">{value}</span>
       </div>
-
-      <div className="text-white font-bold text-sm">
-        {value}
-      </div>
-
-      <div className="text-gray-500 text-[10px] tracking-wide">
-        {label}
-      </div>
-    </div>
-  );
+   );
 }

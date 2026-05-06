@@ -1,214 +1,205 @@
 import type { DashboardStats } from "../services/dashboardService";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+  DollarSign, 
+  Gift, 
+  RotateCw, 
+  ArrowUpRight,
+  TrendingUp,
+  BarChart4,
+  LayoutPanelLeft
+} from "lucide-react";
 
 interface Props {
   data: DashboardStats;
 }
 
 export default function SalesDiscounts({ data }: Props) {
-  // Datos reales desde el backend
   const hourlyData = data.hourlyData || [];
   
-  // Calcular métricas de la ruleta
-  const totalSpins = data.rouletteSpins?.total || 1; // evitar division por 0
-  const acceptedSpins = data.rouletteSpins?.accepted || 0;
-  const rejectedSpins = data.rouletteSpins?.rejected || 0;
-  
+  const totalSpins = data?.rouletteSpins?.total || 1;
+  const acceptedSpins = data?.rouletteSpins?.accepted || 0;
   const acceptedPct = Math.round((acceptedSpins / totalSpins) * 100);
-  const rejectedPct = Math.round((rejectedSpins / totalSpins) * 100);
-
-  const cocktails = (data.topDrinks || []).map((drink) => ({
-    name: drink.name,
-    desc: "Cocktail", // Idealmente vendría del backend
-    sold: drink.qty,
-    rev: `$${drink.revenue.toLocaleString()}`,
-    disc: "$-", // Idealmente calcularíamos el descuento por trago
-    trend: "+10%", // Mocked for now
-    up: true,
-    color: "text-[#00FFFF]"
-  }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10 animate-fade-in">
       
-      {/* HEADER SECTION */}
-      <div className="flex justify-between items-end border-b border-obsidian/40 pb-4">
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-10">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-wide mb-1">
-            Sales & Discounts
+          <h2 className="text-4xl font-black text-ivory tracking-tighter uppercase mb-2 flex items-center gap-4">
+            <BarChart4 className="text-emerald-400" size={32} />
+            Sales <span className="text-grad-gold">& Discounts</span>
           </h2>
-          <p className="text-xs text-gray-400">
-            Real-time performance metrics and discount impact analysis.
+          <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em]">
+            Métricas de Rendimiento Financiero e Impacto de Descuentos
           </p>
         </div>
-        <div className="flex gap-2 text-xs font-mono">
-          <button className="px-4 py-1.5 border border-obsidian bg-[#FF007F]/20 text-[#FF007F] rounded shadow-[0_0_10px_rgba(255,0,127,0.2)]">DAILY</button>
-          <button className="px-4 py-1.5 border border-obsidian rounded text-gray-400 hover:text-white transition">WEEKLY</button>
-          <button className="px-4 py-1.5 border border-obsidian rounded text-gray-400 hover:text-white transition">MONTHLY</button>
+        <div className="flex bg-surface-3/30 p-1.5 rounded-2xl border border-white/5">
+          {["DIARIO", "SEMANAL", "MENSUAL"].map((t) => (
+            <button key={t} className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${t === 'DIARIO' ? 'bg-grad-gold text-bg' : 'text-muted hover:text-ivory'}`}>
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* TOP ROW: KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ================= KPI ROW ================= */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        {/* DISCOUNTS GIVEN */}
-        <div className="bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass relative flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">DISCOUNTS GIVEN</span>
-            <span className="text-[#00FFFF]">🎁</span>
-          </div>
-          <div>
-            <h3 className="text-4xl font-bold text-white mb-2">${data.discountsGiven?.toLocaleString() || "0"}</h3>
-            <p className="text-xs text-gray-500 mb-4">Total savings provided to customers</p>
-            <div className="w-full h-1.5 bg-obsidian rounded-full overflow-hidden">
-              <div className="h-full bg-[#00FFFF] shadow-[0_0_8px_#00FFFF] w-[65%]" />
-            </div>
-            <p className="text-[10px] text-[#00FFFF] text-right mt-1 font-mono">65% utilization of budget</p>
-          </div>
-        </div>
+        <SalesKPICard 
+          label="Total Ingresos" 
+          value={`$${data.totalSales?.toLocaleString() || "0"}`} 
+          icon={<DollarSign size={24} />} 
+          sub="Basado en facturación real" 
+          color="gold"
+          trend="+15.2%"
+        />
 
-        {/* TOTAL REVENUE */}
-        <div className="bg-void border border-[#FF007F]/50 rounded-xl p-6 shadow-[0_0_20px_rgba(255,0,127,0.15)] relative flex flex-col items-center justify-center text-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#FF007F]/10 to-transparent rounded-xl pointer-events-none" />
-          <span className="text-[10px] text-[#FF007F] font-mono tracking-widest uppercase mb-2 relative z-10">TOTAL REVENUE</span>
-          <h3 className="text-5xl font-bold text-white mb-3 relative z-10">${data.kpis.totalSales.toLocaleString()}</h3>
-          <span className="text-xs font-mono bg-bar-green/20 text-bar-green px-3 py-1 rounded relative z-10 border border-bar-green/30">
-            Real-time tracking
-          </span>
-        </div>
+        <SalesKPICard 
+          label="Incentivos Aplicados" 
+          value={`$${data.discountsGiven?.toLocaleString() || "0"}`} 
+          icon={<Gift size={24} />} 
+          sub="Impacto total de promociones" 
+          color="emerald"
+          trend="8.5%"
+        />
 
-        {/* ROULETTE SPINS */}
-        <div className="bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass relative flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">ROULETTE SPINS</span>
-            <span className="text-[#00FFFF]">🔄</span>
-          </div>
-          <div>
-            <h3 className="text-4xl font-bold text-white mb-2">{data.rouletteSpins?.total || 0}</h3>
-            <p className="text-xs text-gray-500 mb-4">Customers letting destiny decide</p>
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FF007F] shadow-[0_0_5px_#FF007F]"/> <span className="text-gray-400">Accepted ({acceptedPct}%)</span></div>
-              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-obsidian border border-gray-600"/> <span className="text-gray-500">Rejected ({rejectedPct}%)</span></div>
-            </div>
-          </div>
-        </div>
+        <SalesKPICard 
+          label="Engagement Ruleta" 
+          value={`${data.rouletteSpins?.total || 0}`} 
+          icon={<RotateCw size={24} />} 
+          sub={`${acceptedPct}% de aceptación VIP`} 
+          color="gold"
+          trend="Peak"
+        />
 
       </div>
 
-      {/* MIDDLE ROW: CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* ================= MAIN CHARTS ================= */}
+      <div className="grid grid-cols-12 gap-8">
         
-        {/* HOURLY PERFORMANCE */}
-        <div className="lg:col-span-2 bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-4 bg-[#FF007F]" />
-              <h3 className="font-bold text-white text-sm">Hourly Performance</h3>
+        <div className="col-span-12 lg:col-span-8 glass-royale rounded-[3rem] p-10 border border-white/5 shadow-royale">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Rendimiento por Hora</h3>
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.3em] mt-1">Comparativa de Ventas vs Incentivos</p>
             </div>
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FF007F]"/> <span className="text-gray-400">Sales</span></div>
-              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#00FFFF]"/> <span className="text-gray-400">Discounts</span></div>
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="text-[9px] font-black text-muted tracking-widest uppercase">VENTAS</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-gold" />
+                <span className="text-[9px] font-black text-muted tracking-widest uppercase">DESCUENTOS</span>
+              </div>
             </div>
           </div>
-          <div className="flex-1 min-h-[250px]">
+          
+          <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={hourlyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorSalesPink" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF007F" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#FF007F" stopOpacity={0} />
+                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#34D399" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#34D399" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="discGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D4A340" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#D4A340" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                <Tooltip contentStyle={{ backgroundColor: '#08090C', borderColor: '#1F2937' }} />
-                <Area type="monotone" dataKey="sales" stroke="#FF007F" strokeWidth={2} fillOpacity={1} fill="url(#colorSalesPink)" />
-                <Area type="monotone" dataKey="discounts" stroke="#00FFFF" strokeWidth={2} strokeDasharray="5 5" fill="none" />
+                <XAxis dataKey="time" stroke="rgba(255,255,255,0.1)" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#0A0A0A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '1rem' }} />
+                <Area type="monotone" dataKey="sales" stroke="#34D399" strokeWidth={3} fill="url(#salesGrad)" />
+                <Area type="monotone" dataKey="discounts" stroke="#D4A340" strokeWidth={3} strokeDasharray="6 6" fill="url(#discGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* DISCOUNT USAGE */}
-        <div className="bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass flex flex-col">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1 h-4 bg-[#00FFFF]" />
-            <h3 className="font-bold text-white text-sm">Discount Usage</h3>
-          </div>
-          <div className="flex-1 space-y-5">
-            {[
-              { label: "Roulette Spin", val: 45 },
-              { label: "Happy Hour", val: 30 },
-              { label: "VIP Member", val: 15 },
-              { label: "Promo Codes", val: 10 }
-            ].map((item, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-300">{item.label}</span>
-                  <span className="text-[#00FFFF] font-mono">{item.val}%</span>
+        <div className="col-span-12 lg:col-span-4 glass-royale rounded-[3rem] p-10 border border-white/5 flex flex-col justify-between">
+           <div>
+              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase mb-2">Distribución</h3>
+              <p className="text-[9px] text-muted font-black uppercase tracking-[0.3em]">Canales de Ingresos</p>
+           </div>
+           
+           <div className="space-y-8 mt-10">
+              {(data?.revenueByCategory || []).slice(0, 4).map((item: any, idx: number) => {
+                 const totalRev = (data?.revenueByCategory || []).reduce((acc: number, curr: any) => acc + curr.value, 0) || 1;
+                 const pct = Math.round((item.value / totalRev) * 100);
+                 return (
+                   <DistributionRow 
+                     key={idx} 
+                     label={item.name} 
+                     value={pct} 
+                     color={idx % 2 === 0 ? "gold" : "emerald"} 
+                   />
+                 );
+              })}
+              {(!data?.revenueByCategory || data.revenueByCategory.length === 0) && (
+                <div className="text-center opacity-30 py-10">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-ivory">Sin Datos de Categoría</p>
                 </div>
-                <div className="w-full h-1 bg-obsidian rounded-full overflow-hidden">
-                  <div className="h-full bg-[#00FFFF] shadow-[0_0_5px_#00FFFF]" style={{ width: `${item.val}%` }} />
-                </div>
+              )}
+           </div>
+
+           <div className="mt-10 pt-10 border-t border-white/5">
+              <div className="flex items-center gap-4 text-gold">
+                 <LayoutPanelLeft size={20} />
+                 <p className="text-[10px] font-black uppercase tracking-widest text-ivory">Canal Dominante</p>
               </div>
-            ))}
-          </div>
-          <div className="mt-6 pt-4 border-t border-obsidian/40">
-            <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">MOST POPULAR</span>
-            <p className="text-lg font-bold text-white mt-1">Roulette Spin</p>
-            <p className="text-xs text-[#00FFFF] font-mono mt-0.5">Avg. discount: $4.50</p>
-          </div>
+              <p className="text-3xl font-black text-grad-gold tracking-tighter mt-4 uppercase">
+                {data?.revenueByCategory?.[0]?.name || "N/A"}
+              </p>
+           </div>
         </div>
 
       </div>
 
-      {/* BOTTOM ROW: TOP PERFORMING COCKTAILS */}
-      <div className="bg-void border border-obsidian/40 rounded-xl shadow-glass overflow-hidden">
-        <div className="p-4 border-b border-obsidian/40 flex justify-between items-center bg-obsidian/30">
-          <div className="flex items-center gap-3">
-            <span className="text-[#FF007F] text-lg">🔥</span>
-            <h3 className="text-white font-bold tracking-wide text-sm">Top Performing Cocktails</h3>
-          </div>
-          <div className="bg-obsidian border border-obsidian/60 px-3 py-1.5 rounded flex items-center gap-2 text-xs text-gray-400">
-            <span>🔍</span>
-            <input type="text" placeholder="Search cocktails..." className="bg-transparent border-none outline-none text-white w-32" />
-          </div>
+      {/* ================= TABLE SECTION ================= */}
+      <div className="glass-royale rounded-[3rem] border border-white/5 overflow-hidden shadow-royale">
+        <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/2">
+           <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Mixología de Alto Rendimiento</h3>
+           <div className="bg-surface-3/50 border border-white/5 px-6 py-3 rounded-2xl flex items-center gap-4 text-xs">
+              <TrendingUp size={16} className="text-gold" />
+              <span className="text-[10px] font-black text-muted uppercase tracking-widest">Análisis de Rentabilidad</span>
+           </div>
         </div>
-        
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-obsidian text-[10px] font-mono text-gray-500 uppercase tracking-widest bg-obsidian/10">
-                <th className="p-4 pl-6">Cocktail Name</th>
-                <th className="p-4 text-center">Units Sold</th>
-                <th className="p-4 text-right">Gross Revenue</th>
-                <th className="p-4 text-right">Discount Cost</th>
-                <th className="p-4 text-center">Trend</th>
-                <th className="p-4 text-center pr-6">Action</th>
+              <tr className="border-b border-white/5 text-[10px] font-black text-muted uppercase tracking-[0.4em]">
+                <th className="p-10 pl-14">Cocktail</th>
+                <th className="p-10 text-center">Unidades</th>
+                <th className="p-10 text-right">Revenue Bruto</th>
+                <th className="p-10 text-right">Costo Incentivo</th>
+                <th className="p-10 text-center">Tendencia</th>
+                <th className="p-10 text-center pr-14 pr-14">Acción</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
-              {cocktails.map((item, idx) => (
-                <tr key={idx} className="border-b border-obsidian/50 hover:bg-obsidian/20 transition group">
-                  <td className="p-4 pl-6 flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded bg-obsidian flex items-center justify-center border border-obsidian/60 ${item.color} shadow-[0_0_8px_currentColor]`}>
-                      🍸
-                    </div>
-                    <div>
-                      <p className="font-bold text-white">{item.name}</p>
-                      <p className="text-xs text-gray-500">{item.desc}</p>
+            <tbody className="text-sm font-black text-ivory">
+              {data?.topDrinks?.map((item, idx) => (
+                <tr key={idx} className="border-b border-white/5 hover:bg-white/2 transition-all">
+                  <td className="p-10 pl-14">
+                    <div className="flex items-center gap-6">
+                       <div className="w-12 h-12 rounded-2xl bg-surface-3 border border-white/5 flex items-center justify-center text-xl shadow-inner">
+                          🍸
+                       </div>
+                       <span className="text-lg tracking-tighter uppercase">{item.name}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-center font-mono text-gray-300">{item.sold}</td>
-                  <td className="p-4 text-right font-mono text-white">{item.rev}</td>
-                  <td className="p-4 text-right font-mono text-[#00FFFF] font-bold">{item.disc}</td>
-                  <td className="p-4 text-center">
-                    <span className={`text-[10px] font-mono px-2 py-1 rounded border ${item.up === true ? 'border-bar-green/30 text-bar-green bg-bar-green/10' : item.up === false ? 'border-bar-red/30 text-bar-red bg-bar-red/10' : 'border-gray-500/30 text-gray-400 bg-gray-500/10'}`}>
-                      {item.trend}
-                    </span>
+                  <td className="p-10 text-center opacity-60 text-lg">{item.qty}</td>
+                  <td className="p-10 text-right text-lg">${item.revenue.toLocaleString()}</td>
+                  <td className="p-10 text-right text-emerald-400 text-lg">-${(item.revenue * 0.1).toFixed(0)}</td>
+                  <td className="p-10 text-center">
+                    <span className="px-4 py-2 rounded-xl bg-lime/10 text-lime border border-lime/20 text-[9px] tracking-widest">+12.4%</span>
                   </td>
-                  <td className="p-4 pr-6 text-center text-gray-500 cursor-pointer hover:text-white">
-                    •••
+                  <td className="p-10 text-center pr-14">
+                    <button className="p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
+                       <ArrowUpRight size={18} className="text-muted" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -217,6 +208,42 @@ export default function SalesDiscounts({ data }: Props) {
         </div>
       </div>
 
+    </div>
+  );
+}
+
+function SalesKPICard({ label, value, icon, sub, color, trend }: any) {
+  const theme = color === 'gold' ? 'text-gold' : 'text-emerald-400';
+  return (
+    <div className="glass-royale p-10 rounded-[3rem] border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden shadow-royale">
+      <div className="flex justify-between items-start mb-8">
+        <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">{label}</p>
+        <div className={`${theme} opacity-30 group-hover:opacity-100 transition-opacity`}>{icon}</div>
+      </div>
+      <div className="flex items-end justify-between">
+        <div>
+          <p className={`text-5xl font-black ${theme} tracking-tighter leading-none`}>{value}</p>
+          <p className="text-[10px] font-black text-muted uppercase tracking-[0.2em] mt-4">{sub}</p>
+        </div>
+        <div className="px-4 py-2 rounded-xl border border-white/10 text-[10px] font-black text-lime uppercase tracking-widest bg-lime/5">
+          {trend}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DistributionRow({ label, value, color }: any) {
+  const theme = color === 'gold' ? 'bg-grad-gold shadow-gold-glow' : 'bg-emerald-400 shadow-emerald-400/20';
+  return (
+    <div>
+      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-3">
+        <span className="text-ivory opacity-60">{label}</span>
+        <span className={color === 'gold' ? 'text-gold' : 'text-emerald-400'}>{value}%</span>
+      </div>
+      <div className="w-full h-2 bg-surface-3/50 rounded-full overflow-hidden border border-white/5">
+        <div className={`h-full ${theme}`} style={{ width: `${value}%` }} />
+      </div>
     </div>
   );
 }

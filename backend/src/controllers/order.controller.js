@@ -7,6 +7,7 @@ import { logger }   from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, serverError,
 } from "../utils/response.js";
+import { calculateProductPrice } from "../utils/pricingEngine.js";
 
 /* =========================================================
    CONSTANTS
@@ -174,21 +175,24 @@ export const createOrder = async (req, res, next) => {
 
     const productMap = Object.fromEntries(products.map((p) => [p._id.toString(), p]));
 
-    /* ─── Construir items ─── */
-    const orderItems = items.map((item) => {
+    /* ─── Construir items con precios dinámicos ─── */
+    const orderItems = await Promise.all(items.map(async (item) => {
       const product = productMap[item.product?.toString()];
       if (!product) throw new Error("Producto inválido");
+
+      // Calculate dynamic price
+      const dynamicPrice = await calculateProductPrice(product);
 
       return {
         product:  product._id,
         name:     product.name,
         quantity: Math.max(1, Number(item.quantity) || 1),
-        price:    Number(product.price) || 0,
+        price:    dynamicPrice, // Preciado dinámicamente
         type:     product.type === "food" ? "food" : "drink",
         status:   "pending",
         notes:    item.notes || "",
       };
-    });
+    }));
 
     /* ─── Crear orden ─── */
 const [order] = await Order.create(

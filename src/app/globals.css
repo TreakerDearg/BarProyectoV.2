@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@import "../styles/bartender-tokens.css";
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-deep: var(--bg-deep);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-foreground: var(--text);
+  --color-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+  --color-text-gold: var(--text-gold);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-brand-red: var(--red);
+  --color-brand-red-light: var(--red-light);
+  --color-brand-red-dark: var(--red-dark);
+  --color-orange: var(--orange);
+  --color-orange-light: var(--orange-light);
+  --color-green: var(--green);
+  --color-green-light: var(--green-light);
+  --color-green-dark: var(--green-dark);
+  --color-neutral: var(--neutral);
+  --color-neutral-light: var(--neutral-light);
+  --color-neutral-dark: var(--neutral-dark);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --font-sans: var(--font-dm), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), ui-serif, Georgia, serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(200, 50, 40, 0.06), transparent),
+    radial-gradient(ellipse 60% 30% at 0% 100%, rgba(212, 163, 64, 0.04), transparent),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--gold) 35%, transparent);
+  color: var(--text);
+}

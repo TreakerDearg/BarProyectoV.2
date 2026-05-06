@@ -66,15 +66,13 @@ export const updateProduct = async (
 ): Promise<Product> => {
   try {
     const payload = normalizeProduct(product);
-
-    const { data } = await api.put(`/products/${id}`, payload); // 👈 más estándar
-
+    const { data } = await api.patch(`/products/${id}`, payload);
     return data;
   } catch (error) {
-    console.error("UPDATE ERROR:", error);
     throw new Error(extractError(error));
   }
 };
+
 /* =========================
    DELETE
 ========================= */

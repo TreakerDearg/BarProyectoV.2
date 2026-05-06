@@ -1,63 +1,58 @@
+import type { OrderItem as IOrderItem } from "../../types/order";
+import { CheckCircle2, Circle, AlertCircle } from "lucide-react";
+
 interface Props {
-  item: any;
-  index: number;
+  item: IOrderItem;
   status: string;
-  onClick?: () => void;
-  selected?: boolean;
+  onSelect?: (item: any) => void;
+  isActive?: boolean;
 }
 
-export default function OrderItem({
-  item,
-  index,
-  status,
-  onClick,
-  selected,
-}: Props) {
-  const product =
-    typeof item.product === "object" ? item.product : null;
-
-  const name = product?.name || item.name || "Producto";
-
-  const isCompleted = status === "completed";
+export default function OrderItem({ item, onSelect, isActive }: Props) {
+  const isCancelled = item.status === "cancelled";
+  const isReady = item.status === "ready" || item.status === "served";
 
   return (
     <div
-      onClick={onClick}
-      className={`bg-obsidian/30 border rounded p-3 flex items-center gap-4 cursor-pointer transition
-        ${
-          selected
-            ? "border-[#8B5CF6] shadow-[0_0_10px_rgba(139,92,246,0.2)]"
-            : "border-obsidian hover:border-gray-500"
+      onClick={() => onSelect?.(item)}
+      className={`
+        flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group/item
+        ${isActive 
+          ? "bg-gold/10 border-gold/40 shadow-gold-glow" 
+          : "bg-surface-3/50 border-white/5 hover:bg-surface-4 hover:border-white/10"
         }
+        ${isCancelled ? "opacity-30 grayscale" : ""}
       `}
     >
-      {/* Index */}
-      <span
-        className={`font-bold text-sm flex-shrink-0 ${
-          isCompleted ? "text-bar-green" : "text-[#8B5CF6]"
-        }`}
-      >
-        {(index + 1).toString().padStart(2, "0")}
-      </span>
-
-      {/* Name */}
-      <div className="flex flex-col">
-        <span className="text-sm font-bold tracking-wider text-gray-300">
-          {name.toUpperCase().replace(/\s+/g, "_")}
-        </span>
-
-        {/* Observaciones */}
-        {item.notes && (
-          <span className="text-[10px] text-yellow-400 italic">
-            {item.notes}
-          </span>
+      <div className="flex items-center justify-center relative">
+        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
+          isReady ? 'bg-lime/10 border-lime text-lime' : 
+          isCancelled ? 'border-muted text-muted' : 
+          'border-gold/30 text-gold/30'
+        }`}>
+          {isReady ? <CheckCircle2 size={16} /> : isCancelled ? <AlertCircle size={16} /> : <Circle size={12} className="fill-current" />}
+        </div>
+        {item.quantity > 1 && (
+          <div className="absolute -top-1 -right-1 bg-gold text-bg text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-bg">
+            {item.quantity}
+          </div>
         )}
       </div>
 
-      {/* Quantity */}
-      <span className="ml-auto text-xs text-gray-500">
-        x{item.quantity}
-      </span>
+      <div className="flex-1 min-w-0">
+        <h4 className={`text-sm font-black uppercase tracking-tight truncate ${isCancelled ? 'line-through text-muted' : 'text-ivory group-hover/item:text-gold transition-colors'}`}>
+          {(item.product as any)?.name || "Producto desconocido"}
+        </h4>
+        {item.notes && (
+          <p className="text-[10px] text-ember font-black uppercase tracking-widest mt-1 animate-pulse">
+            ! {item.notes}
+          </p>
+        )}
+      </div>
+
+      {isReady && !isCancelled && (
+        <div className="badge badge-lime text-[8px] py-1 px-2 uppercase tracking-widest font-black">LISTO</div>
+      )}
     </div>
   );
 }

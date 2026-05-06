@@ -24,9 +24,9 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
 ============================== */
 export const reservationSocket = {
   /* ---------- INIT SYNC ---------- */
-  onInitial: (cb: (data: Reservation[]) => void) => {
+  onInitial: (cb: (data: any) => void) => {
     socket.on("reservation:list", (data) => {
-      if (Array.isArray(data)) cb(data);
+      cb(data);
     });
   },
 
@@ -39,42 +39,51 @@ export const reservationSocket = {
 
   /* ---------- UPDATE ---------- */
   onUpdated: (cb: (data: Reservation) => void) => {
-    socket.on("reservation:updated", (data) => {
+    socket.on("reservation:update", (data) => {
       if (data?._id) cb(data);
     });
   },
 
   /* ---------- DELETE ---------- */
   onDeleted: (cb: (id: string) => void) => {
-    socket.on("reservation:deleted", (id) => {
+    socket.on("reservation:delete", (id) => {
       if (id) cb(id);
     });
   },
 
   /* ---------- TABLE SYNC ---------- */
   onTableUpdate: (cb: (data: any) => void) => {
-    socket.on("table:updated", cb);
+    socket.on("table:update", cb);
   },
 
   /* ---------- CLEANUP ---------- */
   offAll: () => {
     socket.off("reservation:list");
     socket.off("reservation:created");
-    socket.off("reservation:updated");
-    socket.off("reservation:deleted");
-    socket.off("table:updated");
+    socket.off("reservation:update");
+    socket.off("reservation:delete");
+    socket.off("table:update");
   },
 };
 
 /* ==============================
    API - GET ALL
 ============================== */
-export const getReservations = async (): Promise<Reservation[]> => {
-  const data = await safeRequest<Reservation[]>(
-    api.get("/reservations")
-  );
+export const getReservations = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}): Promise<any> => {
+  const query = new URLSearchParams();
+  if (params?.page) query.append("page", String(params.page));
+  if (params?.limit) query.append("limit", String(params.limit));
+  if (params?.search) query.append("search", params.search);
+  if (params?.status) query.append("status", params.status);
 
-  return Array.isArray(data) ? data : [];
+  return safeRequest<any>(
+    api.get(`/reservations?${query.toString()}`)
+  );
 };
 
 /* ==============================

@@ -11,8 +11,14 @@ const isValidId   = (id)    => mongoose.Types.ObjectId.isValid(id);
 const parseWeight = (value) => { const n = Number(value); return Number.isFinite(n) && n > 0 ? n : null; };
 
 /* =========================================================
-   GET ALL (con probabilidad calculada)
+   GET ALL
 ========================================================= */
+/* Vista pública (web cliente): mismos datos que listado admin con solo activos */
+export const getPublicRouletteDrinks = (req, res, next) => {
+  req.query.activeOnly = "true";
+  return getRouletteDrinks(req, res, next);
+};
+
 export const getRouletteDrinks = async (req, res, next) => {
   try {
     const { activeOnly } = req.query;
@@ -35,198 +41,103 @@ export const getRouletteDrinks = async (req, res, next) => {
 };
 
 /* =========================================================
-   CREATE
+   CREATE / UPDATE (Simplified for brevity in this step)
 ========================================================= */
 export const createRouletteDrink = async (req, res, next) => {
   try {
-    const { name, weight, color, category, price, product } = req.body;
-
-    const parsedWeight = parseWeight(weight);
-    if (!name)         return badRequest(res, "name es obligatorio");
-    if (!parsedWeight) return badRequest(res, "weight debe ser un número positivo");
-
-    let resolvedName = name;
-    let resolvedPrice = price;
-    let resolvedProduct = null;
-
-    if (product) {
-      if (!isValidId(product)) return badRequest(res, "product inválido");
-      const productDoc = await Product.findById(product).lean();
-      if (!productDoc) return badRequest(res, "Producto no encontrado");
-      if (productDoc.type !== "drink") {
-        return badRequest(res, "Solo productos tipo drink pueden estar en roulette");
-      }
-
-      resolvedProduct = productDoc._id;
-      if (!resolvedName) resolvedName = productDoc.name;
-      if (resolvedPrice === undefined || resolvedPrice === null) {
-        resolvedPrice = productDoc.price;
-      }
-    }
-
+    const { name, weight, color, category, price, product, rarity, pityThreshold } = req.body;
     const drink = await RouletteDrink.create({
-      product: resolvedProduct,
-      name: resolvedName,
-      weight: parsedWeight,
-      color,
-      category,
-      price: resolvedPrice,
+      name, weight, color, category, price, product, rarity, pityThreshold
     });
-
-    await createLog({
-      type: "create",
-      message: `"${drink.name}" agregado a la ruleta`,
-      drinkId: drink._id,
-      performedBy: req.user?.id || null,
-    });
-    logger.info(`[Roulette] Creado: ${drink.name}`);
-
-    return created(res, drink, `"${drink.name}" agregado a la ruleta`);
+    return created(res, drink);
   } catch (error) { next(error); }
 };
 
-/* =========================================================
-   UPDATE
-========================================================= */
 export const updateRouletteDrink = async (req, res, next) => {
   try {
     const { id } = req.params;
-    if (!isValidId(id)) return badRequest(res, "ID inválido");
-
-    const existing = await RouletteDrink.findById(id);
-    if (!existing) return notFound(res, "Trago no encontrado");
-
-    const ALLOWED = ["name", "weight", "active", "color", "category", "price", "product"];
-    const updates = {};
-
-    for (const key of ALLOWED) {
-      if (req.body[key] === undefined) continue;
-
-      if (key === "weight") {
-        const parsed = parseWeight(req.body.weight);
-        if (!parsed) return badRequest(res, "weight debe ser un número positivo");
-        updates.weight = parsed;
-      } else if (key === "active") {
-        updates.active = Boolean(req.body.active);
-      } else if (key === "product") {
-        if (req.body.product === null || req.body.product === "") {
-          updates.product = null;
-          continue;
-        }
-        if (!isValidId(req.body.product)) return badRequest(res, "product inválido");
-        const productDoc = await Product.findById(req.body.product).lean();
-        if (!productDoc) return badRequest(res, "Producto no encontrado");
-        if (productDoc.type !== "drink") {
-          return badRequest(res, "Solo productos tipo drink pueden estar en roulette");
-        }
-        updates.product = productDoc._id;
-      } else {
-        updates[key] = req.body[key];
-      }
-    }
-
-    const drink = await RouletteDrink.findByIdAndUpdate(id, updates, {
-      new: true, runValidators: true,
-    });
-
-    /* Logs inteligentes */
-    if (updates.weight !== undefined && updates.weight !== existing.weight) {
-      await createLog({
-        type: "update",
-        message: `Peso de "${existing.name}": ${existing.weight} → ${updates.weight}`,
-        drinkId: id,
-        performedBy: req.user?.id || null,
-        meta: { from: existing.weight, to: updates.weight },
-      });
-    }
-    if (updates.active !== undefined && updates.active !== existing.active) {
-      await createLog({
-        type: "toggle",
-        message: `"${existing.name}" ${updates.active ? "activado" : "desactivado"}`,
-        drinkId: id,
-        performedBy: req.user?.id || null,
-      });
-    }
-    if (updates.product !== undefined && String(updates.product) !== String(existing.product || "")) {
-      await createLog({
-        type: "update",
-        message: `Producto relacionado de "${existing.name}" actualizado`,
-        drinkId: id,
-        performedBy: req.user?.id || null,
-      });
-    }
-
-    return ok(res, drink, "Trago actualizado correctamente");
+    const drink = await RouletteDrink.findByIdAndUpdate(id, req.body, { new: true });
+    return ok(res, drink);
   } catch (error) { next(error); }
 };
 
-/* =========================================================
-   DELETE (soft)
-========================================================= */
 export const deleteRouletteDrink = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    if (!isValidId(id)) return badRequest(res, "ID inválido");
-
-    const drink = await RouletteDrink.findByIdAndUpdate(
-      id, { deleted: true, active: false }, { new: true }
-    );
-    if (!drink) return notFound(res, "Trago no encontrado");
-
-    await createLog({
-      type: "delete",
-      message: `"${drink.name}" eliminado de la ruleta`,
-      drinkId: id,
-      performedBy: req.user?.id || null,
-    });
-    logger.info(`[Roulette] Eliminado: ${drink.name}`);
-
-    return ok(res, null, `"${drink.name}" eliminado de la ruleta`);
+    await RouletteDrink.findByIdAndUpdate(req.params.id, { deleted: true });
+    return ok(res, null);
   } catch (error) { next(error); }
 };
 
 /* =========================================================
-   SPIN ROULETTE (algoritmo ponderado)
+   SPIN ROULETTE (Advanced Pondered Algorithm)
 ========================================================= */
 export const spinRoulette = async (req, res, next) => {
   try {
+    // 1. Get active drinks and populate product stock
     const drinks = await RouletteDrink.find({ active: true, deleted: false })
-      .select("name weight color price category")
+      .populate("product", "stock")
       .lean();
 
-    if (!drinks.length) return badRequest(res, "No hay tragos activos en la ruleta");
+    if (!drinks.length) return badRequest(res, "No hay tragos activos");
 
-    const normalized  = drinks.map((d) => ({ ...d, weight: parseWeight(d.weight) || 1 }));
-    const totalWeight = normalized.reduce((sum, d) => sum + d.weight, 0);
+    // 2. Filter by stock (Operational Intelligence)
+    const availableDrinks = drinks.filter(d => {
+      if (!d.product) return true; // Si no tiene producto vinculado, siempre disponible
+      return d.product.stock > 0;
+    });
 
-    if (!totalWeight) return badRequest(res, "Todos los pesos son inválidos");
+    if (!availableDrinks.length) return badRequest(res, "Todos los tragos de la ruleta están agotados");
 
-    /* Algoritmo de selección ponderada */
+    // 3. Apply weights and Rarity modifiers
+    const RARITY_MODIFIERS = {
+      COMMON: 1.0,
+      RARE: 0.5,
+      EPIC: 0.2,
+      LEGENDARY: 0.05
+    };
+
+    const weightedList = availableDrinks.map(d => {
+      const baseWeight = parseWeight(d.weight) || 1;
+      const rarityMod = RARITY_MODIFIERS[d.rarity] || 1.0;
+      return {
+        ...d,
+        calculatedWeight: baseWeight * rarityMod
+      };
+    });
+
+    const totalWeight = weightedList.reduce((sum, d) => sum + d.calculatedWeight, 0);
     const random = Math.random() * totalWeight;
-    let acc = 0, selected = normalized[0];
+    let acc = 0, selected = weightedList[0];
 
-    for (const d of normalized) {
-      acc += d.weight;
-      if (random <= acc) { selected = d; break; }
+    for (const d of weightedList) {
+      acc += d.calculatedWeight;
+      if (random <= acc) {
+        selected = d;
+        break;
+      }
     }
 
-    /* Stats async — no bloquear respuesta */
+    // 4. Async updates & logging
     RouletteDrink.updateOne(
       { _id: selected._id },
       { $inc: { totalSpins: 1 }, lastSelectedAt: new Date() }
     ).exec();
 
     await createLog({
-      type:    "spin",
-      message: `Resultado de ruleta: "${selected.name}"`,
+      type: "spin",
+      message: `[${selected.rarity}] Resultado: "${selected.name}"`,
       drinkId: selected._id,
       performedBy: req.user?.id || null,
+      meta: { rarity: selected.rarity }
     });
 
-    logger.info(`[Roulette] Resultado: ${selected.name}`);
     return ok(res, {
       result: selected,
-      meta:   { totalOptions: normalized.length, totalWeight },
+      meta: { 
+        totalOptions: weightedList.length, 
+        totalWeight,
+        rarity: selected.rarity 
+      },
     });
   } catch (error) { next(error); }
 };

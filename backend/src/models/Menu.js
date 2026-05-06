@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 /* ==============================
-   PRODUCTO DENTRO DEL MENÚ
+   PRODUCTO EN MENÚ (PRO)
 ============================== */
 const menuProductSchema = new mongoose.Schema(
   {
@@ -11,19 +11,22 @@ const menuProductSchema = new mongoose.Schema(
       required: true,
     },
 
-    //  override opcional (precio especial en menú)
+    /* ===== DISPLAY ===== */
     price: {
       type: Number,
-      default: null,
+      default: null, // override
     },
 
-    //  disponibilidad manual
     available: {
       type: Boolean,
       default: true,
     },
 
-    // orden visual
+    featured: {
+      type: Boolean,
+      default: false,
+    },
+
     order: {
       type: Number,
       default: 0,
@@ -33,39 +36,10 @@ const menuProductSchema = new mongoose.Schema(
 );
 
 /* ==============================
-   CATEGORÍA DEL MENÚ
+   CATEGORY (PRO)
 ============================== */
 const menuCategorySchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
-
-    description: {
-      type: String,
-      default: "",
-    },
-
-    products: [menuProductSchema],
-
-    //  orden de categorías
-    order: {
-      type: Number,
-      default: 0,
-    },
-  },
-  { _id: false }
-);
-
-/* ==============================
-   MAIN MENU
-============================== */
-const menuSchema = new mongoose.Schema(
-  {
-    /* ========================
-       INFO GENERAL
-    ======================== */
     name: {
       type: String,
       required: true,
@@ -77,34 +51,97 @@ const menuSchema = new mongoose.Schema(
       default: "",
     },
 
+    image: {
+      type: String,
+      default: "",
+    },
+
+    products: {
+      type: [menuProductSchema],
+      default: [],
+    },
+
+    order: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: false }
+);
+
+/* ==============================
+   MAIN MENU (PRO)
+============================== */
+const menuSchema = new mongoose.Schema(
+  {
     /* ========================
-       TIPO (CLAVE)
+       BASIC
+    ======================== */
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    slug: {
+      type: String,
+      unique: true,
+      lowercase: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
+
+    image: {
+      type: String,
+      default: "",
+    },
+
+    color: {
+      type: String,
+      default: "#f59e0b", // amber
+    },
+
+    /* ========================
+       TYPE
     ======================== */
     type: {
       type: String,
       enum: ["drink", "food", "mixed"],
       default: "mixed",
+      index: true,
     },
 
     /* ========================
-       CATEGORÍAS
+       STRUCTURE
     ======================== */
-    categories: [menuCategorySchema],
+    categories: {
+      type: [menuCategorySchema],
+      default: [],
+    },
 
     /* ========================
-       ESTADO
+       STATUS
     ======================== */
     active: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+
+    isPublic: {
       type: Boolean,
       default: true,
     },
 
     /* ========================
-       VISIBILIDAD
+       FUTURE (READY)
     ======================== */
-    isPublic: {
-      type: Boolean,
-      default: true, // para clientes
+    schedule: {
+      type: Object,
+      default: null, // horario futuro
     },
   },
   {
@@ -115,7 +152,74 @@ const menuSchema = new mongoose.Schema(
 /* ==============================
    INDEXES
 ============================== */
-menuSchema.index({ active: 1 });
-menuSchema.index({ type: 1 });
+menuSchema.index({ active: 1, type: 1 });
+
+/* ==============================
+   HELPERS
+============================== */
+const generateSlug = (name) =>
+  name
+    ?.toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "");
+
+/* ==============================
+   NORMALIZATION HOOK 
+============================== */
+menuSchema.pre("save", function () {
+  // slug automático
+  if (!this.slug) {
+    this.slug = generateSlug(this.name);
+  }
+
+  // ordenar categorías
+  this.categories?.forEach((cat, i) => {
+    cat.order = i;
+
+    // evitar duplicados de productos
+    const unique = new Map();
+
+    cat.products = cat.products
+      .filter((p) => p.product)
+      .map((p, index) => {
+        const id = p.product.toString();
+
+        if (unique.has(id)) return null;
+
+        unique.set(id, true);
+
+        return {
+          ...p,
+          order: index,
+        };
+      })
+      .filter(Boolean);
+  });
+
+  // eliminar categorías vacías
+  this.categories = this.categories.filter(
+    (c) => c.products.length > 0
+  );
+});
+
+/* ==============================
+   UPDATE HOOK (IMPORTANTE)
+============================== */
+menuSchema.pre("findOneAndUpdate", function () {
+  const update = this.getUpdate();
+
+  if (!update) return;
+
+  if (update.name && !update.slug) {
+    update.slug = generateSlug(update.name);
+  }
+});
+
+/* ==============================
+   TO JSON
+============================== */
+menuSchema.set("toJSON", {
+  virtuals: true,
+});
 
 export default mongoose.model("Menu", menuSchema);

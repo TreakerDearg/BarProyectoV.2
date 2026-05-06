@@ -1,4 +1,6 @@
-import { AlertTriangle } from "lucide-react";
+"use client";
+
+import { AlertTriangle, ShieldAlert, PackageX, PackageSearch } from "lucide-react";
 
 interface Props {
   lowStock: number;
@@ -6,43 +8,40 @@ interface Props {
 }
 
 export default function InventoryAlerts({ lowStock, outOfStock }: Props) {
-  // Simularemos los items ya que el backend por ahora devuelve count
+  if (outOfStock === 0 && lowStock === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center opacity-40">
+        <PackageSearch size={32} className="text-emerald-400 mb-3" />
+        <p className="text-[10px] font-black text-ivory uppercase tracking-[0.3em]">Bóveda Íntegra</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-void border border-obsidian/40 rounded-xl p-6 shadow-glass">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-bold text-white text-sm">Inventory Alerts</h3>
-        <AlertTriangle size={16} className="text-bar-red" />
-      </div>
-
-      <div className="space-y-3">
-        {outOfStock > 0 && (
-          <div className="flex items-center gap-4 p-3 rounded-lg border border-bar-red/20 bg-bar-red/5">
-            <div className="w-10 h-10 rounded bg-obsidian flex items-center justify-center flex-shrink-0 border border-obsidian/60">
-              <span className="text-bar-red text-xs font-bold">X</span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white">{outOfStock} items out of stock</p>
-              <p className="text-xs text-bar-red">Action required immediately</p>
-            </div>
+    <div className="space-y-4">
+      {outOfStock > 0 && (
+        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-red/20 bg-red/5 group hover:bg-red/10 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-red/10 flex items-center justify-center flex-shrink-0 border border-red/20 shadow-red-glow/20">
+            <PackageX size={20} className="text-red" />
           </div>
-        )}
-
-        {lowStock > 0 && (
-          <div className="flex items-center gap-4 p-3 rounded-lg border border-bar-orange/20 bg-bar-orange/5">
-            <div className="w-10 h-10 rounded bg-obsidian flex items-center justify-center flex-shrink-0 border border-obsidian/60">
-              <span className="text-bar-orange text-xs font-bold">!</span>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white">{lowStock} items low on stock</p>
-              <p className="text-xs text-bar-orange">Consider restocking soon</p>
-            </div>
+          <div>
+            <p className="text-xs font-black text-ivory uppercase tracking-tighter">{outOfStock} ACTIVOS AGOTADOS</p>
+            <p className="text-[9px] text-red font-black uppercase tracking-widest mt-1">ACCIÓN INMEDIATA REQUERIDA</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {outOfStock === 0 && lowStock === 0 && (
-           <p className="text-gray-500 text-sm">Inventory optimal.</p>
-        )}
-      </div>
+      {lowStock > 0 && (
+        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-gold/20 bg-gold/5 group hover:bg-gold/10 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center flex-shrink-0 border border-gold/20 shadow-gold-glow/20">
+            <AlertTriangle size={20} className="text-gold" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-ivory uppercase tracking-tighter">{lowStock} ACTIVOS EN NIVEL BAJO</p>
+            <p className="text-[9px] text-gold font-black uppercase tracking-widest mt-1">CONSIDERAR REABASTECIMIENTO</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,9 @@ import reservationRoutes from "./reservation.routes.js";
 import menuRoutes        from "./menu.routes.js";
 import dashboardRoutes   from "./dashboard.routes.js";
 import discountRoutes    from "./discount.routes.js";
+import dynamicPricingRoutes from "./dynamicPricing.routes.js";
+import promotionRoutes    from "./promotion.routes.js";
+import pricingEventRoutes from "./pricingEvent.routes.js";
 
 const router = Router();
 
@@ -35,5 +38,8 @@ router.use("/reservations", reservationRoutes);
 router.use("/menus",        menuRoutes);
 router.use("/dashboard",    dashboardRoutes);
 router.use("/discounts",    discountRoutes);
+router.use("/dynamic-pricing", dynamicPricingRoutes);
+router.use("/promotions",   promotionRoutes);
+router.use("/pricing-events", pricingEventRoutes);
 
 export default router;

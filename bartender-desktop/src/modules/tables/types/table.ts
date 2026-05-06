@@ -37,6 +37,13 @@ export interface Table {
   status: TableStatus;
   location: TableLocation;
 
+  /* SPATIAL INFO */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  shape: "rect" | "circle" | "square";
+
 
   orders: TableOrder[];
 

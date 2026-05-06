@@ -18,7 +18,6 @@ const rouletteDrinkSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    //  Mejor control de categorías
     category: {
       type: String,
       enum: ["clasico", "autor", "sin alcohol", "shot", "premium", "general"],
@@ -29,7 +28,18 @@ const rouletteDrinkSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1,
-      max: 1000, //  evita romper probabilidades
+      max: 1000,
+    },
+
+    rarity: {
+      type: String,
+      enum: ["COMMON", "RARE", "EPIC", "LEGENDARY"],
+      default: "COMMON",
+    },
+
+    pityThreshold: {
+      type: Number,
+      default: 0,
     },
 
     active: {
@@ -38,7 +48,6 @@ const rouletteDrinkSchema = new mongoose.Schema(
       index: true,
     },
 
-    //  Para UI consistente
     color: {
       type: String,
       default: "#ffffff",
@@ -53,13 +62,11 @@ const rouletteDrinkSchema = new mongoose.Schema(
       min: 0,
     },
 
-    //  Orden visual en ruleta
     displayOrder: {
       type: Number,
       default: 0,
     },
 
-    //  Stats avanzadas
     totalSpins: {
       type: Number,
       default: 0,
@@ -69,7 +76,6 @@ const rouletteDrinkSchema = new mongoose.Schema(
       type: Date,
     },
 
-    //  Soft delete real
     deleted: {
       type: Boolean,
       default: false,
@@ -81,11 +87,6 @@ const rouletteDrinkSchema = new mongoose.Schema(
   }
 );
 
-/* ==============================
-   ÍNDICES PRO
-============================== */
-
-// Evita duplicados (case insensitive)
 rouletteDrinkSchema.index(
   { name: 1 },
   {
@@ -94,27 +95,15 @@ rouletteDrinkSchema.index(
   }
 );
 
-// Para queries de ruleta
 rouletteDrinkSchema.index({ active: 1, deleted: 1, weight: 1 });
 rouletteDrinkSchema.index(
-  { product: 1 },
   { unique: true, partialFilterExpression: { product: { $type: "objectId" } } }
 );
 
-/* ==============================
-   MIDDLEWARES
-============================== */
-
-// Evitar devolver eliminados por defecto
 rouletteDrinkSchema.pre(/^find/, function () {
   this.where({ deleted: false });
 });
 
-/* ==============================
-   MÉTODOS
-============================== */
-
-// Probabilidad calculada (helper)
 rouletteDrinkSchema.methods.getProbability = function (totalWeight) {
   if (!totalWeight) return 0;
   return (this.weight / totalWeight) * 100;

@@ -1,0 +1,365 @@
+.container {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    gap: 2rem;
+    padding: 1.5rem 1.5rem 6rem;
+  }
+}
+
+.header {
+  text-align: center;
+}
+
+.headerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--amber-soft) 0%, var(--gold-soft) 100%);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(212, 163, 64, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(212, 163, 64, 0.2);
+  }
+}
+
+.headerTitle {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+.headerSubtitle {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.wheelContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .wheelContainer {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 3rem;
+  }
+}
+
+.wheelWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wheel {
+  position: relative;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 50%;
+  border: 3px solid var(--gold-border);
+  box-shadow:
+    0 0 0 4px var(--surface),
+    0 0 0 6px var(--gold-border),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 0 48px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+@media (min-width: 480px) {
+  .wheel {
+    width: 18rem;
+    height: 18rem;
+  }
+}
+
+.wheelInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+}
+
+.wheelSpinning {
+  animation: spin 4s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(1440deg);
+  }
+}
+
+.wheelCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--gold-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+@media (min-width: 480px) {
+  .wheelCenter {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+.wheelCenterIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--gold);
+}
+
+@media (min-width: 480px) {
+  .wheelCenterIcon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+.wheelPointer {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 22px solid var(--gold);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  z-index: 20;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    padding-top: 1rem;
+  }
+}
+
+.spinButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-gold);
+  transition: all 0.2s ease;
+}
+
+.spinButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.spinButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinButtonIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.resultPanel {
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--gold-soft) 0%, var(--amber-soft) 100%);
+  border: 1px solid var(--gold-border);
+  text-align: center;
+  box-shadow: var(--shadow-gold);
+}
+
+.resultLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+
+.resultName {
+  margin-top: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.resultRarity {
+  margin-top: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  border: 1px solid var(--gold-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+
+.optionsSection {
+  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.optionsTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.optionName {
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+.optionProbability {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.alertInfo {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.alertInfoLink {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+.alertInfoLink:hover {
+  text-decoration: none;
+}
+
+.alertError {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}

@@ -61,3 +61,19 @@ export const getUserById = async (id: string): Promise<User | null> => {
   const res = await api.get(`/users/${id}`);
   return unwrap(res);
 };
+
+/* =========================================================
+   UPDATE ROLE PERMISSIONS
+========================================================= */
+export const updateRolePermissions = async (role: string, permissions: any) => {
+  const res = await api.patch(`/users/role/${role}/permissions`, { permissions });
+  return unwrap(res);
+};
+
+/* =========================================================
+   UPDATE SHIFT PERMISSIONS
+========================================================= */
+export const updateShiftPermissions = async (shift: string, permissions: any) => {
+  const res = await api.patch(`/users/shift/${shift}/permissions`, { permissions });
+  return unwrap(res);
+};

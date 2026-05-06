@@ -1,5 +1,22 @@
+"use client";
+
 import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { 
+  X, 
+  CheckCircle, 
+  AlertTriangle, 
+  User, 
+  Mail, 
+  Lock, 
+  Shield, 
+  Loader2, 
+  Zap, 
+  Eye, 
+  EyeOff, 
+  Award,
+  Users,
+  Briefcase
+} from "lucide-react";
 
 type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
 
@@ -10,6 +27,13 @@ interface EmployeeFormData {
   confirmPassword: string;
   role: Role;
 }
+
+const ROLE_OPTIONS = [
+  { value: "bartender", label: "Mixólogo / Bartender", icon: <Zap size={18} /> },
+  { value: "waiter", label: "Servicio / Mozo", icon: <Award size={18} /> },
+  { value: "kitchen", label: "Chef / Cocina", icon: <Zap size={18} /> },
+  { value: "admin", label: "Alto Mando / Admin", icon: <Shield size={18} /> },
+];
 
 export default function EmployeeForm({
   onSave,
@@ -34,178 +58,161 @@ export default function EmployeeForm({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const validate = (): string => {
     const emailRegex = /^\S+@\S+\.\S+$/;
-
-    if (!form.name.trim()) return "El nombre es obligatorio";
-    if (form.name.trim().length < 2) return "Mínimo 2 caracteres";
-
-    if (!form.email.trim()) return "El email es obligatorio";
-    if (!emailRegex.test(form.email)) return "Email inválido";
-
-    if (!form.password) return "La contraseña es obligatoria";
-    if (form.password.length < 6) return "Mínimo 6 caracteres";
-
-    if (form.password !== form.confirmPassword)
-      return "Las contraseñas no coinciden";
-
+    if (!form.name.trim()) return "Se requiere identificar al colaborador";
+    if (!form.email.trim() || !emailRegex.test(form.email)) return "Credencial de email inválida";
+    if (!form.password || form.password.length < 6) return "Protocolo de seguridad: Mínimo 6 caracteres";
+    if (form.password !== form.confirmPassword) return "Conflicto en confirmación de seguridad";
     return "";
   };
 
   const handleSubmit = () => {
     const err = validate();
     if (err) return setError(err);
-
     setError("");
-
     const { confirmPassword, ...data } = form;
     onSave(data);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in overflow-y-auto">
+      
+      {/* ATMOSPHERE */}
+      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
+      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-violet-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-      {/* ================= MODAL ================= */}
-      <div className="w-[440px] rounded-2xl border border-[rgba(255,255,255,0.06)]
-      bg-[#0E131B]/80 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.7)]
-      p-6">
-
+      <div className="w-full max-w-2xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+        
         {/* HEADER */}
-        <div className="mb-5">
-          <h2 className="text-xl font-semibold text-white">
-            Crear empleado
-          </h2>
-          <p className="text-xs text-[#71717A] mt-1">
-            Terminal de gestión de personal
-          </p>
-
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-[#A78BFA]/30 to-transparent mt-3" />
+        <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
+          <div className="flex items-center gap-6">
+            <div className="p-4 bg-grad-gold rounded-2xl shadow-gold-glow">
+              <Users className="text-bg" size={32} />
+            </div>
+            <div>
+              <h2 className="text-3xl font-black text-grad-gold tracking-tighter uppercase leading-none">
+                Nuevo Perfil
+              </h2>
+              <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
+                Reclutamiento Estratégico Umbra
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-14 h-14 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
+            <X size={28} />
+          </button>
         </div>
 
-        {/* ERROR */}
-        {error && (
-          <div className="mb-3 text-sm text-[#F87171] bg-[#F87171]/10 border border-[#F87171]/20 p-2 rounded-lg">
-            {error}
-          </div>
-        )}
+        <div className="p-10 md:p-12 space-y-10">
+          
+          {/* ERRORS */}
+          {error && (
+            <div className="p-5 bg-red/5 border border-red/20 rounded-2xl flex items-center gap-4 animate-shake">
+              <AlertTriangle size={20} className="text-red" />
+              <p className="text-[10px] font-black text-red uppercase tracking-widest">{error}</p>
+            </div>
+          )}
 
-        {/* INPUTS */}
-        <div className="space-y-3">
-
-          <input
-            name="name"
-            placeholder="Nombre completo"
-            className="w-full px-3 py-2.5 rounded-xl
-            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
-            text-white placeholder:text-[#71717A]
-            outline-none focus:border-[#A78BFA]/40
-            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
-            transition"
-            onChange={handleChange}
-            value={form.name}
-          />
-
-          <input
-            name="email"
-            placeholder="Email"
-            className="w-full px-3 py-2.5 rounded-xl
-            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
-            text-white placeholder:text-[#71717A]
-            outline-none focus:border-[#A78BFA]/40
-            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
-            transition"
-            onChange={handleChange}
-            value={form.email}
-          />
-
-          {/* PASSWORD */}
-          <div className="relative">
-            <input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña"
-              className="w-full px-3 py-2.5 pr-10 rounded-xl
-              bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
-              text-white placeholder:text-[#71717A]
-              outline-none focus:border-[#A78BFA]/40
-              focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
-              transition"
-              onChange={handleChange}
-              value={form.password}
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-2.5 text-[#71717A] hover:text-[#A78BFA] transition"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+          {/* BASIC INFO */}
+          <div className="space-y-6">
+            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+              <Briefcase size={14} /> Identidad del Colaborador
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Completo</label>
+                <div className="relative group">
+                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                  <input name="name" value={form.name} onChange={handleChange} placeholder="Ej: John Doe" className="input-royale !pl-14" />
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Email Estratégico</label>
+                <div className="relative group">
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                  <input name="email" value={form.email} onChange={handleChange} placeholder="john@umbragroup.com" className="input-royale !pl-14" />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirmar contraseña"
-            className="w-full px-3 py-2.5 rounded-xl
-            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
-            text-white placeholder:text-[#71717A]
-            outline-none focus:border-[#A78BFA]/40
-            focus:shadow-[0_0_20px_rgba(167,139,250,0.15)]
-            transition"
-            onChange={handleChange}
-            value={form.confirmPassword}
-          />
+          {/* SECURITY */}
+          <div className="space-y-6">
+            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+              <Lock size={14} /> Protocolos de Seguridad
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clave de Acceso</label>
+                <div className="relative group">
+                  <input 
+                    name="password" 
+                    type={showPassword ? "text" : "password"} 
+                    value={form.password} 
+                    onChange={handleChange} 
+                    placeholder="••••••••" 
+                    className="input-royale pr-14" 
+                  />
+                  <button onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted hover:text-gold transition-colors">
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Confirmar Protocolo</label>
+                <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder="••••••••" className="input-royale" />
+              </div>
+            </div>
+          </div>
 
-          {/* ROLE */}
-          <select
-            name="role"
-            className="w-full px-3 py-2.5 rounded-xl
-            bg-[#111827]/60 border border-[rgba(255,255,255,0.06)]
-            text-white outline-none focus:border-[#A78BFA]/40 transition"
-            onChange={handleChange}
-            value={form.role}
-          >
-            <option value="bartender">Bartender</option>
-            <option value="waiter">Mozo</option>
-            <option value="cashier">Caja</option>
-            <option value="kitchen">Cocina</option>
-            <option value="admin">Admin</option>
-          </select>
+          {/* ROLE SELECTION */}
+          <div className="space-y-6">
+            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+              <Shield size={14} /> Asignación de Rango
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {ROLE_OPTIONS.map((role) => (
+                <button
+                  key={role.value}
+                  onClick={() => setForm({ ...form, role: role.value as Role })}
+                  className={`
+                    flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all duration-500 gap-3
+                    ${form.role === role.value 
+                      ? 'bg-grad-gold border-gold text-bg shadow-gold-glow scale-105' 
+                      : 'bg-surface-3 border-white/5 text-muted hover:border-white/20'}
+                  `}
+                >
+                  {role.icon}
+                  <span className="text-[8px] font-black uppercase tracking-widest text-center">{role.label.split(' / ')[0]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex justify-end gap-2 mt-5">
-
+        {/* FOOTER */}
+        <div className="p-10 bg-surface-3 border-t border-white/10 flex gap-6 shadow-royale">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 rounded-xl
-            bg-[#3F3F46] text-white hover:bg-[#52525B]
-            transition"
+            className="flex-1 h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all"
           >
-            Cancelar
+            CANCELAR
           </button>
-
+          
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 rounded-xl
-            bg-[#A78BFA] text-black font-semibold
-            hover:shadow-[0_0_25px_rgba(167,139,250,0.35)]
-            transition flex items-center gap-2"
+            className="flex-[2] h-16 rounded-[1.5rem] bg-grad-gold text-bg shadow-gold/30 flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:opacity-50"
           >
-            {loading && <Loader2 className="animate-spin" size={16} />}
-            Crear
+            {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
+            <span className="text-sm font-black uppercase tracking-[0.3em]">ESTABLECER PERFIL</span>
           </button>
         </div>
-
       </div>
     </div>
   );

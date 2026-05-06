@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Shield, Users, Check, X } from "lucide-react";
+import { Shield, Users, Check, X, Lock, Save, Loader2 } from "lucide-react";
+import { updateRolePermissions } from "../services/userService";
 
 type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
 
@@ -32,52 +33,52 @@ const permissions: { key: PermissionKey; label: string }[] = [
   { key: "menus", label: "Menús" },
 ];
 
-export default function RoleManagementPage() {
+export default function PermissionPage() {
   const [selectedRole, setSelectedRole] = useState<Role>("bartender");
+  const [saving, setSaving] = useState(false);
 
-  const [rolePermissions, setRolePermissions] =
-    useState<RolePermissions>({
-      admin: {
-        orders: true,
-        cashier: true,
-        inventory: true,
-        roulette: true,
-        employees: true,
-        menus: true,
-      },
-      bartender: {
-        orders: true,
-        cashier: false,
-        inventory: false,
-        roulette: true,
-        employees: false,
-        menus: false,
-      },
-      waiter: {
-        orders: true,
-        cashier: false,
-        inventory: false,
-        roulette: false,
-        employees: false,
-        menus: true,
-      },
-      cashier: {
-        orders: true,
-        cashier: true,
-        inventory: false,
-        roulette: false,
-        employees: false,
-        menus: false,
-      },
-      kitchen: {
-        orders: true,
-        cashier: false,
-        inventory: true,
-        roulette: false,
-        employees: false,
-        menus: false,
-      },
-    });
+  const [rolePermissions, setRolePermissions] = useState<RolePermissions>({
+    admin: {
+      orders: true,
+      cashier: true,
+      inventory: true,
+      roulette: true,
+      employees: true,
+      menus: true,
+    },
+    bartender: {
+      orders: true,
+      cashier: false,
+      inventory: false,
+      roulette: true,
+      employees: false,
+      menus: false,
+    },
+    waiter: {
+      orders: true,
+      cashier: false,
+      inventory: false,
+      roulette: false,
+      employees: false,
+      menus: true,
+    },
+    cashier: {
+      orders: true,
+      cashier: true,
+      inventory: false,
+      roulette: false,
+      employees: false,
+      menus: false,
+    },
+    kitchen: {
+      orders: true,
+      cashier: false,
+      inventory: true,
+      roulette: false,
+      employees: false,
+      menus: false,
+    },
+  });
 
   const togglePermission = (key: PermissionKey) => {
     setRolePermissions((prev) => ({
@@ -89,101 +90,155 @@ export default function RoleManagementPage() {
     }));
   };
 
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      await updateRolePermissions(selectedRole, rolePermissions[selectedRole]);
+      alert(`Permisos actualizados para todos los empleados con rol ${selectedRole.toUpperCase()}.`);
+    } catch (error) {
+      console.error(error);
+      alert("Error al actualizar permisos de rol");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activePermissionsCount = Object.values(
+    rolePermissions[selectedRole]
+  ).filter(Boolean).length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden">
+      {/* ATMOSPHERIC GLOW */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">
-          Gestión de Roles
-        </h1>
+      <div className="flex items-end justify-between relative z-10">
+        <div className="flex items-center gap-6">
+          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
+            <Users className="text-ivory" size={32} />
+          </div>
+          <div>
+            <p className="text-[10px] text-cyan-400 font-black uppercase tracking-[0.4em] mb-1">
+              Control Base (Menús y Módulos Core)
+            </p>
+            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+              Permisos de Sistema
+            </h1>
+          </div>
+        </div>
 
-        <p className="text-sm text-[#71717A] mt-1">
-          Configuración de permisos base por rol del sistema
-        </p>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-3 h-14 px-6 rounded-2xl
+          bg-grad-gold text-bg shadow-gold/30
+          hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
+          transition-all disabled:opacity-50"
+        >
+          {saving ? <Loader2 size={20} className="text-bg animate-spin" /> : <Save size={20} className="text-bg" />}
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Guardar Cambios</span>
+        </button>
       </div>
 
-      {/* ================= ROLE SELECTOR ================= */}
-      <div className="flex flex-wrap gap-2">
-
+      {/* ================= ROLES SELECTOR ================= */}
+      <div className="flex gap-3 flex-wrap relative z-10">
         {roles.map((role) => (
           <button
             key={role.key}
             onClick={() => setSelectedRole(role.key)}
             className={`
-              px-3 py-1.5 rounded-lg text-sm border transition flex items-center gap-2
-
+              flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300
               ${
                 selectedRole === role.key
-                  ? "bg-[#A78BFA]/10 text-[#A78BFA] border-[#A78BFA]/30"
-                  : "bg-[#111827]/40 text-[#71717A] border-transparent hover:text-white"
+                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                  : "bg-surface-3 border border-white/5 text-muted hover:text-white hover:border-white/20"
               }
             `}
           >
-            <Users size={14} />
+            <Users size={16} className={selectedRole === role.key ? "text-cyan-400" : "text-muted"} />
             {role.label}
           </button>
         ))}
-
       </div>
 
-      {/* ================= PERMISSION PANEL ================= */}
+      {/* ================= SUMMARY ================= */}
       <div className="
-        rounded-2xl border border-[rgba(255,255,255,0.06)]
-        bg-[#0E131B]/60 backdrop-blur-xl
-        overflow-hidden
+        flex items-center justify-between
+        px-6 py-4 rounded-2xl
+        bg-surface-3 border border-white/5 shadow-inner relative z-10
       ">
+        <span className="text-[10px] font-black text-muted uppercase tracking-widest">
+          Permisos Base Activos
+        </span>
+        <span className="text-sm text-lime font-black flex items-center gap-2">
+          <Lock size={16} />
+          {activePermissionsCount} / {permissions.length} MÓDULOS
+        </span>
+      </div>
 
-        <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
-          <h2 className="text-white font-semibold flex items-center gap-2">
-            <Shield size={16} className="text-[#A78BFA]" />
-            Permisos de {selectedRole.toUpperCase()}
+      {/* ================= PERMISSIONS GRID ================= */}
+      <div className="
+        rounded-[2rem] border border-white/5
+        bg-surface-2 backdrop-blur-xl
+        overflow-hidden relative z-10 shadow-royale
+      ">
+        <div className="p-6 border-b border-white/5 bg-surface-3/50">
+          <h2 className="text-xs font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
+            <Shield size={16} className="text-cyan-400" />
+            Permisos de Rango: {selectedRole}
           </h2>
         </div>
 
-        <div className="divide-y divide-[rgba(255,255,255,0.03)]">
-
-          {permissions.map((perm) => {
-            const enabled =
-              rolePermissions[selectedRole][perm.key];
-
+        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 divide-white/5">
+          {permissions.map((perm, index) => {
+            const enabled = rolePermissions[selectedRole][perm.key];
             return (
               <div
                 key={perm.key}
-                className="flex items-center justify-between p-4 hover:bg-[#111827]/30 transition"
+                className={`
+                  flex items-center justify-between
+                  px-6 py-5 hover:bg-white/5 transition-all
+                  ${index % 2 === 0 ? "md:border-r border-white/5" : ""}
+                  ${index > 1 ? "md:border-t border-white/5" : ""}
+                `}
               >
+                {/* LABEL */}
+                <div className="flex items-center gap-3 text-ivory">
+                  <div className={`p-2 rounded-lg ${enabled ? 'bg-lime/10' : 'bg-red/10'} transition-colors`}>
+                    <Shield size={16} className={enabled ? 'text-lime' : 'text-red'} />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-widest">{perm.label}</span>
+                </div>
 
-                <span className="text-white text-sm">
-                  {perm.label}
-                </span>
-
+                {/* TOGGLE */}
                 <button
                   onClick={() => togglePermission(perm.key)}
                   className={`
-                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs border transition
-
+                    relative w-14 h-7 rounded-full border transition-all duration-300 flex items-center px-1
                     ${
                       enabled
-                        ? "bg-[#34D399]/10 text-[#34D399] border-[#34D399]/30"
-                        : "bg-[#F87171]/10 text-[#F87171] border-[#F87171]/30"
+                        ? "bg-lime/10 border-lime/30 justify-end"
+                        : "bg-red/10 border-red/30 justify-start"
                     }
                   `}
                 >
-                  {enabled ? (
-                    <>
-                      <Check size={14} /> Activo
-                    </>
-                  ) : (
-                    <>
-                      <X size={14} /> Bloqueado
-                    </>
-                  )}
+                  <div
+                    className={`
+                      w-5 h-5 rounded-full flex items-center justify-center text-[10px] transition-all shadow-lg
+                      ${
+                        enabled
+                          ? "bg-lime text-bg shadow-[0_0_10px_rgba(163,230,53,0.5)]"
+                          : "bg-red text-ivory shadow-[0_0_10px_rgba(248,113,113,0.5)]"
+                      }
+                    `}
+                  >
+                    {enabled ? <Check size={12} /> : <X size={12} />}
+                  </div>
                 </button>
-
               </div>
             );
           })}
-
         </div>
       </div>
     </div>

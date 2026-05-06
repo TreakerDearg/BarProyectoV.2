@@ -6,6 +6,7 @@ import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict, serverError,
 } from "../utils/response.js";
+import { calculateProductPrice } from "../utils/pricingEngine.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -27,7 +28,13 @@ export const getProducts = async (req, res, next) => {
 
     const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
 
-    return ok(res, products);
+    // Map dynamic prices
+    const productsWithDynamicPrice = await Promise.all(products.map(async (p) => ({
+      ...p,
+      dynamicPrice: await calculateProductPrice(p)
+    })));
+
+    return ok(res, productsWithDynamicPrice);
   } catch (error) { next(error); }
 };
 
@@ -60,8 +67,16 @@ export const createProduct = async (req, res, next) => {
     if (exists) return conflict(res, "El producto ya existe");
 
     const product = await Product.create(req.body);
-    logger.info(`[Product] Creado: ${product.name}`);
+    
+    // 🔥 Verificamos si ya existe una receta para marcar hasRecipe
+    const recipe = await Recipe.findOne({ product: product._id });
+    if (recipe) {
+      product.hasRecipe = true;
+      product.cost = recipe.totalCost || 0;
+      await product.save();
+    }
 
+    logger.info(`[Product] Creado: ${product.name}`);
     return created(res, product, "Producto creado correctamente");
   } catch (error) { next(error); }
 };

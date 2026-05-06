@@ -1,0 +1,242 @@
+.container {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* HEADER */
+.header {
+  text-align: center;
+}
+
+.title {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* CARD */
+.card {
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.cardInner {
+  padding: 1.5rem;
+}
+
+.cardTitle {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cardMuted {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+/* GRID PRODUCTOS */
+.productsGrid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .productsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.productCard {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.productCard:hover {
+  border-color: var(--gold-border);
+}
+
+.price {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* BOTONES */
+.btnPrimary {
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnGhost {
+  border: 1px solid var(--border);
+  background: transparent;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+.btnDanger {
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+  padding: 1rem;
+  border-radius: var(--radius-full);
+}
+
+/* INPUT */
+.input {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ALERTAS */
+.alertSuccess {
+  background: var(--green-soft);
+  border: 1px solid var(--green-border);
+  color: var(--green-light);
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+}
+
+.alertError {
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+}
+
+.alertInfo {
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #93c5fd;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+}
+
+.cartHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.cartIcon {
+  color: var(--gold);
+}
+
+.cartBadge {
+  margin-left: auto;
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.cartItem:hover {
+  border-color: var(--gold-border);
+  transform: translateY(-1px);
+}
+
+.cartInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.cartName {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cartControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qtyInput {
+  width: 3rem;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0.25rem;
+}
+
+.removeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+  border-radius: var(--radius-md);
+  padding: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: var(--red-border);
+}
+
+.cartFooter {
+  margin-top: 1rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: 0.7;
+}
+
+.empty {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+.emptyHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

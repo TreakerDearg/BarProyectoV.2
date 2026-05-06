@@ -1,9 +1,8 @@
-// hooks/useDashboard.ts
 import { useEffect, useRef } from "react";
 import { fetchDashboard } from "../services/dashboardService";
 import { useDashboardStore } from "../store/dashboardStore";
 
-export function useDashboard() {
+export function useDashboard(view: string = "all") {
   const { setData, setLoading } = useDashboardStore();
 
   const abortRef = useRef<AbortController | null>(null);
@@ -11,7 +10,6 @@ export function useDashboard() {
 
   const load = async () => {
     try {
-      // cancelar request anterior si existe
       if (abortRef.current) {
         abortRef.current.abort();
       }
@@ -21,12 +19,11 @@ export function useDashboard() {
 
       setLoading(true);
 
-      const data = await fetchDashboard(controller.signal);
+      const data = await fetchDashboard(controller.signal, view);
 
       setData(data);
     } catch (err: any) {
-      if (err.name === "CanceledError") return;
-
+      if (err.name === "AbortError" || err.name === "CanceledError") return;
       console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
@@ -41,15 +38,10 @@ export function useDashboard() {
     }, 30000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-
-      if (abortRef.current) {
-        abortRef.current.abort();
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (abortRef.current) abortRef.current.abort();
     };
-  }, []);
+  }, [view]); // Reload when view changes
 
   return useDashboardStore();
 }

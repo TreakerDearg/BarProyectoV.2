@@ -1,19 +1,25 @@
-export default function OrderHeader({ order, isBar }: any) {
-  const orderId = order._id ?? "";
+import type { Order } from "../../types/order";
+import { Coffee, Martini, Utensils } from "lucide-react";
 
+interface Props {
+  order: Order;
+  isBar: boolean;
+}
+
+export default function OrderHeader({ order, isBar }: Props) {
   return (
-    <div className="flex justify-between items-start mb-6">
-      <span className="text-xs text-gray-400 tracking-widest font-bold">
-        ORD_{orderId.slice(-4).toUpperCase()}
-      </span>
-
-      <span className={`px-2 py-0.5 rounded text-[9px] tracking-widest font-bold border ${
-        order.status === "completed"
-          ? "border-bar-green/30 bg-bar-green/10 text-bar-green"
-          : "border-[#8B5CF6]/30 bg-[#8B5CF6]/10 text-[#8B5CF6]"
-      }`}>
-        {order.status === "completed" ? "COMPLETED" : isBar ? "BAR" : "KITCHEN"}
-      </span>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-lg ${isBar ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'}`}>
+          {isBar ? <Martini size={14} /> : <Utensils size={14} />}
+        </div>
+        <h3 className="text-xl font-black text-ivory tracking-tighter uppercase leading-none">
+          Pedido #{order._id?.slice(-4).toUpperCase()}
+        </h3>
+      </div>
+      <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em] ml-11">
+        {isBar ? 'Barra · Cocktails' : 'Cocina · Platos'}
+      </p>
     </div>
   );
 }

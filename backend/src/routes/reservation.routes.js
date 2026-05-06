@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   getReservations, createReservation, updateReservationStatus,
-  deleteReservation, getAvailableTables, getReservationById
+  deleteReservation, getAvailableTables, getReservationById,   
+  checkAvailability
 } from "../controllers/reservation.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createReservationSchema } from "../utils/schemas.js";
@@ -17,6 +18,11 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 router.get("/available/tables", getAvailableTables);
 
 // Crear reserva desde la web/app podría ser público o de client, por ahora sin protect
+router.post("/", validate(createReservationSchema), createReservation);
+
+// NUEVO → disponibilidad por slot (estilo Booking)
+router.get("/check-availability", checkAvailability);
+
 router.post("/", validate(createReservationSchema), createReservation);
 
 /* =========================================================

@@ -53,6 +53,13 @@ export const deleteTable = async (id: string): Promise<void> => {
   await safeRequest(api.delete(`/tables/${id}`));
 };
 
+export const updateTableLayout = async (
+  id: string,
+  layout: { x: number; y: number; width?: number; height?: number }
+): Promise<Table> => {
+  return safeRequest<Table>(api.put(`/tables/${id}`, layout));
+};
+
 export const openTable = async (id: string): Promise<Table> => {
   return safeRequest<Table>(api.post(`/tables/${id}/open`));
 };
