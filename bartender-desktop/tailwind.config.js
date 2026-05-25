@@ -13,7 +13,14 @@ export default {
       ============================================================ */
       colors: {
 
-        /* Backgrounds Obsidian */
+        /* Backgrounds Obsidian & Nebula Space */
+        void:    "#030207",
+        obsidian: {
+          DEFAULT: "#0D0F14",
+          light:   "#12151C",
+          dark:    "#08090C",
+        },
+
         bg: {
           DEFAULT: "#08090C",
           deep:    "#050608",

@@ -1,60 +1,81 @@
 "use client";
 
 import type { DiscountStatsData } from "../types/discounts";
-import { TrendingUp, Activity, Target, Zap } from "lucide-react";
+import { TrendingUp, Activity, PiggyBank } from "lucide-react";
 
 interface Props {
   data: DiscountStatsData;
   loading?: boolean;
 }
 
-export default function DiscountStats({ data, loading }: Props) {
+export default function NebulaDiscountStats({ data, loading }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       
-      {/* TOTAL TODAY */}
-      <div className="glass-royale p-6 rounded-[2rem] border border-emerald-400/10 relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400 opacity-20" />
-        <div className="flex justify-between items-start">
-           <p className="text-[9px] font-black text-muted uppercase tracking-[0.4em]">AHORRO TOTAL HOY</p>
-           <TrendingUp size={16} className="text-emerald-400 opacity-30 group-hover:opacity-100 transition-opacity" />
+      {/* TOTAL DEL DÍA */}
+      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-green-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
+        <div className="flex justify-between items-start mb-4">
+           <div>
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                Ahorro total hoy
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Descuentos aplicados</p>
+           </div>
+           <div className="p-3 bg-green-100 rounded-xl">
+              <TrendingUp size={24} className="text-green-600" />
+           </div>
         </div>
-        <p className="text-3xl font-black text-ivory tracking-tighter mt-4">
-          {loading ? <div className="h-8 w-24 bg-white/5 animate-pulse rounded-lg" /> : `-$${data.todayTotal.toLocaleString()}`}
+        <p className="text-4xl font-bold text-gray-800">
+          {loading ? (
+            <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-lg" />
+          ) : (
+            `$${data.todayTotal.toLocaleString()}`
+          )}
         </p>
-        <div className="absolute -bottom-2 -right-2 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-           <TrendingUp size={60} />
-        </div>
       </div>
 
-      {/* APPLIED COUNT */}
-      <div className="glass-royale p-6 rounded-[2rem] border border-gold/10 relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gold opacity-20" />
-        <div className="flex justify-between items-start">
-           <p className="text-[9px] font-black text-muted uppercase tracking-[0.4em]">PROTOCOLOS ACTIVOS</p>
-           <Activity size={16} className="text-gold opacity-30 group-hover:opacity-100 transition-opacity" />
+      {/* CANTIDAD APLICADA */}
+      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-amber-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
+        <div className="flex justify-between items-start mb-4">
+           <div>
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                Descuentos aplicados
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Cantidad total</p>
+           </div>
+           <div className="p-3 bg-amber-100 rounded-xl">
+              <Activity size={24} className="text-amber-600" />
+           </div>
         </div>
-        <p className="text-3xl font-black text-ivory tracking-tighter mt-4">
-          {loading ? <div className="h-8 w-16 bg-white/5 animate-pulse rounded-lg" /> : data.appliedCount}
+        <p className="text-4xl font-bold text-gray-800">
+          {loading ? (
+            <div className="h-10 w-24 bg-gray-200 animate-pulse rounded-lg" />
+          ) : (
+            data.appliedCount
+          )}
         </p>
-        <div className="absolute -bottom-2 -right-2 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-           <Activity size={60} />
-        </div>
       </div>
 
-      {/* AVG PERCENT */}
-      <div className="glass-royale p-6 rounded-[2rem] border border-cyan-400/10 relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-cyan-400 opacity-20" />
-        <div className="flex justify-between items-start">
-           <p className="text-[9px] font-black text-muted uppercase tracking-[0.4em]">PROMEDIO IMPACTO</p>
-           <Target size={16} className="text-cyan-400 opacity-30 group-hover:opacity-100 transition-opacity" />
+      {/* PROMEDIO DE DESCUENTO */}
+      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-blue-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
+        <div className="flex justify-between items-start mb-4">
+           <div>
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                Promedio de descuento
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Porcentaje típico</p>
+           </div>
+           <div className="p-3 bg-blue-100 rounded-xl">
+              <PiggyBank size={24} className="text-blue-600" />
+           </div>
         </div>
-        <p className="text-3xl font-black text-ivory tracking-tighter mt-4">
-          {loading ? <div className="h-8 w-20 bg-white/5 animate-pulse rounded-lg" /> : `${data.averagePercent.toFixed(1)}%`}
+        <p className="text-4xl font-bold text-gray-800">
+          {loading ? (
+            <div className="h-10 w-28 bg-gray-200 animate-pulse rounded-lg" />
+          ) : (
+            `${data.averagePercent.toFixed(1)}%`
+          )}
         </p>
-        <div className="absolute -bottom-2 -right-2 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-           <Target size={60} />
-        </div>
       </div>
 
     </div>

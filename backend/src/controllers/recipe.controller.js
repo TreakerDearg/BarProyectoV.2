@@ -6,6 +6,7 @@ import { logger }    from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict,
 } from "../utils/response.js";
+import { emitRecipeEvent, RECIPE_EVENTS } from "../utils/socketEvents.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -113,6 +114,9 @@ export const createRecipe = async (req, res, next) => {
     const populated = await populateRecipe(Recipe.findById(recipe._id)).lean();
 
     logger.info(`[Recipe] Creada para producto: ${product}`);
+
+    emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
+
     return created(res, populated, "Receta creada correctamente");
   } catch (error) { next(error); }
 };
@@ -139,6 +143,8 @@ export const updateRecipe = async (req, res, next) => {
     const populated = await populateRecipe(Recipe.findById(id)).lean();
     logger.info(`[Recipe] Actualizada: ${id}`);
 
+    emitRecipeEvent(RECIPE_EVENTS.UPDATED, populated);
+
     return ok(res, populated, "Receta actualizada correctamente");
   } catch (error) { next(error); }
 };
@@ -163,6 +169,9 @@ export const deleteRecipe = async (req, res, next) => {
     }
 
     logger.info(`[Recipe] Eliminada: ${id}`);
+
+    emitRecipeEvent(RECIPE_EVENTS.DELETED, { id, productId });
+
     return ok(res, null, "Receta eliminada correctamente");
   } catch (error) { next(error); }
 };

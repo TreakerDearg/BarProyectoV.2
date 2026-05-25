@@ -1,58 +1,106 @@
 "use client";
 
-import { Activity, Clock, ArrowUpRight, Zap, Users } from "lucide-react";
+import type { ReactNode } from "react";
+import { Activity, ArrowUpRight, Users, Gift, Package } from "lucide-react";
+import type { LiveActivityItem } from "../../store/dashboardStore";
 
 interface Props {
-  reservations?: any[];
+  activities?: LiveActivityItem[];
+  reservations?: { name?: string; partySize?: number; startTime?: string }[];
 }
 
-export default function LiveActivity({ reservations = [] }: Props) {
-  const activities = reservations.map((res: any) => ({
-    title: "Nueva Reserva VIP",
-    desc: `${res.name} · ${res.partySize} Pax`,
-    time: new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    icon: <Users size={12} />,
-    color: "text-emerald-400 bg-emerald-400/10 shadow-emerald-400/20"
-  }));
+const typeStyles: Record<
+  LiveActivityItem["type"],
+  { color: string; defaultIcon: ReactNode }
+> = {
+  reservation: {
+    color: "text-emerald-400 bg-emerald-400/10",
+    defaultIcon: <Users size={12} />,
+  },
+  order: {
+    color: "text-violet-300 bg-violet-500/10",
+    defaultIcon: <Activity size={12} />,
+  },
+  discount: {
+    color: "text-gold bg-gold/10",
+    defaultIcon: <Gift size={12} />,
+  },
+  inventory: {
+    color: "text-red bg-red/10",
+    defaultIcon: <Package size={12} />,
+  },
+  system: {
+    color: "text-muted bg-white/5",
+    defaultIcon: <Activity size={12} />,
+  },
+};
 
-  if (activities.length === 0) {
-    activities.push({
-      title: "Sistema en Modo Espera",
-      desc: "Esperando nuevas solicitudes...",
-      time: "AHORA",
-      icon: <Activity size={12} />,
-      color: "text-muted bg-white/5"
-    });
+export default function LiveActivity({
+  activities = [],
+  reservations = [],
+}: Props) {
+  let list: LiveActivityItem[] = activities;
+
+  if (list.length === 0 && reservations.length > 0) {
+    list = reservations.map((res, i) => ({
+      id: `res-fallback-${i}`,
+      title: "Reserva",
+      desc: `${res.name ?? "Cliente"} · ${res.partySize ?? "?"} personas`,
+      time: res.startTime
+        ? new Date(res.startTime).toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "—",
+      type: "reservation",
+    }));
+  }
+
+  if (list.length === 0) {
+    list = [
+      {
+        id: "idle",
+        title: "En espera",
+        desc: "Sin actividad reciente",
+        time: "Ahora",
+        type: "system",
+      },
+    ];
   }
 
   return (
-    <div className="space-y-8 flex-1 flex flex-col">
-      <div className="flex-1 space-y-8">
-        {activities.map((act, i) => (
-          <div key={i} className="flex gap-6 relative group cursor-default">
-            {/* LINK LINE */}
-            {i !== activities.length - 1 && (
-              <div className="absolute left-6 top-10 bottom-[-2rem] w-px bg-white/5 group-hover:bg-gold/20 transition-colors" />
+    <div className="space-y-5" data-tutorial="live-activity">
+      {list.map((act, i) => {
+        const style = typeStyles[act.type] ?? typeStyles.system;
+        return (
+          <div key={act.id} className="flex gap-4 relative group">
+            {i !== list.length - 1 && (
+              <div className="absolute left-5 top-10 bottom-[-1rem] w-px bg-white/5" />
             )}
-            
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/5 transition-all group-hover:scale-110 ${act.color}`}>
-              {act.icon}
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/5 ${style.color}`}
+            >
+              {style.defaultIcon}
             </div>
-            
-            <div className="pt-1">
-              <div className="flex items-center gap-3">
-                 <p className="text-xs font-black text-ivory uppercase tracking-tighter group-hover:text-gold transition-colors">{act.title}</p>
-                 <ArrowUpRight size={10} className="text-muted opacity-0 group-hover:opacity-100 transition-all" />
+            <div className="pt-0.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-ivory truncate">
+                  {act.title}
+                </p>
+                <ArrowUpRight
+                  size={10}
+                  className="text-muted opacity-0 group-hover:opacity-100 shrink-0"
+                />
               </div>
-              <div className="flex gap-3 text-[9px] font-black text-muted uppercase tracking-widest mt-1.5">
-                <span>{act.desc}</span>
-                <span className="opacity-20">|</span>
-                <span className="text-gold/50">{act.time}</span>
-              </div>
+              <p className="text-[11px] text-muted mt-0.5 truncate">
+                {act.desc}
+                <span className="mx-1.5 opacity-30">·</span>
+                <span className="text-violet-300/80">{act.time}</span>
+              </p>
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

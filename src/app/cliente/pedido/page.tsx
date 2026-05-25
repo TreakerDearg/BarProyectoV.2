@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import ui from "./pedido-ui.module.css";
+import styles from "./pedido-ui.module.css";
 
 import {
   getTables,

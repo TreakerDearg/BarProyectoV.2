@@ -3,10 +3,12 @@ import Product from "../models/Product.js";
 import Recipe  from "../models/Recipe.js";
 import Order   from "../models/Order.js";
 import { logger } from "../config/logger.js";
+import { uploadImage, deleteImage, uploadMultipleImages } from "../config/cloudinary.js";
 import {
   ok, created, badRequest, notFound, conflict, serverError,
 } from "../utils/response.js";
 import { calculateProductPrice } from "../utils/pricingEngine.js";
+import { emitProductEvent, PRODUCT_EVENTS } from "../utils/socketEvents.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -66,7 +68,35 @@ export const createProduct = async (req, res, next) => {
     const exists = await Product.findOne({ name: name.trim().toLowerCase() });
     if (exists) return conflict(res, "El producto ya existe");
 
-    const product = await Product.create(req.body);
+    // Procesar imagen principal si se proporciona (ya subida por multer-storage-cloudinary)
+    let imageUrl = null;
+    let imagePublicId = null;
+
+    if (req.files && req.files.image) {
+      const imageFile = Array.isArray(req.files.image) ? req.files.image[0] : req.files.image;
+      imageUrl = imageFile.secure_url || imageFile.path;
+      imagePublicId = imageFile.public_id;
+      logger.info(`[Product] Imagen principal subida a Cloudinary: ${imagePublicId}`);
+    }
+
+    // Procesar galería de imágenes si se proporciona (ya subida por multer-storage-cloudinary)
+    let galleryImages = [];
+    let galleryPublicIds = [];
+
+    if (req.files && req.files.gallery) {
+      const galleryFiles = Array.isArray(req.files.gallery) ? req.files.gallery : [req.files.gallery];
+      galleryImages = galleryFiles.map(f => f.secure_url || f.path);
+      galleryPublicIds = galleryFiles.map(f => f.public_id);
+      logger.info(`[Product] Galería de ${galleryFiles.length} imágenes subida a Cloudinary`);
+    }
+
+    const product = await Product.create({
+      ...req.body,
+      image: imageUrl,
+      imagePublicId: imagePublicId,
+      gallery: galleryImages,
+      galleryPublicIds: galleryPublicIds,
+    });
     
     // 🔥 Verificamos si ya existe una receta para marcar hasRecipe
     const recipe = await Recipe.findOne({ product: product._id });
@@ -77,6 +107,9 @@ export const createProduct = async (req, res, next) => {
     }
 
     logger.info(`[Product] Creado: ${product.name}`);
+
+    emitProductEvent(PRODUCT_EVENTS.CREATED, product);
+
     return created(res, product, "Producto creado correctamente");
   } catch (error) { next(error); }
 };
@@ -90,7 +123,8 @@ export const updateProduct = async (req, res, next) => {
 
     const ALLOWED = [
       "name", "description", "price", "cost", "category", "subcategory",
-      "type", "available", "isActiveForPOS", "image", "featured",
+      "type", "available", "isActiveForPOS", "image", "imagePublicId",
+      "gallery", "galleryPublicIds", "featured",
       "tags", "preparationTime", "hasRecipe", "isAlcohol", "stockImpact",
     ];
 
@@ -102,6 +136,51 @@ export const updateProduct = async (req, res, next) => {
       return badRequest(res, "No hay campos válidos para actualizar");
     }
 
+    // Manejar actualización de imagen principal (ya subida por multer-storage-cloudinary)
+    if (req.files && req.files.image) {
+      try {
+        const existingProduct = await Product.findById(req.params.id);
+        if (existingProduct?.imagePublicId) {
+          await deleteImage(existingProduct.imagePublicId);
+          logger.info(`[Product] Imagen principal anterior eliminada: ${existingProduct.imagePublicId}`);
+        }
+
+        const imageFile = Array.isArray(req.files.image) ? req.files.image[0] : req.files.image;
+        updates.image = imageFile.secure_url || imageFile.path;
+        updates.imagePublicId = imageFile.public_id;
+        logger.info(`[Product] Nueva imagen principal subida a Cloudinary: ${imageFile.public_id}`);
+      } catch (uploadError) {
+        logger.error("[Product] Error actualizando imagen principal:", uploadError);
+        // Continuar sin actualizar imagen si falla
+      }
+    }
+
+    // Manejar actualización de galería (ya subida por multer-storage-cloudinary)
+    if (req.files && req.files.gallery) {
+      try {
+        const existingProduct = await Product.findById(req.params.id);
+
+        // Eliminar imágenes anteriores de la galería
+        if (existingProduct?.galleryPublicIds?.length > 0) {
+          for (const publicId of existingProduct.galleryPublicIds) {
+            try {
+              await deleteImage(publicId);
+            } catch (deleteError) {
+              logger.error(`[Product] Error eliminando imagen de galería: ${deleteError.message}`);
+            }
+          }
+        }
+
+        const galleryFiles = Array.isArray(req.files.gallery) ? req.files.gallery : [req.files.gallery];
+        updates.gallery = galleryFiles.map(f => f.secure_url || f.path);
+        updates.galleryPublicIds = galleryFiles.map(f => f.public_id);
+        logger.info(`[Product] Galería de ${galleryFiles.length} imágenes actualizada en Cloudinary`);
+      } catch (uploadError) {
+        logger.error("[Product] Error actualizando galería:", uploadError);
+        // Continuar sin actualizar galería si falla
+      }
+    }
+
     const updated = await Product.findByIdAndUpdate(
       req.params.id, updates, { new: true, runValidators: true }
     ).lean();
@@ -109,6 +188,9 @@ export const updateProduct = async (req, res, next) => {
     if (!updated) return notFound(res, "Producto no encontrado");
 
     logger.info(`[Product] Actualizado: ${updated.name}`);
+
+    emitProductEvent(PRODUCT_EVENTS.UPDATED, updated);
+
     return ok(res, updated, "Producto actualizado");
   } catch (error) { next(error); }
 };
@@ -133,6 +215,10 @@ export const deleteProduct = async (req, res, next) => {
       await product.save();
 
       logger.info(`[Product] Desactivado por referencias históricas: ${product.name}`);
+
+      emitProductEvent(PRODUCT_EVENTS.UPDATED, product);
+      emitProductEvent(PRODUCT_EVENTS.AVAILABILITY_CHANGED, { id: product._id, available: product.available });
+
       return ok(
         res,
         product,
@@ -140,8 +226,31 @@ export const deleteProduct = async (req, res, next) => {
       );
     }
 
+    // Eliminar imágenes de Cloudinary antes de eliminar el producto
+    if (product.imagePublicId) {
+      try {
+        await deleteImage(product.imagePublicId);
+      } catch (deleteError) {
+        logger.error(`[Product] Error eliminando imagen principal: ${deleteError.message}`);
+      }
+    }
+
+    if (product.galleryPublicIds?.length > 0) {
+      for (const publicId of product.galleryPublicIds) {
+        try {
+          await deleteImage(publicId);
+        } catch (deleteError) {
+          logger.error(`[Product] Error eliminando imagen de galería: ${deleteError.message}`);
+        }
+      }
+    }
+
     await product.deleteOne();
+
     logger.info(`[Product] Eliminado: ${product.name}`);
+
+    emitProductEvent(PRODUCT_EVENTS.DELETED, { id: product._id });
+
     return ok(res, null, "Producto eliminado correctamente");
   } catch (error) { next(error); }
 };
@@ -158,6 +267,9 @@ export const toggleProductAvailability = async (req, res, next) => {
 
     product.available = !product.available;
     await product.save();
+
+    emitProductEvent(PRODUCT_EVENTS.UPDATED, product);
+    emitProductEvent(PRODUCT_EVENTS.AVAILABILITY_CHANGED, { id: product._id, available: product.available });
 
     return ok(res, product, `Producto ${product.available ? "activado" : "desactivado"}`);
   } catch (error) { next(error); }
@@ -186,6 +298,8 @@ export const syncProductAvailability = async (req, res, next) => {
         product.available = available;
         await product.save();
         updated++;
+
+        emitProductEvent(PRODUCT_EVENTS.AVAILABILITY_CHANGED, { id: product._id, available });
       }
     }
 
@@ -207,5 +321,37 @@ export const getProductStats = async (req, res, next) => {
     ]);
 
     return ok(res, { total, available, unavailable, byType, byCategory });
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   PRODUCTS WITH RECIPES
+========================================================= */
+export const getProductsWithRecipes = async (req, res, next) => {
+  try {
+    const { type, category, available } = req.query;
+
+    const filter = {};
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+    if (available !== undefined) filter.available = available === "true";
+
+    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
+
+    const productIds = products.map(p => p._id);
+    const recipes = await Recipe.find({ product: { $in: productIds } })
+      .populate("ingredients.inventoryItem", "name unit stock cost")
+      .lean();
+
+    const recipeMap = Object.fromEntries(
+      recipes.map(r => [r.product.toString(), r])
+    );
+
+    const productsWithRecipes = products.map(p => ({
+      ...p,
+      recipe: recipeMap[p._id.toString()] || null
+    }));
+
+    return ok(res, productsWithRecipes);
   } catch (error) { next(error); }
 };

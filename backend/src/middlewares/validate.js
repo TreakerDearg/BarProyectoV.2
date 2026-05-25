@@ -71,3 +71,5 @@ export const validateQuery = (schema) => (req, res, next) => {
     next(err);
   }
 };
+
+export default validate;

@@ -43,7 +43,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState<Recipe>({
-    product: "",
+    product: { _id: "", name: "" },
     type: "drink",
     method: "",
     category: "general",
@@ -64,12 +64,22 @@ export default function RecipeForm({ onSave, onClose }: Props) {
 
   const addIngredient = () => {
     if (!ingredientDraft.inventoryItem) return;
-    const exists = form.ingredients.find(i => i.inventoryItem === ingredientDraft.inventoryItem);
+    const exists = form.ingredients.find(i => i.inventoryItem?._id === ingredientDraft.inventoryItem);
     if (exists) return;
+
+    const selectedItem = inventory.find(inv => inv._id === ingredientDraft.inventoryItem);
+    if (!selectedItem) return;
 
     setForm(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, { ...ingredientDraft, quantity: Number(ingredientDraft.quantity) }],
+      ingredients: [
+        ...prev.ingredients,
+        {
+          inventoryItem: { _id: selectedItem._id, name: selectedItem.name },
+          quantity: Number(ingredientDraft.quantity),
+          unit: ingredientDraft.unit as any
+        }
+      ],
     }));
     setIngredientDraft(EMPTY_INGREDIENT);
   };
@@ -81,14 +91,16 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   const addStep = () => {
     setForm(prev => ({
       ...prev,
-      steps: [...prev.steps, { stepNumber: prev.steps.length + 1, instruction: "" }],
+      steps: [...(prev.steps || []), { stepNumber: (prev.steps?.length || 0) + 1, instruction: "" }],
     }));
   };
 
   const updateStep = (index: number, value: string) => {
     setForm(prev => {
-      const steps = [...prev.steps];
-      steps[index].instruction = value;
+      const steps = [...(prev.steps || [])];
+      if (steps[index]) {
+        steps[index].instruction = value;
+      }
       return { ...prev, steps };
     });
   };
@@ -96,13 +108,13 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   const removeStep = (index: number) => {
     setForm(prev => ({
       ...prev,
-      steps: prev.steps.filter((_, i) => i !== index).map((s, i) => ({ ...s, stepNumber: i + 1 })),
+      steps: (prev.steps || []).filter((_, i) => i !== index).map((s, i) => ({ ...s, stepNumber: i + 1 })),
     }));
   };
 
   const moveStep = (index: number, dir: "up" | "down") => {
     setForm(prev => {
-      const steps = [...prev.steps];
+      const steps = [...(prev.steps || [])];
       const newIndex = dir === "up" ? index - 1 : index + 1;
       if (newIndex < 0 || newIndex >= steps.length) return prev;
       [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
@@ -112,9 +124,9 @@ export default function RecipeForm({ onSave, onClose }: Props) {
 
   const canNext = useMemo(() => {
     switch (step) {
-      case 1: return !!form.product;
+      case 1: return !!form.product?._id;
       case 2: return form.ingredients.length > 0;
-      case 4: return form.steps.length > 0;
+      case 4: return (form.steps?.length || 0) > 0;
       default: return true;
     }
   }, [step, form]);
@@ -190,8 +202,14 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                   <div className="space-y-2.5">
                     <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Producto Umbra</label>
                     <select
-                      value={form.product as string}
-                      onChange={(e) => setForm({ ...form, product: e.target.value })}
+                      value={form.product?._id || ""}
+                      onChange={(e) => {
+                        const selectedProduct = products.find(p => p._id === e.target.value);
+                        setForm({
+                          ...form,
+                          product: selectedProduct ? { _id: selectedProduct._id, name: selectedProduct.name } : { _id: "", name: "" }
+                        });
+                      }}
                       className="input-royale !pl-6 appearance-none cursor-pointer"
                     >
                       <option value="">Seleccionar de base de datos...</option>
@@ -256,7 +274,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                           <Zap size={16} />
                         </div>
                         <div>
-                          <p className="text-xs font-black text-ivory uppercase">{inventory.find(x => x._id === i.inventoryItem)?.name}</p>
+                          <p className="text-xs font-black text-ivory uppercase">{i.inventoryItem?.name}</p>
                           <p className="text-[9px] text-muted font-bold">{i.quantity} {i.unit}</p>
                         </div>
                       </div>
@@ -307,7 +325,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               </div>
               
               <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
-                {form.steps.map((s, idx) => (
+                {(form.steps || []).map((s, idx) => (
                   <div key={idx} className="flex gap-4 group">
                     <div className="w-10 h-10 rounded-xl bg-surface-4 flex items-center justify-center text-[10px] font-black text-gold border border-white/5">
                       {s.stepNumber}
@@ -351,7 +369,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[11px] font-bold text-muted uppercase">Pasos Técnicos</span>
-                      <span className="text-[11px] font-black text-ivory">{form.steps.length} Fases</span>
+                      <span className="text-[11px] font-black text-ivory">{(form.steps?.length || 0)} Fases</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[11px] font-bold text-muted uppercase">Tipo de Registro</span>

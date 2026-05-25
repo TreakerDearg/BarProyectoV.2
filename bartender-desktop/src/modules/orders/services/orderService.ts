@@ -65,8 +65,10 @@ export const createOrder = async (order: {
   table: string;
   sessionId: string;
   items: {
-    product: string; // 👈 FIX: volver a "product"
+    product?: string;
+    menu?: string;
     quantity: number;
+    price?: number;
   }[];
   notes?: string;
 }): Promise<Order> => {
@@ -78,10 +80,12 @@ export const createOrder = async (order: {
   }
 
   const cleanItems = order.items
-    .filter(i => i.product && i.quantity > 0)
+    .filter(i => (i.product || i.menu) && i.quantity > 0)
     .map(i => ({
-      product: String(i.product), // 👈 IMPORTANTE
+      product: i.product ? String(i.product) : undefined,
+      menu: i.menu ? String(i.menu) : undefined,
       quantity: Number(i.quantity),
+      price: i.price ? Number(i.price) : undefined,
     }));
 
   if (cleanItems.length === 0) {

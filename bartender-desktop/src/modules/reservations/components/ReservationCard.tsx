@@ -7,7 +7,6 @@ import {
   Phone, 
   Trash2, 
   CheckCircle2,
-  MapPin,
   X,
   ShieldCheck,
   Zap,
@@ -16,7 +15,10 @@ import {
   Heart,
   Diamond,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Crown,
+  Wallet,
+  Globe
 } from "lucide-react";
 import type { Reservation } from "../types/reservation";
 import { format } from "date-fns";
@@ -24,6 +26,7 @@ import { es } from "date-fns/locale";
 
 interface Props {
   r: Reservation;
+  highlighted?: boolean;
   onSeat?: (id: string) => void;
   onDelete?: (id: string) => void;
   onClick?: () => void;
@@ -77,11 +80,23 @@ const statusConfig: any = {
   },
 };
 
-export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props) {
+export default function ReservationCard({
+  r,
+  highlighted,
+  onSeat,
+  onDelete,
+  onClick,
+}: Props) {
   const config = statusConfig[r.status] || statusConfig.pending;
   const startTime = new Date(r.startTime);
   const timeStr = isNaN(startTime.getTime()) ? "--:--" : format(startTime, "HH:mm 'hs'", { locale: es });
   const dateStr = isNaN(startTime.getTime()) ? "---" : format(startTime, "EEEE dd 'de' MMMM", { locale: es });
+
+  const now = new Date();
+  const isDelayed = (r.status === "pending" || r.status === "confirmed") && 
+                    !isNaN(startTime.getTime()) && 
+                    (now.getTime() - startTime.getTime()) > 15 * 60 * 1000;
+  const delayMinutes = isDelayed ? Math.floor((now.getTime() - startTime.getTime()) / (60 * 1000)) : 0;
 
   return (
     <div
@@ -91,11 +106,24 @@ export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props)
         hover:translate-y-[-8px] hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
         active:scale-[0.97]
         ${config.glow}
+        ${isDelayed ? 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)] ring-1 ring-red-500/20' : ''}
+        ${highlighted ? 'ring-2 ring-violet-400/50 border-violet-400/40' : ''}
       `}
       onClick={onClick}
     >
       {/* CASINO DECOR BAR */}
-      <div className={`h-2.5 w-full ${config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-40 shadow-lg`} />
+      <div className={`h-2.5 w-full ${isDelayed ? 'bg-red-500' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-60 shadow-lg`} />
+
+      {/* DELAY ALARM STRIP */}
+      {isDelayed && (
+        <div className="bg-red-500/10 border-b border-red-500/20 px-8 py-2.5 flex items-center justify-between text-red-400 text-[10px] font-black tracking-widest uppercase z-10">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={12} className="animate-pulse text-red-500" />
+            <span>Alerta de Retraso</span>
+          </div>
+          <span className="bg-red-500/20 px-2 py-0.5 rounded text-white font-black">+{delayMinutes} MIN</span>
+        </div>
+      )}
 
       <div className="p-8 space-y-7 relative">
         
@@ -120,10 +148,22 @@ export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props)
                 <Phone size={12} className="text-gold" />
                 {r.customerPhone}
               </div>
-              {(r as any).deposit > 0 && (
+              {r.isVIP && (
+                <div className="flex items-center gap-2 text-[10px] text-gold font-black tracking-widest uppercase bg-gold/10 px-3 py-1.5 rounded-xl border border-gold/20">
+                  <Crown size={12} />
+                  VIP
+                </div>
+              )}
+              {r.deposit && r.deposit > 0 && (
                 <div className="flex items-center gap-2 text-[10px] text-green-light font-black tracking-widest uppercase bg-green/10 px-3 py-1.5 rounded-xl border border-green/20">
                   <Wallet size={12} />
-                  ${(r as any).deposit}
+                  ${r.deposit}
+                </div>
+              )}
+              {r.source && r.source !== 'admin' && (
+                <div className="flex items-center gap-2 text-[10px] text-blue-light font-black tracking-widest uppercase bg-blue/10 px-3 py-1.5 rounded-xl border border-blue/20">
+                  <Globe size={12} />
+                  {r.source === 'web' ? 'Web' : 'App'}
                 </div>
               )}
             </div>
@@ -162,13 +202,17 @@ export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props)
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-3xl bg-grad-dark border border-white/10 flex items-center justify-center shadow-2xl group-hover:border-gold/60 transition-all -rotate-3 group-hover:rotate-0">
               <span className="text-xl font-black text-grad-gold">
-                {r.tableId ? `${r.tableNumber || '?'}` : '--'}
+                {r.tableId && typeof r.tableId === 'object' ? r.tableId.number : '--'}
               </span>
             </div>
             <div className="space-y-0.5">
               <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em]">Asignación</p>
               <p className="text-xs font-black text-ivory uppercase tracking-widest">
-                {r.tableId ? `Mesa Asignada` : 'Pendiente'}
+                {r.tableId && typeof r.tableId === 'object' 
+                  ? `Mesa ${r.tableId.number} · ${(r.tableId as any).location || 'Indoor'}` 
+                  : r.tableId 
+                  ? 'Mesa Asignada' 
+                  : 'Pendiente'}
               </p>
             </div>
           </div>
@@ -211,6 +255,26 @@ export default function ReservationCard({ r, onSeat, onDelete, onClick }: Props)
             <p className="text-xs text-muted italic line-clamp-2 leading-relaxed font-medium flex-1">
               {r.notes}
             </p>
+          </div>
+        )}
+
+        {/* TAGS STRIP */}
+        {r.tags && r.tags.length > 0 && (
+          <div className="pt-6 border-t border-white/10 flex flex-wrap gap-2">
+            {r.tags.map((tag, idx) => (
+              <div
+                key={idx}
+                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border ${
+                  tag.priority === 'high' 
+                    ? 'bg-red/10 text-red-light border-red/20' 
+                    : tag.priority === 'medium'
+                    ? 'bg-orange/10 text-orange-light border-orange/20'
+                    : 'bg-white/5 text-muted border-white/10'
+                }`}
+              >
+                {tag.label}
+              </div>
+            ))}
           </div>
         )}
       </div>

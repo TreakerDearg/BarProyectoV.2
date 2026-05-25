@@ -3,12 +3,9 @@
 import type { RouletteDrink } from "../../types/roulette";
 import RouletteWheelRoyale from "./RouletteWheelRoyale";
 import {
-  RotateCw,
   Activity,
   Layers,
   Percent,
-  Sparkles,
-  Trophy,
   History
 } from "lucide-react";
 import { useMemo } from "react";

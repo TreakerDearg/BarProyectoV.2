@@ -7,6 +7,7 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { createInventorySchema, adjustStockSchema } from "../utils/schemas.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import { uploadSingle } from "../middlewares/upload.js";
 
 const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
@@ -24,11 +25,11 @@ router.get("/:id", getInventoryItem);
 /* =========================================================
    ADMIN / MANAGEMENT
 ========================================================= */
-router.post("/", ...adminOnly, validate(createInventorySchema), createInventoryItem);
+router.post("/", ...adminOnly, uploadSingle('image'), validate(createInventorySchema), createInventoryItem);
 router.patch("/:id/stock", ...adminOnly, validate(adjustStockSchema), adjustStock);
 
-// Actualización general puede usar un schema parcial o permitimos body libre validado en controller
-router.patch("/:id", ...adminOnly, updateInventoryItem);
+// Actualización general con soporte de imagen
+router.patch("/:id", ...adminOnly, uploadSingle('image'), updateInventoryItem);
 router.delete("/:id", ...adminOnly, deleteInventoryItem);
 
 export default router;

@@ -11,8 +11,14 @@ export default function TableStats({ tables }: { tables: Table[] }) {
     <div className="flex gap-6 items-center px-6 py-3 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md shadow-xl">
       <StatItem 
         icon={<LayoutGrid size={14} className="text-gold" />} 
-        label="Total Mesas" 
+        label="Total" 
         value={total} 
+      />
+      <div className="w-px h-8 bg-white/10" />
+      <StatItem 
+        icon={<Users size={14} className="text-orange" />} 
+        label="Ocupadas" 
+        value={occupied} 
       />
       <div className="w-px h-8 bg-white/10" />
       <StatItem 

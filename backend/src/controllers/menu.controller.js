@@ -2,13 +2,16 @@ import mongoose from "mongoose";
 import Menu from "../models/Menu.js";
 import Recipe from "../models/Recipe.js";
 import InventoryItem from "../models/InventoryItem.js";
+import Product from "../models/Product.js";
 import { logger } from "../config/logger.js";
+import { uploadImage, deleteImage } from "../config/cloudinary.js";
 import {
   ok,
   created,
   badRequest,
   notFound,
 } from "../utils/response.js";
+import { emitMenuEvent, MENU_EVENTS } from "../utils/socketEvents.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -70,7 +73,7 @@ const normalizeMenuPayload = (body) => {
 /* =========================================================
    VALIDATION
 ========================================================= */
-const validateMenu = (data) => {
+const validateMenu = async (data) => {
   if (!data.name || !data.name.trim()) {
     return "El nombre es obligatorio";
   }
@@ -87,6 +90,28 @@ const validateMenu = (data) => {
     for (const p of cat.products) {
       if (!isValidId(p.product)) {
         return "Producto inválido";
+      }
+
+      // Validación cruzada: verificar que el producto exista
+      const product = await Product.findById(p.product);
+      if (!product) {
+        return `Producto con ID ${p.product} no encontrado`;
+      }
+
+      // Validación cruzada: si el producto tiene receta, verificar que exista
+      if (product.hasRecipe) {
+        const recipe = await Recipe.findOne({ product: p.product });
+        if (!recipe) {
+          return `El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`;
+        }
+
+        // Validación cruzada: verificar que los ingredientes existan en el inventario
+        for (const ing of recipe.ingredients) {
+          const inventoryItem = await InventoryItem.findById(ing.inventoryItem);
+          if (!inventoryItem) {
+            return `Ingrediente ${ing.inventoryItem} no encontrado en el inventario para la receta de ${product.name}`;
+          }
+        }
       }
     }
   }
@@ -128,7 +153,7 @@ export const getMenus = async (req, res, next) => {
 };
 
 /* =========================================================
-   CREATE 
+   CREATE
 ========================================================= */
 export const createMenu = async (req, res, next) => {
   try {
@@ -136,8 +161,22 @@ export const createMenu = async (req, res, next) => {
     const normalized = normalizeMenuPayload(req.body);
 
     //  VALIDACIÓN
-    const errorMsg = validateMenu(normalized);
+    const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
+
+    // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
+    let imageUrl = null;
+    let imagePublicId = null;
+
+    if (req.file) {
+      imageUrl = req.file.secure_url || req.file.path;
+      imagePublicId = req.file.public_id;
+      logger.info(`[Menu] Imagen subida a Cloudinary: ${imagePublicId}`);
+    }
+
+    // Agregar información de imagen al menú
+    normalized.image = imageUrl;
+    normalized.imagePublicId = imagePublicId;
 
     const menu = await Menu.create(normalized);
 
@@ -146,6 +185,8 @@ export const createMenu = async (req, res, next) => {
     ).lean();
 
     logger.info(`[Menu] Creado: ${menu.name}`);
+
+    emitMenuEvent(MENU_EVENTS.CREATED, populated);
 
     return created(res, populated, "Menú creado correctamente");
   } catch (error) {
@@ -164,8 +205,26 @@ export const updateMenu = async (req, res, next) => {
 
     const normalized = normalizeMenuPayload(req.body);
 
-    const errorMsg = validateMenu(normalized);
+    const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
+
+    // Manejar actualización de imagen (ya subida por multer-storage-cloudinary)
+    if (req.file) {
+      try {
+        const existingMenu = await Menu.findById(req.params.id);
+        if (existingMenu?.imagePublicId) {
+          await deleteImage(existingMenu.imagePublicId);
+          logger.info(`[Menu] Imagen anterior eliminada: ${existingMenu.imagePublicId}`);
+        }
+
+        normalized.image = req.file.secure_url || req.file.path;
+        normalized.imagePublicId = req.file.public_id;
+        logger.info(`[Menu] Nueva imagen subida a Cloudinary: ${req.file.public_id}`);
+      } catch (uploadError) {
+        logger.error("[Menu] Error actualizando imagen:", uploadError);
+        // Continuar sin actualizar imagen si falla
+      }
+    }
 
     const updated = await populateMenu(
       Menu.findByIdAndUpdate(req.params.id, normalized, {
@@ -177,6 +236,8 @@ export const updateMenu = async (req, res, next) => {
     if (!updated) return notFound(res, "Menú no encontrado");
 
     logger.info(`[Menu] Actualizado: ${updated.name}`);
+
+    emitMenuEvent(MENU_EVENTS.UPDATED, updated);
 
     return ok(res, updated, "Menú actualizado correctamente");
   } catch (error) {
@@ -197,7 +258,19 @@ export const deleteMenu = async (req, res, next) => {
 
     if (!deleted) return notFound(res, "Menú no encontrado");
 
+    // Eliminar imagen de Cloudinary si existe
+    if (deleted.imagePublicId) {
+      try {
+        await deleteImage(deleted.imagePublicId);
+      } catch (deleteError) {
+        logger.error(`[Menu] Error eliminando imagen: ${deleteError.message}`);
+        // Continuar aunque falle la eliminación de la imagen
+      }
+    }
+
     logger.info(`[Menu] Eliminado: ${deleted.name}`);
+
+    emitMenuEvent(MENU_EVENTS.DELETED, { id: deleted._id });
 
     return ok(res, null, "Menú eliminado correctamente");
   } catch (error) {

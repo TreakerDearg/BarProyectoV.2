@@ -3,10 +3,10 @@ export interface MenuProduct {
 
   /* UI */
   featured?: boolean;
-  position?: number;
+  order?: number;
 
   /* Overrides */
-  customPrice?: number;
+  price?: number;
   available?: boolean;
 }
 
@@ -17,7 +17,7 @@ export interface MenuCategory {
   name: string;
   description?: string;
 
-  position?: number;
+  order?: number;
 
   products: MenuProduct[];
 }
@@ -30,8 +30,9 @@ export interface Menu {
 
   name: string;
   description?: string;
+  slug?: string;
 
-  type?: "bar" | "kitchen";
+  type?: "drink" | "food" | "mixed";
 
   categories: MenuCategory[];
 
@@ -42,6 +43,9 @@ export interface Menu {
   /* UI */
   image?: string;
   color?: string;
+
+  /* FUTURE */
+  schedule?: object;
 
   createdAt?: string;
   updatedAt?: string;

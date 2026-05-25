@@ -73,6 +73,13 @@ export const unprocessable = (res, message = "Entidad no procesable", errors = n
 };
 
 /**
+ * 423 Locked
+ */
+export const locked = (res, message = "Recurso bloqueado") => {
+  return res.status(423).json({ success: false, message });
+};
+
+/**
  * 500 Internal Server Error
  */
 export const serverError = (res, message = "Error interno del servidor") => {

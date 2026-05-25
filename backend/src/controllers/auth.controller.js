@@ -3,7 +3,7 @@ import User   from "../models/User.js";
 import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest,
-  unauthorized, forbidden, conflict, serverError,
+  unauthorized, forbidden, conflict, serverError, locked,
 } from "../utils/response.js";
 
 /* =========================================================
@@ -87,10 +87,7 @@ export const loginUser = async (req, res, next) => {
 
     if (user.lockUntil && user.lockUntil > Date.now()) {
       const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
-      return res.status(423).json({
-        success: false,
-        message: `Cuenta bloqueada. Intenta en ${minutesLeft} minuto(s)`,
-      });
+      return locked(res, `Cuenta bloqueada. Intenta en ${minutesLeft} minuto(s)`);
     }
 
     /* ─── Verificar contraseña ─── */

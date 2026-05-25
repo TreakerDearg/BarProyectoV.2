@@ -1,6 +1,6 @@
 import api from "../../../services/api";
 import type { Table } from "../types/table";
-import socket from "../../../services/socket";
+import { getSocket } from "../../../services/socket";
 
 /* ==============================
    SAFE WRAPPER
@@ -38,6 +38,12 @@ export const createTable = async (
       number: table.number,
       capacity: table.capacity,
       location: table.location ?? "indoor",
+      notes: table.notes,
+      x: table.x,
+      y: table.y,
+      width: table.width,
+      height: table.height,
+      shape: table.shape ?? "square",
     })
   );
 };
@@ -61,11 +67,17 @@ export const updateTableLayout = async (
 };
 
 export const openTable = async (id: string): Promise<Table> => {
-  return safeRequest<Table>(api.post(`/tables/${id}/open`));
+  const result = await safeRequest<any>(api.post(`/tables/${id}/open`));
+  return result.table ? result.table : result;
 };
 
-export const closeTable = async (id: string): Promise<Table> => {
-  return safeRequest<Table>(api.post(`/tables/${id}/close`));
+export const closeTable = async (
+  id: string,
+  options?: { goToMaintenance?: boolean; maintenanceMinutes?: number }
+): Promise<Table> => {
+  return safeRequest<Table>(
+    api.post(`/tables/${id}/close`, options || {})
+  );
 };
 
 /* ==============================
@@ -102,18 +114,128 @@ export const clearTableTags = async (
 };
 
 /* ==============================
-   🔥 REAL-TIME (SOCKET LAYER)
+   PAYMENTS (Integración con Payment)
+============================== */
+export const getTablePayments = async (
+  tableId: string,
+  sessionId?: string
+): Promise<any[]> => {
+  const url = sessionId
+    ? `/payments/table/${tableId}?sessionId=${sessionId}`
+    : `/payments/table/${tableId}`;
+  return safeRequest<any[]>(api.get(url));
+};
+
+export const getTableSessionHistory = async (
+  tableId: string
+): Promise<any> => {
+  return safeRequest<any>(api.get(`/tables/${tableId}/history`));
+};
+
+export const generateReceipt = async (
+  paymentId: string
+): Promise<any> => {
+  return safeRequest<any>(api.get(`/payments/payment/${paymentId}/receipt`));
+};
+
+/* ==============================
+   NEW PAYMENT METHODS
+============================== */
+export const getAvailablePaymentMethods = async (): Promise<any[]> => {
+  return safeRequest<any[]>(api.get("/payments/methods/available"));
+};
+
+export const createSplitPayment = async (data: {
+  tableId: string;
+  orderId: string;
+  totalSplits: number;
+  method: string;
+  amounts?: number[];
+}): Promise<any> => {
+  return safeRequest<any>(api.post("/payments/split", data));
+};
+
+export const createPartialPayment = async (data: {
+  tableId: string;
+  orderId: string;
+  amount: number;
+  method: string;
+  amountPaid?: number;
+}): Promise<any> => {
+  return safeRequest<any>(api.post("/payments/partial", data));
+};
+
+export const createCardPayment = async (data: {
+  tableId: string;
+  orderId: string;
+  cardDetails: {
+    lastFour: string;
+    cardType?: string;
+    authorizationCode?: string;
+    terminalId?: string;
+  };
+  amount?: number;
+}): Promise<any> => {
+  return safeRequest<any>(api.post("/payments/card", data));
+};
+
+export const createStandardPayment = async (data: {
+  tableId: string;
+  orderId: string;
+  method: "cash" | "transfer";
+  amountPaid: number;
+  notes?: string;
+}): Promise<any> => {
+  return safeRequest<any>(api.post("/payments", data));
+};
+
+/* ==============================
+   ANALYTICS
+============================== */
+export const getTableAnalytics = async (params?: {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<any> => {
+  return safeRequest<any>(api.get("/tables/analytics", { params }));
+};
+
+export const getTableAnalyticsById = async (
+  tableId: string,
+  params?: { period?: string; limit?: number }
+): Promise<any> => {
+  return safeRequest<any>(api.get(`/tables/${tableId}/analytics`, { params }));
+};
+
+export const generateTableAnalytics = async (
+  tableId: string,
+  data: { date: string; period?: string }
+): Promise<any> => {
+  return safeRequest<any>(api.post(`/tables/${tableId}/analytics/generate`, data));
+};
+
+export const getTablePerformanceRanking = async (params?: {
+  period?: string;
+  limit?: number;
+}): Promise<any> => {
+  return safeRequest<any>(api.get("/tables/analytics/ranking", { params }));
+};
+
+/* ==============================
+   REAL-TIME (SOCKET LAYER)
 ============================== */
 
 /**
  * Escuchar cambios de una mesa específica
  */
 export const joinTableRoom = (tableId: string) => {
-  socket.emit("join:table", tableId);
+  const socket = getSocket();
+  if (socket) socket.emit("join:table", tableId);
 };
 
 export const leaveTableRoom = (tableId: string) => {
-  socket.emit("leave:table", tableId);
+  const socket = getSocket();
+  if (socket) socket.emit("leave:table", tableId);
 };
 
 /**
@@ -122,12 +244,13 @@ export const leaveTableRoom = (tableId: string) => {
 export const subscribeTables = (
   callback: (table: Table) => void
 ) => {
+  const socket = getSocket();
   const handler = (table: Table) => callback(table);
 
-  socket.on("table:update", handler);
+  if (socket) socket.on("table:update", handler);
 
   return () => {
-    socket.off("table:update", handler);
+    if (socket) socket.off("table:update", handler);
   };
 };
 
@@ -140,16 +263,17 @@ export const subscribeTableRoom = (
 ) => {
   joinTableRoom(tableId);
 
+  const socket = getSocket();
   const handler = (table: Table) => {
     if (table._id === tableId) {
       callback(table);
     }
   };
 
-  socket.on("table:update", handler);
+  if (socket) socket.on("table:update", handler);
 
   return () => {
-    socket.off("table:update", handler);
+    if (socket) socket.off("table:update", handler);
     leaveTableRoom(tableId);
   };
 };
@@ -158,5 +282,6 @@ export const subscribeTableRoom = (
  * CLEANUP GLOBAL (opcional)
  */
 export const disconnectTableSocket = () => {
-  socket.off("table:update");
+  const socket = getSocket();
+  if (socket) socket.off("table:update");
 };

@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Activity, Clock, ShieldAlert, AlertCircle, CheckCircle2, Info } from "lucide-react";
 
-export default function DiscountEventsPage() {
+export default function NebulaDiscountEventsPage() {
   const [events, setEvents] = useState<PricingEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +56,7 @@ export default function DiscountEventsPage() {
               Registro de Auditoría
             </p>
             <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
-              Discount Events
+              Eventos de Descuento Nebula
             </h1>
             <p className="text-xs text-muted font-bold tracking-widest uppercase mt-2">
               Trazabilidad operativa y de seguridad

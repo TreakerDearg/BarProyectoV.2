@@ -4,16 +4,11 @@ import {
   X, 
   Martini, 
   Utensils, 
-  Flame, 
-  DollarSign, 
   Zap, 
-  Clock, 
-  Layers, 
   CheckCircle2, 
   Activity,
   Box,
-  TrendingUp,
-  FileText
+  TrendingUp
 } from "lucide-react";
 import type { Recipe } from "../types/recipe";
 
@@ -82,7 +77,7 @@ export default function RecipeDetailModal({
                 <p className="text-[9px] text-muted font-black uppercase tracking-widest">COMPLEJIDAD</p>
                 <div className="flex items-center justify-center gap-2 text-gold">
                   <Activity size={16} />
-                  <p className="text-xl font-black uppercase tracking-tighter">NIVEL {recipe.steps?.length > 5 ? 'A+' : 'B'}</p>
+                  <p className="text-xl font-black uppercase tracking-tighter">NIVEL {(recipe.steps?.length || 0) > 5 ? 'A+' : 'B'}</p>
                 </div>
               </div>
             </div>
@@ -144,7 +139,7 @@ export default function RecipeDetailModal({
                         <div className="w-12 h-12 rounded-2xl bg-surface-4 border border-gold/20 flex items-center justify-center text-xs font-black text-gold shadow-gold-glow group-hover:scale-110 transition-transform">
                           {s.stepNumber}
                         </div>
-                        {idx < (recipe.steps?.length - 1) && <div className="w-px flex-1 bg-white/5 my-3" />}
+                        {idx < ((recipe.steps?.length || 0) - 1) && <div className="w-px flex-1 bg-white/5 my-3" />}
                       </div>
                       <div className="flex-1 pt-3">
                         <p className="text-sm font-bold text-ivory leading-relaxed group-hover:text-gold transition-colors">

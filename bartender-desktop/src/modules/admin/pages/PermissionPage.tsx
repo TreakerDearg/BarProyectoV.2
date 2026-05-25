@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { Shield, Users, Check, X, Lock, Save, Loader2 } from "lucide-react";
 import { updateRolePermissions } from "../services/userService";
+import "../styles/luxury-theme.css";
 
 type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
 
 type PermissionKey =
+  | "dashboard"
   | "orders"
   | "cashier"
+  | "tables"
+  | "reservations"
   | "inventory"
+  | "recipes"
   | "roulette"
   | "employees"
-  | "menus";
+  | "menus"
+  | "discounts";
 
 interface RolePermissions {
-  [role: string]: Record<PermissionKey, boolean>;
+  [role: string]: Partial<Record<PermissionKey, boolean>>;
 }
 
 const roles: { key: Role; label: string }[] = [
@@ -25,11 +31,16 @@ const roles: { key: Role; label: string }[] = [
 ];
 
 const permissions: { key: PermissionKey; label: string }[] = [
+  { key: "dashboard", label: "Dashboard" },
   { key: "orders", label: "Pedidos" },
   { key: "cashier", label: "Caja" },
+  { key: "tables", label: "Mesas" },
+  { key: "reservations", label: "Reservas" },
   { key: "inventory", label: "Inventario" },
+  { key: "recipes", label: "Recetas" },
   { key: "roulette", label: "Ruleta" },
   { key: "employees", label: "Empleados" },
+  { key: "discounts", label: "Descuentos" },
   { key: "menus", label: "Menús" },
 ];
 
@@ -108,21 +119,21 @@ export default function PermissionPage() {
   ).filter(Boolean).length;
 
   return (
-    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden">
+    <div className="space-y-6 glass-card p-8 rounded-[3rem] animate-fade-in relative overflow-hidden luxury-bg">
       {/* ATMOSPHERIC GLOW */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#b147ff]/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10">
         <div className="flex items-center gap-6">
-          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
-            <Users className="text-ivory" size={32} />
+          <div className="p-4 glass-card rounded-2xl">
+            <Users className="text-[#ffffff]" size={32} />
           </div>
           <div>
-            <p className="text-[10px] text-cyan-400 font-black uppercase tracking-[0.4em] mb-1">
+            <p className="text-[10px] text-[#00d4ff] font-black uppercase tracking-[0.4em] mb-1">
               Control Base (Menús y Módulos Core)
             </p>
-            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+            <h1 className="text-3xl font-black text-[#ffffff] tracking-tighter uppercase leading-none gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
               Permisos de Sistema
             </h1>
           </div>
@@ -132,12 +143,12 @@ export default function PermissionPage() {
           onClick={handleSave}
           disabled={saving}
           className="flex items-center gap-3 h-14 px-6 rounded-2xl
-          bg-grad-gold text-bg shadow-gold/30
+          luxury-button
           hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
           transition-all disabled:opacity-50"
         >
-          {saving ? <Loader2 size={20} className="text-bg animate-spin" /> : <Save size={20} className="text-bg" />}
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Guardar Cambios</span>
+          {saving ? <Loader2 size={20} className="text-[#0a0a0f] animate-spin" /> : <Save size={20} className="text-[#0a0a0f]" />}
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0a0a0f]">Guardar Cambios</span>
         </button>
       </div>
 
@@ -151,12 +162,12 @@ export default function PermissionPage() {
               flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300
               ${
                 selectedRole === role.key
-                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                  : "bg-surface-3 border border-white/5 text-muted hover:text-white hover:border-white/20"
+                  ? "bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30 shadow-[0_0_20px_rgba(0,212,255,0.2)]"
+                  : "glass-card text-[#a0a0b0] hover:text-[#ffffff] hover:border-[#d4af37]/30"
               }
             `}
           >
-            <Users size={16} className={selectedRole === role.key ? "text-cyan-400" : "text-muted"} />
+            <Users size={16} className={selectedRole === role.key ? "text-[#00d4ff]" : "text-[#a0a0b0]"} />
             {role.label}
           </button>
         ))}
@@ -166,12 +177,12 @@ export default function PermissionPage() {
       <div className="
         flex items-center justify-between
         px-6 py-4 rounded-2xl
-        bg-surface-3 border border-white/5 shadow-inner relative z-10
+        glass-card border border-white/5 shadow-inner relative z-10
       ">
-        <span className="text-[10px] font-black text-muted uppercase tracking-widest">
+        <span className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest">
           Permisos Base Activos
         </span>
-        <span className="text-sm text-lime font-black flex items-center gap-2">
+        <span className="text-sm text-[#00ff88] font-black flex items-center gap-2">
           <Lock size={16} />
           {activePermissionsCount} / {permissions.length} MÓDULOS
         </span>
@@ -180,12 +191,12 @@ export default function PermissionPage() {
       {/* ================= PERMISSIONS GRID ================= */}
       <div className="
         rounded-[2rem] border border-white/5
-        bg-surface-2 backdrop-blur-xl
+        glass-card backdrop-blur-xl
         overflow-hidden relative z-10 shadow-royale
       ">
-        <div className="p-6 border-b border-white/5 bg-surface-3/50">
-          <h2 className="text-xs font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
-            <Shield size={16} className="text-cyan-400" />
+        <div className="p-6 border-b border-white/5 glass-card">
+          <h2 className="text-xs font-black text-[#ffffff] tracking-[0.2em] uppercase flex items-center gap-3">
+            <Shield size={16} className="text-[#00d4ff]" />
             Permisos de Rango: {selectedRole}
           </h2>
         </div>
@@ -204,9 +215,9 @@ export default function PermissionPage() {
                 `}
               >
                 {/* LABEL */}
-                <div className="flex items-center gap-3 text-ivory">
-                  <div className={`p-2 rounded-lg ${enabled ? 'bg-lime/10' : 'bg-red/10'} transition-colors`}>
-                    <Shield size={16} className={enabled ? 'text-lime' : 'text-red'} />
+                <div className="flex items-center gap-3 text-[#ffffff]">
+                  <div className={`p-2 rounded-lg ${enabled ? 'bg-[#00ff88]/10' : 'bg-[#ff4757]/10'} transition-colors`}>
+                    <Shield size={16} className={enabled ? 'text-[#00ff88]' : 'text-[#ff4757]'} />
                   </div>
                   <span className="text-xs font-black uppercase tracking-widest">{perm.label}</span>
                 </div>
@@ -218,8 +229,8 @@ export default function PermissionPage() {
                     relative w-14 h-7 rounded-full border transition-all duration-300 flex items-center px-1
                     ${
                       enabled
-                        ? "bg-lime/10 border-lime/30 justify-end"
-                        : "bg-red/10 border-red/30 justify-start"
+                        ? "bg-[#00ff88]/10 border-[#00ff88]/30 justify-end"
+                        : "bg-[#ff4757]/10 border-[#ff4757]/30 justify-start"
                     }
                   `}
                 >
@@ -228,8 +239,8 @@ export default function PermissionPage() {
                       w-5 h-5 rounded-full flex items-center justify-center text-[10px] transition-all shadow-lg
                       ${
                         enabled
-                          ? "bg-lime text-bg shadow-[0_0_10px_rgba(163,230,53,0.5)]"
-                          : "bg-red text-ivory shadow-[0_0_10px_rgba(248,113,113,0.5)]"
+                          ? "bg-[#00ff88] text-[#0a0a0f] shadow-[0_0_10px_rgba(0,255,136,0.5)]"
+                          : "bg-[#ff4757] text-[#ffffff] shadow-[0_0_10px_rgba(255,71,87,0.5)]"
                       }
                     `}
                   >

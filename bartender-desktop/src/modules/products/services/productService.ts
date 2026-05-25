@@ -3,9 +3,9 @@ import type { Product } from "../../../types/product";
 
 const extractError = (error: any): string => {
   return (
-    error?.response?.data?.message ||
-    error?.response?.data?.error ||
-    error?.message ||
+    String(error?.response?.data?.message || "") ||
+    String(error?.response?.data?.error || "") ||
+    String(error?.message || "") ||
     "Unexpected error"
   );
 };
@@ -29,7 +29,9 @@ const normalizeProduct = (product: Product) => ({
 
   tags: Array.isArray(product.tags)
     ? product.tags
-    : product.tags?.split(",") || [],
+    : typeof product.tags === "string"
+      ? (product.tags as string).split(",")
+      : [],
 
   preparationTime: Number(product.preparationTime ?? 0),
 });
@@ -66,7 +68,7 @@ export const updateProduct = async (
 ): Promise<Product> => {
   try {
     const payload = normalizeProduct(product);
-    const { data } = await api.patch(`/products/${id}`, payload);
+    const { data } = await api.put(`/products/${id}`, payload);
     return data;
   } catch (error) {
     throw new Error(extractError(error));

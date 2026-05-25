@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RouletteRarity } from '../types/roulette';
 import { Sparkles, Star, Zap, Flame } from 'lucide-react';
 

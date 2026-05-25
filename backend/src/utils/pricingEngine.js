@@ -17,6 +17,13 @@ export const calculateProductPrice = async (product) => {
   }
 
   // 2. Apply active Promotions
+  const autoPromoRule = await DynamicPricingRule.findOne({ name: "GLOBAL_AUTO_PROMOTIONS" });
+  const isAutoPromotionsEnabled = autoPromoRule ? autoPromoRule.isActive : true;
+
+  if (!isAutoPromotionsEnabled) {
+    return Math.round(finalPrice * 100) / 100;
+  }
+
   const now = new Date();
   const currentDay = now.toLocaleString("en-US", { weekday: "long" });
   const currentTime = now.getHours() * 100 + now.getMinutes(); // e.g. 16:30 -> 1630

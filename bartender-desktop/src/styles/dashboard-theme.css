@@ -1,0 +1,519 @@
+/* =========================================================
+   DASHBOARD FUSION THEME - Obsidian + Luxury
+   Fusión del tema Obsidian oscuro con efectos premium Luxury
+   Para el sistema Dashboard de Bartender Desktop
+========================================================= */
+
+:root {
+  /* =========================================================
+     FUSION COLORS - Combining Obsidian & Luxury Palettes
+  ========================================================= */
+  
+  /* Obsidian Base (from index.css) */
+  --bg:           #08090C;
+  --bg-deep:      #050608;
+  --surface:      #0D0F14;
+  --surface-2:    #12151C;
+  --surface-3:    #171B24;
+  --surface-4:    #1E232E;
+  
+  /* Luxury Accents (from luxury-theme.css) */
+  --gold-primary: #d4af37;
+  --gold-secondary: #f4e4a6;
+  --neon-blue: #00d4ff;
+  --neon-purple: #b147ff;
+  
+  /* Fusion - Enhanced Obsidian Colors */
+  --obsidian-deep: #0a0a0f;
+  --obsidian-secondary: #12121a;
+  --obsidian-tertiary: #1a1a25;
+  --obsidian-card: rgba(20, 20, 30, 0.8);
+  
+  /* Status Colors - Enhanced */
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --error: #ff4757;
+  --info: #00d4ff;
+  
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #606070;
+  
+  /* =========================================================
+     FUSION GRADIENTS
+  ========================================================= */
+  --gradient-obsidian-gold: linear-gradient(135deg, #D4A340 0%, #f4e4a6 50%, #D4A340 100%);
+  --gradient-obsidian-dark: linear-gradient(180deg, #0a0a0f 0%, #08090C 100%);
+  --gradient-neon-fusion: linear-gradient(135deg, #00d4ff 0%, #b147ff 100%);
+  --gradient-gold-luxury: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+  --gradient-radial-obsidian: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+  
+  /* =========================================================
+     FUSION EFFECTS
+  ========================================================= */
+  --shadow-sm-obsidian: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-md-obsidian: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg-obsidian: 0 16px 32px rgba(0, 0, 0, 0.6);
+  --shadow-gold-luxury: 0 8px 24px rgba(212, 175, 55, 0.3);
+  --shadow-neon-obsidian: 0 8px 24px rgba(0, 212, 255, 0.2);
+  
+  --glass-bg-obsidian: rgba(20, 20, 30, 0.6);
+  --glass-border-obsidian: rgba(255, 255, 255, 0.08);
+  --glass-blur-obsidian: blur(20px);
+  
+  /* =========================================================
+     FUSION TYPOGRAPHY
+  ========================================================= */
+  --font-display-luxury: 'Playfair Display', 'Cormorant Garamond', serif;
+  --font-body-obsidian: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono-tech: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* =========================================================
+     FUSION SPACING
+  ========================================================= */
+  --space-xs-fusion: 0.5rem;
+  --space-sm-fusion: 1rem;
+  --space-md-fusion: 1.5rem;
+  --space-lg-fusion: 2rem;
+  --space-xl-fusion: 3rem;
+  
+  /* =========================================================
+     FUSION BORDER RADIUS
+  ========================================================= */
+  --radius-sm-fusion: 8px;
+  --radius-md-fusion: 16px;
+  --radius-lg-fusion: 24px;
+  --radius-xl-fusion: 32px;
+  --radius-full-fusion: 9999px;
+  
+  /* =========================================================
+     FUSION ANIMATIONS
+  ========================================================= */
+  --transition-fast-fusion: 0.2s ease;
+  --transition-base-fusion: 0.3s ease;
+  --transition-slow-fusion: 0.5s ease;
+}
+
+/* =========================================================
+   FUSION COMPONENT CLASSES
+========================================================= */
+
+/* Glass Card - Obsidian Base with Luxury Effects */
+.glass-royale-fusion {
+  background: var(--glass-bg-obsidian);
+  backdrop-filter: var(--glass-blur-obsidian);
+  -webkit-backdrop-filter: var(--glass-blur-obsidian);
+  border: 1px solid var(--glass-border-obsidian);
+  border-radius: var(--radius-lg-fusion);
+  box-shadow: var(--shadow-md-obsidian), 0 0 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-royale-fusion::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.glass-royale-fusion::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-base-fusion);
+  pointer-events: none;
+}
+
+.glass-royale-fusion:hover::after {
+  opacity: 1;
+}
+
+.glass-royale-fusion:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+  box-shadow: var(--shadow-gold-luxury), 0 0 60px rgba(212, 175, 55, 0.1);
+  transform: translateY(-2px);
+  transition: all var(--transition-base-fusion);
+}
+
+/* Gold Border - Fusion */
+.gold-border-fusion {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--obsidian-secondary), var(--obsidian-secondary)) padding-box,
+              var(--gradient-gold-luxury) border-box;
+  border-radius: var(--radius-md-fusion);
+}
+
+/* Neon Glow - Fusion */
+.neon-glow-fusion {
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.2),
+    0 0 40px rgba(0, 212, 255, 0.1),
+    0 0 60px rgba(212, 175, 55, 0.05);
+}
+
+.neon-glow-gold-fusion {
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.3),
+    0 0 40px rgba(212, 175, 55, 0.1),
+    0 0 60px rgba(212, 175, 55, 0.05);
+}
+
+/* Gradient Text - Fusion */
+.gradient-text-fusion {
+  background: var(--gradient-gold-luxury);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-neon-fusion {
+  background: var(--gradient-neon-fusion);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Luxury Button - Fusion */
+.luxury-button-fusion {
+  background: var(--gradient-gold-luxury);
+  border: none;
+  border-radius: var(--radius-md-fusion);
+  color: var(--obsidian-deep);
+  font-family: var(--font-body-obsidian);
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base-fusion);
+}
+
+.luxury-button-fusion::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left var(--transition-slow-fusion);
+}
+
+.luxury-button-fusion:hover::before {
+  left: 100%;
+}
+
+.luxury-button-fusion:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold-luxury);
+}
+
+/* Input Fields - Fusion */
+.luxury-input-fusion {
+  background: var(--obsidian-tertiary);
+  border: 1px solid var(--glass-border-obsidian);
+  border-radius: var(--radius-sm-fusion);
+  color: var(--text-primary);
+  font-family: var(--font-body-obsidian);
+  padding: 12px 16px;
+  transition: all var(--transition-base-fusion);
+}
+
+.luxury-input-fusion:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.luxury-input-fusion::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Metric Card - Fusion */
+.metric-card-fusion {
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.95) 0%, rgba(30, 30, 45, 0.95) 100%);
+  border: 1px solid var(--glass-border-obsidian);
+  border-radius: var(--radius-lg-fusion);
+  padding: var(--space-lg-fusion);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base-fusion);
+}
+
+.metric-card-fusion::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-base-fusion);
+  pointer-events: none;
+}
+
+.metric-card-fusion:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.metric-card-fusion:hover::after {
+  opacity: 1;
+}
+
+/* Status Indicators - Fusion */
+.status-dot-fusion {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-dot-fusion::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: pulse-fusion 2s infinite;
+}
+
+.status-success-fusion { 
+  background: var(--success); 
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+.status-success-fusion::after { 
+  background: var(--success); 
+}
+
+.status-warning-fusion { 
+  background: var(--warning); 
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+}
+.status-warning-fusion::after { 
+  background: var(--warning); 
+}
+
+.status-error-fusion { 
+  background: var(--error); 
+  box-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
+}
+.status-error-fusion::after { 
+  background: var(--error); 
+}
+
+@keyframes pulse-fusion {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* Scrollbar - Fusion */
+.fusion-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fusion-scrollbar::-webkit-scrollbar-track {
+  background: var(--obsidian-secondary);
+}
+
+.fusion-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--gold-primary);
+  border-radius: 3px;
+}
+
+.fusion-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-secondary);
+}
+
+/* Animations - Fusion */
+@keyframes fadeInUp-fusion {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight-fusion {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float-fusion {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-slow-fusion {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes glow-pulse-fusion {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.4); }
+}
+
+/* Utility Classes */
+.animate-fade-in-up-fusion {
+  animation: fadeInUp-fusion var(--transition-base-fusion) ease-out;
+}
+
+.animate-slide-in-right-fusion {
+  animation: slideInRight-fusion var(--transition-base-fusion) ease-out;
+}
+
+.animate-float-fusion {
+  animation: float-fusion 3s ease-in-out infinite;
+}
+
+.animate-pulse-slow-fusion {
+  animation: pulse-slow-fusion 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse-fusion {
+  animation: glow-pulse-fusion 2s ease-in-out infinite;
+}
+
+/* Background Effects - Fusion */
+.uxury-bg-fusion {
+  background: var(--obsidian-deep);
+  background-image: 
+    var(--gradient-radial-obsidian),
+    radial-gradient(ellipse at bottom right, rgba(176, 71, 255, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Text Utilities */
+.text-display-fusion {
+  font-family: var(--font-display-luxury);
+}
+
+.text-body-fusion {
+  font-family: var(--font-body-obsidian);
+}
+
+.text-mono-fusion {
+  font-family: var(--font-mono-tech);
+}
+
+/* Custom Slider - Fusion */
+.slider-royale-fusion {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider-royale-fusion::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-primary);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  margin-top: -8px;
+}
+
+.slider-royale-fusion::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-primary);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  border: none;
+}
+
+.slider-royale-fusion::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background: var(--obsidian-tertiary);
+  border-radius: 2px;
+}
+
+.slider-royale-fusion::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  background: var(--obsidian-tertiary);
+  border-radius: 2px;
+}
+
+/* =========================================================
+   NEBULA DASHBOARD — Fase 1 (panel operativo)
+========================================================= */
+
+.nebula-dashboard-root {
+  position: relative;
+  color: var(--text-primary);
+}
+
+.nebula-aurora {
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 64, 0.04) 0%, transparent 45%);
+  pointer-events: none;
+  animation: nebula-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes nebula-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(2%, -1%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+.nebula-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(18, 16, 28, 0.92) 0%,
+    rgba(12, 11, 18, 0.88) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.nebula-panel:hover {
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+.nebula-dashboard-root .custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nebula-dashboard-root .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 3px;
+}

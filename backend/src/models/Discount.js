@@ -52,6 +52,13 @@ const discountSchema = new mongoose.Schema(
       index: true,
     },
 
+    promotionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Promotion",
+      default: null,
+      index: true,
+    },
+
     items: {
       type: [discountItemSchema],
       validate: [(val) => val.length > 0, "Debe incluir al menos un item"],

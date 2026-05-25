@@ -37,42 +37,48 @@ export default function Login() {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Credenciales incorrectas");
+      // FIX: Use err?.message since Axios interceptor already normalized the error object to have a 'message' property
+      setError(err?.message || "Credenciales incorrectas");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-[#0B0F14] overflow-hidden text-white">
+    <div className="relative min-h-screen flex items-center justify-center bg-[#030209] overflow-hidden text-white">
 
-      {/* ================= BACKGROUND GLOW ================= */}
-      <div className="absolute inset-0">
-        <div className="absolute top-[-25%] left-1/2 w-[600px] h-[600px] -translate-x-1/2 bg-[#A78BFA]/10 blur-[140px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#34D399]/10 blur-[140px]" />
+      {/* ================= BACKGROUND NEBULA AURORA DRIFT ================= */}
+      <div className="absolute inset-0 z-0">
+        <div className="nebula-aurora" />
+        
+        {/* Subtle background space noise */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:32px_32px]" />
       </div>
 
-      {/* ================= LOGIN CARD ================= */}
-      <div className="relative z-10 w-full max-w-md">
+      {/* ================= LOGIN GLASS CARD ================= */}
+      <div className="relative z-10 w-full max-w-md p-4">
 
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.06)] bg-[#0E131B]/70 backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.6)] p-8">
+        <div className="rounded-[2.2rem] border border-violet-500/20 bg-slate-950/75 backdrop-blur-2xl shadow-[0_0_80px_rgba(139,92,246,0.15)] p-8 relative overflow-hidden group">
+          
+          {/* Neon top border border gradient accent */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-700" />
 
           {/* HEADER */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold tracking-wide">
-              Bartender System
+            <h1 className="text-3xl font-extrabold tracking-widest bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]">
+              BARTENDER
             </h1>
 
-            <p className="text-sm text-[#71717A] mt-1">
-              Obsidian Access Terminal
+            <p className="text-xs text-violet-300/60 font-bold tracking-widest mt-2 uppercase">
+              NEBULA_ACCESS_TERMINAL
             </p>
 
             {/* TOP LINE */}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-[#A78BFA]/40 to-transparent mt-4" />
+            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-violet-500/20 to-transparent mt-4" />
           </div>
 
           {/* FORM */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* EMAIL */}
             <input
@@ -81,7 +87,7 @@ export default function Login() {
               value={email}
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-[#111827]/60 border border-[rgba(255,255,255,0.06)] text-white placeholder:text-[#71717A] outline-none focus:border-[#A78BFA]/40 focus:shadow-[0_0_20px_rgba(167,139,250,0.15)] transition"
+              className="w-full px-4 py-3.5 rounded-xl bg-slate-900/60 border border-violet-500/10 text-white placeholder:text-gray-500 outline-none focus:border-violet-500/50 focus:shadow-[0_0_20px_rgba(139,92,246,0.15)] transition-all duration-300 text-sm font-bold tracking-wide"
             />
 
             {/* PASSWORD */}
@@ -92,13 +98,13 @@ export default function Login() {
                 value={password}
                 disabled={loading}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-10 rounded-xl bg-[#111827]/60 border border-[rgba(255,255,255,0.06)] text-white placeholder:text-[#71717A] outline-none focus:border-[#A78BFA]/40 focus:shadow-[0_0_20px_rgba(167,139,250,0.15)] transition"
+                className="w-full px-4 py-3.5 pr-10 rounded-xl bg-slate-900/60 border border-violet-500/10 text-white placeholder:text-gray-500 outline-none focus:border-violet-500/50 focus:shadow-[0_0_20px_rgba(139,92,246,0.15)] transition-all duration-300 text-sm font-bold tracking-wide"
               />
 
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-3 top-3 text-[#71717A] hover:text-[#A78BFA] transition"
+                className="absolute right-3 top-3.5 text-gray-500 hover:text-violet-400 transition-colors"
               >
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -106,7 +112,7 @@ export default function Login() {
 
             {/* ERROR */}
             {error && (
-              <div className="text-sm text-[#F87171] bg-[#F87171]/10 border border-[#F87171]/20 p-2 rounded-lg">
+              <div className="text-xs text-rose-400 bg-rose-950/40 border border-rose-500/30 p-3.5 rounded-xl font-medium tracking-wide animate-shake">
                 {error}
               </div>
             )}
@@ -115,17 +121,17 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold transition
-              bg-[#A78BFA] text-black hover:shadow-[0_0_25px_rgba(167,139,250,0.35)]
-              disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 rounded-xl font-bold transition-all duration-300
+              bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-700 text-white hover:shadow-[0_0_25px_rgba(139,92,246,0.45)] hover:scale-[1.02] active:scale-[0.98]
+              disabled:opacity-50 disabled:cursor-not-allowed tracking-widest text-xs uppercase"
             >
-              {loading ? "Ingresando..." : "Acceder al sistema"}
+              {loading ? "Conectando..." : "Iniciar Sesión"}
             </button>
           </form>
 
           {/* FOOTER HINT */}
-          <p className="text-center text-[11px] text-[#71717A] mt-6">
-            Secure Bar Control System • Obsidian Network
+          <p className="text-center text-[10px] text-violet-400/40 tracking-widest mt-8 uppercase font-bold">
+            Secure Bar Control • Nebula Core v3.0
           </p>
 
         </div>

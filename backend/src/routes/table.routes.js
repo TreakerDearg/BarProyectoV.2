@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   getTables, getTableById, createTable, updateTable, deleteTable,
-  openTable, closeTable, addTableTag, removeTableTag, clearTableTags
+  openTable, closeTable, addTableTag, removeTableTag, clearTableTags,
+  getTableAnalytics, getTableAnalyticsById, generateTableAnalytics, getTablePerformanceRanking
 } from "../controllers/table.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createTableSchema } from "../utils/schemas.js";
@@ -36,5 +37,36 @@ router.delete("/:id", ...adminOnly, deleteTable);
 router.post("/:id/tags", addTableTag);
 router.delete("/:id/tags/:label", removeTableTag);
 router.delete("/:id/tags", clearTableTags);
+
+/* =========================================================
+   ANALYTICS ROUTES
+========================================================= */
+router.get(
+  "/analytics",
+  // protect,
+  // authorizeRoles("admin", "manager"),
+  getTableAnalytics
+);
+
+router.get(
+  "/:id/analytics",
+  // protect,
+  // authorizeRoles("admin", "manager"),
+  getTableAnalyticsById
+);
+
+router.post(
+  "/:id/analytics/generate",
+  // protect,
+  // authorizeRoles("admin", "manager"),
+  generateTableAnalytics
+);
+
+router.get(
+  "/analytics/ranking",
+  // protect,
+  // authorizeRoles("admin", "manager"),
+  getTablePerformanceRanking
+);
 
 export default router;

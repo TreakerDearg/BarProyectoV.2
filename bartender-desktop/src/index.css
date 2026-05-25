@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./styles/dashboard-theme.css";
+@import "./styles/nebula-theme.css";
+
 
 /* ===============================================================
    BARTENDER SYSTEM — DESIGN SYSTEM v2.0

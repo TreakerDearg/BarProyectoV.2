@@ -38,6 +38,7 @@ export const updateUserSchema = z.object({
   shift:       z.enum(SHIFTS).nullable().optional(),
   permissions: z.record(z.boolean()).optional(),
   isActive:    z.boolean().optional(),
+  schedule:    z.any().optional(),
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: "Debes enviar al menos un campo para actualizar" }
@@ -112,10 +113,14 @@ export const createOrderSchema = z.object({
   table:     z.string().min(1, "table es obligatorio"),
   sessionId: z.string().min(1, "sessionId es obligatorio"),
   items:     z.array(z.object({
-    product:  z.string().min(1),
+    product:  z.string().optional(),
+    menu:     z.string().optional(),
     quantity: z.number().int().positive().optional().default(1),
+    price:    z.number().min(0).optional(), // Para menús con precio personalizado
     notes:    z.string().optional().default(""),
-  })).min(1, "Debes agregar al menos un producto"),
+  })).refine((items) => items.length > 0 && items.some(item => item.product || item.menu), {
+    message: "Debes agregar al menos un producto o menú",
+  }),
   notes:    z.string().optional().default(""),
   priority: z.enum(["low", "normal", "high"]).optional().default("normal"),
 });
@@ -136,11 +141,16 @@ export const createReservationSchema = z.object({
   startTime:     z.string().datetime({ offset: true }).or(z.string().min(1)),
   endTime:       z.string().datetime({ offset: true }).or(z.string().min(1)),
   guests:        z.number().int().min(1),
-  tableId:       z.string().optional(),
+  tableId:       z.string().optional().nullable(),
   notes:         z.string().optional().default(""),
   source:        z.enum(["web", "app", "admin"]).optional().default("admin"),
   isVIP:         z.boolean().optional().default(false),
   deposit:       z.number().optional().default(0),
+  tags:          z.array(z.object({
+    label: z.string().min(1),
+    type: z.enum(["allergy", "diet", "preference", "vip", "other"]).optional().default("other"),
+    priority: z.enum(["low", "medium", "high"]).optional().default("low"),
+  })).optional().nullable().default([]),
 });
 
 /* ─────────────────── MENUS ─────────────────── */
@@ -183,4 +193,18 @@ export const createRouletteDrinkSchema = z.object({
   color:    z.string().optional().default("#D4A340"),
   category: z.string().optional().default("general"),
   price:    z.number().min(0).optional().default(0),
+});
+
+/* ─────────────────── PAYMENTS ─────────────────── */
+export const createPaymentSchema = z.object({
+  tableId:   z.string().min(1, "tableId es obligatorio"),
+  orderId:   z.string().min(1, "orderId es obligatorio"),
+  method:    z.enum(["cash", "transfer"]),
+  amountPaid: z.number().positive().optional(),
+  notes:     z.string().max(500).optional().default(""),
+});
+
+export const refundPaymentSchema = z.object({
+  reason: z.string().min(1, "reason es obligatorio"),
+  amount: z.number().positive().optional(),
 });

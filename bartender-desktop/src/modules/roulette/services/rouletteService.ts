@@ -1,7 +1,7 @@
 // services/rouletteService.ts
 
 import api from "../../../services/api";
-import socket from "../../../services/socket";
+import { getSocket } from "../../../services/socket";
 import type {
   RouletteDrink,
   RouletteSpinResult,
@@ -44,30 +44,30 @@ const BASE = "/roulette";
 export const rouletteSocket = {
   /* 🎡 SPIN */
   onSpin: (cb: (data: RouletteSpinResult) => void) => {
-    socket.on("roulette:spin", (data) => {
+    getSocket()?.on("roulette:spin", (data) => {
       if (data?.result?._id) cb(data);
     });
   },
 
   /* 🔄 UPDATE */
   onUpdate: (cb: (data: RouletteDrink[]) => void) => {
-    socket.on("roulette:update", (data) => {
+    getSocket()?.on("roulette:update", (data) => {
       if (Array.isArray(data)) cb(data);
     });
   },
 
   /* 📊 LOGS */
   onLog: (cb: (log: RouletteLog) => void) => {
-    socket.on("roulette:log", (log) => {
+    getSocket()?.on("roulette:log", (log) => {
       if (log?._id) cb(log);
     });
   },
 
   /* 🧹 CLEAN */
   offAll: () => {
-    socket.off("roulette:spin");
-    socket.off("roulette:update");
-    socket.off("roulette:log");
+    getSocket()?.off("roulette:spin");
+    getSocket()?.off("roulette:update");
+    getSocket()?.off("roulette:log");
   },
 };
 
@@ -134,10 +134,140 @@ export const deleteRouletteDrink = async (id: string) => {
 };
 
 /* ==============================
-   API - SPIN
+   API - SPIN (PUBLIC & ADMIN)
 ============================== */
-export const spinRoulette = async (): Promise<RouletteSpinResult> => {
+export const spinRoulette = async (isPublic = false): Promise<RouletteSpinResult> => {
+  const endpoint = isPublic ? `${BASE}/public/spin` : `${BASE}/spin`;
   return safeRequest<RouletteSpinResult>(
-    api.post(`${BASE}/spin`)
+    api.post(endpoint)
   );
+};
+
+/* ==============================
+   API - BATCH UPDATE
+============================== */
+export const batchUpdateRouletteDrinks = async (
+  updates: Array<{ id: string; weight?: number; active?: boolean; rarity?: string }>
+) => {
+  if (!Array.isArray(updates) || updates.length === 0) {
+    throw new Error("Updates array is required");
+  }
+
+  return safeRequest(
+    api.patch(`${BASE}/batch`, { updates })
+  );
+};
+
+/* ==============================
+   API - SIMULATE (MONTE CARLO)
+============================== */
+export interface SimulationResult {
+  iterations: number;
+  kpiScoreSimulated: number;
+  items: Array<{
+    _id: string;
+    name: string;
+    rarity: string;
+    category: string;
+    color: string;
+    baseWeight: number;
+    stockMultiplier: number;
+    luckMultiplier: number;
+    calculatedWeight: number;
+    theoreticalProbability: number;
+    simulatedWins: number;
+    simulatedProbability: number;
+    deviation: number;
+  }>;
+  rarityStats: Record<
+    string,
+    { theoretical: number; simulated: number; wins: number; deviation: number }
+  >;
+  audit: {
+    averageDeviation: number;
+    chiSquare: number;
+    isStatisticallyStable: boolean;
+    recommendation: string;
+  };
+}
+
+export const simulateRoulette = async (
+  iterations: number,
+  kpiScore: number,
+  customWeights?: Record<string, number>
+): Promise<SimulationResult> => {
+  return safeRequest<SimulationResult>(
+    api.post(`${BASE}/simulate`, { iterations, kpiScore, customWeights })
+  );
+};
+
+/* ==============================
+   API - CONFIG
+============================== */
+export interface RouletteConfig {
+  pityThresholds: {
+    RARE: number;
+    EPIC: number;
+    LEGENDARY: number;
+  };
+  pityBoostMultiplier: number;
+  rarityModifiers: {
+    COMMON: number;
+    RARE: number;
+    EPIC: number;
+    LEGENDARY: number;
+  };
+  kpiMinScore: number;
+  kpiMaxMultiplier: number;
+}
+
+export const getRouletteConfig = async (): Promise<RouletteConfig> => {
+  return safeRequest<RouletteConfig>(api.get(`${BASE}/config`));
+};
+
+export const updateRouletteConfig = async (config: RouletteConfig): Promise<RouletteConfig> => {
+  return safeRequest<RouletteConfig>(api.put(`${BASE}/config`, config));
+};
+
+/* ==============================
+   API - EMPLOYEES STATS
+============================== */
+export interface EmployeeRouletteStats {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    shift: string | null;
+    kpiScore: number;
+    hasLuckBuff: boolean;
+    luckMultiplier: number;
+  };
+  stats: {
+    totalSpins: number;
+    spinsSinceCommon: number;
+    spinsSinceRare: number;
+    spinsSinceEpic: number;
+    spinsSinceLegendary: number;
+    prizesWon: {
+      common: number;
+      rare: number;
+      epic: number;
+      legendary: number;
+    };
+    pityActive: boolean;
+    pityTargetRarity: string | null;
+    nextRarePity: number;
+    nextEpicPity: number;
+    nextLegendaryPity: number;
+  };
+}
+
+export const getAllUserRouletteStats = async (): Promise<EmployeeRouletteStats[]> => {
+  const data = await safeRequest<EmployeeRouletteStats[]>(api.get(`${BASE}/employees-stats`));
+  return Array.isArray(data) ? data : [];
+};
+
+export const getMyRouletteStats = async () => {
+  return safeRequest<any>(api.get(`${BASE}/my-stats`));
 };

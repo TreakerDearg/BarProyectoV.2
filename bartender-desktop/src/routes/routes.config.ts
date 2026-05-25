@@ -25,7 +25,19 @@ export const routesConfig = [
       },
       {
         path: "/employees/shifts",
-        name: "Turnos",
+        name: "Permisos Turno",
+      },
+      {
+        path: "/employees/activity",
+        name: "Tracking Actividad",
+      },
+      {
+        path: "/employees/shift-management",
+        name: "Gestión Turnos",
+      },
+      {
+        path: "/employees/shift-metrics",
+        name: "Métricas Turnos",
       },
     ],
   },

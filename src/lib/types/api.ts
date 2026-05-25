@@ -1,5 +1,3 @@
-import { Key, ReactNode } from "react";
-
 export type ApiSuccess<T> = {
   success: true;
   data: T;
@@ -19,9 +17,9 @@ export type AuthUser = {
 };
 
 export type ProductBrief = {
-  description: ReactNode;
   _id: string;
   name: string;
+  description?: string;
   price?: number;
   type?: string;
   image?: string;
@@ -29,20 +27,21 @@ export type ProductBrief = {
   dynamicPrice?: number;
 };
 
+export type MenuCategory = {
+  _id: string;
+  name: string;
+
+  products: Array<{
+    available?: boolean;
+    product?: ProductBrief | null;
+  }>;
+};
+
 export type CartLine = {
   productId: string;
   name: string;
   quantity: number;
   notes: string;
-};
-
-export type MenuCategory = {
-  _id: Key | null | undefined;
-  name: string;
-  products: Array<{
-    available?: boolean;
-    product?: ProductBrief | null;
-  }>;
 };
 
 export type PublicMenu = {

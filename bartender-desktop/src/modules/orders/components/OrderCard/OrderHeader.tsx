@@ -1,5 +1,5 @@
 import type { Order } from "../../types/order";
-import { Coffee, Martini, Utensils } from "lucide-react";
+import { Martini, Utensils } from "lucide-react";
 
 interface Props {
   order: Order;

@@ -1,0 +1,16 @@
+{
+  "pityThresholds": {
+    "RARE": 10,
+    "EPIC": 25,
+    "LEGENDARY": 50
+  },
+  "pityBoostMultiplier": 10,
+  "rarityModifiers": {
+    "COMMON": 1,
+    "RARE": 0.5,
+    "EPIC": 0.2,
+    "LEGENDARY": 0.05
+  },
+  "kpiMinScore": 80,
+  "kpiMaxMultiplier": 1.2
+}

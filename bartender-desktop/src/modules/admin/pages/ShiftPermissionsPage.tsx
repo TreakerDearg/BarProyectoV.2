@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Clock, Shield, Check, X, Activity, Save, Loader2 } from "lucide-react";
 import { updateShiftPermissions } from "../services/userService";
+import "../styles/luxury-theme.css";
 
 type ModuleKey =
   | "orders"
@@ -99,21 +100,21 @@ export default function ShiftPermissionsPage() {
   const total = modules.length;
 
   return (
-    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden">
+    <div className="space-y-6 glass-card p-8 rounded-[3rem] animate-fade-in relative overflow-hidden luxury-bg">
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10">
         <div className="flex items-center gap-6">
-          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
-            <Shield className="text-ivory" size={32} />
+          <div className="p-4 glass-card border border-white/5 rounded-2xl shadow-inner">
+            <Shield className="text-[#ffffff]" size={32} />
           </div>
           <div>
             <p className="text-[10px] text-violet-400 font-black uppercase tracking-[0.4em] mb-1">
               Control de Accesos
             </p>
-            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+            <h1 className="text-3xl font-black text-[#ffffff] tracking-tighter uppercase leading-none">
               Sistema de Turnos
             </h1>
           </div>
@@ -143,11 +144,11 @@ export default function ShiftPermissionsPage() {
               ${
                 selectedShift === shift.key
                   ? "bg-violet-500/10 text-violet-400 border border-violet-500/30 shadow-[0_0_20px_rgba(139,92,246,0.2)]"
-                  : "bg-surface-3 border border-white/5 text-muted hover:text-white hover:border-white/20"
+                  : "glass-card border border-white/5 text-[#a0a0b0] hover:text-white hover:border-white/20"
               }
             `}
           >
-            <Clock size={16} className={selectedShift === shift.key ? "text-violet-400" : "text-muted"} />
+            <Clock size={16} className={selectedShift === shift.key ? "text-violet-400" : "text-[#a0a0b0]"} />
             {shift.label}
           </button>
         ))}
@@ -157,9 +158,9 @@ export default function ShiftPermissionsPage() {
       <div className="
         flex items-center justify-between
         px-6 py-4 rounded-2xl
-        bg-surface-3 border border-white/5 shadow-inner relative z-10
+        glass-card border border-white/5 shadow-inner relative z-10
       ">
-        <span className="text-[10px] font-black text-muted uppercase tracking-widest">
+        <span className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest">
           Nivel de Acceso Activo
         </span>
         <span className="text-sm text-lime font-black flex items-center gap-2">
@@ -174,8 +175,8 @@ export default function ShiftPermissionsPage() {
         bg-surface-2 backdrop-blur-xl
         overflow-hidden relative z-10 shadow-royale
       ">
-        <div className="p-6 border-b border-white/5 bg-surface-3/50">
-          <h2 className="text-xs font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
+        <div className="p-6 border-b border-white/5 glass-card/50">
+          <h2 className="text-xs font-black text-[#ffffff] tracking-[0.2em] uppercase flex items-center gap-3">
             <Shield size={16} className="text-violet-400" />
             Configuración: {selectedShift}
           </h2>
@@ -195,7 +196,7 @@ export default function ShiftPermissionsPage() {
                 `}
               >
                 {/* LABEL */}
-                <div className="flex items-center gap-3 text-ivory">
+                <div className="flex items-center gap-3 text-[#ffffff]">
                   <div className={`p-2 rounded-lg ${enabled ? 'bg-lime/10' : 'bg-red/10'} transition-colors`}>
                     <Shield size={16} className={enabled ? 'text-lime' : 'text-red'} />
                   </div>
@@ -220,7 +221,7 @@ export default function ShiftPermissionsPage() {
                       ${
                         enabled
                           ? "bg-lime text-bg shadow-[0_0_10px_rgba(163,230,53,0.5)]"
-                          : "bg-red text-ivory shadow-[0_0_10px_rgba(248,113,113,0.5)]"
+                          : "bg-red text-[#ffffff] shadow-[0_0_10px_rgba(248,113,113,0.5)]"
                       }
                     `}
                   >

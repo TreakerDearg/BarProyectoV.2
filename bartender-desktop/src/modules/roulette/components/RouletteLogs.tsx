@@ -1,9 +1,6 @@
 "use client";
 
 import {
-  TerminalSquare,
-  Trash2,
-  Filter,
   History,
   Info
 } from "lucide-react";

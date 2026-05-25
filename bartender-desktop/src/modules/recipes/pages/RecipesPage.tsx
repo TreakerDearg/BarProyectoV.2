@@ -31,6 +31,8 @@ import {
   deleteRecipe,
 } from "../services/recipeService";
 
+import { useRecipeSocketEvents } from "../../../hooks/useSocket";
+
 import type { Recipe } from "../types/recipe";
 
 /* ==============================
@@ -78,6 +80,29 @@ export default function RecipesPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  /* =========================================================
+     REAL-TIME UPDATES VIA SOCKET.IO
+  ========================================================= */
+  useRecipeSocketEvents(
+    // Receta creada
+    (data) => {
+      console.log("[Socket] Receta creada:", data);
+      void fetchData();
+    },
+    // Receta actualizada
+    (data) => {
+      console.log("[Socket] Receta actualizada:", data);
+      void fetchData();
+    },
+    // Receta eliminada
+    (data) => {
+      console.log("[Socket] Receta eliminada:", data);
+      if (data.recipeId) {
+        setRecipes(prev => prev.filter(r => r._id !== data.recipeId));
+      }
+    }
+  );
 
   /* =========================
      STATS

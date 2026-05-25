@@ -19,15 +19,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getProducts } from "../../../modules/products/services/productService";
 import { getTables } from "../../tables/services/tableService";
 import { createOrder } from "../services/orderService";
+import { getMenus } from "../../../modules/menus/services/menuService";
 import type { Product } from "../../../types/product";
 import type { Table } from "../../tables/types/table";
+import type { Menu } from "../../../modules/menus/types/menu";
 
 interface LocalItem {
-  product: string;
+  product?: string;
+  menu?: string;
   name: string;
   quantity: number;
   price: number;
-  type: "drink" | "food";
+  type: "drink" | "food" | "menu";
 }
 
 interface Props {
@@ -46,24 +49,27 @@ export default function OrderForm({
   onSuccess,
 }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
+  const [menus, setMenus] = useState<Menu[]>([]);
   const [tables, setTables] = useState<Table[]>([]);
   const [items, setItems] = useState<LocalItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState<"all" | "food" | "drink">("all");
+  const [activeCategory, setActiveCategory] = useState<"all" | "food" | "drink" | "menu">("all");
   const [sessionId] = useState(initialSessionId || "");
-  
+
   const [selectedTableId, setSelectedTableId] = useState(initialTableId || "");
   const [selectedTableNumber, setSelectedTableNumber] = useState(initialTableNumber || 0);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [prodData, tableData] = await Promise.all([
+        const [prodData, menuData, tableData] = await Promise.all([
           getProducts(),
+          getMenus(),
           !initialTableId ? getTables() : Promise.resolve([])
         ]);
         setProducts(prodData || []);
+        setMenus(menuData || []);
         setTables(tableData || []);
       } catch (err) {
         console.error("Error loading form data", err);
@@ -75,10 +81,18 @@ export default function OrderForm({
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = activeCategory === "all" || p.type === activeCategory;
+      const matchesCategory = activeCategory === "all" || p.type === activeCategory || activeCategory === "menu";
       return matchesSearch && matchesCategory;
     });
   }, [products, search, activeCategory]);
+
+  const filteredMenus = useMemo(() => {
+    return menus.filter((m) => {
+      const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase());
+      const matchesCategory = activeCategory === "all" || activeCategory === "menu";
+      return matchesSearch && matchesCategory && m.active;
+    });
+  }, [menus, search, activeCategory]);
 
   const addProduct = (product: Product) => {
     if (!product._id) return;
@@ -97,11 +111,28 @@ export default function OrderForm({
     });
   };
 
-  const updateQty = (productId: string, qty: number) => {
+  const addMenu = (menu: Menu) => {
+    if (!menu._id) return;
+    setItems((prev) => {
+      const exists = prev.find((i) => i.menu === menu._id);
+      if (exists) {
+        return prev.map((i) => i.menu === menu._id ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, {
+        menu: menu._id,
+        name: menu.name,
+        quantity: 1,
+        price: 0, // Precio del menú se calculará en el backend
+        type: "menu",
+      }];
+    });
+  };
+
+  const updateQty = (itemId: string, qty: number) => {
     setItems((prev) =>
       qty <= 0
-        ? prev.filter((i) => i.product !== productId)
-        : prev.map((i) => i.product === productId ? { ...i, quantity: qty } : i)
+        ? prev.filter((i) => i.product !== itemId && i.menu !== itemId)
+        : prev.map((i) => (i.product === itemId || i.menu === itemId) ? { ...i, quantity: qty } : i)
     );
   };
 
@@ -123,10 +154,12 @@ export default function OrderForm({
 
     await createOrder({
       table: selectedTableId,
-      sessionId: sessionId, // 👈 FIX REAL
+      sessionId: sessionId,
       items: items.map((i) => ({
         product: i.product,
+        menu: i.menu,
         quantity: i.quantity,
+        price: i.price,
       })),
     });
 
@@ -155,6 +188,7 @@ export default function OrderForm({
                  <CategoryBtn active={activeCategory === "all"} onClick={() => setActiveCategory("all")} label="Todos" icon={<ShoppingCart size={14} />} />
                  <CategoryBtn active={activeCategory === "food"} onClick={() => setActiveCategory("food")} label="Comida" icon={<Utensils size={14} />} />
                  <CategoryBtn active={activeCategory === "drink"} onClick={() => setActiveCategory("drink")} label="Bebidas" icon={<Wine size={14} />} />
+                 <CategoryBtn active={activeCategory === "menu"} onClick={() => setActiveCategory("menu")} label="Menús" icon={<Check size={14} />} />
               </div>
            </div>
 
@@ -171,25 +205,47 @@ export default function OrderForm({
 
         <div className="flex-1 overflow-y-auto p-10 pt-0 custom-scrollbar">
            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProducts.map((p) => (
-                <button
-                  key={p._id}
-                  onClick={() => addProduct(p)}
-                  className="group relative bg-surface-3 hover:bg-gold/10 border border-white/5 hover:border-gold/30 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square"
-                >
-                  <div className="flex justify-between items-start">
-                     <div className={`p-2.5 rounded-xl ${p.type === 'food' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'} border border-white/5`}>
-                        {p.type === 'food' ? <Utensils size={16} /> : <Wine size={16} />}
-                     </div>
-                     <Plus size={18} className="text-muted group-hover:text-gold transition-colors" />
-                  </div>
-                  <div>
-                     <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">{p.category}</p>
-                     <h4 className="text-sm font-black text-white group-hover:text-gold transition-colors leading-tight line-clamp-2">{p.name}</h4>
-                     <p className="text-lg font-black text-grad-gold mt-2">${p.price}</p>
-                  </div>
-                </button>
-              ))}
+              {activeCategory === "menu" ? (
+                filteredMenus.map((m) => (
+                  <button
+                    key={m._id}
+                    onClick={() => addMenu(m)}
+                    className="group relative bg-gold/10 hover:bg-gold/20 border border-gold/30 hover:border-gold/50 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square"
+                  >
+                    <div className="flex justify-between items-start">
+                       <div className="p-2.5 rounded-xl bg-gold/20 text-gold border border-gold/30">
+                          <Check size={16} />
+                       </div>
+                       <Plus size={18} className="text-muted group-hover:text-gold transition-colors" />
+                    </div>
+                    <div>
+                       <p className="text-[8px] font-black text-gold uppercase tracking-widest mb-1">MENÚ</p>
+                       <h4 className="text-sm font-black text-white group-hover:text-gold transition-colors leading-tight line-clamp-2">{m.name}</h4>
+                       <p className="text-[8px] font-black text-muted uppercase tracking-widest mt-2">{m.categories.length} categorías</p>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                filteredProducts.map((p) => (
+                  <button
+                    key={p._id}
+                    onClick={() => addProduct(p)}
+                    className="group relative bg-surface-3 hover:bg-gold/10 border border-white/5 hover:border-gold/30 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square"
+                  >
+                    <div className="flex justify-between items-start">
+                       <div className={`p-2.5 rounded-xl ${p.type === 'food' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'} border border-white/5`}>
+                          {p.type === 'food' ? <Utensils size={16} /> : <Wine size={16} />}
+                       </div>
+                       <Plus size={18} className="text-muted group-hover:text-gold transition-colors" />
+                    </div>
+                    <div>
+                       <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">{p.category}</p>
+                       <h4 className="text-sm font-black text-white group-hover:text-gold transition-colors leading-tight line-clamp-2">{p.name}</h4>
+                       <p className="text-lg font-black text-grad-gold mt-2">${p.price}</p>
+                    </div>
+                  </button>
+                ))
+              )}
            </div>
         </div>
       </div>
@@ -262,7 +318,7 @@ export default function OrderForm({
                  <AnimatePresence mode="popLayout">
                     {items.map((i) => (
                       <motion.div
-                        key={i.product}
+                        key={i.product || i.menu}
                         layout
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -270,15 +326,18 @@ export default function OrderForm({
                         className="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center justify-between group"
                       >
                          <div className="flex-1 min-w-0 pr-4">
-                            <h5 className="text-[11px] font-black text-white truncate uppercase">{i.name}</h5>
+                            <div className="flex items-center gap-2">
+                              {i.type === "menu" && <Check size={12} className="text-gold" />}
+                              <h5 className="text-[11px] font-black text-white truncate uppercase">{i.name}</h5>
+                            </div>
                             <p className="text-[9px] text-muted font-bold">${i.price} / unidad</p>
                          </div>
                          <div className="flex items-center gap-4">
-                            <button type="button" onClick={() => updateQty(i.product, i.quantity - 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 text-muted hover:text-red-500 transition-all">
+                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity - 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 text-muted hover:text-red-500 transition-all">
                                <Minus size={14} />
                             </button>
                             <span className="text-xs font-black text-gold w-4 text-center">{i.quantity}</span>
-                            <button type="button" onClick={() => updateQty(i.product, i.quantity + 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-gold/20 text-muted hover:text-gold transition-all">
+                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity + 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-gold/20 text-muted hover:text-gold transition-all">
                                <Plus size={14} />
                             </button>
                          </div>

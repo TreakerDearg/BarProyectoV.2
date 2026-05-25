@@ -19,6 +19,10 @@ import discountRoutes    from "./discount.routes.js";
 import dynamicPricingRoutes from "./dynamicPricing.routes.js";
 import promotionRoutes    from "./promotion.routes.js";
 import pricingEventRoutes from "./pricingEvent.routes.js";
+import paymentRoutes      from "./payment.routes.js";
+import trackingRoutes    from "./tracking.routes.js";
+import attendanceRoutes  from "./attendance.routes.js";
+import performanceRoutes from "./performance.routes.js";
 
 const router = Router();
 
@@ -38,8 +42,12 @@ router.use("/reservations", reservationRoutes);
 router.use("/menus",        menuRoutes);
 router.use("/dashboard",    dashboardRoutes);
 router.use("/discounts",    discountRoutes);
+router.use("/payments",     paymentRoutes);
 router.use("/dynamic-pricing", dynamicPricingRoutes);
 router.use("/promotions",   promotionRoutes);
 router.use("/pricing-events", pricingEventRoutes);
+router.use("/tracking",     trackingRoutes);
+router.use("/attendance",   attendanceRoutes);
+router.use("/performance",  performanceRoutes);
 
 export default router;

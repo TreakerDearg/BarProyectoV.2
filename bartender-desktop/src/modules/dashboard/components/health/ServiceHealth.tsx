@@ -1,14 +1,14 @@
 "use client";
 
 import type { DashboardStats } from "../../services/dashboardService";
-import { Zap, Flame, Activity, Clock, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Zap, Clock, ShieldCheck } from "lucide-react";
+import "../../../../styles/dashboard-theme.css";
 
 interface Props {
   data: DashboardStats;
 }
 
 export default function ServiceHealth({ data }: Props) {
-  const isPeak = data.kpis?.todayOrders > 100;
   const kitchenLoad = data.kitchenLoad || 0;
   const barLoad = data.barLoad || 0;
 
@@ -25,7 +25,7 @@ export default function ServiceHealth({ data }: Props) {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <div className={`w-2 h-2 rounded-full animate-pulse ${isKitchenCritical ? 'bg-red shadow-red-glow' : 'bg-emerald-400 shadow-emerald-400/20'}`} />
+             <div className={`status-dot-fusion ${isKitchenCritical ? 'status-error-fusion' : 'status-success-fusion'}`} />
              <span className="text-[10px] font-black text-ivory uppercase tracking-widest">Carga de Cocina</span>
           </div>
           <span className={`text-[8px] px-3 py-1 rounded-full font-black tracking-widest border ${isKitchenCritical ? 'border-red/20 text-red bg-red/5' : 'border-emerald-400/20 text-emerald-400 bg-emerald-400/5'}`}>
@@ -50,7 +50,7 @@ export default function ServiceHealth({ data }: Props) {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-             <div className={`w-2 h-2 rounded-full animate-pulse ${isBarCritical ? 'bg-red shadow-red-glow' : 'bg-gold shadow-gold-glow'}`} />
+             <div className={`status-dot-fusion ${isBarCritical ? 'status-error-fusion' : 'status-warning-fusion'}`} />
              <span className="text-[10px] font-black text-ivory uppercase tracking-widest">Fila de Barra</span>
           </div>
           <span className={`text-[8px] px-3 py-1 rounded-full font-black tracking-widest border ${isBarCritical ? 'border-red/20 text-red bg-red/5' : 'border-gold/20 text-gold bg-gold/5'}`}>

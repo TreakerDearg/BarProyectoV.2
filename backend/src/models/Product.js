@@ -98,6 +98,12 @@ const productSchema = new mongoose.Schema(
       default: "",
     },
 
+    imagePublicId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+
     /* ==============================
        TAG SYSTEM (POS FILTERS)
     ============================== */

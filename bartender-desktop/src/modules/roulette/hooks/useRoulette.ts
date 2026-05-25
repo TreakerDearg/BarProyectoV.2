@@ -6,6 +6,7 @@ import {
   deleteRouletteDrink,
   spinRoulette,
   rouletteSocket,
+  batchUpdateRouletteDrinks,
 } from "../services/rouletteService";
 
 import type {
@@ -84,13 +85,60 @@ export const useRoulette = () => {
      CREATE
   ============================== */
   const create = useCallback(async (drink: Partial<RouletteDrink>) => {
+    // Foolproof validation: Check for duplicate drinks
+    const productId = typeof drink.product === 'object' ? drink.product?._id : drink.product;
+    const existingDrink = drinksRef.current.find((d) => {
+      const dProductId = typeof d.product === 'object' ? d.product?._id : d.product;
+      return d && dProductId === productId;
+    });
+    
+    if (existingDrink) {
+      pushLog("alert", `Duplicate drink: ${drink.name}`);
+      return { success: false, error: "duplicate" };
+    }
+
+    // Validate required fields
+    if (!drink.name) {
+      pushLog("alert", "Missing drink name");
+      return { success: false, error: "missing_name" };
+    }
+
+    // Validate weight range
+    if (drink.weight && (drink.weight < 1 || drink.weight > 1000)) {
+      pushLog("alert", "Invalid weight range");
+      return { success: false, error: "invalid_weight" };
+    }
+
+    // Set default values if not provided
+    const drinkWithDefaults = {
+      ...drink,
+      weight: drink.weight || 10,
+      rarity: drink.rarity || "COMMON",
+      active: drink.active !== undefined ? drink.active : true,
+    };
+
     try {
-      const newDrink = await createRouletteDrink(drink);
+      const newDrink = await createRouletteDrink(drinkWithDefaults);
+
+      if (!newDrink) {
+        throw new Error("Server returned null response");
+      }
+
+      if (!newDrink.name) {
+        throw new Error("Server returned drink without name");
+      }
+
+      if (!newDrink._id) {
+        throw new Error("Server returned drink without ID");
+      }
 
       setDrinks((prev) => [...prev, newDrink]);
-      pushLog("event", `Added '${newDrink.name}'`);
-    } catch {
+      pushLog("event", `Added '${newDrink.name}' (Weight: ${newDrink.weight}, Rarity: ${newDrink.rarity})`);
+      return { success: true, drink: newDrink };
+    } catch (error: any) {
+      console.error("Error creating drink:", error);
       pushLog("alert", "Create failed");
+      return { success: false, error: error.message || "unknown" };
     }
   }, [pushLog]);
 
@@ -135,17 +183,31 @@ export const useRoulette = () => {
     const prev = drinksRef.current;
     const drink = prev.find((d) => d._id === id);
 
+    if (!drink) {
+      pushLog("alert", "Drink not found");
+      return { success: false, error: "not_found" };
+    }
+
+    // Foolproof validation: Check if it's the last active drink
+    const activeDrinks = prev.filter((d) => d && d.active);
+    if (activeDrinks.length === 1 && drink.active) {
+      pushLog("alert", "Cannot remove last active drink");
+      return { success: false, error: "last_active" };
+    }
+
     setDrinks((current) =>
       current.filter((d) => d._id !== id)
     );
 
     try {
       await deleteRouletteDrink(id);
-
-      if (drink) pushLog("alert", `Removed '${drink.name}'`);
-    } catch {
+      pushLog("alert", `Removed '${drink.name}' (Weight: ${drink.weight}, Rarity: ${drink.rarity})`);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error removing drink:", error);
       setDrinks(prev);
       pushLog("alert", "Delete failed");
+      return { success: false, error: error.message || "unknown" };
     }
   }, [pushLog]);
 
@@ -190,7 +252,7 @@ export const useRoulette = () => {
   ============================== */
   const autoBalance = useCallback(
     async (mode: "equal" | "smart" | "smooth" = "smart") => {
-      const current = drinksRef.current.filter((d) => d.active);
+      const current = drinksRef.current.filter((d) => d && d.active);
 
       if (!current.length) return;
 
@@ -251,12 +313,13 @@ export const useRoulette = () => {
         })
       );
 
-      //  SINGLE BATCH (mejor práctica real sería endpoint batch)
-      await Promise.all(
-        updated.map((d) =>
-          updateRouletteDrink(d._id, { weight: d.weight })
-        )
-      );
+      //  BATCH UPDATE (optimización con endpoint batch)
+      const batchUpdates = updated.map((d) => ({
+        id: d._id,
+        weight: d.weight,
+      }));
+      
+      await batchUpdateRouletteDrinks(batchUpdates);
 
       pushLog("admin", `AutoBalance → ${mode.toUpperCase()}`);
     },
@@ -268,12 +331,14 @@ export const useRoulette = () => {
   ============================== */
   const totalWeight = useMemo(() => {
     return drinks
-      .filter((d) => d.active)
+      .filter((d) => d && d.active)
       .reduce((acc, d) => acc + d.weight, 0);
   }, [drinks]);
 
   const drinksWithProbability = useMemo(() => {
-    return drinks.map((d) => ({
+    return drinks
+      .filter((d) => d !== null)
+      .map((d) => ({
       ...d,
       probability:
         d.active && totalWeight
@@ -311,24 +376,27 @@ export const useRoulette = () => {
      INIT
   ============================== */
   useEffect(() => {
-    load(true);
+    load();
   }, [load]);
 
+  /* ==============================
+     EXPORT
+  ============================== */
   return {
-    drinks: drinksWithProbability,
+    drinks,
     loading,
     spinning,
     lastResult,
-    totalWeight,
     logs,
-
+    totalWeight,
+    drinksWithProbability,
     actions: {
       load,
       create,
       update,
       remove,
       spin,
-      autoBalance, 
+      autoBalance,
     },
   };
 };

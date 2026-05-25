@@ -150,6 +150,20 @@ const inventorySchema = new mongoose.Schema(
     },
 
     /* =========================
+       CLOUDINARY IMAGES
+    ========================= */
+    image: {
+      type: String,
+      default: "",
+    },
+
+    imagePublicId: {
+      type: String,
+      default: "",
+      index: true,
+    },
+
+    /* =========================
        MOVEMENTS LOG (ENHANCED)
     ========================= */
     movements: {

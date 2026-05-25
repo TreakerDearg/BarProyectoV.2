@@ -93,3 +93,5 @@ export const errorHandler = (err, req, res, _next) => {
 
   res.status(statusCode).json(payload);
 };
+
+export default errorHandler;

@@ -1,4 +1,4 @@
-// hooks/useDiscount.ts
+// hooks/useDiscount.ts - Sistema Nebula de Descuentos
 
 import { useMemo, useState } from "react";
 import type {
@@ -19,7 +19,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   const value = Number(valueInput || 0);
 
   /* =========================
-     SUBTOTAL
+     SUBTOTAL NEBULA
   ========================= */
   const subtotal = useMemo(() => {
     return items
@@ -28,7 +28,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   }, [items]);
 
   /* =========================
-     DISCOUNT CALCULATION
+     CÁLCULO DE DESCUENTO NEBULA
   ========================= */
   const discountAmount = useMemo(() => {
     if (type === "PERCENT") {
@@ -38,28 +38,28 @@ export function useDiscount({ items }: UseDiscountProps) {
   }, [type, value, subtotal]);
 
   /* =========================
-     FINAL TOTAL
+     TOTAL FINAL NEBULA
   ========================= */
   const finalTotal = useMemo(() => {
     return Math.max(subtotal - discountAmount, 0);
   }, [subtotal, discountAmount]);
 
   /* =========================
-     VALIDATIONS
+     VALIDACIONES NEBULA
   ========================= */
   const errors = useMemo(() => {
     const errs: string[] = [];
 
-    if (value <= 0) errs.push("Discount must be greater than 0");
+    if (value <= 0) errs.push("El descuento debe ser mayor a 0");
 
     if (type === "PERCENT" && value > 100)
-      errs.push("Percentage cannot exceed 100%");
+      errs.push("El porcentaje no puede exceder 100%");
 
     if (discountAmount > subtotal)
-      errs.push("Discount cannot exceed subtotal");
+      errs.push("El descuento no puede exceder el subtotal");
 
     if (subtotal === 0)
-      errs.push("No items selected");
+      errs.push("Selecciona al menos un producto");
 
     return errs;
   }, [value, type, discountAmount, subtotal]);
@@ -67,7 +67,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   const isValid = errors.length === 0;
 
   /* =========================
-     KEYPAD HANDLERS
+     MANEJADORES DE TECLADO NEBULA
   ========================= */
   const appendNumber = (num: string) => {
     setValueInput((prev) => {
@@ -90,7 +90,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   };
 
   /* =========================
-     PAYLOAD BUILDER
+     CONSTRUCTOR DE PAYLOAD NEBULA
   ========================= */
   const buildPayload = (orderId: string) => {
     const selectedItems = items
@@ -108,7 +108,7 @@ export function useDiscount({ items }: UseDiscountProps) {
   };
 
   return {
-    /* state */
+    /* estado */
     type,
     value,
     valueInput,
@@ -121,16 +121,16 @@ export function useDiscount({ items }: UseDiscountProps) {
     setReason,
     setNote,
 
-    /* computed */
+    /* calculados */
     subtotal,
     discountAmount,
     finalTotal,
 
-    /* validation */
+    /* validación */
     errors,
     isValid,
 
-    /* actions */
+    /* acciones */
     appendNumber,
     removeLast,
     reset,

@@ -1,0 +1,357 @@
+/* =========================================================
+   LUXURY NIGHTLIFE THEME - Bartender Tracking System
+   Estética premium para sistemas de gestión nocturna
+========================================================= */
+
+:root {
+  /* ================= COLORS ================= */
+  /* Dark Base */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a25;
+  --bg-card: rgba(20, 20, 30, 0.8);
+  
+  /* Accent Colors */
+  --gold-primary: #d4af37;
+  --gold-secondary: #f4e4a6;
+  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+  
+  /* Neon Accents */
+  --neon-blue: #00d4ff;
+  --neon-purple: #b147ff;
+  --neon-pink: #ff47ab;
+  
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-tertiary: #606070;
+  
+  /* Status Colors */
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --error: #ff4757;
+  --info: #00d4ff;
+  
+  /* ================= GRADIENTS ================= */
+  --gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #12121a 100%);
+  --gradient-gold: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+  --gradient-neon: linear-gradient(135deg, #00d4ff 0%, #b147ff 100%);
+  --gradient-radial: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+  
+  /* ================= EFFECTS ================= */
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 8px 24px rgba(212, 175, 55, 0.3);
+  --shadow-neon: 0 8px 24px rgba(0, 212, 255, 0.3);
+  
+  --glass-bg: rgba(20, 20, 30, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(20px);
+  
+  /* ================= TYPOGRAPHY ================= */
+  --font-display: 'Playfair Display', 'Cormorant Garamond', serif;
+  --font-body: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* ================= SPACING ================= */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  
+  /* ================= BORDER RADIUS ================= */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+  
+  /* ================= ANIMATIONS ================= */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* ================= BACKGROUND EFFECTS ================= */
+.luxury-bg {
+  background: var(--bg-primary);
+  background-image: 
+    var(--gradient-radial),
+    radial-gradient(ellipse at bottom right, rgba(176, 71, 255, 0.1) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* ================= GLASS CARD ================= */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.glass-card:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+  box-shadow: var(--shadow-gold);
+  transition: all var(--transition-base);
+}
+
+/* ================= GOLD BORDER ================= */
+.gold-border {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--bg-secondary), var(--bg-secondary)) padding-box,
+              var(--gradient-gold) border-box;
+}
+
+/* ================= NEON GLOW ================= */
+.neon-glow {
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.3),
+    0 0 40px rgba(0, 212, 255, 0.1);
+}
+
+.neon-glow-gold {
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.3),
+    0 0 40px rgba(212, 175, 55, 0.1);
+}
+
+/* ================= GRADIENT TEXT ================= */
+.gradient-text {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-neon {
+  background: var(--gradient-neon);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ================= LUXURY BUTTON ================= */
+.luxury-button {
+  background: var(--gradient-gold);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--bg-primary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.luxury-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left var(--transition-slow);
+}
+
+.luxury-button:hover::before {
+  left: 100%;
+}
+
+.luxury-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+.luxury-button:active {
+  transform: translateY(0);
+}
+
+/* ================= INPUT FIELDS ================= */
+.luxury-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  padding: 12px 16px;
+  transition: all var(--transition-base);
+}
+
+.luxury-input:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.luxury-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ================= METRIC CARD ================= */
+.metric-card {
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.9) 0%, rgba(30, 30, 45, 0.9) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.metric-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.metric-card:hover::after {
+  opacity: 1;
+}
+
+/* ================= STATUS INDICATORS ================= */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: pulse 2s infinite;
+}
+
+.status-success { background: var(--success); }
+.status-success::after { background: var(--success); }
+
+.status-warning { background: var(--warning); }
+.status-warning::after { background: var(--warning); }
+
+.status-error { background: var(--error); }
+.status-error::after { background: var(--error); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* ================= SCROLLBAR ================= */
+.luxury-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.luxury-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.luxury-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--gold-primary);
+  border-radius: 3px;
+}
+
+.luxury-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-secondary);
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease forwards;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  :root {
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 2.5rem;
+  }
+}
+
+/* ================= UTILITY CLASSES ================= */
+.text-gold { color: var(--gold-primary); }
+.text-neon { color: var(--neon-blue); }
+.text-gradient { @apply gradient-text; }
+
+.bg-gold { background: var(--gold-primary); }
+.bg-neon { background: var(--neon-blue); }
+
+.border-gold { border-color: var(--gold-primary); }
+.border-neon { border-color: var(--neon-blue); }

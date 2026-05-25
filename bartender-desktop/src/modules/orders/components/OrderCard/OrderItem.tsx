@@ -9,8 +9,9 @@ interface Props {
 }
 
 export default function OrderItem({ item, onSelect, isActive }: Props) {
-  const isCancelled = item.status === "cancelled";
-  const isReady = item.status === "ready" || item.status === "served";
+  const isCancelled = (item.status as string) === "cancelled";
+  const isReady = item.status === "ready" || (item.status as string) === "served";
+  const itemAny = item as any;
 
   return (
     <div
@@ -43,9 +44,9 @@ export default function OrderItem({ item, onSelect, isActive }: Props) {
         <h4 className={`text-sm font-black uppercase tracking-tight truncate ${isCancelled ? 'line-through text-muted' : 'text-ivory group-hover/item:text-gold transition-colors'}`}>
           {(item.product as any)?.name || "Producto desconocido"}
         </h4>
-        {item.notes && (
+        {itemAny.notes && (
           <p className="text-[10px] text-ember font-black uppercase tracking-widest mt-1 animate-pulse">
-            ! {item.notes}
+            ! {itemAny.notes}
           </p>
         )}
       </div>

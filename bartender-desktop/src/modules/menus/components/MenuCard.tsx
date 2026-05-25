@@ -1,10 +1,7 @@
 import {
   Pencil,
   Trash2,
-  Sparkles,
   Layers,
-  CheckCircle,
-  XCircle,
   ChevronRight,
   TrendingUp,
   Box,
@@ -18,9 +15,10 @@ interface Props {
   menu: Menu;
   onEdit: (menu: Menu) => void;
   onDelete: (id: string) => void;
+  simplified?: boolean;
 }
 
-export default function MenuCard({ menu, onEdit, onDelete }: Props) {
+export default function MenuCard({ menu, onEdit, onDelete, simplified = false }: Props) {
   const totalProducts = menu.categories?.reduce((acc, cat) => acc + (cat.products?.length || 0), 0) || 0;
   const totalCategories = menu.categories?.length || 0;
   const mainCategory = menu.categories?.[0]?.name || "Gral";
@@ -59,20 +57,15 @@ export default function MenuCard({ menu, onEdit, onDelete }: Props) {
         </div>
       </div>
 
-      {/* ================= DESCRIPTION ================= */}
-      <p className="text-xs text-muted/80 font-bold leading-relaxed line-clamp-2 relative z-10 italic">
-        "{menu.description || "Sin descripción estratégica para este menú."}"
-      </p>
+      {/* ================= DESCRIPTION - Hidden in simplified mode ================= */}
+      {!simplified && (
+        <p className="text-xs text-muted/80 font-bold leading-relaxed line-clamp-2 relative z-10 italic">
+          "{menu.description || "Sin descripción estratégica para este menú."}"
+        </p>
+      )}
 
-      {/* ================= STATS ROW ================= */}
-      <div className="grid grid-cols-2 gap-3 relative z-10">
-        <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">CATEGORÍAS</p>
-          <div className="flex items-center gap-2">
-            <Target size={12} className="text-gold" />
-            <span className="text-sm font-black text-ivory">{totalCategories}</span>
-          </div>
-        </div>
+      {/* ================= STATS ROW - Simplified in simple mode ================= */}
+      <div className={`grid gap-3 relative z-10 ${simplified ? 'grid-cols-1' : 'grid-cols-2'}`}>
         <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
           <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PRODUCTOS</p>
           <div className="flex items-center gap-2">
@@ -80,37 +73,48 @@ export default function MenuCard({ menu, onEdit, onDelete }: Props) {
             <span className="text-sm font-black text-ivory">{totalProducts}</span>
           </div>
         </div>
+        {!simplified && (
+          <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
+            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">CATEGORÍAS</p>
+            <div className="flex items-center gap-2">
+              <Target size={12} className="text-gold" />
+              <span className="text-sm font-black text-ivory">{totalCategories}</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ================= METRICS PREVIEW ================= */}
-      <div className="space-y-3 relative z-10">
-        <div className="flex items-center gap-2">
-          <TrendingUp size={12} className="text-gold opacity-50" />
-          <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Eficiencia de Carta</p>
+      {/* ================= METRICS PREVIEW - Hidden in simplified mode ================= */}
+      {!simplified && (
+        <div className="space-y-3 relative z-10">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={12} className="text-gold opacity-50" />
+            <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Eficiencia de Carta</p>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${isActive ? 'bg-grad-gold' : 'bg-red'} transition-all duration-1000`}
+              style={{ width: `${Math.min(100, (totalProducts / 20) * 100)}%` }}
+            />
+          </div>
         </div>
-        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-          <div 
-            className={`h-full ${isActive ? 'bg-grad-gold' : 'bg-red'} transition-all duration-1000`} 
-            style={{ width: `${Math.min(100, (totalProducts / 20) * 100)}%` }}
-          />
-        </div>
-      </div>
+      )}
 
-      {/* ================= ACTIONS ================= */}
-      <div className="flex gap-3 relative z-10 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+      {/* ================= ACTIONS - Always visible but simplified in simple mode ================= */}
+      <div className={`flex gap-3 relative z-10 ${simplified ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'} transition-all duration-500`}>
         <button
           onClick={() => onEdit(menu)}
-          className="flex-[2] h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between px-6 hover:bg-gold/10 hover:border-gold/30 transition-all group/btn"
+          className={`rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gold/10 hover:border-gold/30 transition-all group/btn ${simplified ? 'flex-1 h-12' : 'flex-[2] h-14 px-6 justify-between'}`}
         >
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted group-hover/btn:text-gold">CONFIGURAR</span>
-          <ChevronRight size={18} className="text-muted group-hover/btn:text-gold group-hover/btn:translate-x-1 transition-all" />
+          {!simplified && <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted group-hover/btn:text-gold">CONFIGURAR</span>}
+          {simplified ? <Pencil size={16} className="text-muted group-hover/btn:text-gold" /> : <ChevronRight size={18} className="text-muted group-hover/btn:text-gold group-hover/btn:translate-x-1 transition-all" />}
         </button>
 
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(menu._id!); }}
-          className="w-14 h-14 rounded-2xl bg-red/5 border border-red/10 flex items-center justify-center text-red/40 hover:text-red hover:bg-red/20 hover:border-red/40 transition-all"
+          className={`rounded-2xl bg-red/5 border border-red/10 flex items-center justify-center text-red/40 hover:text-red hover:bg-red/20 hover:border-red/40 transition-all ${simplified ? 'w-12 h-12' : 'w-14 h-14'}`}
         >
-          <Trash2 size={18} />
+          <Trash2 size={simplified ? 16 : 18} />
         </button>
       </div>
 

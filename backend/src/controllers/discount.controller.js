@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import Discount from "../models/Discount.js";
 import Order    from "../models/Order.js";
+import ActivityLog from "../models/ActivityLog.js";
 import { logger } from "../config/logger.js";
+import { getIO, emitDiscountEvent } from "../socket/index.js";
 import {
   ok, badRequest, notFound, forbidden,
 } from "../utils/response.js";
@@ -17,7 +19,7 @@ export const applyDiscount = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const { orderId, items, type, value, reason, note } = req.body;
+    const { orderId, items, type, value, reason, note, promotionId } = req.body;
 
     /* ─── Validaciones básicas ─── */
     if (!orderId)                          return (await session.abortTransaction(), badRequest(res, "orderId es obligatorio"));
@@ -79,20 +81,55 @@ export const applyDiscount = async (req, res, next) => {
       amountApplied:    discountAmount,
       reason, note,
       appliedBy:        req.user.id,
+      promotionId:      promotionId || null,
       status:           "APPLIED",
       orderTotalBefore,
       orderTotalAfter:  Math.max(0, orderTotalBefore - discountAmount),
       meta: { ip: req.ip },
     }], { session });
 
+    const userLog = await mongoose.model("User").findById(req.user.id).select("name").lean();
+    await ActivityLog.create([{
+      userId: req.user.id,
+      userName: userLog?.name || "Sistema",
+      userRole: req.user.role || "bartender",
+      activityType: "discount_applied",
+      description: `Aplicó descuento de $${discountAmount.toFixed(2)} a la orden ${orderId}`,
+      metadata: { type, value, reason, promotionId },
+      sessionId: order.sessionId,
+      orderId: order._id,
+      discountId: discount._id,
+      tableId: order.table,
+    }], { session });
+
     /* ─── Actualizar orden ─── */
-    order.total = Math.max(0, order.total - discountAmount);
+    order.discountTotal = (order.discountTotal || 0) + discountAmount;
     order.discounts.push(discount._id);
     await order.save({ session });
 
     await session.commitTransaction();
 
     logger.info(`[Discount] $${discountAmount.toFixed(2)} aplicado a orden ${orderId} por ${req.user.id}`);
+
+    // Emitir evento Socket.IO para notificar en tiempo real
+    try {
+      const io = getIO();
+      if (io) {
+        emitDiscountEvent(io, "discount:applied", {
+          orderId: order._id.toString(),
+          discountId: discount._id.toString(),
+          amount: discountAmount,
+          reason,
+          type,
+          table: typeof order.table === 'object' ? order.table.number : order.table,
+          appliedBy: req.user.id,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } catch (socketError) {
+      logger.error(`[Discount] Error emitiendo evento Socket.IO:`, socketError);
+    }
+
     return ok(res, discount, `Descuento de $${discountAmount.toFixed(2)} aplicado correctamente`);
 
   } catch (error) {

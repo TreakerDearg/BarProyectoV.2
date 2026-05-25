@@ -1,28 +1,40 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   RefreshCcw,
   Plus,
   LayoutGrid,
-  Crown,
-  Dices,
   Search,
   ChevronLeft,
   ChevronRight,
-
+  Clock,
+  Radar,
+  Users,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
+  HelpCircle,
+  ArrowRight,
 } from "lucide-react";
 
 import ReservationForm from "../components/ReservationForm";
 import ReservationCard from "../components/ReservationCard";
+import ReservationActionModal from "../components/ReservationActionModal";
 
 import {
   getReservations,
   createReservation,
+  updateReservation,
   updateReservationStatus,
   deleteReservation,
 } from "../services/reservationService";
 
 import type { Reservation } from "../types/reservation";
-import socket from "../../../services/socket";
+import { connectSalonSockets, getMainSocket } from "../../../services/socket";
+import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
+import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
+import { useSalonUiStore } from "../../../store/salonUiStore";
+import "../../../styles/nebula-theme.css";
 
 const normalizeReservations = (data: any): Reservation[] => {
   if (Array.isArray(data)) return data;
@@ -33,12 +45,34 @@ const normalizeReservations = (data: any): Reservation[] => {
 
 type ViewMode = "pending" | "confirmed" | "history";
 
+function resolveTableId(
+  tableId: Reservation["tableId"]
+): string | null {
+  if (!tableId) return null;
+  if (typeof tableId === "string") return tableId;
+  return tableId._id ?? null;
+}
+
 export default function ReservationsPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const salonMode = useSalonUiStore((s) => s.mode);
+  const setSalonMode = useSalonUiStore((s) => s.setMode);
+  const {
+    isOpen: salonTutorialOpen,
+    openTutorial: openSalonTutorial,
+    closeTutorial: closeSalonTutorial,
+    completeTutorial: completeSalonTutorial,
+  } = useSalonTutorial(false);
+
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [postSeatTableId, setPostSeatTableId] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   /* VIEW SYSTEM */
   const [activeView, setActiveView] = useState<ViewMode>("confirmed");
@@ -48,19 +82,25 @@ export default function ReservationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  /* LIVE CLOCK for radar countdowns */
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30_000); // Update every 30s
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchReservations = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await getReservations({ 
-        page: activeView === "history" ? currentPage : 1, // Paginación solo real para historial? No, mejor todo por ahora
-        limit: 100, // Traemos bastantes para el filtro local por ahora
+        page: 1,
+        limit: 100,
         search: searchQuery 
       });
       
       const data = normalizeReservations(response);
       setReservations(data);
-      if (response?.totalPages) setTotalPages(response.totalPages);
     } catch (err: any) {
       setError(err.message || "Error al cargar reservaciones");
     } finally {
@@ -73,6 +113,11 @@ export default function ReservationsPage() {
   }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("token") || undefined;
+    connectSalonSockets(token);
+    const socket = getMainSocket();
+    if (!socket) return;
+
     const handleUpdate = (updated: Reservation) => {
       setReservations((prev) => {
         const list = [...prev];
@@ -83,48 +128,125 @@ export default function ReservationsPage() {
       });
     };
 
+    const handleCreated = (created: Reservation) => {
+      if (!created?._id) return;
+      setReservations((prev) => {
+        if (prev.some((r) => r._id === created._id)) return prev;
+        return [created, ...prev];
+      });
+    };
+
     const handleDelete = (id: string) => {
       setReservations((prev) => prev.filter((r) => r._id !== id));
     };
 
     socket.on("reservation:update", handleUpdate);
+    socket.on("reservation:created", handleCreated);
     socket.on("reservation:delete", handleDelete);
 
     return () => {
       socket.off("reservation:update", handleUpdate);
+      socket.off("reservation:created", handleCreated);
       socket.off("reservation:delete", handleDelete);
     };
   }, []);
 
-  const handleSave = async (reservation: any) => {
+  /* =========================
+     SAVE HANDLER (CREATE or EDIT)
+  ========================= */
+  const handleSave = async (data: any) => {
     try {
-      await createReservation(reservation);
-      setIsModalOpen(false);
+      if (data._id) {
+        // EDIT MODE: Use PUT
+        await updateReservation(data._id, data);
+      } else {
+        // CREATE MODE: Use POST
+        await createReservation(data);
+      }
+      setIsFormOpen(false);
       setSelectedReservation(null);
       fetchReservations();
     } catch (err: any) {
       setError(err.message || "Error al procesar reserva");
+      throw err; // Re-throw so the form can display the error
     }
   };
 
-  const handleSeat = async (id: string) => {
+  /* =========================
+     ACTION MODAL HANDLERS
+  ========================= */
+  const handleStatusChange = async (id: string, status: Reservation["status"]) => {
     try {
-      await updateReservationStatus(id, "seated");
-    } catch {
-      setError("Error al asignar mesa");
+      const before = reservations.find((r) => r._id === id);
+      await updateReservationStatus(id, status);
+      setIsActionModalOpen(false);
+      setSelectedReservation(null);
+      await fetchReservations();
+      if (status === "seated") {
+        const tid = resolveTableId(before?.tableId);
+        if (tid) setPostSeatTableId(tid);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Error al cambiar estado";
+      setError(msg);
     }
   };
 
   const handleDeleteReservation = async (id: string) => {
-    if (!window.confirm("¿Deseas anular esta apuesta / reservación?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres eliminar esta reservación permanentemente?")) return;
     try {
       await deleteReservation(id);
+      setIsActionModalOpen(false);
+      setSelectedReservation(null);
+      fetchReservations();
     } catch (err) {
       setError("No se pudo eliminar la reserva");
     }
   };
 
-  /* FILTERING LOGIC */
+  const handleEditFromModal = () => {
+    // Close action modal, open form in edit mode
+    setIsActionModalOpen(false);
+    setIsFormOpen(true);
+  };
+
+  const handleCardClick = (r: Reservation) => {
+    setSelectedReservation(r);
+    setIsActionModalOpen(true);
+  };
+
+  /* =========================
+     TIMELINE RADAR DATA
+  ========================= */
+  useEffect(() => {
+    const h = searchParams.get("highlight");
+    if (h) {
+      setHighlightId(h);
+      const t = setTimeout(() => setHighlightId(null), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [searchParams]);
+
+  const radarReservations = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return reservations
+      .filter(r => {
+        if (r.status !== "pending" && r.status !== "confirmed") return false;
+        const start = new Date(r.startTime);
+        return start >= today && start < tomorrow;
+      })
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+      .slice(0, 8); // Show max 8 entries
+  }, [reservations]);
+
+  /* =========================
+     FILTERING LOGIC
+  ========================= */
   const filteredReservations = useMemo(() => {
     let list = [...reservations];
 
@@ -134,7 +256,7 @@ export default function ReservationsPage() {
     } else if (activeView === "confirmed") {
       list = list.filter(r => r.status === "confirmed" || r.status === "seated");
     } else if (activeView === "history") {
-      list = list.filter(r => r.status === "completed" || r.status === "cancelled");
+      list = list.filter(r => r.status === "completed" || r.status === "cancelled" || r.status === "no-show");
     }
 
     // Search Filter
@@ -165,36 +287,87 @@ export default function ReservationsPage() {
     total: reservations.length,
     pending: reservations.filter(r => r.status === "pending").length,
     active: reservations.filter(r => r.status === "confirmed" || r.status === "seated").length,
-    history: reservations.filter(r => r.status === "completed" || r.status === "cancelled").length
+    history: reservations.filter(r => r.status === "completed" || r.status === "cancelled" || r.status === "no-show").length
   }), [reservations]);
 
   return (
-    <div className="flex flex-col h-full animate-fade-in space-y-10 p-4 relative overflow-hidden">
+    <div className="nebula-salon-root flex flex-col h-full space-y-6 p-4 md:p-6 relative overflow-hidden">
+      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-40" />
+      <SalonFlowTutorial
+        isOpen={salonTutorialOpen}
+        onClose={closeSalonTutorial}
+        onComplete={completeSalonTutorial}
+      />
 
-      {/* CASINO ATMOSPHERE DECOR */}
-      <div className="fixed -top-[10%] -right-[10%] w-[60%] h-[60%] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse pointer-events-none" />
-      <div className="fixed -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-brand/5 rounded-full blur-[120px] -z-10 animate-pulse pointer-events-none" />
-
-      {/* ROYALE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
-        <div className="space-y-4">
-          <div className="flex items-center gap-5">
-            <div className="p-4 bg-grad-gold rounded-3xl shadow-gold-glow animate-bounce-slow">
-              <Crown className="text-bg" size={32} />
-            </div>
-            <div>
-              <h1 className="text-7xl font-black tracking-tighter text-grad-gold uppercase leading-none drop-shadow-2xl">
-                Bóveda
-              </h1>
-              <p className="text-[11px] font-black text-muted uppercase tracking-[0.6em] ml-1 mt-2 flex items-center gap-2">
-                <Dices size={14} className="text-gold opacity-50" />
-                Casino System · <span className="text-grad-gold">Royale v2.5</span>
-              </p>
-            </div>
+      {postSeatTableId && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100">
+          <p className="text-sm font-medium">
+            Clientes sentados. La mesa ya tiene sesión activa para tomar pedidos.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                navigate(`/tables?table=${postSeatTableId}&order=1`);
+                setPostSeatTableId(null);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-semibold"
+            >
+              Ir a mesa
+              <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPostSeatTableId(null)}
+              className="px-3 py-1.5 text-xs text-muted hover:text-ivory"
+            >
+              Cerrar
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
+              <Sparkles size={16} />
+            </div>
+            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">
+              Nebula · Reservas
+            </p>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
+            Reservas del salón
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="nebula-mode-toggle">
+            <button
+              type="button"
+              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
+              onClick={() => setSalonMode("simple")}
+            >
+              Simple
+            </button>
+            <button
+              type="button"
+              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
+              onClick={() => setSalonMode("advanced")}
+            >
+              Avanzado
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={openSalonTutorial}
+            className="btn btn-ghost !px-3 !py-2 rounded-xl border border-white/10 text-xs flex items-center gap-1"
+          >
+            <HelpCircle size={16} />
+            Tutorial
+          </button>
           {/* SEARCH BAR */}
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
@@ -202,7 +375,7 @@ export default function ReservationsPage() {
             </div>
             <input
               type="text"
-              placeholder="Buscar apuesta..."
+              placeholder="Buscar cliente..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-surface-3 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-ivory focus:border-gold/40 focus:ring-4 focus:ring-gold/5 outline-none transition-all w-64 md:w-80 group-hover:border-white/10"
@@ -210,15 +383,144 @@ export default function ReservationsPage() {
           </div>
 
           <button
-            onClick={() => { setSelectedReservation(null); setIsModalOpen(true); }}
+            onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}
             className="btn btn-gold !px-12 !h-16 !rounded-[2rem] shadow-[0_20px_50px_rgba(212,163,64,0.3)] flex items-center gap-4 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             <Plus size={26} className="stroke-[4px] relative z-10" />
-            <span className="font-black tracking-[0.2em] text-xs uppercase relative z-10">Realizar Apuesta</span>
+            <span className="font-black tracking-[0.2em] text-xs uppercase relative z-10">Nueva Reserva</span>
           </button>
         </div>
       </div>
+
+      {/* ===========================
+         TIMELINE RADAR — "Radar de Llegadas"
+      =========================== */}
+      {salonMode === "advanced" && radarReservations.length > 0 && (
+        <div className="bg-surface-3/50 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gold/10 rounded-xl border border-gold/20">
+                <Radar size={18} className="text-gold" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-gold uppercase tracking-[0.3em]">Radar de Llegadas · Hoy</p>
+                <p className="text-[9px] text-muted font-bold uppercase tracking-widest mt-0.5">
+                  Próximas {radarReservations.length} reservas en camino
+                </p>
+              </div>
+            </div>
+            <div className="text-[9px] text-muted font-black uppercase tracking-widest flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              En vivo
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {radarReservations.map((r) => {
+              const startTime = new Date(r.startTime);
+              const diffMs = startTime.getTime() - now.getTime();
+              const diffMin = Math.floor(diffMs / (60 * 1000));
+              const isLate = diffMin < -15;
+              const isOverdue = diffMin < 0 && diffMin >= -15;
+              const isImminent = diffMin >= 0 && diffMin <= 15;
+
+              const timeLabel = diffMin > 60
+                ? `Llega en ${Math.floor(diffMin / 60)}h ${diffMin % 60}m`
+                : diffMin > 0
+                ? `Llega en ${diffMin} min`
+                : diffMin === 0
+                ? "¡LLEGANDO AHORA!"
+                : diffMin >= -15
+                ? `Esperando ${Math.abs(diffMin)} min`
+                : `⚠️ ${Math.abs(diffMin)} MIN ATRASADO`;
+
+              const timeFormatted = startTime.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+
+              return (
+                <button
+                  key={r._id}
+                  type="button"
+                  onClick={() => handleCardClick(r)}
+                  className={`
+                    p-4 rounded-2xl border transition-all text-left group/radar cursor-pointer
+                    ${isLate
+                      ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40 animate-pulse'
+                      : isOverdue
+                      ? 'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/40'
+                      : isImminent
+                      ? 'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40'
+                      : 'bg-surface-4/50 border-white/5 hover:border-white/15'
+                    }
+                  `}
+                >
+                  {/* Name & Time */}
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-black text-ivory uppercase tracking-wider truncate max-w-[120px]">
+                      {r.customerName}
+                    </p>
+                    {r.isVIP && (
+                      <Sparkles size={12} className="text-violet-300 shrink-0" />
+                    )}
+                  </div>
+
+                  {/* Arrival Badge */}
+                  <div className={`
+                    text-[10px] font-black uppercase tracking-wider mb-2
+                    ${isLate ? 'text-red-400' : isOverdue ? 'text-amber-400' : isImminent ? 'text-emerald-400' : 'text-muted'}
+                  `}>
+                    {timeLabel}
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[9px] text-muted font-bold uppercase tracking-widest">
+                      <Clock size={10} className="text-gold/50" />
+                      {timeFormatted}
+                    </div>
+                    <div className="flex items-center gap-1 text-[9px] text-muted font-bold">
+                      <Users size={10} className="text-gold/50" />
+                      {r.guests}
+                    </div>
+                  </div>
+
+                  {/* Quick Action Strip */}
+                  <div className="flex gap-1.5 mt-3 opacity-0 group-hover/radar:opacity-100 transition-opacity">
+                    {(r.status === "pending" || r.status === "confirmed") && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(r._id!, "seated");
+                          }}
+                          className="flex-1 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-[8px] font-black uppercase tracking-wider hover:bg-emerald-500/30 transition-colors"
+                          title="Sentar al cliente"
+                        >
+                          <CheckCircle2 size={10} className="inline mr-1" />
+                          Sentar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(r._id!, "no-show");
+                          }}
+                          className="flex-1 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-[8px] font-black uppercase tracking-wider hover:bg-red-500/20 transition-colors"
+                          title="Marcar como no asistió"
+                        >
+                          <XCircle size={10} className="inline mr-1" />
+                          No-Show
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* VIEW SYSTEM TABS */}
       <div className="flex items-center justify-between border-b border-white/5 pb-2">
@@ -237,13 +539,15 @@ export default function ReservationsPage() {
             count={stats.active}
             color="gold"
           />
-          <ViewTab
-            active={activeView === "history"}
-            onClick={() => setActiveView("history")}
-            label="Historial / Canceladas"
-            count={stats.history}
-            color="neutral"
-          />
+          {salonMode === "advanced" && (
+            <ViewTab
+              active={activeView === "history"}
+              onClick={() => setActiveView("history")}
+              label="Historial"
+              count={stats.history}
+              color="neutral"
+            />
+          )}
         </div>
 
         <button onClick={fetchReservations} className="p-3 hover:bg-white/5 rounded-xl transition-all group">
@@ -257,7 +561,7 @@ export default function ReservationsPage() {
         {loading && reservations.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center opacity-20 py-20">
             <div className="spinner mb-8 w-16 h-16" />
-            <p className="text-sm font-black tracking-[0.5em] uppercase">Sincronizando Bóveda Royale...</p>
+            <p className="text-sm font-semibold text-muted">Cargando reservas…</p>
           </div>
         ) : (
           <>
@@ -265,10 +569,12 @@ export default function ReservationsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 {paginatedItems.map(r => (
                   <ReservationCard
-                    key={r._id} r={r}
-                    onSeat={handleSeat}
+                    key={r._id}
+                    r={r}
+                    highlighted={highlightId === r._id}
+                    onSeat={(id) => handleStatusChange(id, "seated")}
                     onDelete={handleDeleteReservation}
-                    onClick={() => { setSelectedReservation(r); setIsModalOpen(true); }}
+                    onClick={() => handleCardClick(r)}
                   />
                 ))}
               </div>
@@ -322,12 +628,27 @@ export default function ReservationsPage() {
         )}
       </div>
 
-      {/* MODAL SYSTEM */}
-      {isModalOpen && (
+      {/* ===========================
+         MODAL: RESERVATION ACTION MODAL (click on card)
+      =========================== */}
+      {isActionModalOpen && selectedReservation && (
+        <ReservationActionModal
+          reservation={selectedReservation}
+          onClose={() => { setIsActionModalOpen(false); setSelectedReservation(null); }}
+          onStatusChange={(status) => handleStatusChange(selectedReservation._id!, status)}
+          onEdit={handleEditFromModal}
+          onDelete={() => handleDeleteReservation(selectedReservation._id!)}
+        />
+      )}
+
+      {/* ===========================
+         MODAL: RESERVATION FORM (new or edit)
+      =========================== */}
+      {isFormOpen && (
         <ReservationForm
           reservation={selectedReservation}
           onSave={async (data) => { await handleSave(data); }}
-          onClose={() => { setIsModalOpen(false); setSelectedReservation(null); }}
+          onClose={() => { setIsFormOpen(false); setSelectedReservation(null); }}
         />
       )}
     </div>

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getPublicRouletteDrinks, spinRoulette } from "@/lib/api/bartender";
 import { useClienteStore } from "@/stores/useClienteStore";
+import { useRouletteSocket } from "@/hooks/useRouletteSocket";
 import type { RouletteDrinkRow } from "@/lib/types/api";
-import { Loader2, Sparkles, PartyPopper, Play } from "lucide-react";
+import { Loader2, Sparkles, PartyPopper, Play, X, Trophy, Gift } from "lucide-react";
 import clsx from "clsx";
 import styles from "./Ruleta.module.css";
 
@@ -29,6 +30,7 @@ function wheelGradient(drinks: RouletteDrinkRow[]) {
 
 export default function RuletaPage() {
   const token = useClienteStore((s) => s.token);
+  const { notification, showNotification, dismissNotification, isConnected, connectionQuality, reconnect } = useRouletteSocket();
   const [drinks, setDrinks] = useState<RouletteDrinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [spinning, setSpinning] = useState(false);
@@ -89,11 +91,69 @@ export default function RuletaPage() {
         <div className={styles.headerIcon}>
           <Sparkles className="h-6 w-6" />
         </div>
-        <h1 className={styles.headerTitle}>Ruleta Nebula</h1>
-        <p className={styles.headerSubtitle}>
-          Dejá que el azar elija tu próximo trago. ¿Te animás?
-        </p>
+        <div className="flex-1">
+          <h1 className={styles.headerTitle}>Ruleta Nebula</h1>
+          <p className={styles.headerSubtitle}>
+            Dejá que el azar elija tu próximo trago. ¿Te animás?
+          </p>
+        </div>
+        {/* Connection Status Indicator */}
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${
+            isConnected ? 'bg-emerald-400' : 'bg-red-400'
+          } ${connectionQuality === 'poor' ? 'animate-pulse' : ''}`} />
+          <span className="text-xs text-zinc-400">
+            {isConnected ? 'En línea' : 'Desconectado'}
+          </span>
+          {!isConnected && (
+            <button
+              onClick={reconnect}
+              className="text-xs text-amber-400 hover:text-amber-300 underline"
+            >
+              Reconectar
+            </button>
+          )}
+        </div>
       </header>
+
+      {/* NOTIFICATION SYSTEM */}
+      {showNotification && notification && (
+        <div className={styles.notificationOverlay} onClick={dismissNotification}>
+          <div className={styles.notificationCard} onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={dismissNotification}
+              className={styles.notificationClose}
+            >
+              <X size={16} />
+            </button>
+            
+            <div className={styles.notificationIcon}>
+              {notification.meta.pityTriggered ? (
+                <Trophy size={32} className={styles.trophyIcon} />
+              ) : (
+                <Gift size={32} className={styles.giftIcon} />
+              )}
+            </div>
+            
+            <div className={styles.notificationContent}>
+              <h3 className={styles.notificationTitle}>
+                {notification.meta.pityTriggered ? "¡PITY SYSTEM ACTIVADO!" : "¡FELICIDADES!"}
+              </h3>
+              <p className={styles.notificationMessage}>
+                Has ganado: <strong>{notification.result.name}</strong>
+              </p>
+              <div className={styles.notificationRarity}>
+                {notification.result.rarity}
+              </div>
+              {notification.meta.pityTriggered && (
+                <p className={styles.notificationPity}>
+                  Sistema Pity activado: {notification.meta.pityTarget} garantizado
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {!token && (
         <div className={styles.alertInfo}>

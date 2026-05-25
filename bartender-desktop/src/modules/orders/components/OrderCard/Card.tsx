@@ -5,7 +5,7 @@ import OrderTimer from "./OrderTimer";
 import OrderItems from "./OrderItems";
 import OrderActions from "./OrderActions";
 import { getTableLabel, isBarOrder } from "./orderCard.utils";
-import { Flame, Zap, Clock, ChevronRight, History } from "lucide-react";
+import { Flame, Zap, Clock, History } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Props {
@@ -127,7 +127,9 @@ export default function OrderCard(props: Props) {
               <OrderItems
                 items={order.items}
                 status={order.status}
-                onSelectItem={props.onSelectItem}
+                onSelectItem={(item) =>
+                  props.onSelectItem?.({ ...item, orderId })
+                }
                 selectedItemId={props.selectedItemId}
               />
            </div>

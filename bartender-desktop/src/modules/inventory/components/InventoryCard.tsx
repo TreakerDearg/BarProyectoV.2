@@ -3,8 +3,6 @@
 import {
   Pencil,
   Trash2,
-  AlertTriangle,
-  Package,
   Flame,
   Martini,
   Layers,
@@ -23,12 +21,14 @@ interface Props {
   item: InventoryItem;
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
+  simplified?: boolean;
 }
 
 export default function InventoryCard({
   item,
   onEdit,
   onDelete,
+  simplified = false,
 }: Props) {
   const stock = Number(item.stock ?? 0);
   const minStock = Number(item.minStock ?? 0);
@@ -88,11 +88,19 @@ export default function InventoryCard({
       </div>
 
       {/* ================= DYNAMIC VISUALIZATION ================= */}
-      <div className="relative h-48 bg-black/40 rounded-[2rem] border border-white/5 overflow-hidden group/gauge shadow-inner">
-        {isLiquid ? (
+      <div className={`relative bg-black/40 rounded-[2rem] border border-white/5 overflow-hidden group/gauge shadow-inner ${simplified ? 'h-32' : 'h-48'}`}>
+        {simplified ? (
+          /* SIMPLIFIED VIEW */
+          <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3">
+            <p className="text-3xl font-black text-ivory tracking-tighter">{stock}<span className="text-sm ml-1 text-muted">{item.unit}</span></p>
+            <div className={`px-3 py-1 rounded-full bg-${statusConfig.color}/20 text-${statusConfig.color} text-xs font-bold`}>
+              {percent.toFixed(0)}%
+            </div>
+          </div>
+        ) : isLiquid ? (
           /* LIQUID GAUGE */
           <div className="absolute inset-0 flex flex-col justify-end">
-            <div 
+            <div
               className={`w-full bg-${statusConfig.color} opacity-40 transition-all duration-1000 relative`}
               style={{ height: `${percent}%` }}
             >
@@ -118,50 +126,54 @@ export default function InventoryCard({
             </div>
           </div>
         )}
-        
-        {/* INFO OVERLAY */}
-        <div className="absolute bottom-4 left-0 w-full px-6 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full bg-${statusConfig.color} animate-pulse`} />
-            <span className="text-[10px] font-black text-ivory uppercase tracking-widest">{percent.toFixed(0)}% DISPONIBLE</span>
+
+        {/* INFO OVERLAY - Hidden in simplified mode */}
+        {!simplified && (
+          <div className="absolute bottom-4 left-0 w-full px-6 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full bg-${statusConfig.color} animate-pulse`} />
+              <span className="text-[10px] font-black text-ivory uppercase tracking-widest">{percent.toFixed(0)}% DISPONIBLE</span>
+            </div>
+            <p className="text-[10px] font-black text-muted uppercase tracking-widest">MÁX: {maxStock}</p>
           </div>
-          <p className="text-[10px] font-black text-muted uppercase tracking-widest">MÁX: {maxStock}</p>
-        </div>
+        )}
       </div>
 
-      {/* ================= STATS ROW ================= */}
-      <div className="grid grid-cols-2 gap-3 relative z-10">
-        <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">COSTO UNITARIO</p>
-          <div className="flex items-center gap-2">
-            <TrendingUp size={12} className="text-emerald-400" />
-            <span className="text-sm font-black text-ivory">${cost.toFixed(2)}</span>
+      {/* ================= STATS ROW - Hidden in simplified mode ================= */}
+      {!simplified && (
+        <div className="grid grid-cols-2 gap-3 relative z-10">
+          <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
+            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">COSTO UNITARIO</p>
+            <div className="flex items-center gap-2">
+              <TrendingUp size={12} className="text-emerald-400" />
+              <span className="text-sm font-black text-ivory">${cost.toFixed(2)}</span>
+            </div>
+          </div>
+          <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
+            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">IDENTIFICADOR</p>
+            <div className="flex items-center gap-2">
+              <Zap size={12} className="text-gold" />
+              <span className="text-[10px] font-black text-ivory tracking-tighter">#{item._id?.slice(-6).toUpperCase()}</span>
+            </div>
           </div>
         </div>
-        <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">IDENTIFICADOR</p>
-          <div className="flex items-center gap-2">
-            <Zap size={12} className="text-gold" />
-            <span className="text-[10px] font-black text-ivory tracking-tighter">#{item._id?.slice(-6).toUpperCase()}</span>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* ================= ACTIONS ================= */}
-      <div className="flex gap-3 relative z-10 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+      {/* ================= ACTIONS - Always visible but simplified in simple mode ================= */}
+      <div className={`flex gap-3 relative z-10 ${simplified ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'} transition-all duration-500`}>
         <button
           onClick={() => onEdit(item)}
-          className="flex-[2] h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between px-6 hover:bg-gold/10 hover:border-gold/30 transition-all group/btn"
+          className={`rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-gold/10 hover:border-gold/30 transition-all group/btn ${simplified ? 'flex-1 h-12' : 'flex-[2] h-14 px-6 justify-between'}`}
         >
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted group-hover/btn:text-gold">GESTIONAR</span>
-          <ChevronRight size={18} className="text-muted group-hover/btn:text-gold group-hover/btn:translate-x-1 transition-all" />
+          {!simplified && <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted group-hover/btn:text-gold">GESTIONAR</span>}
+          {simplified ? <Pencil size={16} className="text-muted group-hover/btn:text-gold" /> : <ChevronRight size={18} className="text-muted group-hover/btn:text-gold group-hover/btn:translate-x-1 transition-all" />}
         </button>
 
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(item._id!); }}
-          className="w-14 h-14 rounded-2xl bg-red/5 border border-red/10 flex items-center justify-center text-red/40 hover:text-red hover:bg-red/20 hover:border-red/40 transition-all"
+          className={`rounded-2xl bg-red/5 border border-red/10 flex items-center justify-center text-red/40 hover:text-red hover:bg-red/20 hover:border-red/40 transition-all ${simplified ? 'w-12 h-12' : 'w-14 h-14'}`}
         >
-          <Trash2 size={18} />
+          <Trash2 size={simplified ? 16 : 18} />
         </button>
       </div>
 

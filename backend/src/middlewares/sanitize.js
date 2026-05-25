@@ -60,3 +60,5 @@ export const sanitize = (req, res, next) => {
     next(err);
   }
 };
+
+export default sanitize;

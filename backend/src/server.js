@@ -10,8 +10,24 @@ import { Server } from "socket.io";
 import { connectDB }    from "./config/db.js";
 import { getDbStatus }  from "./config/dbStatus.js";
 import { logger }       from "./config/logger.js";
-import { errorHandler } from "./middlewares/errorHandler.js";
 import apiRoutes        from "./routes/index.js";
+import { initializeSocketEvents } from "./utils/socketEvents.js";
+import { initializeSocketNamespaces } from "./socket/index.js";
+
+// Importar middlewares mejorados
+import {
+  security,
+  rateLimiters,
+  enhancedLogger,
+  metricsMiddlewares,
+  healthCheckMiddleware,
+  metricsEndpoint,
+  prometheusMetricsEndpoint,
+  alertsEndpoint,
+  resetMetricsEndpoint,
+  MiddlewareBuilder
+} from "./middlewares/index.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 
@@ -22,35 +38,23 @@ const app    = express();
 const server = http.createServer(app);
 
 /* =========================================================
-   DB CONNECTION
+   CORS CONFIGURATION (Must be first to handle preflight OPTIONS requests)
 ========================================================= */
-connectDB();
+const extraOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-/* =========================================================
-   SECURITY MIDDLEWARE
-========================================================= */
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,  // Electron lo necesita desactivado
-}));
-
-app.set("trust proxy", 1);
-
-/* =========================================================
-   BODY PARSER
-========================================================= */
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-/* =========================================================
-   CORS CONFIG
-========================================================= */
-const allowedOrigins = new Set([
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  process.env.CLIENT_URL,
-  process.env.DESKTOP_URL,
-].filter(Boolean));
+const allowedOrigins = new Set(
+  [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    process.env.CLIENT_URL,
+    process.env.DESKTOP_URL,
+    ...extraOrigins,
+  ].filter(Boolean)
+);
 
 app.use(
   cors({
@@ -67,44 +71,51 @@ app.use(
 );
 
 /* =========================================================
-   REQUEST LOGGER (dev)
+   DB CONNECTION
 ========================================================= */
-if (process.env.NODE_ENV !== "production") {
-  app.use((req, _res, next) => {
-    logger.info(`→ ${req.method} ${req.originalUrl}`);
-    next();
-  });
-}
+connectDB();
+
+/* =========================================================
+   MIDDLEWARE CONFIGURATION
+========================================================= */
+
+// Determinar preset de middlewares según entorno
+const env = process.env.NODE_ENV || 'development';
+const middlewareBuilder = MiddlewareBuilder.create(env);
+
+// Construir cadena de middlewares
+const middlewares = middlewareBuilder.build();
+
+// Aplicar middlewares
+middlewares.forEach(middleware => {
+  app.use(middleware);
+});
+
+// =========================================================
+// BODY PARSER
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+/* =========================================================
+   CORS CONFIG (Moved to the top)
+========================================================= */
+// CORS has been moved to the top of the file to ensure it intercepts all requests including preflights
+
+/* =========================================================
+   HEALTH CHECK & MONITORING ENDPOINTS
+========================================================= */
+app.get("/health", healthCheckMiddleware());
+app.get("/metrics", metricsEndpoint);
+app.get("/metrics/prometheus", prometheusMetricsEndpoint);
+app.get("/alerts", alertsEndpoint);
+app.post("/metrics/reset", resetMetricsEndpoint);
 
 /* =========================================================
    BASE ROUTES
 ========================================================= */
 app.get("/", (_req, res) => {
-  res.send("🍸 Bartender API v2.0 funcionando correctamente");
-});
-
-/* =========================================================
-   HEALTH CHECK
-========================================================= */
-app.get("/health", (_req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const memory  = process.memoryUsage();
-
-  res.json({
-    status:   dbState === 1 ? "OK" : "DEGRADED",
-    database: { status: getDbStatus(), state: dbState },
-    system: {
-      uptime:   `${Math.floor(process.uptime())}s`,
-      node:     process.version,
-      platform: os.platform(),
-      hostname: os.hostname(),
-    },
-    memory: {
-      rss:      `${(memory.rss      / 1024 / 1024).toFixed(2)} MB`,
-      heapUsed: `${(memory.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-    },
-    timestamp: new Date().toISOString(),
-  });
+  res.send("🍸 Bartender API v3.0 funcionando correctamente");
 });
 
 /* =========================================================
@@ -125,6 +136,12 @@ export const io = new Server(server, {
   pingTimeout:  20000,
   pingInterval: 25000,
 });
+
+/* Inicializar eventos de Socket.IO */
+initializeSocketEvents(io);
+
+/* Inicializar namespaces de tracking */
+initializeSocketNamespaces(io);
 
 /* ─── SOCKET EVENTS ─── */
 io.on("connection", (socket) => {
@@ -148,6 +165,33 @@ io.on("connection", (socket) => {
   /* KITCHEN / BAR ROOMS */
   socket.on("join:kitchen",    () => socket.join("role:kitchen"));
   socket.on("join:bartender",  () => socket.join("role:bartender"));
+
+  /* PAYMENTS ROOMS */
+  socket.on("join:payments", () => {
+    socket.join("payments:global");
+    logger.info(`[WS] ${socket.id} → sala payments:global`);
+  });
+
+  socket.on("join:table:payments", (tableId) => {
+    socket.join(`table:${tableId}`);
+    logger.info(`[WS] ${socket.id} → sala table:${tableId} (pagos)`);
+  });
+
+  /* USER ROOMS (para notificaciones personalizadas) */
+  socket.on("join:user", (userId) => {
+    socket.join(`user:${userId}`);
+    logger.info(`[WS] ${socket.id} → sala user:${userId}`);
+  });
+
+  socket.on("leave:user", (userId) => {
+    socket.leave(`user:${userId}`);
+  });
+
+  /* ROULETTE ROOMS */
+  socket.on("join:roulette", () => {
+    socket.join("roulette:global");
+    logger.info(`[WS] ${socket.id} → sala roulette:global`);
+  });
 
   socket.on("disconnect", (reason) => {
     logger.info(`[WS] Desconectado → ${socket.id} (${reason})`);
@@ -175,10 +219,19 @@ app.use(errorHandler);
 ========================================================= */
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  logger.info(`🚀 Bartender API corriendo en http://localhost:${PORT}`);
-  logger.info(`🌍 NODE_ENV: ${process.env.NODE_ENV || "development"}`);
-});
+try {
+  server.listen(PORT, () => {
+    logger.info(`🚀 Bartender API corriendo en http://localhost:${PORT}`);
+    logger.info(`🌍 NODE_ENV: ${process.env.NODE_ENV || "development"}`);
+    logger.info(`🔧 Middleware preset: ${env}`);
+    logger.info(`📊 Métricas habilitadas: /metrics`);
+    logger.info(`❤️ Health check: /health`);
+  });
+} catch (error) {
+  logger.error('[Server] Error al iniciar el servidor:', error);
+  console.error('Error al iniciar el servidor:', error);
+  process.exit(1);
+}
 
 /* =========================================================
    GRACEFUL SHUTDOWN
@@ -194,3 +247,16 @@ const shutdown = (signal) => {
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT",  () => shutdown("SIGINT"));
+
+// Global error handlers
+process.on('uncaughtException', (error) => {
+  logger.error('[Server] Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('[Server] Unhandled Rejection:', reason);
+  console.error('Unhandled Rejection:', reason);
+  process.exit(1);
+});

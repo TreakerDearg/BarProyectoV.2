@@ -15,7 +15,7 @@ export interface OrderItem {
 
   type: "drink" | "food";
 
-  status: "pending" | "preparing" | "ready" | "delivered";
+  status: "pending" | "preparing" | "ready" | "served" | "cancelled";
 }
 
 /* ==============================

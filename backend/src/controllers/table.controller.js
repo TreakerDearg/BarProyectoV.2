@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 import Table   from "../models/Table.js";
 import Order   from "../models/Order.js";
+import TableAnalytics from "../models/TableAnalytics.js";
 import { io }  from "../server.js";
 import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict,
 } from "../utils/response.js";
+import {
+  startServiceSession,
+  completeReservationOnTableClose,
+} from "../services/tableSession.service.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -78,7 +83,7 @@ export const getTableById = async (req, res, next) => {
 ========================================================= */
 export const createTable = async (req, res, next) => {
   try {
-    const { number, capacity, location = "indoor" } = req.body;
+    const { number, capacity, location = "indoor", notes, x, y, width, height, shape } = req.body;
 
     if (!number || !capacity) {
       return badRequest(res, "number y capacity son obligatorios");
@@ -87,9 +92,21 @@ export const createTable = async (req, res, next) => {
     const exists = await Table.findOne({ number });
     if (exists) return conflict(res, `La mesa #${number} ya existe`);
 
-    const table = await Table.create({ number, capacity, location });
+    const table = await Table.create({
+      number,
+      capacity,
+      location,
+      notes,
+      x,
+      y,
+      width,
+      height,
+      shape
+    });
 
     logger.info(`[Table] Creada: mesa #${number}`);
+    const createdTable = await Table.findById(table._id).lean();
+    io.emit("table:created", createdTable);
     await emitTableUpdate(table._id);
 
     return created(res, table, `Mesa #${number} creada correctamente`);
@@ -154,20 +171,27 @@ export const openTable = async (req, res, next) => {
     const table = await Table.findById(id);
     if (!table) return notFound(res, "Mesa no encontrada");
 
-    /* Ya está ocupada → devolver sessionId existente */
-    if (table.status === "occupied") {
-      return ok(res, { sessionId: table.currentSessionId, table }, "Mesa ya activa");
+    try {
+      const result = await startServiceSession(id, {
+        reservationId: table.currentReservation?.toString() || null,
+        allowWalkIn: table.status === "available",
+      });
+
+      const sessionId = result.sessionId;
+      const updated = result.table || (await Table.findById(id).lean());
+
+      io.emit("table:opened", { tableId: id, sessionId });
+      logger.info(`[Table] Abierta: mesa #${table.number} (session: ${sessionId})`);
+      return ok(
+        res,
+        { sessionId, table: updated },
+        result.alreadyActive ? "Mesa ya activa" : "Mesa abierta correctamente"
+      );
+    } catch (err) {
+      if (err.code === "badRequest") return badRequest(res, err.message);
+      if (err.code === "notFound") return notFound(res, err.message);
+      throw err;
     }
-
-    const sessionId = new mongoose.Types.ObjectId().toString();
-    table.startSession(sessionId);
-    await table.save();
-
-    await emitTableUpdate(id);
-    io.emit("table:opened", { tableId: id, sessionId });
-
-    logger.info(`[Table] Abierta: mesa #${table.number} (session: ${sessionId})`);
-    return ok(res, { sessionId, table }, "Mesa abierta correctamente");
   } catch (error) { next(error); }
 };
 
@@ -179,6 +203,8 @@ export const closeTable = async (req, res, next) => {
 
   try {
     const { id } = req.params;
+    const { goToMaintenance = false, maintenanceMinutes = 5 } = req.body;
+
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     session.startTransaction();
@@ -194,12 +220,22 @@ export const closeTable = async (req, res, next) => {
       { session }
     );
 
-    table.release();
-    table.lastSessionClosedAt = new Date();
+    if (goToMaintenance) {
+      /* Pasar a mantenimiento por X minutos */
+      const maintenanceUntil = new Date(Date.now() + maintenanceMinutes * 60 * 1000);
+      table.setMaintenance(maintenanceUntil);
+      table.lastSessionClosedAt = new Date();
+    } else {
+      /* Liberar mesa directamente */
+      table.release();
+      table.lastSessionClosedAt = new Date();
+    }
+
     await table.save({ session });
 
     await session.commitTransaction();
 
+    await completeReservationOnTableClose(id);
     await emitTableUpdate(id);
     io.emit("table:closed", { tableId: id });
 
@@ -268,4 +304,158 @@ export const clearTableTags = async (req, res, next) => {
 
     return ok(res, table, "Tags eliminados");
   } catch (error) { next(error); }
+};
+
+/* =========================================================
+   GET TABLE SESSION HISTORY (Integración con Payment)
+========================================================= */
+export const getTableSessionHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { limit = 50 } = req.query;
+
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const table = await Table.findById(id).lean();
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    // Obtener historial de sesiones basado en lastSessionClosedAt
+    // Por ahora retornamos la información actual de la mesa
+    // En el futuro, se puede implementar un modelo de SessionHistory
+
+    const history = {
+      tableId: table._id,
+      tableNumber: table.number,
+      currentSessionId: table.currentSessionId,
+      totalPayments: table.totalPayments || 0,
+      lastPaymentAt: table.lastPaymentAt,
+      lastSessionClosedAt: table.lastSessionClosedAt,
+      status: table.status,
+    };
+
+    return ok(res, history);
+  } catch (error) { next(error); }
+};
+
+/* =========================================================
+   TABLE ANALYTICS
+========================================================= */
+
+/**
+ * Obtener analytics generales de todas las mesas
+ */
+export const getTableAnalytics = async (req, res, next) => {
+  try {
+    const { period = "daily", startDate, endDate } = req.query;
+
+    const match = { period };
+    if (startDate || endDate) {
+      match.date = {};
+      if (startDate) match.date.$gte = new Date(startDate);
+      if (endDate) match.date.$lte = new Date(endDate);
+    }
+
+    const analytics = await TableAnalytics.find(match)
+      .populate("table", "number capacity location")
+      .sort({ date: -1 })
+      .limit(100)
+      .lean();
+
+    // Calcular agregaciones
+    const summary = {
+      totalTables: analytics.length,
+      totalRevenue: analytics.reduce((sum, a) => sum + (a.revenue?.totalRevenue || 0), 0),
+      totalSessions: analytics.reduce((sum, a) => sum + (a.occupancy?.totalSessions || 0), 0),
+      averageOccupancy: analytics.length > 0
+        ? analytics.reduce((sum, a) => sum + (a.occupancy?.occupancyRate || 0), 0) / analytics.length
+        : 0,
+      averageOrderValue: analytics.length > 0
+        ? analytics.reduce((sum, a) => sum + (a.revenue?.averageOrderValue || 0), 0) / analytics.length
+        : 0,
+    };
+
+    return ok(res, { analytics, summary });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Obtener analytics de una mesa específica
+ */
+export const getTableAnalyticsById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { period = "daily", limit = 30 } = req.query;
+
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const table = await Table.findById(id);
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    const analytics = await TableAnalytics.find({
+      table: id,
+      period,
+    })
+      .sort({ date: -1 })
+      .limit(Number(limit))
+      .lean();
+
+    // Calcular promedios históricos
+    const historical = {
+      averageRevenue: analytics.length > 0
+        ? analytics.reduce((sum, a) => sum + (a.revenue?.totalRevenue || 0), 0) / analytics.length
+        : 0,
+      averageOccupancy: analytics.length > 0
+        ? analytics.reduce((sum, a) => sum + (a.occupancy?.occupancyRate || 0), 0) / analytics.length
+        : 0,
+      averageSessionDuration: analytics.length > 0
+        ? analytics.reduce((sum, a) => sum + (a.occupancy?.averageSessionDuration || 0), 0) / analytics.length
+        : 0,
+      totalRevenue: analytics.reduce((sum, a) => sum + (a.revenue?.totalRevenue || 0), 0),
+      totalSessions: analytics.reduce((sum, a) => sum + (a.occupancy?.totalSessions || 0), 0),
+    };
+
+    return ok(res, { table, analytics, historical });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Generar analytics para una mesa y período específicos
+ */
+export const generateTableAnalytics = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { date, period = "daily" } = req.body;
+
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+    if (!date) return badRequest(res, "date es obligatorio");
+
+    const table = await Table.findById(id);
+    if (!table) return notFound(res, "Mesa no encontrada");
+
+    const analytics = await TableAnalytics.generateAnalytics(id, new Date(date), period);
+
+    logger.info(`[TableAnalytics] Generados analytics para mesa ${table.number} - ${period} - ${date}`);
+    return created(res, analytics, "Analytics generados correctamente");
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Obtener ranking de mesas por rendimiento
+ */
+export const getTablePerformanceRanking = async (req, res, next) => {
+  try {
+    const { period = "daily", limit = 10 } = req.query;
+
+    const ranking = await TableAnalytics.getTableRanking(period, Number(limit));
+
+    return ok(res, ranking);
+  } catch (error) {
+    next(error);
+  }
 };

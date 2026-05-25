@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "../styles/bartender-tokens.css";
 
-@theme inline {
+:root {
   --color-bg: var(--bg);
   --color-bg-deep: var(--bg-deep);
   --color-surface: var(--surface);
@@ -49,4 +49,505 @@ body {
 ::selection {
   background: color-mix(in srgb, var(--gold) 35%, transparent);
   color: var(--text);
+}
+
+/* ===============================================================
+   ROYALE UI UTILITIES � Casino Edition (Copied from Desktop)
+=============================================================== */
+.input-royale {
+  width: 100%;
+  background-color: var(--surface-4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.input-royale::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.input-royale:focus {
+  border-color: rgba(212, 163, 64, 0.4);
+  box-shadow: 0 0 0 4px rgba(212, 163, 64, 0.05),
+              inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.group:hover .input-royale {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-royale {
+  background-color: var(--surface-glow);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.badge-royale {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-royale {
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+.glow-gold-lg {
+  box-shadow: 0 0 50px -10px rgba(212, 163, 64, 0.3);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -10px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite ease-in-out;
+}
+
+/* === DESKTOP UTILITIES === */
+.glass {
+  background: rgba(13, 15, 20, 0.60);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.glass-gold {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--gold-border);
+  box-shadow: var(--shadow), var(--gold-glow);
+}
+
+.glass-red {
+  background: rgba(13, 15, 20, 0.65);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--red-border);
+  box-shadow: var(--shadow), var(--red-glow);
+}
+
+/* ===============================================================
+   ─── CARD SYSTEM ───
+=============================================================== */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              transform var(--duration) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow), var(--gold-glow);
+  transform: translateY(-2px);
+}
+
+.card-flat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ===============================================================
+   ─── BADGE SYSTEM ───
+=============================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.badge-gold    { color: var(--gold);    background: var(--gold-soft);    border-color: var(--gold-border);    }
+.badge-red     { color: var(--red-light);     background: var(--red-soft);     border-color: var(--red-border);     }
+.badge-orange  { color: var(--orange-light);  background: var(--orange-soft);  border-color: var(--orange-border);  }
+.badge-green   { color: var(--green-light);   background: var(--green-soft);   border-color: var(--green-border);   }
+.badge-neutral { color: var(--neutral-light); background: rgba(61, 65, 80, 0.25); border-color: rgba(61,65,80,0.4); }
+
+/* ===============================================================
+   ─── STATE SYSTEM (Order / Table statuses) ───
+=============================================================== */
+
+/* pending → naranja */
+.state-pending   { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* preparing → naranja vivo */
+.state-preparing { color: var(--orange-light); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* ready → dorado */
+.state-ready     { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+
+/* served / completed → verde */
+.state-served    { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+.state-completed { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+
+/* cancelled → rojo */
+.state-cancelled { color: var(--red-light);  background: var(--red-soft);  border-color: var(--red-border); }
+
+/* available → verde */
+.state-available { color: var(--green);  background: var(--green-soft);  border-color: var(--green-border); }
+
+/* occupied → naranja */
+.state-occupied  { color: var(--orange); background: var(--orange-soft); border-color: var(--orange-border); }
+
+/* reserved → dorado */
+.state-reserved  { color: var(--gold);   background: var(--gold-soft);   border-color: var(--gold-border); }
+
+/* maintenance → rojo dim */
+.state-maintenance { color: var(--red-light); background: var(--red-soft); border-color: var(--red-border); }
+
+/* ===============================================================
+   ─── BUTTONS ───
+=============================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--duration) var(--ease);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
+/* Gold — acción principal */
+.btn-gold {
+  background: var(--grad-gold);
+  color: #0D0F14;
+  border-color: var(--gold-dark);
+  box-shadow: var(--shadow-gold);
+}
+.btn-gold:hover {
+  filter: brightness(1.10);
+  box-shadow: var(--shadow-gold), var(--gold-glow);
+}
+
+/* Red — acción peligrosa */
+.btn-red {
+  background: var(--grad-red);
+  color: #fff;
+  border-color: var(--red-dark);
+  box-shadow: var(--shadow-red);
+}
+.btn-red:hover {
+  filter: brightness(1.12);
+  box-shadow: var(--shadow-red), var(--red-glow);
+}
+
+/* Orange — warning action */
+.btn-orange {
+  background: var(--grad-orange);
+  color: #0D0F14;
+  border-color: var(--orange-dark);
+}
+.btn-orange:hover { filter: brightness(1.12); }
+
+/* Green — confirmar */
+.btn-green {
+  background: var(--grad-green);
+  color: #0D0F14;
+  border-color: var(--green-dark);
+}
+.btn-green:hover { filter: brightness(1.10); }
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  border-color: var(--gold-border);
+}
+
+/* ===============================================================
+   ─── INPUT SYSTEM ───
+=============================================================== */
+.input {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 14px;
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease);
+}
+
+.input::placeholder { color: var(--text-muted); }
+
+.input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 163, 64, 0.15);
+  outline: none;
+}
+
+.input:focus:invalid {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(200, 50, 40, 0.15);
+}
+
+/* ===============================================================
+   ─── TABLE SYSTEM ───
+=============================================================== */
+.table-wrapper {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table-base {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table-base thead tr {
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--border-gold);
+}
+
+.table-base thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-gold);
+}
+
+.table-base tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.table-base tbody tr:last-child { border-bottom: none; }
+
+.table-base tbody tr:hover { background: rgba(212, 163, 64, 0.04); }
+
+.table-base tbody td {
+  padding: 12px 16px;
+  color: var(--text-dim);
+}
+
+/* ===============================================================
+   ─── SPINNER ───
+=============================================================== */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(212, 163, 64, 0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===============================================================
+   ─── DIVIDER ───
+=============================================================== */
+.divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-border),
+    var(--red-border),
+    transparent
+  );
+}
+
+/* ===============================================================
+   ─── GLOW EFFECTS ───
+=============================================================== */
+.glow-gold   { box-shadow: var(--gold-glow);   }
+.glow-red    { box-shadow: var(--red-glow);    }
+.glow-orange { box-shadow: var(--orange-glow); }
+.glow-green  { box-shadow: var(--green-glow);  }
+
+/* ===============================================================
+   ─── GRADIENT TEXT ───
+=============================================================== */
+.text-grad-gold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-grad-brand {
+  background: var(--grad-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===============================================================
+   ─── ANIMATIONS ───
+=============================================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 163, 64, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(212, 163, 64, 0.15); }
+}
+
+.animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
+.animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
+.animate-pulse-gold { animation: pulse-gold 2s ease infinite; }
+
+/* ===============================================================
+   ROYALE UI UTILITIES — Casino Edition
+=============================================================== */
+.input-royale {
+  width: 100%;
+  background-color: var(--surface-4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.input-royale::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.input-royale:focus {
+  border-color: rgba(212, 163, 64, 0.4);
+  box-shadow: 0 0 0 4px rgba(212, 163, 64, 0.05),
+              inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.group:hover .input-royale {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-royale {
+  background-color: var(--surface-glow);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.badge-royale {
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+              0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-royale {
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+.glow-gold-lg {
+  box-shadow: 0 0 50px -10px rgba(212, 163, 64, 0.3);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }

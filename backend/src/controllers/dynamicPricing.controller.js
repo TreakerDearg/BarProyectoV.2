@@ -50,3 +50,48 @@ export const updateGlobalMultiplier = async (req, res, next) => {
     return ok(res, rule, "Multiplicador actualizado correctamente");
   } catch (error) { next(error); }
 };
+
+export const getAutoPromotionsStatus = async (req, res, next) => {
+  try {
+    let rule = await DynamicPricingRule.findOne({ name: "GLOBAL_AUTO_PROMOTIONS" });
+    if (!rule) {
+      // If it doesn't exist, it defaults to true
+      return ok(res, { isAutoPromotionsEnabled: true });
+    }
+    return ok(res, { isAutoPromotionsEnabled: rule.isActive });
+  } catch (error) { next(error); }
+};
+
+export const toggleAutoPromotionsStatus = async (req, res, next) => {
+  try {
+    const { isEnabled } = req.body;
+    let rule = await DynamicPricingRule.findOne({ name: "GLOBAL_AUTO_PROMOTIONS" });
+    
+    if (!rule) {
+      rule = new DynamicPricingRule({
+        name: "GLOBAL_AUTO_PROMOTIONS",
+        multiplier: 1.0,
+        isActive: isEnabled,
+        createdBy: req.user.id,
+      });
+    } else {
+      rule.isActive = isEnabled;
+      rule.createdBy = req.user.id;
+    }
+
+    await rule.save();
+
+    await PricingEvent.create({
+      type: "SYSTEM_CONFIG",
+      title: "Auto Promotions Switch",
+      detail: `${req.user.name} ${isEnabled ? 'activó' : 'desactivó'} las promociones automáticas a nivel sistema.`,
+      level: isEnabled ? "info" : "warn",
+      createdBy: req.user.id,
+      metadata: { autoPromotionsEnabled: isEnabled }
+    });
+
+    io.emit("pricing:auto_promotions_updated", { isAutoPromotionsEnabled: isEnabled });
+
+    return ok(res, { isAutoPromotionsEnabled: rule.isActive }, `Promociones automáticas ${isEnabled ? 'activadas' : 'desactivadas'}`);
+  } catch (error) { next(error); }
+};

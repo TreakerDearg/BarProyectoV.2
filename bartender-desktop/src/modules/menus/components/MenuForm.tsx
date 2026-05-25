@@ -3,26 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   X,
-  Check,
   AlertTriangle,
   Star,
   Search,
   Layers,
   Box,
   Plus,
-  Trash2,
   ArrowUp,
   ArrowDown,
   Loader2,
   CheckCircle,
   Sparkles,
-  Info,
-  ChevronRight,
-  ChevronLeft,
   LayoutGrid,
   Zap,
   Target
 } from "lucide-react";
+
+import ImageUploader from "../../../components/shared/ImageUploader";
 
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
@@ -46,6 +43,8 @@ interface Payload {
   description: string;
   active: boolean;
   type: MenuType;
+  image?: string;
+  imagePublicId?: string;
   categories: Category[];
 }
 
@@ -63,7 +62,6 @@ interface Props {
 }
 
 export default function MenuForm({ menu, onSave, onClose }: Props) {
-  const [step, setStep] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,6 +71,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
     description: "",
     active: true,
     type: "mixed",
+    image: "",
     categories: [{ name: CATEGORY_OPTIONS[0], products: [] }],
   });
 
@@ -85,6 +84,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
         description: menu.description,
         active: menu.active,
         type: menu.type || "mixed",
+        image: menu.image || "",
         categories: menu.categories?.length
           ? menu.categories
           : [{ name: CATEGORY_OPTIONS[0], products: [] }],
@@ -146,6 +146,13 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
     setForm(prev => ({
       ...prev,
       categories: [{ ...prev.categories[0], products }],
+    }));
+  };
+
+  const handleImageUpload = (imageUrl: string) => {
+    setForm(prev => ({
+      ...prev,
+      image: imageUrl,
     }));
   };
 
@@ -220,6 +227,20 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   placeholder="Defina la experiencia del cliente..."
                   className="input-royale !h-24 py-4 resize-none"
+                />
+              </div>
+
+              {/* IMAGE UPLOAD */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                  <Sparkles size={14} /> Imagen de la Carta
+                </p>
+                <ImageUploader
+                  onImageUpload={handleImageUpload}
+                  currentImage={form.image}
+                  folder="menus"
+                  mode="advanced"
+                  label="Subir imagen de portada del menú"
                 />
               </div>
 

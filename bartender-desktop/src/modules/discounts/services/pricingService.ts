@@ -60,4 +60,15 @@ export const pricingService = {
     const { data } = await api.get("/pricing-events");
     return data;
   },
+
+  // Auto Promotions Toggle
+  async getAutoPromotionsStatus() {
+    const { data } = await api.get("/dynamic-pricing/auto-promotions");
+    return data.isAutoPromotionsEnabled;
+  },
+
+  async toggleAutoPromotionsStatus(isEnabled: boolean) {
+    const { data } = await api.post("/dynamic-pricing/auto-promotions", { isEnabled });
+    return data.isAutoPromotionsEnabled;
+  }
 };

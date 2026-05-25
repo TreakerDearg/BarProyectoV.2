@@ -14,6 +14,8 @@ import {
   ShieldCheck
 } from "lucide-react";
 
+import ImageUploader from "../../../components/shared/ImageUploader";
+
 import type { InventoryItem } from "../types/inventory";
 
 interface Props {
@@ -22,7 +24,7 @@ interface Props {
   onClose: () => void;
 }
 
-const EMPTY_FORM: InventoryItem = {
+const EMPTY_FORM: any = {
   name: "",
   stock: 0,
   minStock: 5,
@@ -33,7 +35,9 @@ const EMPTY_FORM: InventoryItem = {
   cost: 0,
   supplier: "",
   location: "Bóveda Central",
-  isActive: true
+  isActive: true,
+  image: "",
+  imagePublicId: ""
 };
 
 const UNIT_OPTIONS = ["ml", "l", "g", "kg", "unit", "oz", "portion", "box"];
@@ -63,6 +67,13 @@ export default function InventoryForm({
       [name]: ["stock", "minStock", "maxStock", "cost"].includes(name)
         ? Number(value)
         : value,
+    }));
+  };
+
+  const handleImageUpload = (imageUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: imageUrl,
     }));
   };
 
@@ -166,6 +177,20 @@ export default function InventoryForm({
                   />
                 </div>
               </div>
+            </div>
+
+            {/* IMAGE UPLOAD */}
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                <ShieldCheck size={14} /> Imagen del Insumo
+              </p>
+              <ImageUploader
+                onImageUpload={handleImageUpload}
+                currentImage={formData.image}
+                folder="inventory"
+                mode="advanced"
+                label="Subir foto del insumo"
+              />
             </div>
           </div>
 

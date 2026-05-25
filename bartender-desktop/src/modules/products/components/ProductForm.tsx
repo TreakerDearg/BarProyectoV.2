@@ -16,9 +16,11 @@ import {
   Star, 
   Tag,
   Loader2,
-  Activity,
-  Target
+  Activity
 } from "lucide-react";
+
+import ImageUploader from "../../../components/shared/ImageUploader";
+
 import type { Product } from "../../../types/product";
 
 const EMPTY_FORM: Product = {
@@ -30,6 +32,9 @@ const EMPTY_FORM: Product = {
   subcategory: "",
   type: "drink",
   image: "",
+  imagePublicId: "",
+  gallery: [],
+  galleryPublicIds: [],
   available: true,
   featured: false,
   tags: [],
@@ -42,7 +47,13 @@ const TYPE_OPTIONS = [
   { value: "food", label: "Gastronomía / Plato", icon: <Box size={16} /> },
 ];
 
-export default function ProductForm({ product, onSave, onClose }: any) {
+interface ProductFormProps {
+  product?: Product | null;
+  onSave: (product: Product) => Promise<void>;
+  onClose: () => void;
+}
+
+export default function ProductForm({ product, onSave, onClose }: ProductFormProps) {
   const [formData, setFormData] = useState<Product>(EMPTY_FORM);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -56,12 +67,28 @@ export default function ProductForm({ product, onSave, onClose }: any) {
     }
   }, [product]);
 
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const target = e.target as HTMLInputElement;
+    const checked = target.checked;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : 
               ["price", "cost", "preparationTime"].includes(name) ? Number(value) : value,
+    }));
+  };
+
+  const handleImageUpload = (imageUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: imageUrl,
+    }));
+  };
+
+  const handleGalleryUpload = (imageUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      gallery: [...(prev.gallery || []), imageUrl],
     }));
   };
 
@@ -189,24 +216,36 @@ export default function ProductForm({ product, onSave, onClose }: any) {
           {/* STEP 3: MEDIA */}
           {step === 2 && (
             <div className="space-y-8 animate-slide-up">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">URL de Imagen (Asset)</label>
-                <div className="relative group">
-                  <ImageIcon className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                  <input name="image" value={formData.image} onChange={handleChange} placeholder="https://..." className="input-royale !pl-14" />
+              {/* Main Image Upload */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                  <ImageIcon size={14} /> Imagen Principal
+                </p>
+                <ImageUploader
+                  onImageUpload={handleImageUpload}
+                  currentImage={formData.image}
+                  folder="products"
+                  mode="advanced"
+                  label="Subir imagen principal del producto"
+                />
+              </div>
+
+              {/* Gallery Upload - Simplified for now */}
+              <div className="space-y-4">
+                <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                  <ImageIcon size={14} /> Galería Adicional
+                </p>
+                <div className="p-4 bg-surface-3/30 rounded-2xl border border-white/5 text-center">
+                  <p className="text-sm text-muted">Galería múltiple próximamente</p>
+                  <p className="text-xs text-muted mt-1">Funcionalidad en desarrollo</p>
                 </div>
               </div>
-              
-              <div className="h-64 rounded-[2rem] bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
-                {formData.image ? (
-                  <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center opacity-20">
-                    <ImageIcon size={48} className="mx-auto mb-4" />
-                    <p className="text-[10px] font-black uppercase tracking-widest">Sin previsualización</p>
-                  </div>
-                )}
-              </div>
+
+              {formData.image && (
+                <div className="h-64 rounded-[2rem] bg-black/40 border border-white/5 overflow-hidden">
+                  <img src={formData.image} alt="Product preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
           )}
 

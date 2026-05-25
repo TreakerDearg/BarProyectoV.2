@@ -1,5 +1,5 @@
 import api from "../../../services/api";
-import socket from "../../../services/socket";
+import { getSocket } from "../../../services/socket";
 import type { Reservation } from "../types/reservation";
 
 /* ==============================
@@ -25,44 +25,62 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
 export const reservationSocket = {
   /* ---------- INIT SYNC ---------- */
   onInitial: (cb: (data: any) => void) => {
-    socket.on("reservation:list", (data) => {
-      cb(data);
-    });
+    const socket = getSocket();
+    if (socket) {
+      socket.on("reservation:list", (data) => {
+        cb(data);
+      });
+    }
   },
 
   /* ---------- CREATE ---------- */
   onCreated: (cb: (data: Reservation) => void) => {
-    socket.on("reservation:created", (data) => {
-      if (data?._id) cb(data);
-    });
+    const socket = getSocket();
+    if (socket) {
+      socket.on("reservation:created", (data) => {
+        if (data?._id) cb(data);
+      });
+    }
   },
 
   /* ---------- UPDATE ---------- */
   onUpdated: (cb: (data: Reservation) => void) => {
-    socket.on("reservation:update", (data) => {
-      if (data?._id) cb(data);
-    });
+    const socket = getSocket();
+    if (socket) {
+      socket.on("reservation:update", (data) => {
+        if (data?._id) cb(data);
+      });
+    }
   },
 
   /* ---------- DELETE ---------- */
   onDeleted: (cb: (id: string) => void) => {
-    socket.on("reservation:delete", (id) => {
-      if (id) cb(id);
-    });
+    const socket = getSocket();
+    if (socket) {
+      socket.on("reservation:delete", (id) => {
+        if (id) cb(id);
+      });
+    }
   },
 
   /* ---------- TABLE SYNC ---------- */
   onTableUpdate: (cb: (data: any) => void) => {
-    socket.on("table:update", cb);
+    const socket = getSocket();
+    if (socket) {
+      socket.on("table:update", cb);
+    }
   },
 
   /* ---------- CLEANUP ---------- */
   offAll: () => {
-    socket.off("reservation:list");
-    socket.off("reservation:created");
-    socket.off("reservation:update");
-    socket.off("reservation:delete");
-    socket.off("table:update");
+    const socket = getSocket();
+    if (socket) {
+      socket.off("reservation:list");
+      socket.off("reservation:created");
+      socket.off("reservation:update");
+      socket.off("reservation:delete");
+      socket.off("table:update");
+    }
   },
 };
 
@@ -115,7 +133,10 @@ export const createReservation = async (reservation: any) => {
     endTime: new Date(reservation.endTime).toISOString(),
     notes: reservation.notes || "",
     status: reservation.status || "pending",
-    source: "admin",
+    source: reservation.source || "admin",
+    isVIP: Boolean(reservation.isVIP),
+    deposit: Number(reservation.deposit || 0),
+    tags: reservation.tags || [],
   };
 
   return safeRequest<Reservation>(
@@ -169,4 +190,79 @@ export const getAvailableTables = async (params?: {
   );
 
   return Array.isArray(data) ? data : [];
+};
+
+/* ==============================
+   CHECK SLOT AVAILABILITY
+============================== */
+export const checkAvailability = async (params?: {
+  start?: string;
+  end?: string;
+  guests?: number;
+}) => {
+  const query = new URLSearchParams();
+
+  if (params?.start) query.append("start", params.start);
+  if (params?.end) query.append("end", params.end);
+  if (params?.guests) query.append("guests", String(params.guests));
+
+  const data = await safeRequest(
+    api.get(
+      `/reservations/check-availability?${query.toString()}`
+    )
+  );
+
+  return data || { available: false };
+};
+
+/* ==============================
+   AVAILABILITY HEATMAP
+============================== */
+export const getAvailabilityHeatmap = async (date?: string) => {
+  const query = new URLSearchParams();
+  if (date) query.append("date", date);
+
+  const data = await safeRequest(
+    api.get(
+      `/reservations/availability-heatmap?${query.toString()}`
+    )
+  );
+
+  return data || { tables: [], timeSlots: [] };
+};
+
+/* ==============================
+   CLEANUP EXPIRED (Admin only)
+============================= */
+export const cleanupExpiredReservations = async () => {
+  return safeRequest(
+    api.post("/reservations/cleanup-expired")
+  );
+};
+
+/* ==============================
+   API - UPDATE
+============================== */
+export const updateReservation = async (id: string, reservation: any): Promise<Reservation> => {
+  if (!id) throw new Error("ID inválido");
+
+  const payload = {
+    customerName: reservation.customerName,
+    customerPhone: reservation.customerPhone,
+    customerEmail: reservation.customerEmail || "",
+    guests: Number(reservation.guests),
+    tableId: reservation.tableId || null,
+    startTime: new Date(reservation.startTime).toISOString(),
+    endTime: new Date(reservation.endTime).toISOString(),
+    notes: reservation.notes || "",
+    status: reservation.status || "pending",
+    source: reservation.source || "admin",
+    isVIP: Boolean(reservation.isVIP),
+    deposit: Number(reservation.deposit || 0),
+    tags: reservation.tags || [],
+  };
+
+  return safeRequest<Reservation>(
+    api.put(`/reservations/${id}`, payload)
+  );
 };

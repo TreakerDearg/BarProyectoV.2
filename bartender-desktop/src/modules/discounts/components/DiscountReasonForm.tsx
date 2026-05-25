@@ -1,7 +1,8 @@
 "use client";
 
 import type { DiscountReason } from "../types/discounts";
-import { Briefcase, AlertCircle, ShieldCheck, Zap, History, MessageSquare } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Clock, AlertTriangle, Gift, Users, MoreHorizontal, FileText, Info } from "lucide-react";
 
 interface Props {
   reason: DiscountReason;
@@ -10,71 +11,92 @@ interface Props {
   setNote: (n: string) => void;
 }
 
-export default function DiscountReasonForm({
+export default function NebulaDiscountReasonForm({
   reason,
   setReason,
   note,
   setNote,
 }: Props) {
-  const reasons: { val: DiscountReason; label: string }[] = [
-    { val: "WAIT_TIME", label: "Protocolo de Espera" },
-    { val: "QUALITY_ISSUE", label: "Incidencia de Calidad" },
-    { val: "COMP", label: "Cortesía de la Casa" },
-    { val: "EMPLOYEE", label: "Beneficio Staff" },
-    { val: "OTHER", label: "Otros Motivos" },
+  const razones: { val: DiscountReason; label: string; icon: LucideIcon; description: string }[] = [
+    { val: "WAIT_TIME", label: "Tiempo de Espera", icon: Clock, description: "El cliente esperó más de lo habitual" },
+    { val: "QUALITY_ISSUE", label: "Problema de Calidad", icon: AlertTriangle, description: "El producto no cumplió las expectativas" },
+    { val: "COMP", label: "Cortesía", icon: Gift, description: "Gesto de buena voluntad del local" },
+    { val: "EMPLOYEE", label: "Empleado", icon: Users, description: "Descuento para staff del local" },
+    { val: "OTHER", label: "Otro", icon: MoreHorizontal, description: "Otra razón no listada" },
   ];
 
   return (
-    <div className="glass-royale p-8 rounded-[2.5rem] border border-white/5 space-y-8 relative overflow-hidden">
+    <div className="bg-white rounded-3xl shadow-xl p-6 space-y-6">
       
-      {/* SECTION HEADER */}
-      <div className="flex items-center gap-4">
-         <div className="p-3 rounded-xl bg-gold/10 text-gold shadow-gold-glow">
-            <Briefcase size={20} />
-         </div>
-         <div>
-            <h4 className="text-sm font-black text-ivory tracking-tighter uppercase">Justificación del Privilegio</h4>
-            <p className="text-[9px] text-muted font-black uppercase tracking-widest mt-1">PROTOCOLO DE AUDITORÍA REQUERIDO</p>
-         </div>
+      {/* ENCABEZADO AMIGABLE NEBULA */}
+      <div>
+        <h3 className="text-lg font-bold text-gray-800 mb-2">
+          📝 Paso 3: Cuéntanos la razón
+        </h3>
+        <p className="text-sm text-gray-500">
+          Selecciona por qué estás aplicando este descuento
+        </p>
       </div>
 
-      <div className="space-y-6">
-        {/* REASON SELECTOR */}
-        <div className="space-y-3">
-           <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em] ml-1">MOTIVO PRINCIPAL</p>
-           <div className="grid grid-cols-1 gap-2">
-              <select
-                value={reason}
-                onChange={(e) => setReason(e.target.value as DiscountReason)}
-                className="w-full bg-surface-3 border border-white/5 rounded-2xl px-6 py-4 text-xs font-black text-ivory outline-none focus:border-gold/40 focus:ring-4 focus:ring-gold/5 transition-all appearance-none cursor-pointer uppercase tracking-widest"
+      {/* TARJETAS DE RAZÓN - VISUAL Y AMIGABLE NEBULA */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          Motivo del descuento
+        </p>
+        <div className="grid grid-cols-1 gap-3">
+          {razones.map((r) => {
+            const Icon = r.icon;
+            return (
+              <button
+                key={r.val}
+                onClick={() => setReason(r.val)}
+                className={`
+                  p-4 rounded-2xl text-left transition-all border-2 flex items-start gap-4
+                  ${reason === r.val
+                    ? "bg-purple-50 border-purple-500 shadow-md"
+                    : "bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300"}
+                `}
               >
-                {reasons.map((r) => (
-                  <option key={r.val} value={r.val} className="bg-surface-4 text-ivory">
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-           </div>
-        </div>
-
-        {/* AUDIT NOTE */}
-        <div className="space-y-3">
-           <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em] ml-1 flex items-center gap-2">
-              <MessageSquare size={12} /> NOTAS DE AUDITORÍA
-           </p>
-           <textarea
-             value={note}
-             onChange={(e) => setNote(e.target.value)}
-             placeholder="Describa el contexto para el reporte de gerencia..."
-             className="w-full min-h-[120px] bg-surface-3 border border-white/5 rounded-[2rem] px-8 py-6 text-xs font-bold text-ivory outline-none focus:border-gold/40 focus:ring-4 focus:ring-gold/5 transition-all resize-none placeholder:text-muted/30"
-           />
+                <div className={`p-3 rounded-xl ${reason === r.val ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                  <Icon size={20} />
+                </div>
+                <div className="flex-1">
+                  <span className="font-semibold text-gray-800 block mb-1">{r.label}</span>
+                  <span className="text-xs text-gray-500">{r.description}</span>
+                </div>
+                {reason === r.val && (
+                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">✓</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* SYSTEM FEEDBACK */}
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-gold/5 border border-gold/10">
-         <ShieldCheck size={16} className="text-gold" />
-         <p className="text-[8px] font-black text-muted uppercase tracking-widest">Este ajuste será registrado permanentemente en el historial de auditoría.</p>
+      {/* NOTAS - ÚTILES Y ANIMADAS */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+          <FileText size={14} /> Notas adicionales (opcional)
+        </p>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Agrega detalles extras si es necesario..."
+          className="w-full min-h-[100px] bg-gray-50 border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-none placeholder:text-gray-400"
+        />
+        <p className="text-xs text-gray-400">
+          {note.length}/500 caracteres
+        </p>
+      </div>
+
+      {/* CAJA INFORMATIVA NEBULA */}
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+        <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-blue-700 leading-relaxed">
+          Esta información ayuda a mejorar nuestro servicio. Tu nombre y la razón quedarán registrados para fines de auditoría.
+        </p>
       </div>
     </div>
   );

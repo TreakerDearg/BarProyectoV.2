@@ -5,10 +5,18 @@ import mongoose from "mongoose";
 ========================================================= */
 const orderItemSchema = new mongoose.Schema(
   {
+    /* =========================
+       PRODUCT OR MENU REFERENCE
+    ========================= */
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: true,
+      index: true,
+    },
+
+    menu: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Menu",
       index: true,
     },
 
@@ -32,9 +40,19 @@ const orderItemSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["drink", "food"],
+      enum: ["drink", "food", "menu"],
       required: true,
       index: true,
+    },
+
+    /* =========================
+       MENU ITEMS (EXPANDED)
+    ========================= */
+    // Cuando type es "menu", este array contiene los productos del menú
+    menuItems: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Product",
+      default: [],
     },
 
     /* =========================
@@ -142,16 +160,23 @@ const orderSchema = new mongoose.Schema(
     /* =========================
        PAYMENT FLOW
     ========================= */
+    payment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+      default: null,
+      index: true,
+    },
+
     paymentStatus: {
       type: String,
-      enum: ["unpaid", "partial", "paid"],
+      enum: ["unpaid", "paid", "refunded"],
       default: "unpaid",
       index: true,
     },
 
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "qr", "mixed", null],
+      enum: ["cash", "transfer", "card", "qr", "mixed", null],
       default: null,
     },
 

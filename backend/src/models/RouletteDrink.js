@@ -81,6 +81,18 @@ const rouletteDrinkSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+
+    // Pity system tracking
+    pityCounter: {
+      type: Number,
+      default: 0,
+    },
+
+    // Estadísticas adicionales
+    totalWins: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -97,6 +109,7 @@ rouletteDrinkSchema.index(
 
 rouletteDrinkSchema.index({ active: 1, deleted: 1, weight: 1 });
 rouletteDrinkSchema.index(
+  { product: 1 },
   { unique: true, partialFilterExpression: { product: { $type: "objectId" } } }
 );
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { AlertTriangle, ShieldAlert, PackageX, PackageSearch } from "lucide-react";
+import { AlertTriangle, PackageX, PackageSearch } from "lucide-react";
+import "../../../../styles/dashboard-theme.css";
 
 interface Props {
   lowStock: number;
@@ -20,8 +21,8 @@ export default function InventoryAlerts({ lowStock, outOfStock }: Props) {
   return (
     <div className="space-y-4">
       {outOfStock > 0 && (
-        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-red/20 bg-red/5 group hover:bg-red/10 transition-all">
-          <div className="w-12 h-12 rounded-2xl bg-red/10 flex items-center justify-center flex-shrink-0 border border-red/20 shadow-red-glow/20">
+        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-red/20 bg-red/5 group hover:bg-red/10 transition-all neon-glow-fusion">
+          <div className="w-12 h-12 rounded-2xl bg-red/10 flex items-center justify-center flex-shrink-0 border border-red/20">
             <PackageX size={20} className="text-red" />
           </div>
           <div>
@@ -32,8 +33,8 @@ export default function InventoryAlerts({ lowStock, outOfStock }: Props) {
       )}
 
       {lowStock > 0 && (
-        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-gold/20 bg-gold/5 group hover:bg-gold/10 transition-all">
-          <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center flex-shrink-0 border border-gold/20 shadow-gold-glow/20">
+        <div className="flex items-center gap-5 p-5 rounded-[2rem] border border-gold/20 bg-gold/5 group hover:bg-gold/10 transition-all neon-glow-gold-fusion">
+          <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center flex-shrink-0 border border-gold/20">
             <AlertTriangle size={20} className="text-gold" />
           </div>
           <div>

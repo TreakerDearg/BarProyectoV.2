@@ -1,48 +1,46 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Plus, 
-  RefreshCcw, 
-  Search, 
-  ChefHat, 
-  Zap, 
-  Flame, 
-  Clock, 
-  History, 
+import { useEffect, useState, useMemo, type ReactNode } from "react";
+import {
+  Plus,
+  RefreshCcw,
+  Search,
+  ChefHat,
+  Zap,
+  Flame,
+  Clock,
+  History,
   LayoutGrid,
-  Filter,
   X,
   AlertCircle,
-  Command,
-  ArrowRight,
-  TrendingUp,
-  Activity
+  Sparkles,
+  HelpCircle,
 } from "lucide-react";
 
 import OrderCard from "../components/OrderCard/Card";
-import OrderForm from "../components/OrderForm";
+import NewOrderTablePicker from "../components/NewOrderTablePicker";
 import FocusPanel from "../components/FocusPanel";
 
 import {
   getOrders,
   deleteOrder,
   updateOrderStatus,
+  updateOrderItemStatus,
 } from "../services/orderService";
 
 import type { Order } from "../types/order";
-import socket from "../../../services/socket";
+import { connectSalonSockets, getMainSocket } from "../../../services/socket";
+import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
+import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
+import { useSalonUiStore } from "../../../store/salonUiStore";
+import "../../../styles/nebula-theme.css";
 
-/* =========================
-   PRIORITY SYSTEM
-========================= */
 function getOrderPriority(order: Order) {
   if (!order.createdAt) return 0;
   const minutes = (Date.now() - new Date(order.createdAt).getTime()) / 60000;
-  if (minutes > 20) return 3; // CRITICAL
-  if (minutes > 10) return 2; // WARNING
-  return 1; // NORMAL
+  if (minutes > 20) return 3;
+  if (minutes > 10) return 2;
+  return 1;
 }
 
 type FilterStatus = "all" | "pending" | "in-progress" | "completed" | "cancelled";
@@ -53,8 +51,25 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<{
+    _id?: string;
+    orderId?: string;
+    status?: string;
+    quantity?: number;
+    notes?: string;
+    product?: { name?: string; category?: string; type?: string };
+  } | null>(null);
+  const [itemStatusLoading, setItemStatusLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const salonMode = useSalonUiStore((s) => s.mode);
+  const setSalonMode = useSalonUiStore((s) => s.setMode);
+  const {
+    isOpen: salonTutorialOpen,
+    openTutorial: openSalonTutorial,
+    closeTutorial: closeSalonTutorial,
+    completeTutorial: completeSalonTutorial,
+  } = useSalonTutorial(false);
 
   const fetchOrders = async () => {
     try {
@@ -62,7 +77,7 @@ export default function OrdersPage() {
       const data = await getOrders();
       setOrders(Array.isArray(data) ? data : []);
     } catch {
-      setError("Fallo en la sincronización con el Command Center");
+      setError("No se pudieron cargar las comandas");
     } finally {
       setLoading(false);
     }
@@ -70,17 +85,37 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    connectSalonSockets();
 
-    const handleNewOrder = (order: Order) => setOrders(prev => [order, ...prev]);
-    const handleUpdateOrder = (updated: Order) => setOrders(prev => prev.map(o => o._id === updated._id ? updated : o));
-    const handleDeleteOrder = (id: string) => setOrders(prev => prev.filter(o => o._id !== id));
+    const socket = getMainSocket();
+    if (!socket) return;
+
+    const upsert = (order: Order) =>
+      setOrders((prev) => {
+        const idx = prev.findIndex((o) => o._id === order._id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = order;
+          return next;
+        }
+        return [order, ...prev];
+      });
+
+    const handleNewOrder = (order: Order) => upsert(order);
+    const handleUpdateOrder = (order: Order) => upsert(order);
+    const handleDeleteOrder = (payload: Order | string) => {
+      const id = typeof payload === "string" ? payload : payload._id;
+      if (id) setOrders((prev) => prev.filter((o) => o._id !== id));
+    };
 
     socket.on("order:created", handleNewOrder);
+    socket.on("order:update", handleUpdateOrder);
     socket.on("order:updated", handleUpdateOrder);
     socket.on("order:deleted", handleDeleteOrder);
 
     return () => {
       socket.off("order:created", handleNewOrder);
+      socket.off("order:update", handleUpdateOrder);
       socket.off("order:updated", handleUpdateOrder);
       socket.off("order:deleted", handleDeleteOrder);
     };
@@ -97,200 +132,351 @@ export default function OrdersPage() {
   const handleStatusChange = async (id: string, status: Order["status"]) => {
     try {
       const updatedOrder = await updateOrderStatus(id, status);
-      // Optimistic/Immediate update
-      setOrders(prev => prev.map(o => o._id === id ? updatedOrder : o));
+      setOrders((prev) =>
+        prev.map((o) => (o._id === id ? updatedOrder : o))
+      );
     } catch {
-      setError("Error al procesar el cambio de estado en el servidor");
+      setError("Error al cambiar el estado de la comanda");
+    }
+  };
+
+  const handleItemStatusChange = async (
+    orderId: string,
+    itemId: string,
+    status: "pending" | "preparing" | "ready" | "served"
+  ) => {
+    try {
+      setItemStatusLoading(true);
+      const updated = await updateOrderItemStatus(orderId, itemId, status);
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? updated : o))
+      );
+      const item = updated.items.find((i) => i._id === itemId);
+      if (item) {
+        setSelectedItem({
+          _id: item._id,
+          orderId,
+          status: item.status,
+          quantity: item.quantity,
+          notes: (item as { notes?: string }).notes,
+          product:
+            typeof item.product === "object" && item.product !== null
+              ? {
+                  name: (item.product as { name?: string }).name,
+                  category: (item.product as { category?: string }).category,
+                  type: (item.product as { type?: string }).type,
+                }
+              : undefined,
+        });
+      }
+    } catch {
+      setError("No se pudo actualizar el ítem");
+    } finally {
+      setItemStatusLoading(false);
     }
   };
 
   const processedOrders = useMemo(() => {
-    let list = orders.filter((o) => (filter === "all" ? true : o.status === filter));
+    let list = orders.filter((o) =>
+      filter === "all" ? true : o.status === filter
+    );
+    if (salonMode === "simple") {
+      list = list.filter(
+        (o) => o.status === "pending" || o.status === "in-progress"
+      );
+    }
     if (searchQuery) {
-      list = list.filter(o => 
-        (o.table as any)?.number?.toString().includes(searchQuery) ||
-        o.items.some(i => (i.product as any)?.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+      list = list.filter(
+        (o) =>
+          (o.table as { number?: number })?.number?.toString().includes(
+            searchQuery
+          ) ||
+          o.items.some((i) =>
+            (i.product as { name?: string })?.name
+              ?.toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          )
       );
     }
     return list.sort((a, b) => {
       const pa = getOrderPriority(a);
       const pb = getOrderPriority(b);
       if (pb !== pa) return pb - pa;
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeA - timeB;
     });
-  }, [orders, filter, searchQuery]);
+  }, [orders, filter, searchQuery, salonMode]);
 
-  const stats = useMemo(() => ({
-    total: orders.length,
-    pending: orders.filter(o => o.status === "pending").length,
-    inProgress: orders.filter(o => o.status === "in-progress").length,
-    critical: orders.filter(o => getOrderPriority(o) === 3 && o.status !== "completed").length
-  }), [orders]);
+  const stats = useMemo(
+    () => ({
+      total: orders.length,
+      pending: orders.filter((o) => o.status === "pending").length,
+      inProgress: orders.filter((o) => o.status === "in-progress").length,
+      critical: orders.filter(
+        (o) => getOrderPriority(o) === 3 && o.status !== "completed"
+      ).length,
+    }),
+    [orders]
+  );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg p-6 gap-6">
-      
-      {/* SIDEBAR NAVIGATION (COMMAND STYLE) */}
-      <div className="w-24 flex flex-col items-center py-8 bg-surface-2 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-8">
-        <div className="p-4 rounded-3xl bg-gold/10 text-gold shadow-gold-glow/20 mb-4">
-           <Command size={24} />
+    <div className="nebula-salon-root flex h-screen overflow-hidden bg-bg p-4 md:p-6 gap-4 md:gap-6 relative">
+      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-40" />
+      <SalonFlowTutorial
+        isOpen={salonTutorialOpen}
+        onClose={closeSalonTutorial}
+        onComplete={completeSalonTutorial}
+      />
+
+      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-6">
+        <div className="p-3 rounded-2xl bg-violet-500/15 text-violet-200">
+          <Sparkles size={20} />
         </div>
-        
-        <NavIcon active={filter === "pending"} onClick={() => setFilter("pending")} icon={<Clock size={20} />} label="PEND" />
-        <NavIcon active={filter === "in-progress"} onClick={() => setFilter("in-progress")} icon={<Zap size={20} />} label="LIVE" />
-        <NavIcon active={filter === "completed"} onClick={() => setFilter("completed")} icon={<History size={20} />} label="HIST" />
-        <NavIcon active={filter === "all"} onClick={() => setFilter("all")} icon={<LayoutGrid size={20} />} label="ALL" />
+
+        <NavIcon
+          active={filter === "pending"}
+          onClick={() => setFilter("pending")}
+          icon={<Clock size={18} />}
+          label="Pend."
+        />
+        <NavIcon
+          active={filter === "in-progress"}
+          onClick={() => setFilter("in-progress")}
+          icon={<Zap size={18} />}
+          label="Curso"
+        />
+        {salonMode === "advanced" && (
+          <>
+            <NavIcon
+              active={filter === "completed"}
+              onClick={() => setFilter("completed")}
+              icon={<History size={18} />}
+              label="Hist."
+            />
+            <NavIcon
+              active={filter === "all"}
+              onClick={() => setFilter("all")}
+              icon={<LayoutGrid size={18} />}
+              label="Todo"
+            />
+          </>
+        )}
 
         <div className="flex-1" />
-        
-        <button 
+
+        <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-2xl bg-gold text-bg shadow-gold-glow flex items-center justify-center hover:scale-110 transition-transform"
+          className="w-12 h-12 rounded-xl nebula-btn-primary flex items-center justify-center"
+          title="Nuevo pedido"
         >
-          <Plus size={24} />
+          <Plus size={22} />
         </button>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-w-0 space-y-6">
-        
-        {/* HEADER BAR */}
-        <header className="flex items-end justify-between px-2">
-           <div>
-              <div className="flex items-center gap-2 mb-2">
-                 <div className="px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-[8px] font-black text-gold uppercase tracking-[0.2em]">System Online</div>
-                 <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em]">Kitchen Command v4.0</p>
-              </div>
-              <h1 className="text-5xl font-black tracking-tighter text-white leading-none">
-                GUEST <span className="text-grad-gold">ORDERS</span>
-              </h1>
-           </div>
+      <div className="flex-1 flex flex-col min-w-0 space-y-4">
+        <header className="flex flex-wrap items-end justify-between gap-4 px-1">
+          <div>
+            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">
+              Nebula · Comandas
+            </p>
+            <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
+              Pedidos en cocina y barra
+            </h1>
+          </div>
 
-           <div className="flex items-center gap-4">
-              <div className="relative group">
-                <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" />
-                <input 
-                  type="text"
-                  placeholder="Buscar mesa o plato..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-surface-2 border border-white/5 rounded-[1.5rem] py-4 pl-14 pr-6 text-xs font-black text-ivory outline-none focus:border-gold/40 focus:ring-4 focus:ring-gold/5 transition-all w-72"
-                />
-              </div>
-
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="nebula-mode-toggle">
               <button
-                onClick={fetchOrders}
-                className="btn btn-ghost !p-4 rounded-2xl border border-white/5"
+                type="button"
+                className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
+                onClick={() => setSalonMode("simple")}
               >
-                <RefreshCcw size={18} className={loading ? "animate-spin" : "opacity-40"} />
+                Simple
               </button>
-           </div>
+              <button
+                type="button"
+                className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
+                onClick={() => setSalonMode("advanced")}
+              >
+                Avanzado
+              </button>
+            </div>
+
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+              />
+              <input
+                type="text"
+                placeholder="Mesa o plato…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-surface-2 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-ivory outline-none focus:border-violet-400/40 w-48 md:w-56"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={openSalonTutorial}
+              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10 text-xs flex items-center gap-1"
+            >
+              <HelpCircle size={16} />
+              Tutorial
+            </button>
+
+            <button
+              type="button"
+              onClick={fetchOrders}
+              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10"
+            >
+              <RefreshCcw
+                size={16}
+                className={loading ? "animate-spin" : "opacity-50"}
+              />
+            </button>
+          </div>
         </header>
 
-        {/* METRICS ROW */}
-        <div className="grid grid-cols-4 gap-6">
-           <MetricCard label="Total" value={stats.total} icon={<Activity size={16} />} color="blue" />
-           <MetricCard label="Pendientes" value={stats.pending} icon={<Clock size={16} />} color="gold" />
-           <MetricCard label="En Cocina" value={stats.inProgress} icon={<Zap size={16} />} color="green" />
-           <MetricCard label="Críticos" value={stats.critical} icon={<Flame size={16} />} color="red" />
-        </div>
+        {salonMode === "advanced" && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MetricCard
+              label="Total"
+              value={stats.total}
+              icon={<ChefHat size={14} />}
+            />
+            <MetricCard
+              label="Pendientes"
+              value={stats.pending}
+              icon={<Clock size={14} />}
+            />
+            <MetricCard
+              label="En curso"
+              value={stats.inProgress}
+              icon={<Zap size={14} />}
+            />
+            <MetricCard
+              label="Críticos"
+              value={stats.critical}
+              icon={<Flame size={14} />}
+              warn
+            />
+          </div>
+        )}
 
-        {/* ERROR FEEDBACK */}
         {error && (
-          <div className="glass-red p-4 rounded-2xl flex items-center justify-between border border-red-500/20">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="text-red-500" size={18} />
-              <p className="text-[10px] font-black text-red-200/80 uppercase tracking-widest">{error}</p>
-            </div>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-white p-1">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 text-sm">
+            <span className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              {error}
+            </span>
+            <button type="button" onClick={() => setError(null)}>
               <X size={16} />
             </button>
           </div>
         )}
 
-        {/* ORDERS GRID */}
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-           {processedOrders.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
-                {processedOrders.map((order) => (
-                  <OrderCard
-                    key={order._id}
-                    order={order}
-                    onDelete={handleDelete}
-                    onStatusChange={handleStatusChange}
-                    onSelectItem={setSelectedItem}
-                    selectedItemId={selectedItem?._id}
-                  />
-                ))}
-             </div>
-           ) : (
-             <div className="h-full flex flex-col items-center justify-center opacity-20 space-y-6">
-                <ChefHat size={64} />
-                <p className="text-xs font-black uppercase tracking-[0.5em]">No hay comandas activas</p>
-             </div>
-           )}
+        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+          {processedOrders.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
+              {processedOrders.map((order) => (
+                <OrderCard
+                  key={order._id}
+                  order={order}
+                  onDelete={handleDelete}
+                  onStatusChange={handleStatusChange}
+                  onSelectItem={setSelectedItem}
+                  selectedItemId={selectedItem?._id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center opacity-40 gap-4">
+              <ChefHat size={48} />
+              <p className="text-sm text-muted">
+                No hay comandas en este filtro
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* RIGHT FOCUS PANEL */}
-      <div className="w-[420px] flex flex-col min-h-0">
-         <FocusPanel selectedItem={selectedItem} />
+      <div className="w-[300px] md:w-[360px] hidden lg:flex flex-col min-h-0 shrink-0">
+        <FocusPanel
+          selectedItem={selectedItem}
+          onItemStatusChange={handleItemStatusChange}
+          statusLoading={itemStatusLoading}
+        />
       </div>
 
-      {/* MODALS */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-8">
-           <div className="w-full max-w-4xl">
-              <OrderForm
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={fetchOrders}
-              />
-           </div>
-        </div>
+        <NewOrderTablePicker
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            fetchOrders();
+            setIsModalOpen(false);
+          }}
+        />
       )}
     </div>
   );
 }
 
-function NavIcon({ active, onClick, icon, label }: any) {
+function NavIcon({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: ReactNode;
+  label: string;
+}) {
   return (
-    <button 
+    <button
+      type="button"
       onClick={onClick}
-      className={`
-        flex flex-col items-center gap-2 transition-all group
-        ${active ? 'text-gold' : 'text-muted hover:text-white'}
-      `}
+      className={`flex flex-col items-center gap-1 ${active ? "text-violet-200" : "text-muted hover:text-ivory"}`}
     >
-      <div className={`
-        w-14 h-14 rounded-2xl flex items-center justify-center transition-all border
-        ${active ? 'bg-gold/10 border-gold/30 shadow-gold-glow/20' : 'bg-white/5 border-white/5 group-hover:bg-white/10'}
-      `}>
+      <div
+        className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-colors ${
+          active
+            ? "bg-violet-500/15 border-violet-400/30"
+            : "bg-white/5 border-white/10"
+        }`}
+      >
         {icon}
       </div>
-      <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
+      <span className="text-[8px] font-semibold uppercase">{label}</span>
     </button>
   );
 }
 
-function MetricCard({ label, value, icon, color }: any) {
-  const colorMap: any = {
-    gold: "text-gold bg-gold/10 border-gold/20",
-    green: "text-green-400 bg-green-400/10 border-green-400/20",
-    red: "text-red-500 bg-red-500/10 border-red-500/20",
-    blue: "text-blue-400 bg-blue-400/10 border-blue-400/20"
-  };
-
+function MetricCard({
+  label,
+  value,
+  icon,
+  warn,
+}: {
+  label: string;
+  value: number;
+  icon: ReactNode;
+  warn?: boolean;
+}) {
   return (
-    <div className="bg-surface-2 border border-white/5 p-5 rounded-[2rem] flex items-center gap-5 group hover:border-white/10 transition-all">
-       <div className={`p-3 rounded-2xl ${colorMap[color]}`}>
-          {icon}
-       </div>
-       <div>
-          <p className="text-[9px] font-black text-muted uppercase tracking-widest leading-none">{label}</p>
-          <p className="text-2xl font-black text-white mt-1 leading-none">{value}</p>
-       </div>
-       <div className="flex-1" />
-       <TrendingUp size={14} className="text-muted opacity-20 group-hover:opacity-100 transition-opacity" />
+    <div
+      className={`nebula-panel !p-4 flex items-center gap-3 ${warn && value > 0 ? "border-amber-500/30" : ""}`}
+    >
+      <div className="p-2 rounded-lg bg-violet-500/10 text-violet-200">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] text-muted uppercase">{label}</p>
+        <p className="text-xl font-bold text-ivory">{value}</p>
+      </div>
     </div>
   );
 }

@@ -1,26 +1,26 @@
 "use client";
 
-import { Activity, Flame, Percent, Shuffle, Zap, Trophy, Target } from "lucide-react";
+import { Activity, Zap, Trophy, Target } from "lucide-react";
 import type { RouletteSpinResult, RouletteDrink } from "../types/roulette";
 
 interface Props {
   drinks: RouletteDrink[];
   lastResult: RouletteSpinResult | null;
-  totalWeight: number;
 }
 
 export default function RouletteStats({
   drinks,
   lastResult,
-  totalWeight,
 }: Props) {
-  const active = drinks.filter((d) => d.active);
+  const active = drinks.filter((d) => d && d.active);
 
   const avgWeight =
-    active.reduce((acc, d) => acc + d.weight, 0) /
+    active.reduce((acc, d) => acc + (d.weight || 0), 0) /
     (active.length || 1);
 
-  const mostFrequent = [...drinks].sort((a, b) => (b.totalSpins || 0) - (a.totalSpins || 0))[0];
+  const mostFrequent = [...drinks]
+    .filter((d) => d !== null)
+    .sort((a, b) => (b.totalSpins || 0) - (a.totalSpins || 0))[0];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

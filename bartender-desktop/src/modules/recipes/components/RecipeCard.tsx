@@ -1,11 +1,9 @@
 import {
   Trash2,
-  Eye,
   Martini,
   Utensils,
   Flame,
   Zap,
-  Clock,
   ChevronRight,
   TrendingUp,
   Box

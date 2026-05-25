@@ -34,7 +34,11 @@ const normalizePayload = (data: any) => {
    AXIOS INSTANCE
 ========================================================= */
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.VITE_BACKEND_URL
+      ? `${import.meta.env.VITE_BACKEND_URL}/api`
+      : "http://localhost:5000/api"),
   timeout: 15000,
 });
 
@@ -48,12 +52,12 @@ api.interceptors.request.use(
   (config) => {
     const token = getToken();
 
-    // 🔐 AUTH HEADER SAFE
+    //  AUTH HEADER SAFE
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // 🧼 CLEAN PAYLOAD
+    //  CLEAN PAYLOAD
     if (config.data) {
       config.data = normalizePayload(config.data);
     }

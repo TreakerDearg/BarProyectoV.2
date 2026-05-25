@@ -5,7 +5,6 @@ import {
   X, 
   Users, 
   MapPin, 
-  Settings2, 
   AlertCircle, 
   Save, 
   Hash, 
@@ -17,7 +16,6 @@ import {
   Circle,
   Layout
 } from "lucide-react";
-import { motion } from "framer-motion";
 import type { Table } from "../types/table";
 
 interface Props {
@@ -200,44 +198,78 @@ export default function TableForm({
           <div className="grid grid-cols-2 gap-8">
              <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Forma</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {[
-                    { val: 'rect', icon: <Square size={14} /> },
-                    { val: 'circle', icon: <Circle size={14} /> },
-                    { val: 'square', icon: <Square size={14} className="rotate-45" /> }
+                    { val: 'rect', icon: <Square size={20} />, label: 'Rectángulo' },
+                    { val: 'circle', icon: <Circle size={20} />, label: 'Círculo' },
+                    { val: 'square', icon: <Square size={20} className="rotate-45" />, label: 'Cuadrado' }
                   ].map((s) => (
                     <button
                       key={s.val}
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, shape: s.val as any }))}
                       className={`
-                        flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-1
-                        ${formData.shape === s.val 
-                          ? "bg-gold/10 border-gold/40 text-gold shadow-gold-glow/10" 
-                          : "bg-white/5 border-white/5 text-muted hover:border-white/10"}
+                        flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 aspect-square
+                        ${formData.shape === s.val
+                          ? "bg-gold/10 border-gold/40 text-gold shadow-gold-glow/20"
+                          : "bg-white/5 border-white/10 text-muted hover:border-white/20 hover:bg-white/10"}
                       `}
                     >
-                      {s.icon}
-                      <span className="text-[8px] font-black uppercase">{s.val}</span>
+                      <div className={`p-3 rounded-xl ${formData.shape === s.val ? "bg-gold/20" : "bg-white/5"}`}>
+                        {s.icon}
+                      </div>
+                      <span className="text-[9px] font-black uppercase tracking-wider">{s.label}</span>
                     </button>
                   ))}
                 </div>
              </div>
 
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación</label>
-                <div className="relative">
-                   <MapPin size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
-                   <select
-                      name="location"
-                      value={formData.location}
+             <div className="space-y-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación</label>
+                   <div className="relative">
+                      <MapPin size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
+                      <select
+                         name="location"
+                         value={formData.location}
+                         onChange={handleChange}
+                         className="input !pl-14 !py-4 rounded-2xl border-white/5 appearance-none cursor-pointer"
+                      >
+                         <option value="indoor">Salón Interior</option>
+                         <option value="outdoor">Terraza / Exterior</option>
+                         <option value="bar">Barra / Counter</option>
+                      </select>
+                   </div>
+                </div>
+
+                {/* Dimensiones Físicas */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ancho (px)</label>
+                    <input
+                      type="number"
+                      name="width"
+                      value={formData.width || 120}
                       onChange={handleChange}
-                      className="input !pl-14 !py-4 rounded-2xl border-white/5 appearance-none cursor-pointer"
-                   >
-                      <option value="indoor">Salón Interior</option>
-                      <option value="outdoor">Terraza / Exterior</option>
-                      <option value="bar">Barra / Counter</option>
-                   </select>
+                      className="input !py-3 rounded-xl border-white/5 text-center text-xs font-bold"
+                      min="60"
+                      max="250"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Alto (px)</label>
+                    <input
+                      type="number"
+                      name="height"
+                      value={formData.height || 120}
+                      onChange={handleChange}
+                      className="input !py-3 rounded-xl border-white/5 text-center text-xs font-bold"
+                      min="60"
+                      max="250"
+                      required
+                    />
+                  </div>
                 </div>
              </div>
           </div>

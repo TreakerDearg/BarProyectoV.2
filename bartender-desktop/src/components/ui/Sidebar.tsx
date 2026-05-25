@@ -102,11 +102,11 @@ export default function Sidebar() {
 
         {!collapsed && (
           <div className="leading-tight">
-            <h1 className="text-white font-black tracking-widest text-sm">
+            <h1 className="font-black tracking-widest text-sm bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(167,139,250,0.25)]">
               BARTENDER
             </h1>
-            <p className="text-cyan-400 text-[9px] font-bold tracking-widest">
-              CONTROL_CORE
+            <p className="text-violet-400 text-[9px] font-bold tracking-widest uppercase mt-0.5">
+              NEBULA_CONTROL
             </p>
           </div>
         )}

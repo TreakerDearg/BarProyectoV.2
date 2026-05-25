@@ -56,6 +56,11 @@ const menuCategorySchema = new mongoose.Schema(
       default: "",
     },
 
+    imagePublicId: {
+      type: String,
+      default: "",
+    },
+
     products: {
       type: [menuProductSchema],
       default: [],
@@ -97,6 +102,12 @@ const menuSchema = new mongoose.Schema(
     image: {
       type: String,
       default: "",
+    },
+
+    imagePublicId: {
+      type: String,
+      default: "",
+      index: true,
     },
 
     color: {

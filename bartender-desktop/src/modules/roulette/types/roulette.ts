@@ -24,6 +24,15 @@ export interface RouletteDrink {
 
   price?: number;
 
+  product?: {
+    _id: string;
+    name: string;
+    type?: string;
+    available?: boolean;
+    isActiveForPOS?: boolean;
+    stock?: number;
+  } | string | null;
+
   totalSpins?: number;
   lastSelectedAt?: string;
 

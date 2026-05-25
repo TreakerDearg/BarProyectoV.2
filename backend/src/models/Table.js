@@ -92,7 +92,17 @@ const tableSchema = new mongoose.Schema(
       index: true,
     },
 
+    openedAt: {
+      type: Date,
+      default: null,
+    },
+
     lastSessionClosedAt: {
+      type: Date,
+      default: null,
+    },
+
+    closedAt: {
       type: Date,
       default: null,
     },
@@ -136,6 +146,20 @@ const tableSchema = new mongoose.Schema(
     tags: {
       type: [tagSchema],
       default: [],
+    },
+
+    /* =========================
+       PAYMENT TRACKING
+    ========================= */
+    totalPayments: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    lastPaymentAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -197,6 +221,8 @@ tableSchema.methods.release = function () {
   this.reservationEnd = null;
   this.maintenanceUntil = null;
   this.isLocked = false;
+  this.openedAt = null;
+  this.closedAt = new Date();
 };
 
 /**
@@ -206,6 +232,8 @@ tableSchema.methods.startSession = function (sessionId) {
   this.status = "occupied";
   this.currentSessionId = sessionId;
   this.isLocked = true;
+  this.openedAt = new Date();
+  this.closedAt = null;
 };
 
 /**

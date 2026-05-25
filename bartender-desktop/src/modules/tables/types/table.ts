@@ -52,6 +52,8 @@ export interface Table {
 
   currentSessionId?: string | null;
   currentReservation?: string | null;
+  reservationStart?: string | null;
+  reservationEnd?: string | null;
 
   notes?: string;
 
@@ -62,4 +64,8 @@ export interface Table {
 
   /* virtual backend */
   activeTime?: number;
+
+  /* PAYMENT TRACKING */
+  totalPayments?: number;
+  lastPaymentAt?: string | null;
 }

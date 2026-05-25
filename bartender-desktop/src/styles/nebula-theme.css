@@ -1,0 +1,84 @@
+/* Nebula — tema compartido (dashboard, salón, reservas, comandas) */
+
+.nebula-salon-root,
+.nebula-dashboard-root {
+  position: relative;
+  color: var(--text-primary, #fff);
+}
+
+.nebula-aurora {
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 64, 0.04) 0%, transparent 45%);
+  pointer-events: none;
+  animation: nebula-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes nebula-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(2%, -1%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+.nebula-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(18, 16, 28, 0.92) 0%,
+    rgba(12, 11, 18, 0.88) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.nebula-panel:hover {
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+.nebula-btn-primary {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(79, 70, 229, 0.85));
+  color: #fff;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.nebula-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.nebula-mode-toggle {
+  display: flex;
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nebula-mode-toggle button.active {
+  background: rgba(139, 92, 246, 0.25);
+  color: #e9d5ff;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 3px;
+}

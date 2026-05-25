@@ -125,7 +125,7 @@ export async function getPublicRouletteDrinks() {
 
 export async function spinRoulette() {
   try {
-    const res = await api.post("/roulette/spin");
+    const res = await api.post("/roulette/public/spin");
     return extractData<{
       result: RouletteDrinkRow;
       meta?: Record<string, unknown>;

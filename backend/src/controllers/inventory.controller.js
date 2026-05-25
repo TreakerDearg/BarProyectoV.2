@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import InventoryItem from "../models/InventoryItem.js";
 import { logger } from "../config/logger.js";
+import { uploadImage, deleteImage } from "../config/cloudinary.js";
 import {
   ok, created, badRequest, notFound,
 } from "../utils/response.js";
@@ -64,10 +65,22 @@ export const createInventoryItem = async (req, res, next) => {
       return badRequest(res, "name y category son obligatorios");
     }
 
+    // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
+    let imageUrl = null;
+    let imagePublicId = null;
+
+    if (req.file) {
+      imageUrl = req.file.secure_url || req.file.path;
+      imagePublicId = req.file.public_id;
+      logger.info(`[Inventory] Imagen subida a Cloudinary: ${imagePublicId}`);
+    }
+
     const item = await InventoryItem.create({
       ...req.body,
       name:     req.body.name.trim(),
       category: req.body.category.trim().toLowerCase(),
+      image:    imageUrl,
+      imagePublicId: imagePublicId,
     });
 
     logger.info(`[Inventory] Creado: ${item.name}`);
@@ -86,6 +99,7 @@ export const updateInventoryItem = async (req, res, next) => {
     const ALLOWED = [
       "name", "description", "stock", "minStock", "maxStock",
       "unit", "cost", "supplier", "sector", "category", "location", "isActive",
+      "image", "imagePublicId",
     ];
 
     const updates = Object.fromEntries(
@@ -93,6 +107,26 @@ export const updateInventoryItem = async (req, res, next) => {
     );
 
     if (updates.category) updates.category = updates.category.toLowerCase();
+
+    // Manejar actualización de imagen (ya subida por multer-storage-cloudinary)
+    if (req.file) {
+      try {
+        // Eliminar imagen anterior si existe
+        const existingItem = await InventoryItem.findById(id);
+        if (existingItem?.imagePublicId) {
+          await deleteImage(existingItem.imagePublicId);
+          logger.info(`[Inventory] Imagen anterior eliminada: ${existingItem.imagePublicId}`);
+        }
+
+        // Usar la nueva imagen ya subida por multer-storage-cloudinary
+        updates.image = req.file.secure_url || req.file.path;
+        updates.imagePublicId = req.file.public_id;
+        logger.info(`[Inventory] Nueva imagen subida a Cloudinary: ${req.file.public_id}`);
+      } catch (uploadError) {
+        logger.error("[Inventory] Error actualizando imagen:", uploadError);
+        // Continuar sin actualizar imagen si falla
+      }
+    }
 
     const updated = await InventoryItem.findByIdAndUpdate(
       id, updates, { new: true, runValidators: true }
@@ -115,6 +149,16 @@ export const deleteInventoryItem = async (req, res, next) => {
 
     const deleted = await InventoryItem.findByIdAndDelete(id);
     if (!deleted) return notFound(res, "Item no encontrado");
+
+    // Eliminar imagen de Cloudinary si existe
+    if (deleted.imagePublicId) {
+      try {
+        await deleteImage(deleted.imagePublicId);
+      } catch (deleteError) {
+        logger.error(`[Inventory] Error eliminando imagen: ${deleteError.message}`);
+        // Continuar aunque falle la eliminación de la imagen
+      }
+    }
 
     logger.info(`[Inventory] Eliminado: ${deleted.name}`);
     return ok(res, null, "Item eliminado correctamente");
