@@ -8,7 +8,6 @@ const rouletteDrinkSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       default: null,
-      index: true,
     },
 
     name: {

@@ -219,13 +219,19 @@ export const referrerPolicyMiddleware = (options = {}) => {
    PERMISSIONS POLICY MIDDLEWARE
 ========================================================= */
 export const permissionsPolicyMiddleware = (options = {}) => {
-  const config = { ...securityConfig.permissionsPolicy, ...options };
+  const policyOverrides = options.permissionsPolicy ?? options;
+  const config = { ...securityConfig.permissionsPolicy, ...policyOverrides };
   
   return (req, res, next) => {
     const directives = [];
     
     for (const [feature, permissions] of Object.entries(config)) {
-      directives.push(`${feature}=(${permissions.join(' ')})`);
+      if (permissions === false || permissions == null) {
+        continue;
+      }
+
+      const list = Array.isArray(permissions) ? permissions : [permissions];
+      directives.push(`${feature}=(${list.join(' ')})`);
     }
     
     res.setHeader('Permissions-Policy', directives.join(', '));
