@@ -205,7 +205,7 @@ export default function NebulaDiscountPage() {
 
   return (
     <div className="discounts-root">
-      <div className="discounts-shell">
+      <div className="discounts-shell discounts-page-frame">
       <div>
         <DiscountsSuiteHeader
           title="Sistema Nebula de Descuentos"
@@ -670,3 +670,4 @@ export default function NebulaDiscountPage() {
     </div>
   );
 }
+

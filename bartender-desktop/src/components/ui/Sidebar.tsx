@@ -19,6 +19,7 @@ import {
 
 import { useAuthStore } from "../../store/authStore";
 import { useUIStore } from "../../store/uiStore";
+import { canAccessPath } from "../../config/accessControl";
 
 /* ============================== */
 const PATHS = {
@@ -37,6 +38,7 @@ const PATHS = {
 
 export default function Sidebar() {
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
@@ -79,7 +81,10 @@ export default function Sidebar() {
         { name: "Ruleta", path: PATHS.ROULETTE, icon: Dices },
       ],
     },
-  ];
+  ].map((section) => ({
+    ...section,
+    items: section.items.filter((item) => canAccessPath(user?.role, item.path)),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <aside
@@ -87,7 +92,7 @@ export default function Sidebar() {
         h-full flex flex-col relative
         transition-all duration-300 ease-in-out
         ${collapsed ? "w-20" : "w-64"}
-        bg-void/70 border-r border-obsidian/40
+        bg-void/80 border-r border-obsidian/50
         backdrop-blur-xl
       `}
     >
@@ -125,7 +130,7 @@ export default function Sidebar() {
       </div>
 
       {/* ================= NAV ================= */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-6 relative z-10">
+      <nav className="flex-1 overflow-y-auto p-3 md:p-4 space-y-6 relative z-10">
 
         {menuSections.map((section) => (
           <div key={section.title}>

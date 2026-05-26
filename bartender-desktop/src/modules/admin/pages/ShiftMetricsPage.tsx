@@ -18,6 +18,7 @@ import {
   getPeakHoursByShift,
   type ShiftMetrics
 } from "../services/trackingService";
+import AdminTutorialModal from "../components/AdminTutorialModal";
 import "../styles/luxury-theme.css";
 
 export default function ShiftMetricsPage() {
@@ -28,6 +29,11 @@ export default function ShiftMetricsPage() {
   const [peakHours, setPeakHours] = useState<{ hour: string; activityLevel: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"day" | "range">("day");
+  const tutorialSteps = [
+    { title: "1. Selecciona vista", description: "Diario para detalle puntual, Rango para tendencia de 30 dias." },
+    { title: "2. Elige turno y fecha", description: "Filtra manana, tarde, noche o evento para comparar rendimiento real." },
+    { title: "3. Lee indicadores clave", description: "Prioriza ventas, productividad y tiempo promedio para ajustar dotacion." }
+  ];
   
   const shiftTypes = [
     { key: "morning" as const, label: "Mañana", color: "#00ff88", icon: <Flame size={20} />, gradient: "from-[#00ff88] to-[#00d4ff]" },
@@ -86,7 +92,7 @@ export default function ShiftMetricsPage() {
   const shiftConfig = getShiftConfig(selectedShift);
 
   return (
-    <div className="min-h-screen luxury-bg p-8 relative overflow-hidden">
+    <div className="min-h-screen luxury-bg p-4 md:p-8 relative overflow-hidden">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial opacity-30 rounded-full blur-3xl animate-pulse" />
@@ -97,7 +103,7 @@ export default function ShiftMetricsPage() {
       <div className="relative z-10 max-w-7xl mx-auto space-y-8">
         
         {/* ================= HEADER ================= */}
-        <div className="flex items-end justify-between animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-in-up">
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-gold opacity-20 blur-xl rounded-2xl animate-pulse" />
@@ -109,17 +115,20 @@ export default function ShiftMetricsPage() {
               <p className="text-xs text-[#d4af37] font-semibold tracking-[0.3em] uppercase mb-2 opacity-80">
                 Análisis por Turno
               </p>
-              <h1 className="text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
                 Métricas de
                 <span className="gradient-text"> Turnos</span>
               </h1>
             </div>
           </div>
 
-          <button className="flex items-center gap-3 h-12 px-6 rounded-xl glass-card text-white/80 hover:text-white transition-all border border-white/10">
-            <Download size={20} />
-            <span className="text-sm font-semibold">Exportar</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <AdminTutorialModal title="Metricas de turnos" subtitle="Tutorial de lectura rapida para detectar desbalances operativos." steps={tutorialSteps} />
+            <button className="flex items-center gap-3 h-11 md:h-12 px-4 md:px-6 rounded-xl glass-card text-white/80 hover:text-white transition-all border border-white/10">
+              <Download size={18} />
+              <span className="text-sm font-semibold">Exportar</span>
+            </button>
+          </div>
         </div>
 
         {/* ================= CONTROLS ================= */}

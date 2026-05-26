@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { canAccessPath } from "../config/accessControl";
 
 /* ==============================
    PAGES PUBLIC
@@ -37,6 +38,11 @@ const PrivateRoute = () => {
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };
 
+const RoleRoute = ({ path }: { path: string }) => {
+  const user = useAuthStore((state) => state.user);
+  return canAccessPath(user?.role, path) ? <Outlet /> : <Navigate to="/dashboard" replace />;
+};
+
 /* ==============================
    DASHBOARD LAYOUT WRAPPER
 ============================== */
@@ -68,28 +74,51 @@ export default function AppRouter() {
           <Route element={<DashboardRoutes />}>
 
             {/* ================= CORE SYSTEM ================= */}
-            <Route path="/dashboard" element={<Dashboard />} />
-
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/menus" element={<MenusPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/discounts" element={<DiscountPage />} />
-            <Route path="/discounts/dynamic-pricing" element={<DynamicPricingPage />} />
-            <Route path="/discounts/promotions" element={<PromotionsPage />} />
-            <Route path="/discounts/events" element={<DiscountEventsPage />} />
-            <Route path="/reservations" element={<ReservationsPage />} />
-            <Route path="/tables" element={<TablesPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/recipes" element={<RecipesPage />} />
-            <Route path="/roulette" element={<RoulettePage />} />
+            <Route element={<RoleRoute path="/dashboard" />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Route>
+            <Route element={<RoleRoute path="/products" />}>
+              <Route path="/products" element={<ProductsPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/menus" />}>
+              <Route path="/menus" element={<MenusPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/orders" />}>
+              <Route path="/orders" element={<OrdersPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/discounts" />}>
+              <Route path="/discounts" element={<DiscountPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/discounts/dynamic-pricing" />}>
+              <Route path="/discounts/dynamic-pricing" element={<DynamicPricingPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/discounts/promotions" />}>
+              <Route path="/discounts/promotions" element={<PromotionsPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/discounts/events" />}>
+              <Route path="/discounts/events" element={<DiscountEventsPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/reservations" />}>
+              <Route path="/reservations" element={<ReservationsPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/tables" />}>
+              <Route path="/tables" element={<TablesPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/inventory" />}>
+              <Route path="/inventory" element={<InventoryPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/recipes" />}>
+              <Route path="/recipes" element={<RecipesPage />} />
+            </Route>
+            <Route element={<RoleRoute path="/roulette" />}>
+              <Route path="/roulette" element={<RoulettePage />} />
+            </Route>
 
             {/* ================= ADMIN MODULE (DYNAMIC) ================= */}
             {adminRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={<route.element />}
-              />
+              <Route key={route.path} element={<RoleRoute path={route.path} />}>
+                <Route path={route.path} element={<route.element />} />
+              </Route>
             ))}
 
           </Route>

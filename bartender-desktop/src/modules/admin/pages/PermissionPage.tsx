@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Shield, Users, Check, X, Lock, Save, Loader2 } from "lucide-react";
 import { updateRolePermissions } from "../services/userService";
+import AdminTutorialModal from "../components/AdminTutorialModal";
 import "../styles/luxury-theme.css";
 
 type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
@@ -47,6 +48,11 @@ const permissions: { key: PermissionKey; label: string }[] = [
 export default function PermissionPage() {
   const [selectedRole, setSelectedRole] = useState<Role>("bartender");
   const [saving, setSaving] = useState(false);
+  const tutorialSteps = [
+    { title: "1. Elige un rol", description: "Selecciona el rol para ver exactamente que pantallas puede usar." },
+    { title: "2. Revisa modulo por modulo", description: "Activa dashboard y modulos operativos segun responsabilidades reales." },
+    { title: "3. Guarda y valida", description: "Tras guardar, valida con una cuenta de prueba que el flujo sea claro." }
+  ];
 
   const [rolePermissions, setRolePermissions] = useState<RolePermissions>({
     admin: {
@@ -124,7 +130,7 @@ export default function PermissionPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#b147ff]/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between relative z-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
         <div className="flex items-center gap-6">
           <div className="p-4 glass-card rounded-2xl">
             <Users className="text-[#ffffff]" size={32} />
@@ -139,17 +145,20 @@ export default function PermissionPage() {
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-3 h-14 px-6 rounded-2xl
-          luxury-button
-          hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
-          transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 size={20} className="text-[#0a0a0f] animate-spin" /> : <Save size={20} className="text-[#0a0a0f]" />}
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0a0a0f]">Guardar Cambios</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <AdminTutorialModal title="Permisos del sistema" subtitle="Guia para entender que hace cada permiso y evitar bloqueos en operacion." steps={tutorialSteps} />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-3 h-12 md:h-14 px-5 md:px-6 rounded-2xl
+            luxury-button
+            hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
+            transition-all disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={20} className="text-[#0a0a0f] animate-spin" /> : <Save size={20} className="text-[#0a0a0f]" />}
+            <span className="text-xs font-black uppercase tracking-[0.16em] text-[#0a0a0f]">Guardar Cambios</span>
+          </button>
+        </div>
       </div>
 
       {/* ================= ROLES SELECTOR ================= */}
@@ -255,3 +264,5 @@ export default function PermissionPage() {
     </div>
   );
 }
+
+

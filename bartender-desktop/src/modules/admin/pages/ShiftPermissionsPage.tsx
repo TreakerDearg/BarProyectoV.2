@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Clock, Shield, Check, X, Activity, Save, Loader2 } from "lucide-react";
 import { updateShiftPermissions } from "../services/userService";
+import AdminTutorialModal from "../components/AdminTutorialModal";
 import "../styles/luxury-theme.css";
 
 type ModuleKey =
@@ -69,6 +70,11 @@ export default function ShiftPermissionsPage() {
       discounts: true,
     },
   });
+  const tutorialSteps = [
+    { title: "1. Elige un turno", description: "Selecciona manana, tarde, noche o evento para editar sus accesos." },
+    { title: "2. Activa modulos", description: "Cada switch habilita o bloquea el modulo para todo el personal del turno." },
+    { title: "3. Guarda cambios", description: "Presiona Guardar Cambios para aplicar la configuracion en todos los empleados del turno." }
+  ];
 
   const togglePermission = (module: ModuleKey) => {
     setPermissions((prev) => ({
@@ -105,7 +111,7 @@ export default function ShiftPermissionsPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between relative z-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10">
         <div className="flex items-center gap-6">
           <div className="p-4 glass-card border border-white/5 rounded-2xl shadow-inner">
             <Shield className="text-[#ffffff]" size={32} />
@@ -120,17 +126,20 @@ export default function ShiftPermissionsPage() {
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-3 h-14 px-6 rounded-2xl
-          bg-grad-gold text-bg shadow-gold/30
-          hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
-          transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 size={20} className="text-bg animate-spin" /> : <Save size={20} className="text-bg" />}
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Guardar Cambios</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <AdminTutorialModal title="Permisos por turno" subtitle="Define que modulos puede usar cada equipo segun su horario." steps={tutorialSteps} />
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-3 h-12 md:h-14 px-5 md:px-6 rounded-2xl
+            bg-grad-gold text-bg shadow-gold/30
+            hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
+            transition-all disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={20} className="text-bg animate-spin" /> : <Save size={20} className="text-bg" />}
+            <span className="text-xs font-black uppercase tracking-[0.16em]">Guardar Cambios</span>
+          </button>
+        </div>
       </div>
 
       {/* ================= SHIFT SELECTOR ================= */}

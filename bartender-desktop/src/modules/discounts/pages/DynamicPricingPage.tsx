@@ -59,7 +59,7 @@ export default function NebulaDynamicPricingPage() {
 
   return (
     <div className="discounts-root">
-      <div className="discounts-shell relative overflow-hidden animate-fade-in">
+      <div className="discounts-shell discounts-page-frame relative overflow-hidden animate-fade-in">
       <DiscountsSuiteHeader
         title="Nebula Dynamic Pricing"
         subtitle="Control algorítmico de multiplicadores"
@@ -208,3 +208,4 @@ export default function NebulaDynamicPricingPage() {
     </div>
   );
 }
+

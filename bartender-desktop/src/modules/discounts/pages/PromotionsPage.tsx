@@ -126,7 +126,7 @@ export default function NebulaPromotionsPage() {
 
   return (
     <div className="discounts-root">
-      <div className="discounts-shell relative overflow-hidden">
+      <div className="discounts-shell discounts-page-frame relative overflow-hidden">
       <DiscountsSuiteHeader
         title="Nebula Promotions"
         subtitle="Promociones programadas por horario y producto"
@@ -389,3 +389,4 @@ export default function NebulaPromotionsPage() {
     </div>
   );
 }
+

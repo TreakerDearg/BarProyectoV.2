@@ -26,6 +26,7 @@ import {
   type ShiftAssignment
 } from "../services/trackingService";
 import { getEmployees } from "../services/userService";
+import AdminTutorialModal from "../components/AdminTutorialModal";
 import "../styles/luxury-theme.css";
 
 const todayISO = () => new Date().toISOString().split("T")[0];
@@ -76,6 +77,23 @@ export default function ShiftManagementPage() {
     priority: 1,
     description: ""
   });
+  const tutorialSteps = [
+    {
+      title: "1. Crear turno base",
+      description: "Usa Nuevo Turno para definir horario, cupos y modulos habilitados por turno.",
+      highlight: "Configura primero manana, tarde y noche antes de asignar personal."
+    },
+    {
+      title: "2. Asignar empleados",
+      description: "En Asignacion Manual selecciona empleado, turno y fecha para registrar cobertura diaria.",
+      highlight: "Evita doble asignacion en un mismo horario para el mismo empleado."
+    },
+    {
+      title: "3. Generar turnos masivos",
+      description: "La generacion automatica crea o actualiza asignaciones por rango de fechas.",
+      highlight: "Activa sobrescribir solo cuando necesites reemplazar la planificacion ya creada."
+    }
+  ];
 
   const shiftTypes = [
     { key: "morning" as const, label: "Mañana", color: "#00ff88", icon: <Sun size={20} />, gradient: "from-[#00ff88] to-[#00d4ff]" },
@@ -338,7 +356,7 @@ export default function ShiftManagementPage() {
   };
 
   return (
-    <div className="min-h-screen luxury-bg p-8 relative overflow-hidden">
+    <div className="min-h-screen luxury-bg p-4 md:p-8 relative overflow-hidden">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial opacity-30 rounded-full blur-3xl animate-pulse" />
@@ -349,7 +367,7 @@ export default function ShiftManagementPage() {
       <div className="relative z-10 max-w-7xl mx-auto space-y-8">
         
         {/* ================= HEADER ================= */}
-        <div className="flex items-end justify-between animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-in-up">
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-gold opacity-20 blur-xl rounded-2xl animate-pulse" />
@@ -361,33 +379,40 @@ export default function ShiftManagementPage() {
               <p className="text-xs text-[#d4af37] font-semibold tracking-[0.3em] uppercase mb-2 opacity-80">
                 Control de Horarios
               </p>
-              <h1 className="text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
                 Gestión de
                 <span className="gradient-text"> Turnos</span>
               </h1>
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              setEditingShift(null);
-              setFormData({
-                shiftType: "morning",
-                startTime: "",
-                endTime: "",
-                maxEmployees: 5,
-                minEmployees: 2,
-                modules: [],
-                priority: 1,
-                description: ""
-              });
-              setShowModal(true);
-            }}
-            className="flex items-center gap-3 h-14 px-8 rounded-xl bg-gradient-gold text-black font-bold hover:shadow-lg hover:shadow-[#d4af37]/20 transition-all"
-          >
-            <Plus size={24} />
-            <span className="text-sm font-bold tracking-wide uppercase">Nuevo Turno</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <AdminTutorialModal
+              title="Gestion de turnos"
+              subtitle="Guia rapida para crear horarios, asignar equipo y generar turnos por rango."
+              steps={tutorialSteps}
+            />
+            <button
+              onClick={() => {
+                setEditingShift(null);
+                setFormData({
+                  shiftType: "morning",
+                  startTime: "",
+                  endTime: "",
+                  maxEmployees: 5,
+                  minEmployees: 2,
+                  modules: [],
+                  priority: 1,
+                  description: ""
+                });
+                setShowModal(true);
+              }}
+              className="flex items-center gap-3 h-12 md:h-14 px-5 md:px-8 rounded-xl bg-gradient-gold text-black font-bold hover:shadow-lg hover:shadow-[#d4af37]/20 transition-all"
+            >
+              <Plus size={22} />
+              <span className="text-sm font-bold tracking-wide uppercase">Nuevo Turno</span>
+            </button>
+          </div>
         </div>
 
         {/* ================= SUMMARY CARDS ================= */}

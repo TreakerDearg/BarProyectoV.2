@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: Props) {
         </header>
 
         {/* CONTENT */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 relative z-10">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-4 lg:p-6 relative z-10">
 
           <div
             className={`
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: Props) {
               overflow-hidden 
               group
               transition-all duration-300
-              ${collapsed ? "max-w-[1800px]" : "max-w-[1600px]"}
+              ${collapsed ? "max-w-[1920px]" : "max-w-[1820px]"}
               mx-auto
             `}
           >

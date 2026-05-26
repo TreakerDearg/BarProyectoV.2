@@ -1,6 +1,7 @@
 import { useAuthStore } from "../../store/authStore";
 import { NavLink, useLocation } from "react-router-dom";
 import { routesConfig } from "../../routes/routes.config";
+import { canAccessPath } from "../../config/accessControl";
 
 export default function Header() {
   const user = useAuthStore((state) => state.user);
@@ -10,7 +11,9 @@ export default function Header() {
     .sort((a, b) => b.path.length - a.path.length)
     .find((route) => location.pathname.startsWith(route.path));
 
-  const tabs = currentRoute?.children ?? [];
+  const tabs = (currentRoute?.children ?? []).filter((tab) =>
+    canAccessPath(user?.role, tab.path)
+  );
 
   return (
     <header className="

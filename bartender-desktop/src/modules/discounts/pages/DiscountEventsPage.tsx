@@ -45,7 +45,7 @@ export default function NebulaDiscountEventsPage() {
 
   return (
     <div className="discounts-root">
-      <div className="discounts-shell glass-royale p-4 md:p-6 rounded-[2rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
+      <div className="discounts-shell discounts-page-frame glass-royale p-4 md:p-6 rounded-[2rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
       <DiscountsSuiteHeader
         title="Nebula Discount Events"
         subtitle="Trazabilidad y auditoría operativa"
@@ -119,3 +119,4 @@ export default function NebulaDiscountEventsPage() {
     </div>
   );
 }
+
