@@ -4,6 +4,7 @@
  */
 
 import { io, Socket } from "socket.io-client";
+import { resolveBackendBaseUrl, resolveTrackingSocketUrl } from "./socketConfig";
 
 // Tipos de eventos que esperamos del servidor
 export interface SocketEventMap {
@@ -101,11 +102,11 @@ class SocketService {
     }
 
     // Determinar URL del servidor (desarrollo vs producción)
-    const socketUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    const socketUrl = resolveBackendBaseUrl();
 
     console.log(`[Socket] Conectando a ${socketUrl}/tracking...`);
 
-    this.socket = io(`${socketUrl}/tracking`, {
+    this.socket = io(resolveTrackingSocketUrl(), {
       auth: { token },
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -267,7 +268,7 @@ class SocketService {
 export const socketService = new SocketService();
 
 function getSocketUrl(): string {
-  return import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+  return resolveBackendBaseUrl();
 }
 
 /**

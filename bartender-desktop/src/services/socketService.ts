@@ -4,6 +4,7 @@
  */
 
 import { io, Socket } from "socket.io-client";
+import { resolveTrackingSocketUrl } from "./socketConfig";
 
 // Tipos de eventos
 export interface ActivityLog {
@@ -46,11 +47,7 @@ export interface ShiftData {
 }
 
 // Configuración
-const SOCKET_URL =
-  import.meta.env.VITE_BACKEND_URL ||
-  import.meta.env.VITE_API_URL?.replace("/api", "") ||
-  "http://localhost:5000";
-const TRACKING_NAMESPACE = "/tracking";
+const SOCKET_URL = resolveTrackingSocketUrl();
 
 class SocketService {
   private socket: Socket | null = null;
@@ -71,9 +68,9 @@ class SocketService {
           return;
         }
 
-        console.log(`[SocketService] Conectando a ${SOCKET_URL}${TRACKING_NAMESPACE}`);
+        console.log(`[SocketService] Conectando a ${SOCKET_URL}`);
 
-        this.socket = io(`${SOCKET_URL}${TRACKING_NAMESPACE}`, {
+        this.socket = io(SOCKET_URL, {
           auth: { token },
           transports: ["websocket", "polling"],
           reconnection: true,
