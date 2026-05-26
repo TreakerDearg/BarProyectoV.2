@@ -33,12 +33,18 @@ const normalizePayload = (data: any) => {
 /* =========================================================
    AXIOS INSTANCE
 ========================================================= */
+const rawApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.VITE_BACKEND_URL
+    ? `${import.meta.env.VITE_BACKEND_URL}/api`
+    : "http://localhost:5000/api");
+
+const baseURL = rawApiUrl.replace(/\/$/, "").endsWith("/api")
+  ? rawApiUrl.replace(/\/$/, "")
+  : `${rawApiUrl.replace(/\/$/, "")}/api`;
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    (import.meta.env.VITE_BACKEND_URL
-      ? `${import.meta.env.VITE_BACKEND_URL}/api`
-      : "http://localhost:5000/api"),
+  baseURL,
   timeout: 15000,
 });
 

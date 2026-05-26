@@ -56,12 +56,18 @@ const allowedOrigins = new Set(
   ].filter(Boolean)
 );
 
+const isVercelPreviewOrigin = (origin = "") =>
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+
+const isAllowedOrigin = (origin) =>
+  allowedOrigins.has(origin) || isVercelPreviewOrigin(origin);
+
 app.use(
   cors({
     origin: (origin, callback) => {
       /* Electron no envía origin → permitir */
       if (!origin) return callback(null, true);
-      if (allowedOrigins.has(origin)) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, true);
 
       logger.warn(`[CORS] Bloqueado: ${origin}`);
       return callback(new Error(`CORS bloqueado: ${origin}`));
@@ -128,7 +134,11 @@ app.use("/api", apiRoutes);
 ========================================================= */
 export const io = new Server(server, {
   cors: {
-    origin:      [...allowedOrigins],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error(`CORS bloqueado en Socket.IO: ${origin}`));
+    },
     credentials: true,
   },
   /* Configuración de transporte optimizada */
@@ -260,3 +270,4 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection:', reason);
   process.exit(1);
 });
+
