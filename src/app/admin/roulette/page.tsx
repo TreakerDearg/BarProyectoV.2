@@ -8,9 +8,6 @@ import RouletteForm from "./components/RouletteForm";
 import RouletteStatsDashboard from "./components/RouletteStatsDashboard";
 import type { RouletteDrink } from "./services/rouletteService";
 
-export const metadata = {
-  title: "Roulette | Obsidian Admin",
-};
 
 export default function RoulettePage() {
   const {

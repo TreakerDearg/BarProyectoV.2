@@ -64,7 +64,6 @@ export default function RevenueStreamChart({ data }: Props) {
               fillOpacity={1}
               fill="url(#colorSalesGold)"
               animationDuration={2000}
-              shadow="0 0 20px rgba(212,163,64,0.3)"
             />
           </AreaChart>
         </ResponsiveContainer>

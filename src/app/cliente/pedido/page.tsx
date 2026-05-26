@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import styles from "./pedido-ui.module.css";
+import ui from "./pedido-ui.module.css";
 
 import {
   getTables,
@@ -198,8 +198,8 @@ export default function PedidoPage() {
         cart={cart}
         setLineQty={setLineQty}
         removeFromCart={removeFromCart}
-        handleSubmit={handleSubmit}
-        loading={submitting}
+        handleSubmitOrder={handleSubmit}
+        submitting={submitting}
       />
 
       <PedidoStatus msg={msg} />
