@@ -213,6 +213,10 @@ export default function NebulaDiscountPage() {
           onOpenTutorial={() => setTutorialOpen(true)}
         />
       </div>
+      <div className="discounts-title-band">
+        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Flujo de descuentos en vivo</p>
+        <p className="text-xs text-amber-100/80">Selecciona pedido, calcula y aplica</p>
+      </div>
       {/* ENCABEZADO AMIGABLE NEBULA */}
       <div className="discounts-panel p-4 md:p-5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -354,7 +358,7 @@ export default function NebulaDiscountPage() {
         {/* =========================
             IZQUIERDA: LISTA DE ÓRDENES
         ========================= */}
-        <div>
+        <div className="min-h-0">
           <div className="discounts-panel p-4 md:p-5 flex flex-col">
             {/* ENCABEZADO COLAPSABLE */}
             <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
@@ -422,7 +426,7 @@ export default function NebulaDiscountPage() {
         {/* =========================
             CENTRO: DETALLES DE ORDEN (SE EXPANDE EN MÓVIL)
         ========================= */}
-        <div>
+        <div className="min-h-0">
           <div className="discounts-panel p-4 md:p-5 flex flex-col min-h-[420px] xl:h-[680px]">
             {/* ENCABEZADO COLAPSABLE */}
             <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
@@ -484,7 +488,7 @@ export default function NebulaDiscountPage() {
         {/* =========================
             DERECHA: PANEL DE DESCUENTOS NEBULA (SE EXPANDE EN MÓVIL CUANDO ES NECESARIO)
         ========================= */}
-        <div>
+        <div className="min-h-0">
           <div className="discounts-panel discounts-callout-critical p-4 md:p-5 flex flex-col space-y-4">
             {/* TECLADO DE DESCUENTOS */}
             {!seccionesColapsadas.descuento && (

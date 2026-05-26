@@ -47,13 +47,17 @@ export default function NebulaDiscountEventsPage() {
     <div className="discounts-root">
       <div className="discounts-shell discounts-page-frame glass-royale p-4 md:p-6 rounded-[2rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
       <DiscountsSuiteHeader
-        title="Nebula Discount Events"
+        title="Eventos de Descuentos"
         subtitle="Trazabilidad y auditoría operativa"
         onOpenTutorial={() => setTutorialOpen(true)}
       />
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
+      <div className="discounts-title-band">
+        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Auditoría de descuentos</p>
+        <p className="text-xs text-amber-100/80">Seguimiento de cambios y validaciones en tiempo real</p>
+      </div>
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10">
         <div className="flex items-center gap-6">
@@ -119,4 +123,5 @@ export default function NebulaDiscountEventsPage() {
     </div>
   );
 }
+
 

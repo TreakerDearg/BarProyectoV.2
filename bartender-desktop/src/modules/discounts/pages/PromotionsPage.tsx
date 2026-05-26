@@ -128,13 +128,17 @@ export default function NebulaPromotionsPage() {
     <div className="discounts-root">
       <div className="discounts-shell discounts-page-frame relative overflow-hidden">
       <DiscountsSuiteHeader
-        title="Nebula Promotions"
+        title="Promociones Programadas"
         subtitle="Promociones programadas por horario y producto"
         onOpenTutorial={() => setTutorialOpen(true)}
       />
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-500/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
+      <div className="discounts-title-band">
+        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Promociones por horario y producto</p>
+        <p className="text-xs text-amber-100/80">Crea, activa y controla campañas del turno</p>
+      </div>
       {/* ================= HEADER & MASTER SWITCH ================= */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10 animate-fade-in-up">
         <div className="flex items-center gap-6">
@@ -149,7 +153,7 @@ export default function NebulaPromotionsPage() {
               Marketing & Operaciones
             </p>
             <h1 className="text-4xl font-black text-ivory tracking-tighter uppercase leading-none" style={{ fontFamily: 'var(--font-display)' }}>
-              Constructor de <span className="text-rose-400">Promociones Nebula</span>
+              Gestor de <span className="text-rose-400">Promociones</span>
             </h1>
           </div>
         </div>
@@ -175,9 +179,9 @@ export default function NebulaPromotionsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6 relative z-10">
+      <div className="discounts-view-grid relative z-10">
         {/* ================= NEW PROMO FORM ================= */}
-        <section className="col-span-12 xl:col-span-7 relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="absolute inset-0 bg-gradient-to-br from-rose-500/0 via-rose-500/30 to-rose-500/0 opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl" />
           <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-royale">
             
@@ -324,7 +328,7 @@ export default function NebulaPromotionsPage() {
         </section>
 
         {/* ================= ACTIVE PROMOTIONS ================= */}
-        <section className="col-span-12 xl:col-span-5 relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="absolute inset-0 bg-gradient-to-br from-lime/0 via-lime/20 to-lime/0 opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl" />
           <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-royale h-full">
             
@@ -389,4 +393,5 @@ export default function NebulaPromotionsPage() {
     </div>
   );
 }
+
 

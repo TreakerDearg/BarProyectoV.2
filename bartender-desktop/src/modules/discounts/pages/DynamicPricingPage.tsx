@@ -61,13 +61,17 @@ export default function NebulaDynamicPricingPage() {
     <div className="discounts-root">
       <div className="discounts-shell discounts-page-frame relative overflow-hidden animate-fade-in">
       <DiscountsSuiteHeader
-        title="Nebula Dynamic Pricing"
+        title="Precios por Demanda"
         subtitle="Control algorítmico de multiplicadores"
         onOpenTutorial={() => setTutorialOpen(true)}
       />
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[150px] -z-10 pointer-events-none transition-colors duration-1000 ${themeBg} opacity-10`} />
 
+      <div className="discounts-title-band">
+        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Ajuste de precio por demanda</p>
+        <p className="text-xs text-amber-100/80">Controla margen sin perder ritmo de servicio</p>
+      </div>
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10 animate-fade-in-up">
         <div className="flex items-center gap-6">
@@ -88,9 +92,9 @@ export default function NebulaDynamicPricingPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6 relative z-10">
+      <div className="discounts-view-grid relative z-10">
         {/* ================= MULTIPLIER CONTROL ================= */}
-        <section className="col-span-12 xl:col-span-6 relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className={`absolute inset-0 bg-gradient-to-br from-transparent via-${themeBg}/20 to-transparent opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl`} />
           <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-royale h-full flex flex-col justify-between">
             
@@ -139,7 +143,7 @@ export default function NebulaDynamicPricingPage() {
         </section>
 
         {/* ================= METRICS ================= */}
-        <section className="col-span-12 xl:col-span-6 grid grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           {/* INGRESO PROYECTADO */}
           <div className="bg-[#0a0a0f]/80 border border-white/5 rounded-3xl p-8 flex flex-col justify-between group hover:border-lime/30 transition-all relative overflow-hidden">
             <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-lime/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -208,4 +212,5 @@ export default function NebulaDynamicPricingPage() {
     </div>
   );
 }
+
 

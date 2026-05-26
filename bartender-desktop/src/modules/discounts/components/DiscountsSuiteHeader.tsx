@@ -9,9 +9,9 @@ type Props = {
 
 const tabs = [
   { to: "/discounts", label: "Descuentos" },
-  { to: "/discounts/dynamic-pricing", label: "Dynamic" },
-  { to: "/discounts/promotions", label: "Promotions" },
-  { to: "/discounts/events", label: "Events" },
+  { to: "/discounts/dynamic-pricing", label: "Precios" },
+  { to: "/discounts/promotions", label: "Promociones" },
+  { to: "/discounts/events", label: "Eventos" },
 ];
 
 export default function DiscountsSuiteHeader({ title, subtitle, onOpenTutorial }: Props) {
