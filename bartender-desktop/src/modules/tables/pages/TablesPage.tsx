@@ -63,6 +63,7 @@ export default function TablesPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [currentOrderTotal, setCurrentOrderTotal] = useState(0);
+  const [selectedOrderIdForPayment, setSelectedOrderIdForPayment] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [viewType, setViewType] = useState<"grid" | "spatial">("spatial");
@@ -381,9 +382,21 @@ export default function TablesPage() {
 
   const handlePaymentSelector = () => {
     if (!selectedTable) return;
-    // Calcular el total de la orden actual
-    const total = selectedTable.orders?.reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0;
+
+    const openOrder = selectedTable.orders?.find((o) => o.sessionStatus === "open");
+    if (!openOrder?._id) {
+      setError("No hay una orden activa para cobrar en esta mesa.");
+      return;
+    }
+
+    // Calcular total solo de órdenes abiertas
+    const total =
+      selectedTable.orders
+        ?.filter((o) => o.sessionStatus === "open")
+        .reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0;
+
     setCurrentOrderTotal(total);
+    setSelectedOrderIdForPayment(openOrder._id);
     setIsPaymentSelectorOpen(true);
   };
 
@@ -755,10 +768,10 @@ export default function TablesPage() {
           />
         )}
 
-        {isPaymentSelectorOpen && selectedTable && selectedTable.currentSessionId && (
+        {isPaymentSelectorOpen && selectedTable && selectedOrderIdForPayment && (
           <PaymentMethodSelector
             tableId={selectedTable._id!}
-            orderId={selectedTable.currentSessionId}
+            orderId={selectedOrderIdForPayment}
             totalAmount={currentOrderTotal > 0 ? currentOrderTotal : 100}
             onSelect={async (method, data) => {
               try {
@@ -768,14 +781,14 @@ export default function TablesPage() {
                 if (method === "card") {
                   response = await createCardPayment({
                     tableId: selectedTable._id!,
-                    orderId: selectedTable.currentSessionId!,
+                    orderId: selectedOrderIdForPayment,
                     cardDetails: data.cardDetails,
                     amount: currentOrderTotal
                   });
                 } else if (method === "split") {
                   response = await createSplitPayment({
                     tableId: selectedTable._id!,
-                    orderId: selectedTable.currentSessionId!,
+                    orderId: selectedOrderIdForPayment,
                     totalSplits: data.totalSplits,
                     method: data.method,
                     amounts: data.amounts
@@ -783,7 +796,7 @@ export default function TablesPage() {
                 } else if (method === "partial") {
                   response = await createPartialPayment({
                     tableId: selectedTable._id!,
-                    orderId: selectedTable.currentSessionId!,
+                    orderId: selectedOrderIdForPayment,
                     amount: data.amount,
                     method: data.method,
                     amountPaid: data.amountPaid
@@ -791,7 +804,7 @@ export default function TablesPage() {
                 } else if (method === "cash" || method === "transfer") {
                   response = await createStandardPayment({
                     tableId: selectedTable._id!,
-                    orderId: selectedTable.currentSessionId!,
+                    orderId: selectedOrderIdForPayment,
                     method: method,
                     amountPaid: data?.amountPaid || currentOrderTotal
                   });
@@ -807,9 +820,13 @@ export default function TablesPage() {
               } finally {
                 setLoading(false);
                 setIsPaymentSelectorOpen(false);
+                setSelectedOrderIdForPayment(null);
               }
             }}
-            onClose={() => setIsPaymentSelectorOpen(false)}
+            onClose={() => {
+              setIsPaymentSelectorOpen(false);
+              setSelectedOrderIdForPayment(null);
+            }}
           />
         )}
       </AnimatePresence>

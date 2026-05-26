@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Socket.IO Client Service
  * Maneja la conexión en tiempo real con el backend para eventos de dashboard
  */
@@ -6,61 +6,40 @@
 import { io, Socket } from "socket.io-client";
 import { resolveBackendBaseUrl, resolveTrackingSocketUrl } from "./socketConfig";
 
-// Tipos de eventos que esperamos del servidor
 export interface SocketEventMap {
-  // Actividad
   "activity:new": { type: string; message: string; timestamp: string; data?: any };
   "activity:updated": { type: string; message: string; timestamp: string; data?: any };
-  
-  // KPIs
   "kpi:update": { userId?: string; kpis: any; timestamp: string };
   "kpi:ranking": { rankings: any[]; timestamp: string };
-  
-  // Alertas
   "alert:create": { type: string; message: string; severity: "low" | "medium" | "high"; timestamp: string };
   "alert:resolve": { alertId: string; timestamp: string };
-  
-  // Descuentos (nuevo)
-  "discount:applied": { 
-    orderId: string; 
+  "discount:applied": {
+    orderId: string;
     discountId?: string;
-    amount: number; 
-    reason: string; 
+    amount: number;
+    reason: string;
     type: "PERCENT" | "FLAT";
     timestamp: string;
     table?: string;
     appliedBy?: string;
   };
-  
-  // Turnos
   "shift:created": { shiftId: string; shiftType: string; timestamp: string };
   "shift:updated": { shiftId: string; shiftType: string; timestamp: string };
   "shift:deleted": { shiftId: string; timestamp: string };
-  
-  // Métricas
   "metrics:update": { metrics: any; timestamp: string };
-  
-  // Sistema
   "system:notification": { message: string; type: "info" | "warning" | "error"; timestamp: string };
-  
-  // Menús
   "menu:created": { menuId: string; name?: string; timestamp: string };
   "menu:updated": { menuId: string; name?: string; timestamp: string };
   "menu:deleted": { menuId: string; timestamp: string };
-  
-  // Productos
   "product:created": { productId: string; name?: string; timestamp: string };
   "product:updated": { productId: string; name?: string; timestamp: string };
   "product:deleted": { productId: string; timestamp: string };
   "product:availability_changed": { productId: string; available: boolean; timestamp: string };
-  
-  // Recetas
   "recipe:created": { recipeId: string; name?: string; timestamp: string };
   "recipe:updated": { recipeId: string; name?: string; timestamp: string };
   "recipe:deleted": { recipeId: string; timestamp: string };
 }
 
-// Tipos de datos para eventos
 export interface MenuEventData {
   menuId: string;
   name?: string;
@@ -82,7 +61,6 @@ export interface RecipeEventData {
   timestamp: string;
 }
 
-/** Socket raíz: mesas, reservas, pedidos */
 let mainSocket: Socket | null = null;
 let mainConnectAttempts = 0;
 
@@ -91,19 +69,12 @@ class SocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private listeners: Map<string, Set<Function>> = new Map();
+  private listenersBound = false;
 
-  /**
-   * Conectar al servidor Socket.IO
-   */
   connect(token?: string): void {
-    if (this.socket?.connected) {
-      console.log("[Socket] Ya conectado");
-      return;
-    }
+    if (this.socket?.connected) return;
 
-    // Determinar URL del servidor (desarrollo vs producción)
     const socketUrl = resolveBackendBaseUrl();
-
     console.log(`[Socket] Conectando a ${socketUrl}/tracking...`);
 
     this.socket = io(resolveTrackingSocketUrl(), {
@@ -115,165 +86,111 @@ class SocketService {
     });
 
     this.setupEventHandlers();
+    this.bindPendingListeners();
   }
 
-  /**
-   * Configurar handlers de conexión y eventos generales
-   */
   private setupEventHandlers(): void {
     if (!this.socket) return;
 
     this.socket.on("connect", () => {
-      console.log("[Socket]  Conectado al servidor");
       this.reconnectAttempts = 0;
-      
-      // Unirse a rooms por defecto
       this.joinRoom("activity");
       this.joinRoom("kpis");
       this.joinRoom("alerts");
       this.joinRoom("metrics");
     });
 
-    this.socket.on("disconnect", (reason) => {
-      console.log(`[Socket] ❌ Desconectado: ${reason}`);
-    });
-
     this.socket.on("connect_error", (error) => {
       console.error("[Socket] Error de conexión:", error);
       this.reconnectAttempts++;
-      
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error("[Socket] Máximo de reintentos alcanzado");
       }
     });
-
-    this.socket.on("reconnect", (attemptNumber) => {
-      console.log(`[Socket]  Reconectado después de ${attemptNumber} intentos`);
-    });
   }
 
-  /**
-   * Unirse a una room específica
-   */
+  private bindPendingListeners(): void {
+    if (!this.socket || this.listenersBound) return;
+
+    this.listeners.forEach((callbacks, event) => {
+      callbacks.forEach((cb) => this.socket?.on(event, cb as any));
+    });
+
+    this.listenersBound = true;
+  }
+
   joinRoom(room: string, additionalParam?: string): void {
-    if (!this.socket?.connected) {
-      console.warn("[Socket] No conectado, no se puede unir a room:", room);
-      return;
-    }
-
-    const roomName = additionalParam ? `${room}:${additionalParam}` : room;
-    this.socket.emit(`join:${room}`, additionalParam, (_response: any) => {
-      console.log(`[Socket] Unido a room: ${roomName}`);
-    });
+    if (!this.socket?.connected) return;
+    this.socket.emit(`join:${room}`, additionalParam, () => {});
   }
 
-  /**
-   * Salir de una room
-   */
   leaveRoom(room: string, additionalParam?: string): void {
     if (!this.socket?.connected) return;
-
-    this.socket.emit(`leave:${room}`, additionalParam, (_response: any) => {
-      console.log(`[Socket] Salió de room: ${room}`);
-    });
+    this.socket.emit(`leave:${room}`, additionalParam, () => {});
   }
 
-  /**
-   * Escuchar un evento específico
-   */
-  on<K extends keyof SocketEventMap>(
-    event: K,
-    callback: (data: SocketEventMap[K]) => void
-  ): void {
-    if (!this.socket) {
-      console.warn("[Socket] Socket no inicializado, listener no agregado:", event);
-      return;
-    }
-
+  on<K extends keyof SocketEventMap>(event: K, callback: (data: SocketEventMap[K]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
 
-    this.listeners.get(event)!.add(callback);
-    this.socket.on(event, callback as any);
-  }
+    const callbacks = this.listeners.get(event)!;
+    if (callbacks.has(callback)) return;
+    callbacks.add(callback);
 
-  /**
-   * Dejar de escuchar un evento
-   */
-  off<K extends keyof SocketEventMap>(
-    event: K,
-    callback?: (data: SocketEventMap[K]) => void
-  ): void {
-    if (!this.socket) return;
-
-    if (callback) {
-      this.listeners.get(event)?.delete(callback);
-      this.socket.off(event, callback as any);
-    } else {
-      // Remover todos los listeners para este evento
-      const callbacks = this.listeners.get(event);
-      if (callbacks) {
-        callbacks.forEach(cb => this.socket?.off(event, cb as any));
-        this.listeners.delete(event);
-      }
+    if (this.socket) {
+      this.socket.on(event, callback as any);
+      this.listenersBound = true;
     }
   }
 
-  /**
-   * Enviar un evento al servidor
-   */
-  emit(event: string, data?: any): void {
-    if (!this.socket?.connected) {
-      console.warn("[Socket] No conectado, evento no enviado:", event);
+  off<K extends keyof SocketEventMap>(event: K, callback?: (data: SocketEventMap[K]) => void): void {
+    if (callback) {
+      this.listeners.get(event)?.delete(callback);
+      this.socket?.off(event, callback as any);
       return;
     }
 
+    const callbacks = this.listeners.get(event);
+    if (!callbacks) return;
+
+    callbacks.forEach((cb) => this.socket?.off(event, cb as any));
+    this.listeners.delete(event);
+  }
+
+  emit(event: string, data?: any): void {
+    if (!this.socket?.connected) return;
     this.socket.emit(event, data);
   }
 
-  /**
-   * Desconectar del servidor
-   */
   disconnect(): void {
     if (!this.socket) return;
 
-    // Limpiar todos los listeners
     this.listeners.forEach((callbacks, event) => {
-      callbacks.forEach(cb => this.socket?.off(event, cb as any));
+      callbacks.forEach((cb) => this.socket?.off(event, cb as any));
     });
     this.listeners.clear();
 
     this.socket.disconnect();
     this.socket = null;
-    console.log("[Socket] Desconectado manualmente");
+    this.listenersBound = false;
   }
 
-  /**
-   * Verificar estado de conexión
-   */
   isConnected(): boolean {
     return this.socket?.connected || false;
   }
 
-  /**
-   * Obtener instancia de socket (para uso directo si necesario)
-   */
   getSocket(): Socket | null {
     return this.socket;
   }
 }
 
-// Exportar instancia singleton
 export const socketService = new SocketService();
 
 function getSocketUrl(): string {
   return resolveBackendBaseUrl();
 }
 
-/**
- * Conecta al namespace raíz (mesas, reservas, pedidos).
- */
 export function connectMainSocket(token?: string): Socket {
   if (mainSocket?.connected) return mainSocket;
 
@@ -307,13 +224,11 @@ export function disconnectMainSocket(): void {
   mainSocket = null;
 }
 
-/** Tracking (dashboard) + raíz (salón) */
 export function connectSalonSockets(token?: string): void {
   socketService.connect(token);
   connectMainSocket(token);
 }
 
-// Funciones de compatibilidad — salón usa socket raíz
 export const getSocket = (): Socket | null => {
   const main = getMainSocket();
   if (main) return main;
@@ -324,7 +239,6 @@ export const disconnectSocket = (): void => {
   socketService.disconnect();
 };
 
-// Event handlers para menús
 export const onMenuCreated = (callback: (data: MenuEventData) => void): (() => void) => {
   socketService.on("menu:created", callback);
   return () => socketService.off("menu:created", callback);
@@ -340,7 +254,6 @@ export const onMenuDeleted = (callback: (data: MenuEventData) => void): (() => v
   return () => socketService.off("menu:deleted", callback);
 };
 
-// Event handlers para productos
 export const onProductCreated = (callback: (data: ProductEventData) => void): (() => void) => {
   socketService.on("product:created", callback);
   return () => socketService.off("product:created", callback);
@@ -361,7 +274,6 @@ export const onProductAvailabilityChanged = (callback: (data: ProductEventData) 
   return () => socketService.off("product:availability_changed", callback);
 };
 
-// Event handlers para recetas
 export const onRecipeCreated = (callback: (data: RecipeEventData) => void): (() => void) => {
   socketService.on("recipe:created", callback);
   return () => socketService.off("recipe:created", callback);
@@ -377,5 +289,5 @@ export const onRecipeDeleted = (callback: (data: RecipeEventData) => void): (() 
   return () => socketService.off("recipe:deleted", callback);
 };
 
-// Export por defecto para compatibilidad
 export default socketService;
+

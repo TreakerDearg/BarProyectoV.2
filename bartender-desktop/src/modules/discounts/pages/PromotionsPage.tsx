@@ -3,8 +3,11 @@ import { pricingService, type Promotion } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
 import { Plus, Trash2, Calendar, Clock, Tag, Loader2, Sparkles, Power, PackageSearch, Search } from "lucide-react";
+import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
+import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaPromotionsPage() {
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [autoEnabled, setAutoEnabled] = useState(true);
@@ -122,7 +125,13 @@ export default function NebulaPromotionsPage() {
   );
 
   return (
-    <div className="space-y-6 p-8 relative overflow-hidden">
+    <div className="discounts-root">
+      <div className="discounts-shell relative overflow-hidden">
+      <DiscountsSuiteHeader
+        title="Nebula Promotions"
+        subtitle="Promociones programadas por horario y producto"
+        onOpenTutorial={() => setTutorialOpen(true)}
+      />
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-500/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
@@ -374,6 +383,8 @@ export default function NebulaPromotionsPage() {
             </div>
           </div>
         </section>
+      </div>
+      <DiscountsSuiteTutorial isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       </div>
     </div>
   );

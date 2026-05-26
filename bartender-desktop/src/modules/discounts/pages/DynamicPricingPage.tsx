@@ -3,8 +3,11 @@ import { pricingService } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
 import { Activity, TrendingUp, TrendingDown, Target, Zap, ChevronRight, AlertTriangle, Flame } from "lucide-react";
+import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
+import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaDynamicPricingPage() {
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [multiplier, setMultiplier] = useState(1.0);
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +58,13 @@ export default function NebulaDynamicPricingPage() {
   const themeBorder = isSurge ? 'border-rose-500/30' : isHighDemand ? 'border-orange-500/30' : isLowDemand ? 'border-blue-400/30' : 'border-lime/30';
 
   return (
-    <div className="space-y-6 p-8 relative overflow-hidden animate-fade-in">
+    <div className="discounts-root">
+      <div className="discounts-shell relative overflow-hidden animate-fade-in">
+      <DiscountsSuiteHeader
+        title="Nebula Dynamic Pricing"
+        subtitle="Control algorítmico de multiplicadores"
+        onOpenTutorial={() => setTutorialOpen(true)}
+      />
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[150px] -z-10 pointer-events-none transition-colors duration-1000 ${themeBg} opacity-10`} />
 
@@ -193,6 +202,8 @@ export default function NebulaDynamicPricingPage() {
             </div>
           </div>
         </section>
+      </div>
+      <DiscountsSuiteTutorial isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       </div>
     </div>
   );

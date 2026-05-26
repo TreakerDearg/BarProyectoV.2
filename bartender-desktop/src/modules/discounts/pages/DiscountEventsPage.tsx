@@ -3,8 +3,11 @@ import { pricingService, type PricingEvent } from "../services/pricingService";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Activity, Clock, ShieldAlert, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
+import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaDiscountEventsPage() {
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [events, setEvents] = useState<PricingEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +44,13 @@ export default function NebulaDiscountEventsPage() {
   if (loading) return <div className="p-10 text-ivory text-sm">Cargando...</div>;
 
   return (
-    <div className="space-y-6 glass-royale p-8 rounded-[3rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
+    <div className="discounts-root">
+      <div className="discounts-shell glass-royale p-4 md:p-6 rounded-[2rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
+      <DiscountsSuiteHeader
+        title="Nebula Discount Events"
+        subtitle="Trazabilidad y auditoría operativa"
+        onOpenTutorial={() => setTutorialOpen(true)}
+      />
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
@@ -105,6 +114,8 @@ export default function NebulaDiscountEventsPage() {
           )}
         </div>
       </section>
+      <DiscountsSuiteTutorial isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
+      </div>
     </div>
   );
 }

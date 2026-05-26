@@ -7,11 +7,22 @@ import DiscountStats from "../components/DiscountStats";
 
 import { useDiscount } from "../hooks/useDiscount";
 import { discountService } from "../services/discountService";
+import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
+import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 import type { Order, SelectedItem } from "../types/discounts";
-import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw } from "lucide-react";
+import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw, HelpCircle } from "lucide-react";
 
 export default function NebulaDiscountPage() {
+  const [mode, setMode] = useState<"simple" | "advanced">(() => {
+    try {
+      const v = localStorage.getItem("nebula_discount_mode");
+      return v === "advanced" ? "advanced" : "simple";
+    } catch {
+      return "simple";
+    }
+  });
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<SelectedItem[]>([]);
@@ -37,6 +48,24 @@ export default function NebulaDiscountPage() {
   });
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "en-curso" | "completadas">("todas");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("nebula_discount_mode", mode);
+    } catch {
+      // ignore
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    try {
+      const key = "nebula_discount_tutorial_v1";
+      const done = localStorage.getItem(key) === "done";
+      if (!done) setTutorialOpen(true);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   /* =========================
      HOOK CENTRAL NEBULA
@@ -175,9 +204,17 @@ export default function NebulaDiscountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 md:p-6">
+    <div className="discounts-root">
+      <div className="discounts-shell">
+      <div>
+        <DiscountsSuiteHeader
+          title="Sistema Nebula de Descuentos"
+          subtitle="Operación asistida para caja y salón"
+          onOpenTutorial={() => setTutorialOpen(true)}
+        />
+      </div>
       {/* ENCABEZADO AMIGABLE NEBULA */}
-      <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 mb-4 md:mb-6">
+      <div className="discounts-panel p-4 md:p-5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="p-3 md:p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg">
@@ -195,6 +232,27 @@ export default function NebulaDiscountPage() {
           
           {/* ACCIONES RÁPIDAS */}
           <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex bg-gray-100 p-1 rounded-xl">
+              <button
+                onClick={() => setMode("simple")}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "simple" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+              >
+                Simple
+              </button>
+              <button
+                onClick={() => setMode("advanced")}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "advanced" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+              >
+                Avanzado
+              </button>
+            </div>
+            <button
+              onClick={() => setTutorialOpen(true)}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+            >
+              <HelpCircle size={16} />
+              Tutorial
+            </button>
             <button
               onClick={() => aplicarDescuentoRapido(10)}
               className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
@@ -224,7 +282,7 @@ export default function NebulaDiscountPage() {
         </div>
 
         {/* INDICADOR DE PASOS MEJORADO NEBULA */}
-        <div className="mt-6">
+        <div className={`mt-6 ${mode === "simple" ? "hidden" : ""}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 md:gap-4 flex-1">
               <div 
@@ -292,12 +350,12 @@ export default function NebulaDiscountPage() {
       )}
 
       {/* CONTENIDO PRINCIPAL - LAYOUT RESPONSIVE NEBULA */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
+      <div className="discounts-grid-ops">
         {/* =========================
             IZQUIERDA: LISTA DE ÓRDENES
         ========================= */}
-        <div className="lg:col-span-12 xl:col-span-3">
-          <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col">
+        <div>
+          <div className="discounts-panel p-4 md:p-5 flex flex-col">
             {/* ENCABEZADO COLAPSABLE */}
             <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
@@ -364,8 +422,8 @@ export default function NebulaDiscountPage() {
         {/* =========================
             CENTRO: DETALLES DE ORDEN (SE EXPANDE EN MÓVIL)
         ========================= */}
-        <div className={`${pasoActual >= 1 ? 'lg:col-span-12 xl:col-span-6' : 'lg:col-span-6 xl:col-span-5'} order-2 lg:order-2`}>
-          <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col min-h-[500px] lg:h-[700px]">
+        <div>
+          <div className="discounts-panel p-4 md:p-5 flex flex-col min-h-[420px] xl:h-[680px]">
             {/* ENCABEZADO COLAPSABLE */}
             <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
               <div className="flex items-center gap-3">
@@ -426,8 +484,8 @@ export default function NebulaDiscountPage() {
         {/* =========================
             DERECHA: PANEL DE DESCUENTOS NEBULA (SE EXPANDE EN MÓVIL CUANDO ES NECESARIO)
         ========================= */}
-        <div className={`${pasoActual >= 2 ? 'lg:col-span-12 xl:col-span-3' : 'lg:col-span-6 xl:col-span-4'} order-3 lg:order-3`}>
-          <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6 flex flex-col space-y-4">
+        <div>
+          <div className="discounts-panel discounts-callout-critical p-4 md:p-5 flex flex-col space-y-4">
             {/* TECLADO DE DESCUENTOS */}
             {!seccionesColapsadas.descuento && (
               <>
@@ -575,7 +633,8 @@ export default function NebulaDiscountPage() {
       {/* =========================
           SECCIÓN DE ESTADÍSTICAS NEBULA (COLAPSABLE)
       ========================= */}
-      <div className="bg-white rounded-3xl shadow-xl p-4 md:p-6">
+      {mode === "advanced" && (
+      <div className="discounts-panel discounts-callout-success p-4 md:p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-xl">
@@ -597,6 +656,16 @@ export default function NebulaDiscountPage() {
             loading={loadingStats}
           />
         )}
+      </div>
+      )}
+
+      <DiscountsSuiteTutorial
+        isOpen={tutorialOpen}
+        onClose={() => {
+          try { localStorage.setItem("nebula_discount_tutorial_v1", "done"); } catch {}
+          setTutorialOpen(false);
+        }}
+      />
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Order        from "../models/Order.js";
 import Product      from "../models/Product.js";
-import Table        from "../models/Table.js";
 import Menu         from "../models/Menu.js";
 import Discount     from "../models/Discount.js";
 import ActivityLog  from "../models/ActivityLog.js";
@@ -48,49 +47,6 @@ const emitOrderCreate = (order) => {
 const emitOrderDelete = (order) => {
   io.emit(`table:${order.table}`, { event: "order:deleted", order });
   io.to("orders:global").emit("order:deleted", order);
-};
-
-const emitTableUpdate = async (tableId) => {
-  const table = await Table.findById(tableId).lean();
-  if (!table) return;
-  io.emit("table:update", table);
-  io.to(`table:${tableId}`).emit("table:update", table);
-};
-
-/* =========================================================
-   TABLE AUTO-CLOSE
-========================================================= */
-const handleTableAutoClose = async (tableId) => {
-  if (!isValidId(tableId)) return;
-
-  const activeOrders = await Order.countDocuments({
-    table: tableId,
-    sessionStatus: "open",
-  });
-
-  if (activeOrders > 0) return;
-
-  const table = await Table.findById(tableId);
-  if (!table) return;
-  if (["maintenance", "available"].includes(table.status)) return;
-
-  table.status           = "maintenance";
-  table.currentSessionId = null;
-  await table.save();
-
-  await emitTableUpdate(tableId);
-
-  logger.info(`[Order] Mesa ${tableId} → mantenimiento por cierre de sesión`);
-
-  setTimeout(async () => {
-    const t = await Table.findById(tableId);
-    if (t && t.status === "maintenance") {
-      t.status = "available";
-      await t.save();
-      await emitTableUpdate(tableId);
-      logger.info(`[Order] Mesa ${tableId} → disponible`);
-    }
-  }, 2 * 60 * 1000);
 };
 
 /* =========================================================
@@ -313,18 +269,13 @@ export const updateOrderStatus = async (req, res, next) => {
 
     order.status = status;
 
-    if (["completed", "cancelled"].includes(status)) {
-      order.sessionStatus = "closed";
-      order.closedAt      = new Date();
+    if (status === "cancelled") {
+      order.closedAt = new Date();
     }
 
     await order.save();
 
     emitOrderUpdate(order);
-
-    if (order.sessionStatus === "closed") {
-      await handleTableAutoClose(order.table);
-    }
 
     logger.info(`[Order] ${order._id} → status: ${status}`);
 
@@ -361,9 +312,8 @@ export const updateOrderItemStatus = async (req, res, next) => {
     const anyReady     = allItems.some((i)  => i.status === "ready");
 
     if (allServed) {
-      order.status        = "completed";
-      order.sessionStatus = "closed";
-      order.closedAt      = new Date();
+      order.status = "completed";
+      order.closedAt = new Date();
     } else if (anyPreparing || anyReady) {
       order.status = "in-progress";
     }
@@ -375,10 +325,6 @@ export const updateOrderItemStatus = async (req, res, next) => {
     /* Notificación específica al rol de delivery */
     if (status === "ready") {
       io.to("role:bartender").emit("item:ready", { orderId, itemId, item });
-    }
-
-    if (order.sessionStatus === "closed") {
-      await handleTableAutoClose(order.table);
     }
 
     return ok(res, order, "Item actualizado");
@@ -532,8 +478,7 @@ export const closeOrderWithPayment = async (req, res, next) => {
     // Aquí solo actualizamos el estado de la orden
 
     order.status = "completed";
-    order.sessionStatus = "closed";
-    order.closedAt = new Date();
+      order.closedAt = new Date();
 
     if (paymentData?.paymentId) {
       order.payment = paymentData.paymentId;
@@ -544,12 +489,10 @@ export const closeOrderWithPayment = async (req, res, next) => {
     await order.save();
     emitOrderUpdate(order);
 
-    if (order.sessionStatus === "closed") {
-      await handleTableAutoClose(order.table);
-    }
-
     return ok(res, order, "Orden cerrada correctamente");
   } catch (error) {
     next(error);
   }
 };
+
+

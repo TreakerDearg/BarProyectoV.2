@@ -63,7 +63,11 @@ export const createPayment = async (req, res, next) => {
     const order = await Order.findById(orderId).session(session);
     if (!order) { await session.abortTransaction(); return notFound(res, "Orden no encontrada"); }
     if (order.sessionStatus === "closed") { await session.abortTransaction(); return badRequest(res, "La orden ya está cerrada"); }
-    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }
+    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
+    if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
+      await session.abortTransaction();
+      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+    }
 
     /* ─── Calcular subtotal ─── */
     const subtotal = order.items.reduce((acc, item) => {
@@ -441,7 +445,11 @@ export const createSplitPayment = async (req, res, next) => {
     const order = await Order.findById(orderId).session(session);
     if (!order) { await session.abortTransaction(); return notFound(res, "Orden no encontrada"); }
     if (order.sessionStatus === "closed") { await session.abortTransaction(); return badRequest(res, "La orden ya está cerrada"); }
-    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }
+    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
+    if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
+      await session.abortTransaction();
+      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+    }
 
     /* ─── Calcular subtotal y descuentos ─── */
     const subtotal = order.items.reduce((acc, item) => {
@@ -778,7 +786,11 @@ export const createCardPayment = async (req, res, next) => {
     const order = await Order.findById(orderId).session(session);
     if (!order) { await session.abortTransaction(); return notFound(res, "Orden no encontrada"); }
     if (order.sessionStatus === "closed") { await session.abortTransaction(); return badRequest(res, "La orden ya está cerrada"); }
-    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }
+    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
+    if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
+      await session.abortTransaction();
+      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+    }
 
     /* ─── Calcular total ─── */
     const subtotal = order.items.reduce((acc, item) => {
@@ -862,3 +874,4 @@ export const createCardPayment = async (req, res, next) => {
     session.endSession();
   }
 };
+
