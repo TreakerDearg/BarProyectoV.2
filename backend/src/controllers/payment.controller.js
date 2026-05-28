@@ -106,7 +106,7 @@ export const createPayment = async (req, res, next) => {
       subtotal,
       change,
       amountPaid: method === "cash" ? amountPaid : total,
-      processedBy: req.user?.id,
+      processedBy: req.user?.id || req.user?._id,
       receipt: {
         items: order.items.map(item => ({
           name: item.name,
@@ -151,11 +151,7 @@ export const createPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando pago:", error);
-    if (typeof next === 'function') {
-      next(error);
-    } else {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    next(error);
   } finally {
     session.endSession();
   }
@@ -181,11 +177,7 @@ export const getPaymentById = async (req, res, next) => {
     return ok(res, payment);
   } catch (error) {
     logger.error("[Payment] Error getting payment by ID:", error);
-    if (typeof next === 'function') {
-      next(error);
-    } else {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    next(error);
   }
 };
 
@@ -212,11 +204,7 @@ export const getTablePayments = async (req, res, next) => {
     return ok(res, payments);
   } catch (error) {
     logger.error("[Payment] Error getting table payments:", error);
-    if (typeof next === 'function') {
-      next(error);
-    } else {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    next(error);
   }
 };
 
@@ -515,7 +503,7 @@ export const createSplitPayment = async (req, res, next) => {
           splitAmount: splitAmounts[i],
           parentPaymentId: null, // Will be set after creation
         },
-        processedBy: req.user.id,
+        processedBy: req.user?.id || req.user?._id,
         receipt: {
           items: order.items.map(item => ({
             name: item.name,
@@ -628,7 +616,7 @@ export const createPartialPayment = async (req, res, next) => {
       subtotal: subtotal * (amount / total),
       change,
       amountPaid: method === "cash" ? amountPaid : amount,
-      processedBy: req.user.id,
+      processedBy: req.user?.id || req.user?._id,
       receipt: {
         items: order.items.map(item => ({
           name: item.name,
@@ -771,11 +759,7 @@ export const getAvailablePaymentMethods = async (req, res, next) => {
     return ok(res, defaultMethods);
   } catch (error) {
     logger.error("[Payment] Error in getAvailablePaymentMethods:", error);
-    if (typeof next === 'function') {
-      next(error);
-    } else {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    next(error);
   }
 };
 
@@ -844,7 +828,7 @@ export const createCardPayment = async (req, res, next) => {
         authorizationCode: cardDetails.authorizationCode || "AUTH-" + Date.now(),
         terminalId: cardDetails.terminalId || "TERM-001",
       },
-      processedBy: req.user.id,
+      processedBy: req.user?.id || req.user?._id,
       receipt: {
         items: order.items.map(item => ({
           name: item.name,
