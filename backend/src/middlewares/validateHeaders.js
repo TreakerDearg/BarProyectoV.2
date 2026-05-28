@@ -17,14 +17,14 @@ const validationRules = {
   
   // Accept header validation
   accept: {
-  allowed: [
-    'application/json',
-    'text/plain',
-    'text/html',
-    '*/*'
-  ],
-  default: 'application/json'
-},
+    allowed: [
+      'application/json',
+      'text/plain',
+      'text/html',
+      '*/*'
+    ],
+    default: 'application/json'
+  },
   
   // User-Agent validation
   userAgent: {
@@ -33,10 +33,9 @@ const validationRules = {
     required: false
   },
   
-  // Content-Length validation
+  // Content-Length validation (optional, but validated if present)
   'content-length': {
-    max: 10 * 1024 * 1024, // 10MB
-    requiredFor: ['POST', 'PUT', 'PATCH']
+    max: 10 * 1024 * 1024 // 10MB
   },
   
   // Custom headers for the application
@@ -67,7 +66,9 @@ const validationRules = {
 const validateHeader = (headerName, value, rules, req) => {
   // Check if required
   if (rules.requiredFor && rules.requiredFor.includes(req.method)) {
-    if (!value || value === '') {
+    // Only require it if the request actually contains a body (based on Content-Length or Transfer-Encoding)
+    const hasBody = req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined;
+    if (hasBody && (!value || value === '')) {
       return {
         valid: false,
         error: `Header '${headerName}' es requerido para método ${req.method}`
@@ -167,6 +168,34 @@ const sanitizeHeaderValue = (value) => {
 };
 
 /* =========================================================
+   GET HEADER FROM REQUEST (Robust Lookup)
+========================================================= */
+const getHeaderFromRequest = (req, name) => {
+  if (!name) return undefined;
+  
+  // 1. Try direct lowercase lookup (standard for Express)
+  const nameLower = name.toLowerCase();
+  if (req.headers[nameLower] !== undefined) return req.headers[nameLower];
+  
+  // 2. Kebab-case conversion (e.g. contentType -> content-type, userAgent -> user-agent)
+  const kebab = name.replace(/([A-Z])/g, '-$1').toLowerCase();
+  if (req.headers[kebab] !== undefined) return req.headers[kebab];
+  
+  // 3. Raw lookup (some clients might send exact casing)
+  if (req.headers[name] !== undefined) return req.headers[name];
+  
+  // 4. Ultra-robust fallback: strip all non-alphanumeric characters and match case-insensitively
+  const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  for (const key of Object.keys(req.headers)) {
+    if (key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === cleanName) {
+      return req.headers[key];
+    }
+  }
+  
+  return undefined;
+};
+
+/* =========================================================
    MAIN VALIDATION MIDDLEWARE
 ========================================================= */
 export const validateHeaders = (options = {}) => {
@@ -182,12 +211,13 @@ export const validateHeaders = (options = {}) => {
     
     // Validate all configured rules
     for (const [headerName, headerRules] of Object.entries(rules)) {
-      const headerValue = req.headers[headerName.toLowerCase()];
+      const headerValue = getHeaderFromRequest(req, headerName);
       const sanitizedValue = sanitizeHeaderValue(headerValue);
       
-      // Update header with sanitized value
+      // Update header with sanitized value in standard lowercase format
+      const stdHeaderName = headerName.replace(/([A-Z])/g, '-$1').toLowerCase();
       if (headerValue !== undefined) {
-        req.headers[headerName.toLowerCase()] = sanitizedValue;
+        req.headers[stdHeaderName] = sanitizedValue;
       }
       
       // Validate
@@ -232,7 +262,8 @@ export const validateHeaders = (options = {}) => {
     // Add sanitized headers object
     req.sanitizedHeaders = {};
     for (const [headerName, headerRules] of Object.entries(rules)) {
-      req.sanitizedHeaders[headerName] = req.headers[headerName.toLowerCase()];
+      const stdHeaderName = headerName.replace(/([A-Z])/g, '-$1').toLowerCase();
+      req.sanitizedHeaders[headerName] = req.headers[stdHeaderName] || req.headers[headerName.toLowerCase()];
     }
     
     next();
@@ -462,11 +493,11 @@ export const headers = {
   api: validateHeaders({
     rules: {
       'content-type': {
-        allowed: ['application/json'],
+        allowed: ['application/json', 'multipart/form-data', 'application/x-www-form-urlencoded'],
         requiredFor: ['POST', 'PUT', 'PATCH']
       },
       'accept': {
-        allowed: ['application/json', '*/*']
+        allowed: ['application/json', 'text/plain', 'text/html', '*/*']
       }
     }
   }),

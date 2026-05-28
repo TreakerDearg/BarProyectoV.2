@@ -23,6 +23,15 @@ function tokenFromPersist(): string | null {
 
 api.interceptors.request.use((config) => {
   const token = tokenFromPersist();
+  
+  if (!config.headers) {
+    config.headers = {} as any;
+  }
+  config.headers['Accept'] = 'application/json, text/plain, */*';
+  config.headers['Content-Type'] = 'application/json';
+  config.headers['X-Platform'] = 'web';
+  config.headers['X-Client-Version'] = '1.0.0';
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

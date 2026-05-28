@@ -58,8 +58,17 @@ api.interceptors.request.use(
   (config) => {
     const token = getToken();
 
+    // Standardized & Custom headers injection to prevent 400 validation errors
+    if (!config.headers) {
+      config.headers = {} as any;
+    }
+    config.headers['Accept'] = 'application/json, text/plain, */*';
+    config.headers['Content-Type'] = 'application/json';
+    config.headers['X-Platform'] = 'desktop';
+    config.headers['X-Client-Version'] = '1.0.0';
+
     //  AUTH HEADER SAFE
-    if (token && config.headers) {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 

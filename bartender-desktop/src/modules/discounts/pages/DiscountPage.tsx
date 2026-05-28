@@ -8,7 +8,8 @@ import DiscountStats from "../components/DiscountStats";
 import { useDiscount } from "../hooks/useDiscount";
 import { discountService } from "../services/discountService";
 import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
-import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
+import TourGuide from "../components/TourGuide";
+import type { TourStep } from "../components/TourGuide";
 
 import type { Order, SelectedItem } from "../types/discounts";
 import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw, HelpCircle } from "lucide-react";
@@ -22,7 +23,7 @@ export default function NebulaDiscountPage() {
       return "simple";
     }
   });
-  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<SelectedItem[]>([]);
@@ -46,6 +47,7 @@ export default function NebulaDiscountPage() {
     razon: false,
     estadisticas: true
   });
+  const [compactMode, setCompactMode] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "en-curso" | "completadas">("todas");
 
@@ -57,15 +59,63 @@ export default function NebulaDiscountPage() {
     }
   }, [mode]);
 
-  useEffect(() => {
-    try {
-      const key = "nebula_discount_tutorial_v1";
-      const done = localStorage.getItem(key) === "done";
-      if (!done) setTutorialOpen(true);
-    } catch {
-      // ignore
+  // Tour steps configuration
+  const tourSteps: TourStep[] = [
+    {
+      target: "[data-tour='mode-toggle']",
+      title: "Modo de Operación",
+      content: "Selecciona entre modo Simple (básico) o Avanzado (con estadísticas y pasos detallados).",
+      position: "bottom"
+    },
+    {
+      target: "[data-tour='orders-list']",
+      title: "Órdenes Activas",
+      content: "Lista de todas las órdenes activas en el sistema. Usa la búsqueda para filtrar por mesa o producto.",
+      position: "right"
+    },
+    {
+      target: "[data-tour='order-details']",
+      title: "Detalles de Orden",
+      content: "Muestra los items de la orden seleccionada. Marca los items a los que quieres aplicar el descuento.",
+      position: "left"
+    },
+    {
+      target: "[data-tour='discount-keypad']",
+      title: "Teclado de Descuentos",
+      content: "Selecciona el tipo de descuento (porcentaje o monto fijo) e ingresa el valor usando el teclado numérico.",
+      position: "left"
+    },
+    {
+      target: "[data-tour='discount-summary']",
+      title: "Resumen del Descuento",
+      content: "Vista previa del cálculo: subtotal, descuento aplicado y total final a pagar.",
+      position: "left"
+    },
+    {
+      target: "[data-tour='discount-reason']",
+      title: "Motivo del Descuento",
+      content: "Selecciona el motivo del descuento (ej: competencia, cortesía) y agrega notas adicionales si es necesario.",
+      position: "left"
+    },
+    {
+      target: "[data-tour='apply-btn']",
+      title: "Aplicar Descuento",
+      content: "Confirma y aplica el descuento a la orden seleccionada. Esta acción es irreversible.",
+      position: "top"
+    },
+    {
+      target: "[data-tour='quick-actions']",
+      title: "Acciones Rápidas",
+      content: "Botones para aplicar descuentos predefinidos rápidamente (-10%, -15%) y actualizar la lista de órdenes.",
+      position: "bottom"
+    },
+    {
+      target: "[data-tour='stats-section']",
+      title: "Estadísticas del Día",
+      content: "Resumen de descuentos aplicados hoy: total, promedio y cantidad. Solo visible en modo avanzado.",
+      position: "top"
     }
-  }, []);
+  ];
 
   /* =========================
      HOOK CENTRAL NEBULA
@@ -204,134 +254,125 @@ export default function NebulaDiscountPage() {
   };
 
   return (
-    <div className="discounts-root">
-      <div className="discounts-shell discounts-page-frame">
+    <div className="nebula-discounts-root">
+      <div className="nebula-discounts-shell nebula-discounts-page-frame">
       <div>
         <DiscountsSuiteHeader
           title="Sistema Nebula de Descuentos"
           subtitle="Operación asistida para caja y salón"
-          onOpenTutorial={() => setTutorialOpen(true)}
+          onOpenTutorial={() => setTourOpen(true)}
         />
       </div>
-      <div className="discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Flujo de descuentos en vivo</p>
-        <p className="text-xs text-amber-100/80">Selecciona pedido, calcula y aplica</p>
+      <div className="nebula-discounts-aurora" />
+      <div className="nebula-discounts-title-band">
+        <p className="text-xs font-bold tracking-wider uppercase text-violet-300">Flujo de descuentos en vivo</p>
+        <p className="text-xs text-violet-200/70">Selecciona pedido, calcula y aplica</p>
       </div>
       {/* ENCABEZADO AMIGABLE NEBULA */}
-      <div className="discounts-panel p-4 md:p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 md:p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg">
-              <Sparkles className="text-white" size={28} />
+      <div className="nebula-discounts-panel p-3 md:p-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-2xl shadow-lg">
+              <Sparkles className="text-white" size={24} />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+              <h1 className="text-lg md:text-xl font-bold text-ivory">
                 Sistema Nebula de Descuentos
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-muted">
                 Aplica descuentos de forma rápida y segura
               </p>
             </div>
           </div>
           
           {/* ACCIONES RÁPIDAS */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex bg-gray-100 p-1 rounded-xl">
+          <div className="flex items-center gap-2 flex-wrap" data-tour="quick-actions">
+            <div className="flex bg-white/5 p-1 rounded-xl border border-white/10" data-tour="mode-toggle">
               <button
                 onClick={() => setMode("simple")}
-                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "simple" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "simple" ? "bg-violet-500 text-white" : "text-muted hover:text-ivory"}`}
               >
                 Simple
               </button>
               <button
                 onClick={() => setMode("advanced")}
-                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "advanced" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "advanced" ? "bg-violet-500 text-white" : "text-muted hover:text-ivory"}`}
               >
                 Avanzado
               </button>
             </div>
             <button
-              onClick={() => setTutorialOpen(true)}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-            >
-              <HelpCircle size={16} />
-              Tutorial
-            </button>
-            <button
               onClick={() => aplicarDescuentoRapido(10)}
-              className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              className="px-3 py-2 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-violet-500/20"
               disabled={!selectedOrder}
             >
-              <Zap size={16} />
-              <span className="hidden sm:inline">-10% Rápido</span>
-              <span className="sm:hidden">-10%</span>
+              <Zap size={14} />
+              <span className="hidden sm:inline">-10%</span>
             </button>
             <button
               onClick={() => aplicarDescuentoRapido(15)}
-              className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              className="px-3 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-cyan-500/20"
               disabled={!selectedOrder}
             >
-              <Zap size={16} />
-              <span className="hidden sm:inline">-15% Rápido</span>
-              <span className="sm:hidden">-15%</span>
+              <Zap size={14} />
+              <span className="hidden sm:inline">-15%</span>
             </button>
             <button
               onClick={() => { cargarOrdenes(); cargarEstadisticas(); }}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-ivory rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-white/10"
             >
-              <RefreshCw size={16} className={loadingOrders || loadingStats ? "animate-spin" : ""} />
-              <span className="hidden sm:inline">Actualizar</span>
+              <RefreshCw size={14} className={loadingOrders || loadingStats ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
 
         {/* INDICADOR DE PASOS MEJORADO NEBULA */}
-        <div className={`mt-6 ${mode === "simple" ? "hidden" : ""}`}>
+        <div className={`mt-4 ${mode === "simple" ? "hidden" : ""}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-4 flex-1">
+            <div className="flex items-center gap-2 md:gap-3 flex-1">
               <div 
                 onClick={() => selectedOrder && setPasoActual(1)}
-                className={`flex-1 flex items-center gap-2 px-3 py-3 rounded-2xl transition-all cursor-pointer ${
+                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 1 
-                    ? "bg-blue-500 text-white shadow-lg" 
-                    : "bg-gray-100 text-gray-400"
+                    ? "bg-violet-500 text-white shadow-lg" 
+                    : "bg-white/5 text-muted"
                 }`}
               >
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center text-xs md:text-sm font-bold">
+                <div className="w-5 h-5 md:w-6 md:h-6 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
                   1
                 </div>
-                <span className="text-xs md:text-sm font-semibold hidden sm:block">Seleccionar</span>
+                <span className="text-xs font-semibold hidden sm:block">Seleccionar</span>
               </div>
               
-              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 2 ? "bg-blue-500" : "bg-gray-200"}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 2 ? "bg-violet-500" : "bg-white/10"}`} />
               
               <div 
                 onClick={() => items.some(i => i.selected) && setPasoActual(2)}
-                className={`flex-1 flex items-center gap-2 px-3 py-3 rounded-2xl transition-all cursor-pointer ${
+                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 2 
-                    ? "bg-blue-500 text-white shadow-lg" 
-                    : "bg-gray-100 text-gray-400"
+                    ? "bg-violet-500 text-white shadow-lg" 
+                    : "bg-white/5 text-muted"
                 } ${!items.some(i => i.selected) && "opacity-50 cursor-not-allowed"}`}
               >
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center text-xs md:text-sm font-bold">
+                <div className="w-5 h-5 md:w-6 md:h-6 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
                   2
                 </div>
-                <span className="text-xs md:text-sm font-semibold hidden sm:block">Calcular</span>
+                <span className="text-xs font-semibold hidden sm:block">Calcular</span>
               </div>
               
-              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 3 ? "bg-blue-500" : "bg-gray-200"}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 3 ? "bg-violet-500" : "bg-white/10"}`} />
               
               <div 
-                className={`flex-1 flex items-center gap-2 px-3 py-3 rounded-2xl transition-all cursor-pointer ${
+                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 3 
-                    ? "bg-blue-500 text-white shadow-lg" 
-                    : "bg-gray-100 text-gray-400"
+                    ? "bg-violet-500 text-white shadow-lg" 
+                    : "bg-white/5 text-muted"
                 } ${!discount.isValid && "opacity-50 cursor-not-allowed"}`}
               >
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-full flex items-center justify-center text-xs md:text-sm font-bold">
+                <div className="w-5 h-5 md:w-6 md:h-6 bg-white/20 rounded-full flex items-center justify-center text-xs font-bold">
                   3
                 </div>
-                <span className="text-xs md:text-sm font-semibold hidden sm:block">Aplicar</span>
+                <span className="text-xs font-semibold hidden sm:block">Aplicar</span>
               </div>
             </div>
           </div>
@@ -354,29 +395,29 @@ export default function NebulaDiscountPage() {
       )}
 
       {/* CONTENIDO PRINCIPAL - LAYOUT RESPONSIVE NEBULA */}
-      <div className="discounts-grid-ops">
+      <div className="nebula-discounts-grid-ops">
         {/* =========================
             IZQUIERDA: LISTA DE ÓRDENES
         ========================= */}
         <div className="min-h-0">
-          <div className="discounts-panel p-4 md:p-5 flex flex-col">
+          <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col" data-tour="orders-list">
             {/* ENCABEZADO COLAPSABLE */}
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-xl">
-                  <Sparkles size={20} className="text-blue-600" />
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-violet-500/10 rounded-xl">
+                  <Sparkles size={18} className="text-violet-400" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-800">Órdenes Activas</h3>
+                <h3 className="text-sm font-bold text-ivory">Órdenes Activas</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                <span className="text-xs font-semibold text-violet-400 bg-violet-500/10 px-2 py-1 rounded-full">
                   {ordenesFiltradas.length}
                 </span>
                 <button
                   onClick={() => toggleSeccion('ordenes')}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
                 >
-                  {seccionesColapsadas.ordenes ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                  {seccionesColapsadas.ordenes ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                 </button>
               </div>
             </div>
@@ -384,13 +425,13 @@ export default function NebulaDiscountPage() {
             {/* BÚSQUEDA Y FILTRO */}
             {!seccionesColapsadas.ordenes && (
               <>
-                <div className="mb-4 space-y-2">
+                <div className="mb-3 space-y-2">
                   <input
                     type="text"
                     placeholder="Buscar por mesa o producto..."
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm outline-none focus:border-violet-400 transition-colors text-ivory"
                   />
                   <div className="flex gap-2">
                     {["todas", "en-curso", "completadas"].map((estado) => (
@@ -399,8 +440,8 @@ export default function NebulaDiscountPage() {
                         onClick={() => setFiltroEstado(estado as any)}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                           filtroEstado === estado
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            ? "bg-violet-500 text-white"
+                            : "bg-white/5 text-muted hover:bg-white/10"
                         }`}
                       >
                         {estado === "todas" ? "Todas" : estado === "en-curso" ? "En curso" : "Completadas"}
@@ -427,17 +468,17 @@ export default function NebulaDiscountPage() {
             CENTRO: DETALLES DE ORDEN (SE EXPANDE EN MÓVIL)
         ========================= */}
         <div className="min-h-0">
-          <div className="discounts-panel p-4 md:p-5 flex flex-col min-h-[420px] xl:h-[680px]">
+          <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col min-h-[350px] xl:h-[600px]" data-tour="order-details">
             {/* ENCABEZADO COLAPSABLE */}
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-xl">
-                  <Sparkles size={20} className="text-purple-600" />
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-cyan-500/10 rounded-xl">
+                  <Sparkles size={18} className="text-cyan-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-800">Detalles de Orden</h3>
+                  <h3 className="text-sm font-bold text-ivory">Detalles de Orden</h3>
                   {selectedOrder && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted">
                       Mesa {typeof selectedOrder.table === "object" ? selectedOrder.table?.number : selectedOrder.table}
                     </p>
                   )}
@@ -446,9 +487,9 @@ export default function NebulaDiscountPage() {
               {selectedOrder && (
                 <button
                   onClick={() => toggleSeccion('detalles')}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
                 >
-                  {seccionesColapsadas.detalles ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                  {seccionesColapsadas.detalles ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                 </button>
               )}
             </div>
@@ -468,14 +509,14 @@ export default function NebulaDiscountPage() {
                     }}
                   />
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-                    <div className="p-6 bg-gray-100 rounded-full mb-4">
-                      <Info size={48} className="text-gray-400" />
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                    <div className="p-4 bg-white/5 rounded-full mb-3">
+                      <Info size={32} className="text-white/30" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-700 mb-2">
+                    <h3 className="text-sm font-bold text-ivory mb-2">
                       Selecciona una orden
                     </h3>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-muted text-xs">
                       Elige una orden activa de la lista para comenzar
                     </p>
                   </div>
@@ -489,22 +530,22 @@ export default function NebulaDiscountPage() {
             DERECHA: PANEL DE DESCUENTOS NEBULA (SE EXPANDE EN MÓVIL CUANDO ES NECESARIO)
         ========================= */}
         <div className="min-h-0">
-          <div className="discounts-panel discounts-callout-critical p-4 md:p-5 flex flex-col space-y-4">
+          <div className="nebula-discounts-panel nebula-discounts-callout-critical p-3 md:p-4 flex flex-col space-y-3">
             {/* TECLADO DE DESCUENTOS */}
             {!seccionesColapsadas.descuento && (
               <>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-xl">
-                      <Sparkles size={20} className="text-green-600" />
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-lime/10 rounded-xl">
+                      <Sparkles size={18} className="text-lime" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">Calcular Descuento</h3>
+                    <h3 className="text-sm font-bold text-ivory">Calcular Descuento</h3>
                   </div>
                   <button
                     onClick={() => toggleSeccion('descuento')}
-                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
                   >
-                    <ChevronUp size={20} />
+                    <ChevronUp size={18} />
                   </button>
                 </div>
 
@@ -518,47 +559,48 @@ export default function NebulaDiscountPage() {
                   valueInput={discount.valueInput}
                   appendNumber={discount.appendNumber}
                   removeLast={discount.removeLast}
+                  data-tour="discount-keypad"
                 />
 
                 {/* TARJETA DE RESUMEN */}
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-4 md:p-6 space-y-4">
-                  <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+                <div className="bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border-2 border-violet-500/20 rounded-2xl p-4 space-y-3" data-tour="discount-summary">
+                  <h4 className="text-xs font-bold text-ivory uppercase tracking-wider">
                     Resumen del descuento
                   </h4>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="font-bold text-gray-800">${discount.subtotal.toFixed(2)}</span>
+                      <span className="text-muted">Subtotal</span>
+                      <span className="font-bold text-ivory">${discount.subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Descuento</span>
-                      <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-blue-600' : 'text-green-600'}`}>
+                      <span className="text-muted">Descuento</span>
+                      <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-violet-400' : 'text-cyan-400'}`}>
                         -${discount.discountAmount.toFixed(2)}
                       </span>
                     </div>
-                    <div className="h-px bg-blue-200 my-2" />
+                    <div className="h-px bg-violet-500/20 my-2" />
                     <div className="flex justify-between items-center">
-                      <span className="text-base font-bold text-gray-700">Total a pagar</span>
-                      <span className="text-2xl font-bold text-blue-600">${discount.finalTotal.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-ivory">Total a pagar</span>
+                      <span className="text-xl font-bold text-violet-400">${discount.finalTotal.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* FORMULARIO DE RAZÓN */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-100 rounded-xl">
-                        <Sparkles size={20} className="text-amber-600" />
+                <div data-tour="discount-reason">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-gold/10 rounded-xl">
+                        <Sparkles size={18} className="text-gold" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-800">Motivo</h3>
+                      <h3 className="text-sm font-bold text-ivory">Motivo</h3>
                     </div>
                     <button
                       onClick={() => toggleSeccion('razon')}
-                      className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
                     >
-                      {seccionesColapsadas.razon ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                      {seccionesColapsadas.razon ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                     </button>
                   </div>
 
@@ -577,13 +619,13 @@ export default function NebulaDiscountPage() {
 
                 {/* VISUALIZACIÓN DE ERRORES */}
                 {!discount.isValid && discount.valueInput && (
-                  <div className="bg-red-50 border border-red-200 p-4 rounded-xl space-y-2">
-                    <p className="text-xs font-bold text-red-700 uppercase tracking-wider">
+                  <div className="bg-red/5 border border-red/20 p-3 rounded-xl space-y-2">
+                    <p className="text-xs font-bold text-red uppercase tracking-wider">
                       Por favor corrige:
                     </p>
                     {discount.errors.map((error, i) => (
-                      <p key={i} className="text-sm text-red-600 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      <p key={i} className="text-xs text-red flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red" />
                         {error}
                       </p>
                     ))}
@@ -591,20 +633,21 @@ export default function NebulaDiscountPage() {
                 )}
 
                 {/* BOTONES DE ACCIÓN */}
-                <div className="space-y-3 pt-4">
+                <div className="space-y-2 pt-3">
                   <button
                     onClick={handleAplicarDescuento}
                     disabled={!discount.isValid || loadingApply}
-                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white rounded-2xl font-bold text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    data-tour="apply-btn"
                   >
                     {loadingApply ? (
                       <>
-                        <Loader2 size={20} className="animate-spin" />
+                        <Loader2 size={18} className="animate-spin" />
                         Aplicando...
                       </>
                     ) : (
                       <>
-                        <Save size={20} />
+                        <Save size={18} />
                         Aplicar Descuento
                       </>
                     )}
@@ -612,9 +655,9 @@ export default function NebulaDiscountPage() {
 
                   <button
                     onClick={reiniciarFormulario}
-                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2 bg-white/5 hover:bg-white/10 text-ivory rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 border border-white/10"
                   >
-                    <X size={18} />
+                    <X size={16} />
                     Cancelar
                   </button>
                 </div>
@@ -624,9 +667,9 @@ export default function NebulaDiscountPage() {
             {seccionesColapsadas.descuento && (
               <button
                 onClick={() => toggleSeccion('descuento')}
-                className="w-full py-4 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 border border-violet-500/20"
               >
-                <Sparkles size={20} />
+                <Sparkles size={18} />
                 Mostrar Panel de Descuento
               </button>
             )}
@@ -638,19 +681,19 @@ export default function NebulaDiscountPage() {
           SECCIÓN DE ESTADÍSTICAS NEBULA (COLAPSABLE)
       ========================= */}
       {mode === "advanced" && (
-      <div className="discounts-panel discounts-callout-success p-4 md:p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-xl">
-              <Sparkles size={20} className="text-amber-600" />
+      <div className="nebula-discounts-panel nebula-discounts-callout-success p-3 md:p-4" data-tour="stats-section">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-cyan-500/10 rounded-xl">
+              <Sparkles size={18} className="text-cyan-400" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800">Estadísticas del Día</h3>
+            <h3 className="text-sm font-bold text-ivory">Estadísticas del Día</h3>
           </div>
           <button
             onClick={() => toggleSeccion('estadisticas')}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
           >
-            {seccionesColapsadas.estadisticas ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+            {seccionesColapsadas.estadisticas ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
           </button>
         </div>
 
@@ -663,12 +706,11 @@ export default function NebulaDiscountPage() {
       </div>
       )}
 
-      <DiscountsSuiteTutorial
-        isOpen={tutorialOpen}
-        onClose={() => {
-          try { localStorage.setItem("nebula_discount_tutorial_v1", "done"); } catch {}
-          setTutorialOpen(false);
-        }}
+      <TourGuide
+        steps={tourSteps}
+        isOpen={tourOpen}
+        onClose={() => setTourOpen(false)}
+        storageKey="nebula_discount_tour_v1"
       />
       </div>
     </div>

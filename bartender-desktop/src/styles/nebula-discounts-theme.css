@@ -1,0 +1,458 @@
+/* Nebula Discounts Theme — Fusión de Nebula (dominante) + Discounts */
+
+/* =========================
+   BASE NEBULA THEME
+========================= */
+.nebula-discounts-root {
+  position: relative;
+  color: var(--text-primary, #fff);
+  min-height: 100%;
+  padding: 0.5rem;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(139, 92, 246, 0.08), transparent 36%),
+    radial-gradient(circle at 88% 85%, rgba(34, 211, 238, 0.06), transparent 34%),
+    radial-gradient(circle at 50% 50%, rgba(212, 163, 64, 0.04), transparent 45%),
+    var(--bg);
+}
+
+@media (min-width: 768px) {
+  .nebula-discounts-root {
+    padding: 0.75rem;
+  }
+}
+
+/* Nebula Aurora - Efecto de fondo animado */
+.nebula-discounts-aurora {
+  position: absolute;
+  inset: -20% -10%;
+  background:
+    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 64, 0.04) 0%, transparent 45%);
+  pointer-events: none;
+  animation: nebula-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes nebula-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(2%, -1%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* Nebula Panel - Panel principal con estilo nebula */
+.nebula-discounts-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(18, 16, 28, 0.92) 0%,
+    rgba(12, 11, 18, 0.88) 100%
+  );
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.nebula-discounts-panel:hover {
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+/* Nebula Button Primary */
+.nebula-discounts-btn-primary {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(79, 70, 229, 0.85));
+  color: #fff;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.nebula-discounts-btn-primary:hover {
+  opacity: 0.92;
+}
+
+/* =========================
+   DISCOUNTS SHELL & FRAME
+========================= */
+.nebula-discounts-shell {
+  max-width: 1720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.nebula-discounts-page-frame {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  background: linear-gradient(160deg, rgba(17, 20, 28, 0.94), rgba(9, 12, 18, 0.92));
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+  padding: 0.6rem;
+  min-height: calc(100vh - 12.5rem);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .nebula-discounts-page-frame {
+    padding: 0.9rem;
+  }
+}
+
+/* =========================
+   NEBULA COLORS (DOMINANT)
+========================= */
+.nebula-discounts-root {
+  --nebula-violet: rgba(139, 92, 246, 1);
+  --nebula-violet-soft: rgba(139, 92, 246, 0.15);
+  --nebula-cyan: rgba(34, 211, 238, 1);
+  --nebula-cyan-soft: rgba(34, 211, 238, 0.12);
+  --nebula-gold: rgba(212, 163, 64, 1);
+  --nebula-gold-soft: rgba(212, 163, 64, 0.14);
+  
+  /* Colores de texto */
+  --text-primary: #f3efe5;
+  --text-secondary: #c9c2b4;
+  --text-muted: rgba(201, 194, 180, 0.7);
+  
+  /* Colores de fondo */
+  --bg-surface: rgba(18, 21, 28, 0.95);
+  --bg-surface-2: rgba(12, 15, 20, 0.92);
+  --bg-input: rgba(255, 255, 255, 0.04);
+}
+
+/* =========================
+   DISCOUNTS COLORS (SECUNDARIO)
+========================= */
+.nebula-discounts-root {
+  --discount-accent: #d4af37;
+  --discount-accent-soft: rgba(212, 175, 55, 0.14);
+  --discount-accent-2: #ff8a3d;
+  --discount-ink: #f3efe5;
+  --discount-muted: #c9c2b4;
+}
+
+/* =========================
+   TEXT OVERRIDES
+========================= */
+.nebula-discounts-root .text-gray-800,
+.nebula-discounts-root .text-gray-700,
+.nebula-discounts-root .text-gray-600 {
+  color: var(--text-primary) !important;
+}
+
+.nebula-discounts-root .text-gray-500,
+.nebula-discounts-root .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.nebula-discounts-root .text-ivory {
+  color: var(--text-primary) !important;
+}
+
+.nebula-discounts-root .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* =========================
+   BACKGROUND OVERRIDES
+========================= */
+.nebula-discounts-root .bg-gray-50,
+.nebula-discounts-root .bg-gray-100,
+.nebula-discounts-root .bg-white,
+.nebula-discounts-root .bg-blue-50,
+.nebula-discounts-root .bg-green-50,
+.nebula-discounts-root .bg-purple-50 {
+  background: var(--bg-input) !important;
+}
+
+.nebula-discounts-root .bg-surface-2 {
+  background: var(--bg-surface-2) !important;
+}
+
+.nebula-discounts-root .bg-surface-3 {
+  background: rgba(18, 21, 28, 0.98) !important;
+}
+
+/* =========================
+   BORDER OVERRIDES
+========================= */
+.nebula-discounts-root .border-gray-200,
+.nebula-discounts-root .border-blue-200,
+.nebula-discounts-root .border-green-200 {
+  border-color: rgba(139, 92, 246, 0.14) !important;
+}
+
+.nebula-discounts-root .border-white\/5 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.nebula-discounts-root .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* =========================
+   BUTTON COLOR OVERRIDES (NEBULA DOMINANT)
+========================= */
+.nebula-discounts-root .bg-blue-500,
+.nebula-discounts-root .bg-blue-600,
+.nebula-discounts-root .bg-green-500 {
+  background: linear-gradient(135deg, var(--nebula-violet), rgba(79, 70, 229, 0.85)) !important;
+}
+
+.nebula-discounts-root .text-blue-700,
+.nebula-discounts-root .text-blue-600,
+.nebula-discounts-root .text-green-700,
+.nebula-discounts-root .text-green-600 {
+  color: #e9d5ff !important;
+}
+
+.nebula-discounts-root .bg-blue-100,
+.nebula-discounts-root .bg-green-100,
+.nebula-discounts-root .bg-purple-100 {
+  background: var(--nebula-violet-soft) !important;
+}
+
+/* =========================
+   GOLD ACCENT (DISCOUNTS SECONDARY)
+========================= */
+.nebula-discounts-root .text-gold {
+  color: var(--discount-accent) !important;
+}
+
+.nebula-discounts-root .bg-gold {
+  background: var(--discount-accent) !important;
+}
+
+.nebula-discounts-root .bg-gold\/10 {
+  background: var(--discount-accent-soft) !important;
+}
+
+.nebula-discounts-root .bg-gold\/20 {
+  background: rgba(212, 175, 55, 0.2) !important;
+}
+
+.nebula-discounts-root .border-gold\/30 {
+  border-color: rgba(212, 175, 55, 0.3) !important;
+}
+
+/* =========================
+   INPUT OVERRIDES
+========================= */
+.nebula-discounts-root input,
+.nebula-discounts-root select,
+.nebula-discounts-root textarea {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+.nebula-discounts-root input:focus,
+.nebula-discounts-root select:focus,
+.nebula-discounts-root textarea:focus {
+  border-color: var(--nebula-violet) !important;
+  outline: none;
+}
+
+.nebula-discounts-root input::placeholder,
+.nebula-discounts-root textarea::placeholder {
+  color: rgba(225, 218, 204, 0.6) !important;
+}
+
+/* =========================
+   LAYOUT GRIDS
+========================= */
+.nebula-discounts-grid-ops {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+@media (min-width: 1280px) {
+  .nebula-discounts-grid-ops {
+    grid-template-columns: minmax(280px, 1fr) minmax(360px, 1.45fr) minmax(300px, 1fr);
+  }
+}
+
+.nebula-discounts-view-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1280px) {
+  .nebula-discounts-view-grid {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: start;
+  }
+}
+
+/* =========================
+   TITLE BAND
+========================= */
+.nebula-discounts-title-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(34, 211, 238, 0.05));
+  border-radius: 1rem;
+  padding: 0.6rem 0.85rem;
+}
+
+/* =========================
+   CALLOUTS
+========================= */
+.nebula-discounts-callout-critical {
+  border-color: rgba(139, 92, 246, 0.35);
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.10), rgba(18, 21, 28, 0.95));
+}
+
+.nebula-discounts-callout-success {
+  border-color: rgba(34, 211, 238, 0.35);
+  background: linear-gradient(145deg, rgba(34, 211, 238, 0.10), rgba(18, 21, 28, 0.95));
+}
+
+/* =========================
+   SCROLLBAR
+========================= */
+.nebula-discounts-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.nebula-discounts-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.nebula-discounts-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 3px;
+}
+
+/* =========================
+   GLASS CARD (NEBULA VERSION)
+========================= */
+.glass-card {
+  background: rgba(18, 16, 28, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* =========================
+   SHADOWS
+========================= */
+.shadow-royale {
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+/* =========================
+   COLOR UTILITIES (NEBULA)
+========================= */
+.text-lime {
+  color: rgba(163, 230, 53, 1) !important;
+}
+
+.text-red {
+  color: rgba(248, 113, 113, 1) !important;
+}
+
+.text-rose-400 {
+  color: rgba(244, 63, 94, 1) !important;
+}
+
+.text-amber-400 {
+  color: rgba(251, 191, 36, 1) !important;
+}
+
+.bg-lime\/5 {
+  background: rgba(163, 230, 53, 0.05) !important;
+}
+
+.bg-red\/5 {
+  background: rgba(248, 113, 113, 0.05) !important;
+}
+
+.bg-rose-500\/5 {
+  background: rgba(244, 63, 94, 0.05) !important;
+}
+
+.bg-amber-500\/5 {
+  background: rgba(251, 191, 36, 0.05) !important;
+}
+
+.border-lime\/20 {
+  border-color: rgba(163, 230, 53, 0.2) !important;
+}
+
+.border-red\/20 {
+  border-color: rgba(248, 113, 113, 0.2) !important;
+}
+
+.border-rose-500\/20 {
+  border-color: rgba(244, 63, 94, 0.2) !important;
+}
+
+.border-amber-400\/20 {
+  border-color: rgba(251, 191, 36, 0.2) !important;
+}
+
+/* =========================
+   RESPONSIVE PADDING
+========================= */
+@media (max-width: 1279px) {
+  .nebula-discounts-root .nebula-discounts-panel {
+    padding: 0.6rem !important;
+  }
+}
