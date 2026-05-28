@@ -14,6 +14,7 @@ import {
   createCardPayment,
 } from "../controllers/payment.controller.js";
 import { protect, authorizeRoles, authorizePermissions } from "../middlewares/auth.middleware.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = express.Router();
 
