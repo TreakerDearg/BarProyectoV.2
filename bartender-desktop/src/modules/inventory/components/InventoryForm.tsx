@@ -102,37 +102,33 @@ export default function InventoryForm({
   const isCritical = formData.stock <= formData.minStock;
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[100] p-6 animate-fade-in">
       
-      {/* ATMOSPHERE */}
-      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-cyan-400/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-gold/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
-
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-7xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto"
+        className="w-full max-w-6xl bg-surface-2 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
       >
         {/* HEADER */}
-        <div className="p-10 md:p-14 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
-          <div className="flex items-center gap-8">
-            <div className="p-5 bg-grad-gold rounded-2xl shadow-gold-glow">
-              <Package className="text-bg" size={36} />
+        <div className="p-6 bg-surface-3 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gold/20 rounded-xl">
+              <Package className="text-gold" size={24} />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-grad-gold tracking-tighter uppercase leading-none">
-                {item ? "Audit de Insumo" : "Ingreso a Bóveda"}
+              <h2 className="text-2xl font-bold text-white">
+                {item ? "Editar Inventario" : "Nuevo Inventario"}
               </h2>
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
-                Logística Umbra VIP v3.0
+              <p className="text-sm text-muted">
+                Gestión de inventario
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="w-16 h-16 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
-            <X size={32} />
+          <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} className="text-muted" />
           </button>
         </div>
 
-        <div className="p-12 md:p-16 space-y-12">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
           {/* ERRORS */}
           {errors.length > 0 && (
@@ -146,160 +142,118 @@ export default function InventoryForm({
           )}
 
           {/* BASIC INFO */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="space-y-6">
-              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <Target size={14} /> Identificación de Activo
-              </p>
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Estratégico</label>
-                  <div className="relative group">
-                    <Package className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
-                    <input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Ej: Gin Mare Premium"
-                      className="input-royale !pl-14"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clasificación Umbra</label>
-                  <div className="relative group">
-                    <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
-                    <input
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      placeholder="Ej: Destilados G"
-                      className="input-royale !pl-14"
-                    />
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
+                <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Ej: Gin Mare Premium"
+                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Categoría</label>
+                <input
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  placeholder="Ej: Destilados"
+                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold"
+                />
               </div>
             </div>
 
-            <div className="space-y-6">
-              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <ShieldCheck size={14} /> Imagen del Insumo
-              </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Imagen</label>
               <ImageUploader
                 onImageUpload={handleImageUpload}
                 currentImage={formData.image}
                 folder="inventory"
                 mode="advanced"
-                label="Subir foto del insumo"
+                label="Subir imagen"
               />
             </div>
           </div>
 
           {/* STOCK LOGISTICS */}
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <Zap size={14} /> Control de Existencias
-              </p>
-              <div className={`px-4 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest ${isCritical ? 'bg-red/10 border-red/30 text-red animate-pulse' : 'bg-lime/10 border-lime/30 text-lime'}`}>
-                {isCritical ? 'ESTADO CRÍTICO' : 'ESTADO ESTABLE'}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Actual</label>
+                <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Mínimo</label>
+                <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Máximo</label>
+                <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
               </div>
             </div>
-            
-            <div className="bg-surface-3/30 p-8 rounded-[2.5rem] border border-white/5 space-y-8 shadow-inner">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Stock Actual</label>
-                  <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="input-royale text-center text-2xl font-black" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Límite Mínimo</label>
-                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="input-royale text-center text-2xl font-black border-red/20" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máx</label>
-                  <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="input-royale text-center text-2xl font-black" />
-                </div>
-              </div>
 
-              {/* DYNAMIC PROGRESS */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-[9px] font-black text-muted uppercase tracking-widest">
-                  <span>Proyección de Bóveda</span>
-                  <span className={isCritical ? 'text-red' : 'text-gold'}>{stockPercent.toFixed(0)}% OCUPACIÓN</span>
-                </div>
-                <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-0.5">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-1000 ${isCritical ? 'bg-red shadow-red-glow' : 'bg-grad-gold shadow-gold-glow'}`}
-                    style={{ width: `${stockPercent}%` }}
-                  />
-                </div>
+            <div className="bg-surface-3 p-4 rounded-lg border border-white/10">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-300">Nivel de Stock</span>
+                <span className={`text-sm font-bold ${isCritical ? 'text-red-400' : 'text-green-400'}`}>{stockPercent.toFixed(0)}%</span>
+              </div>
+              <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
+                <div className={`h-full ${isCritical ? 'bg-red-400' : 'bg-green-400'}`} style={{ width: `${stockPercent}%` }} />
               </div>
             </div>
           </div>
 
           {/* SPECS & ORIGIN */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="space-y-6">
-              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <ShieldCheck size={14} /> Especificaciones Técnicas
-              </p>
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Unidad de Medida</label>
-                  <select name="unit" value={formData.unit} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
-                    {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Sector Operativo</label>
-                  <select name="sector" value={formData.sector} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
-                    {SECTOR_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                  </select>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Unidad de Medida</label>
+                <select name="unit" value={formData.unit} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
+                  {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Sector</label>
+                <select name="sector" value={formData.sector} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
+                  {SECTOR_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                </select>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <DollarSign size={14} /> Costos y Ubicación
-              </p>
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Costo por Unidad</label>
-                  <div className="relative group">
-                    <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-300 transition-colors" size={18} />
-                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-emerald-400 font-mono font-bold text-xl" />
-                  </div>
-                </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación Bóveda</label>
-                  <select name="location" value={formData.location} onChange={handleChange} className="input-royale appearance-none cursor-pointer">
-                    {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
-                  </select>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Costo por Unidad</label>
+                <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Ubicación</label>
+                <select name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
+                  {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
+                </select>
               </div>
             </div>
           </div>
         </div>
 
         {/* FOOTER */}
-        <div className="p-10 bg-surface-3 border-t border-white/10 flex gap-6 shadow-royale">
+        <div className="p-6 bg-surface-3 border-t border-white/10 flex gap-4">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all"
+            className="flex-1 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 transition-colors"
           >
-            CANCELAR
+            Cancelar
           </button>
           
           <button
             type="submit"
             disabled={loading}
-            className="flex-[2] h-16 rounded-[1.5rem] bg-grad-gold text-bg shadow-gold/30 flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:opacity-50"
+            className="flex-[2] py-3 rounded-lg bg-gold text-black font-medium hover:bg-gold/90 transition-colors disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
-            <span className="text-sm font-black uppercase tracking-[0.3em]">{item ? 'CONFIRMAR AUDIT' : 'REGISTRAR INSUMO'}</span>
+            {loading ? 'Guardando...' : item ? 'Actualizar' : 'Guardar'}
           </button>
         </div>
       </form>

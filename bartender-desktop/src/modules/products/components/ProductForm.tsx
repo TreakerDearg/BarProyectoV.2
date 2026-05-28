@@ -107,43 +107,39 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-8 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
       
-      {/* ATMOSPHERE */}
-      <div className="fixed top-1/4 right-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 left-1/4 w-[300px] h-[300px] bg-emerald-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
-
-      <div className="w-full max-w-7xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+      <div className="w-full max-w-6xl bg-surface-2 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
         
         {/* HEADER */}
-        <div className="p-10 md:p-14 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
-          <div className="flex items-center gap-8">
-            <div className="p-5 bg-grad-gold rounded-2xl shadow-gold-glow">
-              <Box className="text-bg" size={36} />
+        <div className="p-6 bg-surface-3 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gold/20 rounded-xl">
+              <Box className="text-gold" size={24} />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-grad-gold tracking-tighter uppercase leading-none">
-                {product ? "Redefinir Activo" : "Ingreso Catálogo"}
+              <h2 className="text-2xl font-bold text-white">
+                {product ? "Editar Producto" : "Nuevo Producto"}
               </h2>
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
-                Paso {step + 1} de {STEPS.length} — {STEPS[step]}
+              <p className="text-sm text-muted">
+                Paso {step + 1} de {STEPS.length}: {STEPS[step]}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-16 h-16 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
-            <X size={32} />
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} className="text-muted" />
           </button>
         </div>
 
         {/* STEP INDICATOR */}
-        <div className="px-12 pt-10 flex gap-2">
+        <div className="px-6 py-3 bg-surface-3/50 border-b border-white/10 flex gap-2">
           {STEPS.map((_, i) => (
-            <div key={i} className={`h-2 flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-grad-gold shadow-gold-glow' : 'bg-white/5'}`} />
+            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= step ? 'bg-gold' : 'bg-white/10'}`} />
           ))}
         </div>
 
         {/* BODY */}
-        <div className="p-12 md:p-16 space-y-10 min-h-[600px]">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
           {error && (
             <div className="p-5 bg-red/5 border border-red/20 rounded-2xl flex items-center gap-4 animate-shake">
@@ -154,25 +150,25 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
 
           {/* STEP 1: IDENTITY */}
           {step === 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre del Activo</label>
-                  <input name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Signature Old Fashioned" className="input-royale" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Nombre del Producto</label>
+                  <input name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Signature Old Fashioned" className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" />
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Descripción de Experiencia</label>
-                  <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Relato visual y gustativo..." className="input-royale !h-32 py-4 resize-none" />
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                  <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Descripción del producto..." className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold resize-none h-24" />
                 </div>
               </div>
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Categoría</label>
-                  <input name="category" value={formData.category} onChange={handleChange} placeholder="Ej: Classic Cocktails" className="input-royale" />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Categoría</label>
+                  <input name="category" value={formData.category} onChange={handleChange} placeholder="Ej: Classic Cocktails" className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" />
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Tipo de Activo</label>
-                  <select name="type" value={formData.type} onChange={handleChange} className="input-royale appearance-none">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
+                  <select name="type" value={formData.type} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
                     {TYPE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
@@ -182,111 +178,91 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
 
           {/* STEP 2: FINANCES */}
           {step === 1 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
-              <div className="space-y-8">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Precio de Venta (Carta)</label>
-                  <div className="relative group">
-                    <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400" size={20} />
-                    <input name="price" type="number" value={formData.price} onChange={handleChange} className="input-royale !pl-14 text-2xl font-black text-ivory" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Precio de Venta</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input name="price" type="number" value={formData.price} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" />
                   </div>
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Costo Técnico Estimado</label>
-                  <div className="relative group">
-                    <Activity className="absolute left-5 top-1/2 -translate-y-1/2 text-gold" size={20} />
-                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-2xl font-black text-gold" />
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Costo</label>
+                  <div className="relative">
+                    <Activity className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-surface-3/50 p-8 rounded-[2.5rem] border border-white/5 space-y-6 flex flex-col justify-center">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp size={20} className={margin > 50 ? 'text-lime' : 'text-gold'} />
-                    <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">Margen de Rentabilidad</p>
-                  </div>
-                  <span className={`text-4xl font-black ${margin > 50 ? 'text-lime' : 'text-gold'} tracking-tighter`}>{margin}%</span>
+              <div className="bg-surface-3 p-6 rounded-lg border border-white/10">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-sm font-medium text-gray-300">Margen de Rentabilidad</span>
+                  <span className={`text-2xl font-bold ${margin > 50 ? 'text-green-400' : 'text-gold'}`}>{margin}%</span>
                 </div>
-                <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden">
-                  <div className={`h-full transition-all duration-1000 ${margin > 50 ? 'bg-lime shadow-lime-glow' : 'bg-grad-gold shadow-gold-glow'}`} style={{ width: `${Math.min(100, margin)}%` }} />
+                <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
+                  <div className={`h-full ${margin > 50 ? 'bg-green-400' : 'bg-gold'}`} style={{ width: `${Math.min(100, margin)}%` }} />
                 </div>
-                <p className="text-[9px] text-muted font-black uppercase tracking-widest text-center">
-                  {margin > 50 ? '✨ Excelente rentabilidad' : margin > 30 ? '📊 Rentabilidad saludable' : '⚠️ Revisar precios'}
-                </p>
               </div>
             </div>
           )}
 
           {/* STEP 3: MEDIA */}
           {step === 2 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
-              <div className="space-y-6">
-                <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                  <ImageIcon size={14} /> Imagen Principal
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Imagen Principal</label>
                 <ImageUploader
                   onImageUpload={handleImageUpload}
                   currentImage={formData.image}
                   folder="products"
                   mode="advanced"
-                  label="Subir imagen principal del producto"
+                  label="Subir imagen"
                 />
               </div>
 
-              <div className="space-y-6">
+              <div>
                 {formData.image && (
-                  <div className="h-80 rounded-[2rem] bg-black/40 border border-white/5 overflow-hidden">
+                  <div className="h-48 bg-surface-3 rounded-lg border border-white/10 overflow-hidden">
                     <img src={formData.image} alt="Product preview" className="w-full h-full object-cover" />
                   </div>
                 )}
-                <div className="p-6 bg-surface-3/30 rounded-2xl border border-white/5 text-center">
-                  <p className="text-sm text-muted">Galería múltiple próximamente</p>
-                  <p className="text-xs text-muted mt-1">Funcionalidad en desarrollo</p>
-                </div>
               </div>
             </div>
           )}
 
           {/* STEP 4: EXTRAS */}
           {step === 3 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
-              <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Tiempo de Prep. (Min)</label>
-                  <div className="relative group">
-                    <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                    <input name="preparationTime" type="number" value={formData.preparationTime} onChange={handleChange} className="input-royale !pl-14" />
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tiempo de Prep. (Min)</label>
+                  <input name="preparationTime" type="number" value={formData.preparationTime} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" />
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Etiquetas (Tags)</label>
-                  <div className="relative group">
-                    <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                    <input 
-                      value={formData.tags.join(", ")} 
-                      onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(",").map(t => t.trim()) })}
-                      placeholder="Hot, New, Summer" 
-                      className="input-royale !pl-14" 
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Etiquetas</label>
+                  <input 
+                    value={formData.tags.join(", ")} 
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(",").map(t => t.trim()) })}
+                    placeholder="Hot, New, Summer" 
+                    className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold" 
+                  />
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <button 
                   onClick={() => setFormData({ ...formData, available: !formData.available })}
-                  className={`w-full h-24 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.available ? 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
+                  className={`w-full py-3 px-4 rounded-lg border ${formData.available ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-surface-3 border-white/10 text-gray-400'}`}
                 >
-                  <CheckCircle size={24} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Disponible en Red</span>
+                  {formData.available ? '✓ Disponible' : '○ No Disponible'}
                 </button>
                 <button 
                   onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-                  className={`w-full h-24 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.featured ? 'bg-gold/10 border-gold/40 text-gold shadow-gold-glow' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
+                  className={`w-full py-3 px-4 rounded-lg border ${formData.featured ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}
                 >
-                  <Star size={24} className={formData.featured ? 'fill-current' : ''} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Activo Destacado</span>
+                  {formData.featured ? '★ Destacado' : '○ No Destacado'}
                 </button>
               </div>
             </div>

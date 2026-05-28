@@ -146,86 +146,69 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[100] p-6 animate-fade-in">
       
-      {/* ATMOSPHERE */}
-      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-emerald-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
-
-      <div className="w-full max-w-7xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+      <div className="w-full max-w-6xl bg-surface-2 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
         
         {/* HEADER */}
-        <div className="p-10 md:p-14 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
-          <div className="flex items-center gap-8">
-            <div className="p-5 bg-grad-gold rounded-2xl shadow-gold-glow">
-              <Layers className="text-bg" size={36} />
+        <div className="p-6 bg-surface-3 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gold/20 rounded-xl">
+              <Layers className="text-gold" size={24} />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-grad-gold tracking-tighter uppercase leading-none">
-                {step === 5 ? "Validar Arquitectura" : "Nueva Arquitectura"}
+              <h2 className="text-2xl font-bold text-white">
+                {step === 5 ? "Validar Receta" : "Nueva Receta"}
               </h2>
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
-                Sistema de Gestión Umbra v2.5
+              <p className="text-sm text-muted">
+                Sistema de gestión de recetas
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-16 h-16 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
-            <X size={32} />
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} className="text-muted" />
           </button>
         </div>
 
         {/* STEP PROGRESS INDICATOR */}
-        <div className="px-10 py-6 bg-black/20 flex justify-between items-center gap-2">
-          {stepsInfo.map((info, i) => (
-            <div key={i} className="flex-1 flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${step > i ? 'bg-gold text-bg' : step === i + 1 ? 'bg-white/10 text-gold border border-gold/40' : 'bg-white/5 text-muted'}`}>
-                {step > i ? <CheckCircle size={14} /> : info.icon}
-              </div>
-              <span className={`text-[9px] font-black uppercase tracking-widest hidden lg:block ${step === i + 1 ? 'text-gold' : 'text-muted'}`}>
-                {info.label}
-              </span>
-              {i < 4 && <div className="flex-1 h-px bg-white/5 mx-2" />}
-            </div>
+        <div className="px-6 py-3 bg-surface-3/50 border-b border-white/10 flex gap-2">
+          {stepsInfo.map((_, i) => (
+            <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < step ? 'bg-gold' : 'bg-white/10'}`} />
           ))}
         </div>
 
         {/* CONTENT AREA */}
-        <div className="p-10 md:p-14 space-y-10 min-h-[450px]">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           
           {step === 1 && (
-            <div className="space-y-10 animate-slide-up">
-              <div className="space-y-4">
-                <p className="text-xs font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                  <Target size={14} /> Identificación de Producto
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2.5">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Producto Umbra</label>
-                    <select
-                      value={form.product?._id || ""}
-                      onChange={(e) => {
-                        const selectedProduct = products.find(p => p._id === e.target.value);
-                        setForm({
-                          ...form,
-                          product: selectedProduct ? { _id: selectedProduct._id, name: selectedProduct.name } : { _id: "", name: "" }
-                        });
-                      }}
-                      className="input-royale !pl-6 appearance-none cursor-pointer"
-                    >
-                      <option value="">Seleccionar de base de datos...</option>
-                      {products.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-2.5">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clasificación</label>
-                    <div className="flex gap-4">
-                      <button onClick={() => setForm({...form, type: 'drink'})} className={`flex-1 h-16 rounded-2xl flex items-center justify-center gap-3 border transition-all ${form.type === 'drink' ? 'bg-gold/10 border-gold/40 text-gold shadow-gold-glow' : 'bg-white/5 border-white/5 text-muted'}`}>
-                        <Martini size={18} /> <span className="text-[10px] font-black uppercase tracking-widest">BAR</span>
-                      </button>
-                      <button onClick={() => setForm({...form, type: 'food'})} className={`flex-1 h-16 rounded-2xl flex items-center justify-center gap-3 border transition-all ${form.type === 'food' ? 'bg-emerald-400/10 border-emerald-400/40 text-emerald-400 shadow-emerald-glow' : 'bg-white/5 border-white/5 text-muted'}`}>
-                        <Utensils size={18} /> <span className="text-[10px] font-black uppercase tracking-widest">COCINA</span>
-                      </button>
-                    </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Producto</label>
+                  <select
+                    value={form.product?._id || ""}
+                    onChange={(e) => {
+                      const selectedProduct = products.find(p => p._id === e.target.value);
+                      setForm({
+                        ...form,
+                        product: selectedProduct ? { _id: selectedProduct._id, name: selectedProduct.name } : { _id: "", name: "" }
+                      });
+                    }}
+                    className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold"
+                  >
+                    <option value="">Seleccionar producto...</option>
+                    {products.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
+                  <div className="flex gap-4">
+                    <button onClick={() => setForm({...form, type: 'drink'})} className={`flex-1 py-3 px-4 rounded-lg border ${form.type === 'drink' ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}>
+                      Bebida
+                    </button>
+                    <button onClick={() => setForm({...form, type: 'food'})} className={`flex-1 py-3 px-4 rounded-lg border ${form.type === 'food' ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}>
+                      Comida
+                    </button>
                   </div>
                 </div>
               </div>
@@ -233,53 +216,39 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           )}
 
           {step === 2 && (
-            <div className="space-y-10 animate-slide-up">
-              <div className="space-y-6">
-                <p className="text-xs font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                  <Box size={14} /> Componentes e Insumos
-                </p>
-                <div className="flex flex-col md:flex-row gap-4 bg-surface-3/30 p-6 rounded-[2rem] border border-white/5 shadow-inner">
-                  <div className="flex-[3] space-y-2">
-                    <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Insumo de Inventario</label>
-                    <select
-                      value={ingredientDraft.inventoryItem}
-                      onChange={(e) => setIngredientDraft({ ...ingredientDraft, inventoryItem: e.target.value })}
-                      className="input-royale appearance-none"
-                    >
-                      <option value="">Seleccionar ítem...</option>
-                      {inventory.map((i) => <option key={i._id} value={i._id}>{i.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Cantidad</label>
-                    <input
-                      type="number"
-                      value={ingredientDraft.quantity}
-                      onChange={(e) => setIngredientDraft({ ...ingredientDraft, quantity: Number(e.target.value) })}
-                      className="input-royale"
-                    />
-                  </div>
-                  <div className="flex-none flex items-end">
-                    <button onClick={addIngredient} className="h-14 w-14 rounded-2xl bg-gold text-bg flex items-center justify-center shadow-gold-glow hover:scale-105 active:scale-95 transition-all">
-                      <Plus size={24} className="stroke-[3px]" />
-                    </button>
-                  </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Agregar Ingrediente</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <select
+                    value={ingredientDraft.inventoryItem}
+                    onChange={(e) => setIngredientDraft({ ...ingredientDraft, inventoryItem: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold"
+                  >
+                    <option value="">Seleccionar insumo...</option>
+                    {inventory.map((i) => <option key={i._id} value={i._id}>{i.name}</option>)}
+                  </select>
+                  <input
+                    type="number"
+                    value={ingredientDraft.quantity}
+                    onChange={(e) => setIngredientDraft({ ...ingredientDraft, quantity: Number(e.target.value) })}
+                    placeholder="Cantidad"
+                    className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold"
+                  />
+                  <button onClick={addIngredient} className="w-full py-3 px-4 bg-gold text-black rounded-lg font-medium hover:bg-gold/90 transition-colors">
+                    Agregar
+                  </button>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[250px] overflow-y-auto pr-4 custom-scrollbar">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Ingredientes</label>
+                <div className="space-y-2">
                   {form.ingredients.map((i, idx) => (
-                    <div key={idx} className="bg-surface-3/50 p-5 rounded-2xl border border-white/5 flex justify-between items-center group hover:border-gold/30 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gold">
-                          <Zap size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-ivory uppercase">{i.inventoryItem?.name}</p>
-                          <p className="text-[9px] text-muted font-bold">{i.quantity} {i.unit}</p>
-                        </div>
-                      </div>
-                      <button onClick={() => removeIngredient(idx)} className="p-2 text-muted hover:text-red transition-colors">
-                        <Trash2 size={16} />
+                    <div key={idx} className="bg-surface-3 p-4 rounded-lg border border-white/10 flex justify-between items-center">
+                      <span className="text-gray-300">{i.inventoryItem?.name} - {i.quantity}</span>
+                      <button onClick={() => removeIngredient(idx)} className="text-red-400 hover:text-red-300">
+                        Eliminar
                       </button>
                     </div>
                   ))}
@@ -289,99 +258,62 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           )}
 
           {step === 3 && (
-            <div className="space-y-8 animate-slide-up">
-              <p className="text-xs font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                <Zap size={14} /> Metodología de Ejecución
-              </p>
-              <div className="space-y-4">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Estilo de Preparación (Resumen)</label>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Método de Preparación</label>
                 <textarea
                   value={form.method}
                   onChange={(e) => setForm({ ...form, method: e.target.value })}
-                  placeholder="Shake, Stir, Dry Shake, Sous-vide..."
-                  className="input-royale !h-32 resize-none py-6"
+                  placeholder="Describe el método de preparación..."
+                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold resize-none h-24"
                 />
-              </div>
-              <div className="p-6 bg-gold/5 rounded-2xl border border-gold/20 flex gap-6 items-center">
-                <div className="w-12 h-12 rounded-xl bg-gold text-bg flex items-center justify-center flex-none">
-                  <Info size={20} />
-                </div>
-                <p className="text-[10px] font-black text-gold/80 uppercase tracking-widest leading-relaxed">
-                  Defina el método principal para que el equipo de producción aplique los estándares de calidad Umbra.
-                </p>
               </div>
             </div>
           )}
 
           {step === 4 && (
-            <div className="space-y-8 animate-slide-up">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                  <Layers size={14} /> Secuencia Paso a Paso
-                </p>
-                <button onClick={addStep} className="flex items-center gap-2 text-[10px] font-black text-gold uppercase tracking-widest hover:opacity-80 transition-opacity">
-                  <Plus size={14} /> Agregar Paso
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Instrucciones Paso a Paso</label>
+                <div className="space-y-2">
+                  {(form.steps || []).map((s, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <span className="text-gray-400 font-medium">{idx + 1}.</span>
+                      <input
+                        value={s.instruction}
+                        onChange={(e) => updateStep(idx, e.target.value)}
+                        placeholder="Instrucción..."
+                        className="flex-1 px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold"
+                      />
+                      <button onClick={() => removeStep(idx)} className="text-red-400 hover:text-red-300 px-2">
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={addStep} className="mt-4 py-2 px-4 bg-surface-3 border border-white/10 rounded-lg text-gray-300 hover:bg-white/5 transition-colors">
+                  + Agregar paso
                 </button>
-              </div>
-              
-              <div className="space-y-4 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
-                {(form.steps || []).map((s, idx) => (
-                  <div key={idx} className="flex gap-4 group">
-                    <div className="w-10 h-10 rounded-xl bg-surface-4 flex items-center justify-center text-[10px] font-black text-gold border border-white/5">
-                      {s.stepNumber}
-                    </div>
-                    <input
-                      value={s.instruction}
-                      onChange={(e) => updateStep(idx, e.target.value)}
-                      placeholder="Escriba la instrucción técnica..."
-                      className="input-royale flex-1"
-                    />
-                    <div className="flex gap-1">
-                      <button onClick={() => moveStep(idx, "up")} className="p-2 text-muted hover:text-gold transition-colors"><ArrowUp size={16} /></button>
-                      <button onClick={() => moveStep(idx, "down")} className="p-2 text-muted hover:text-gold transition-colors"><ArrowDown size={16} /></button>
-                      <button onClick={() => removeStep(idx)} className="p-2 text-muted hover:text-red transition-colors"><Trash2 size={16} /></button>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
 
           {step === 5 && (
-            <div className="space-y-10 animate-slide-up">
-              <div className="text-center space-y-6 py-10">
-                <div className="w-24 h-24 bg-gold/10 rounded-[2rem] flex items-center justify-center mx-auto shadow-gold-glow animate-pulse">
-                  <CheckCircle size={48} className="text-gold" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-ivory tracking-tighter uppercase">Validación de Arquitectura</h3>
-                  <p className="text-xs text-muted font-black uppercase tracking-widest">Revisión de integridad de datos Umbra</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-8 bg-surface-3/50 rounded-[2.5rem] border border-white/5 space-y-4 shadow-inner">
-                  <p className="text-[10px] font-black text-gold uppercase tracking-widest">Resumen de Estructura</p>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-[11px] font-bold text-muted uppercase">Componentes</span>
-                      <span className="text-[11px] font-black text-ivory">{form.ingredients.length} Ítems</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[11px] font-bold text-muted uppercase">Pasos Técnicos</span>
-                      <span className="text-[11px] font-black text-ivory">{(form.steps?.length || 0)} Fases</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[11px] font-bold text-muted uppercase">Tipo de Registro</span>
-                      <span className={`text-[11px] font-black uppercase ${form.type === 'drink' ? 'text-gold' : 'text-emerald-400'}`}>{form.type}</span>
-                    </div>
+            <div className="space-y-6">
+              <div className="text-center py-8">
+                <h3 className="text-xl font-bold text-white mb-2">Resumen de Receta</h3>
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="bg-surface-3 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-gold">{form.ingredients.length}</p>
+                    <p className="text-xs text-gray-400">Ingredientes</p>
                   </div>
-                </div>
-
-                <div className="p-8 bg-surface-3/50 rounded-[2.5rem] border border-white/5 flex flex-col justify-center items-center text-center space-y-4 shadow-inner">
-                  <p className="text-[10px] font-black text-muted uppercase tracking-widest italic">"Los estándares de hoy son la excelencia del mañana"</p>
-                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
-                    <FileText size={20} className="text-gold opacity-50" />
+                  <div className="bg-surface-3 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-gold">{(form.steps?.length || 0)}</p>
+                    <p className="text-xs text-gray-400">Pasos</p>
+                  </div>
+                  <div className="bg-surface-3 p-4 rounded-lg">
+                    <p className="text-2xl font-bold text-gold capitalize">{form.type}</p>
+                    <p className="text-xs text-gray-400">Tipo</p>
                   </div>
                 </div>
               </div>
@@ -390,32 +322,30 @@ export default function RecipeForm({ onSave, onClose }: Props) {
 
         </div>
 
-        {/* FOOTER NAVIGATION */}
-        <div className="p-10 bg-surface-3 border-t border-white/10 flex gap-6 shadow-royale">
+        {/* FOOTER */}
+        <div className="p-6 bg-surface-3 border-t border-white/10 flex gap-4">
           <button
             onClick={step === 1 ? onClose : back}
-            className="flex-1 h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all"
+            className="flex-1 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 transition-colors"
           >
-            {step === 1 ? "CANCELAR" : "ANTERIOR"}
+            {step === 1 ? "Cancelar" : "Anterior"}
           </button>
           
           {step < 5 ? (
             <button
               onClick={next}
               disabled={!canNext}
-              className="flex-[2] h-16 rounded-[1.5rem] bg-surface-glow border border-white/10 flex items-center justify-center gap-4 hover:border-gold/40 transition-all group disabled:opacity-20 disabled:grayscale"
+              className="flex-[2] py-3 rounded-lg bg-gold text-black font-medium hover:bg-gold/90 transition-colors disabled:opacity-50"
             >
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-ivory">SIGUIENTE FASE</span>
-              <ChevronRight size={18} className="text-gold group-hover:translate-x-1 transition-transform" />
+              Siguiente
             </button>
           ) : (
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="flex-[2] h-16 rounded-[1.5rem] bg-grad-gold text-bg shadow-gold/30 flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:opacity-50"
+              className="flex-[2] py-3 rounded-lg bg-gold text-black font-medium hover:bg-gold/90 transition-colors disabled:opacity-50"
             >
-              {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
-              <span className="text-sm font-black uppercase tracking-[0.3em]">REGISTRAR ARQUITECTURA</span>
+              {loading ? 'Guardando...' : 'Guardar'}
             </button>
           )}
         </div>
