@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Payment from "../models/Payment.js";
 import Order from "../models/Order.js";
 import Table from "../models/Table.js";
@@ -63,10 +63,11 @@ export const createPayment = async (req, res, next) => {
     const order = await Order.findById(orderId).session(session);
     if (!order) { await session.abortTransaction(); return notFound(res, "Orden no encontrada"); }
     if (order.sessionStatus === "closed") { await session.abortTransaction(); return badRequest(res, "La orden ya está cerrada"); }
-    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
+    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }
+    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
     if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
       await session.abortTransaction();
-      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+      return badRequest(res, "La sesión de la orden no coincide con la sesión activa de la mesa");
     }
 
     /* ─── Calcular subtotal ─── */
@@ -105,7 +106,7 @@ export const createPayment = async (req, res, next) => {
       subtotal,
       change,
       amountPaid: method === "cash" ? amountPaid : total,
-      processedBy: req.user.id,
+      processedBy: req.user?.id,
       receipt: {
         items: order.items.map(item => ({
           name: item.name,
@@ -150,7 +151,11 @@ export const createPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando pago:", error);
-    next(error);
+    if (typeof next === 'function') {
+      next(error);
+    } else {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   } finally {
     session.endSession();
   }
@@ -175,7 +180,12 @@ export const getPaymentById = async (req, res, next) => {
 
     return ok(res, payment);
   } catch (error) {
-    next(error);
+    logger.error("[Payment] Error getting payment by ID:", error);
+    if (typeof next === 'function') {
+      next(error);
+    } else {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 
@@ -201,7 +211,12 @@ export const getTablePayments = async (req, res, next) => {
 
     return ok(res, payments);
   } catch (error) {
-    next(error);
+    logger.error("[Payment] Error getting table payments:", error);
+    if (typeof next === 'function') {
+      next(error);
+    } else {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 
@@ -448,7 +463,7 @@ export const createSplitPayment = async (req, res, next) => {
     if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
     if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
       await session.abortTransaction();
-      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
     }
 
     /* ─── Calcular subtotal y descuentos ─── */
@@ -675,29 +690,28 @@ export const createPartialPayment = async (req, res, next) => {
 ========================================================= */
 export const getAvailablePaymentMethods = async (req, res, next) => {
   try {
-    const PaymentMethodConfig = mongoose.model("PaymentMethodConfig");
-    
     // Intentar obtener métodos de la base de datos
     try {
-      const methods = await PaymentMethodConfig.getActiveMethods();
+      const PaymentConfig = mongoose.model("PaymentMethodConfig");
+      const methods = await PaymentConfig.getActiveMethods();
       if (methods && methods.length > 0) {
         return ok(res, methods);
       }
       
       // Si no hay métodos, intentar hacer seed automáticamente
-      console.log("No payment methods found, attempting auto-seed...");
+      logger.info("No payment methods found, attempting auto-seed...");
       try {
-        await PaymentMethodConfig.seedDefaultMethods();
-        console.log("Auto-seed completed, fetching methods again...");
-        const seededMethods = await PaymentMethodConfig.getActiveMethods();
+        await PaymentConfig.seedDefaultMethods();
+        logger.info("Auto-seed completed, fetching methods again...");
+        const seededMethods = await PaymentConfig.getActiveMethods();
         if (seededMethods && seededMethods.length > 0) {
           return ok(res, seededMethods);
         }
       } catch (seedError) {
-        console.warn("Auto-seed failed, using defaults:", seedError.message);
+        logger.warn("Auto-seed failed, using defaults:", seedError.message);
       }
     } catch (dbError) {
-      console.warn("Error fetching payment methods from DB, using defaults:", dbError.message);
+      logger.warn("Error fetching payment methods from DB, using defaults:", dbError.message);
     }
     
     // Si no hay métodos en la BD o la consulta falla, retornar métodos por defecto
@@ -756,7 +770,12 @@ export const getAvailablePaymentMethods = async (req, res, next) => {
     
     return ok(res, defaultMethods);
   } catch (error) {
-    next(error);
+    logger.error("[Payment] Error in getAvailablePaymentMethods:", error);
+    if (typeof next === 'function') {
+      next(error);
+    } else {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 
@@ -789,7 +808,7 @@ export const createCardPayment = async (req, res, next) => {
     if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
     if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
       await session.abortTransaction();
-      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
+      return badRequest(res, "La sesi�n de la orden no coincide con la sesi�n activa de la mesa");
     }
 
     /* ─── Calcular total ─── */

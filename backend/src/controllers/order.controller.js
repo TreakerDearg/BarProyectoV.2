@@ -260,12 +260,16 @@ export const updateOrderStatus = async (req, res, next) => {
     const { id }     = req.params;
     const { status } = req.body;
 
+    if (!id) return badRequest(res, "ID de orden es requerido");
+    if (!isValidId(id)) return badRequest(res, "ID de orden inválido");
+    if (!status) return badRequest(res, "Estado es requerido");
+
     if (!ORDER_STATUS.includes(status)) {
       return badRequest(res, `Estado inválido. Válidos: ${ORDER_STATUS.join(", ")}`);
     }
 
     const order = await Order.findById(id);
-    if (!order)                          return notFound(res, "Orden no encontrada");
+    if (!order) return notFound(res, "Orden no encontrada");
     if (order.sessionStatus === "closed") return badRequest(res, "La orden ya está cerrada");
 
     order.status = status;
@@ -282,7 +286,12 @@ export const updateOrderStatus = async (req, res, next) => {
 
     return ok(res, order, `Orden ${status} correctamente`);
   } catch (error) {
-    next(error);
+    logger.error("[Order] Error updating order status:", error);
+    if (typeof next === 'function') {
+      next(error);
+    } else {
+      return res.status(500).json({ success: false, message: error.message });
+    }
   }
 };
 
