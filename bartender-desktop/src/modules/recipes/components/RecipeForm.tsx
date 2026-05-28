@@ -152,7 +152,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
       <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
       <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-emerald-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-      <div className="w-full max-w-4xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+      <div className="w-full max-w-6xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
         
         {/* HEADER */}
         <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">

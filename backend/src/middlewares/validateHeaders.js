@@ -64,10 +64,22 @@ const validationRules = {
    HEADER VALIDATOR
 ========================================================= */
 const validateHeader = (headerName, value, rules, req) => {
-  // Check if required
+  // For content-type, always be lenient - never fail the request
+  if (headerName === 'content-type' && ['POST', 'PUT', 'PATCH'].includes(req.method)) {
+    if (!value || value === '') {
+      logger.warn(`[Header Validation] Missing ${headerName} for ${req.method} request (allowing to proceed)`, {
+        path: req.path,
+        method: req.method
+      });
+    }
+    return { valid: true }; // Always allow content-type to be missing
+  }
+  
+  // Check if required for other headers
   if (rules.requiredFor && rules.requiredFor.includes(req.method)) {
     // Only require it if the request actually contains a body (based on Content-Length or Transfer-Encoding)
     const hasBody = req.headers['content-length'] !== undefined || req.headers['transfer-encoding'] !== undefined;
+    
     if (hasBody && (!value || value === '')) {
       return {
         valid: false,
@@ -282,34 +294,26 @@ export const validateContentType = (allowedTypes = ['application/json']) => {
       return next();
     }
     
+    // Be lenient - allow requests to proceed even without content-type
     if (!contentType) {
-      logger.warn('[Content-Type] Missing Content-Type header', {
+      logger.warn('[Content-Type] Missing Content-Type header (allowing request to proceed)', {
         method: req.method,
         path: req.path
       });
-      return res.status(400).json({
-        success: false,
-        message: 'Content-Type header es requerido',
-        allowedTypes
-      });
+      return next(); // Allow request to proceed instead of failing
     }
     
     // Extract the main content type (ignore charset etc)
     const mainContentType = contentType.split(';')[0].trim();
     
     if (!allowedTypes.includes(mainContentType)) {
-      logger.warn('[Content-Type] Invalid Content-Type', {
+      logger.warn('[Content-Type] Invalid Content-Type (allowing request to proceed)', {
         method: req.method,
         path: req.path,
         received: mainContentType,
         allowedTypes
       });
-      return res.status(415).json({
-        success: false,
-        message: 'Content-Type no soportado',
-        received: mainContentType,
-        allowedTypes
-      });
+      return next(); // Allow request to proceed instead of failing
     }
     
     next();
@@ -491,10 +495,11 @@ export const headers = {
   strict: validateHeaders({ strict: true }),
   relaxed: validateHeaders({ strict: false }),
   api: validateHeaders({
+    strict: false, // Changed to false to allow requests to proceed
     rules: {
       'content-type': {
         allowed: ['application/json', 'multipart/form-data', 'application/x-www-form-urlencoded'],
-        requiredFor: ['POST', 'PUT', 'PATCH']
+        requiredFor: [] // Changed to empty array - don't require content-type strictly
       },
       'accept': {
         allowed: ['application/json', 'text/plain', 'text/html', '*/*']

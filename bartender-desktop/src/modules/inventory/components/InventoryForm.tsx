@@ -110,7 +110,7 @@ export default function InventoryForm({
 
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-2xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto"
+        className="w-full max-w-5xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto"
       >
         {/* HEADER */}
         <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
@@ -146,41 +146,42 @@ export default function InventoryForm({
           )}
 
           {/* BASIC INFO */}
-          <div className="space-y-6">
-            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-              <Target size={14} /> Identificación de Activo
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Estratégico</label>
-                <div className="relative group">
-                  <Package className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
-                  <input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Ej: Gin Mare Premium"
-                    className="input-royale !pl-14"
-                  />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="space-y-6">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                <Target size={14} /> Identificación de Activo
+              </p>
+              <div className="space-y-6">
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Estratégico</label>
+                  <div className="relative group">
+                    <Package className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                    <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Ej: Gin Mare Premium"
+                      className="input-royale !pl-14"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clasificación Umbra</label>
-                <div className="relative group">
-                  <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
-                  <input
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    placeholder="Ej: Destilados G"
-                    className="input-royale !pl-14"
-                  />
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Clasificación Umbra</label>
+                  <div className="relative group">
+                    <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" size={18} />
+                    <input
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      placeholder="Ej: Destilados G"
+                      className="input-royale !pl-14"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* IMAGE UPLOAD */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
                 <ShieldCheck size={14} /> Imagen del Insumo
               </p>
@@ -209,15 +210,15 @@ export default function InventoryForm({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Stock Actual</label>
-                  <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="input-royale text-center text-xl font-black" />
+                  <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="input-royale text-center text-2xl font-black" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Límite Mínimo</label>
-                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="input-royale text-center text-xl font-black border-red/20" />
+                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="input-royale text-center text-2xl font-black border-red/20" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[9px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máx</label>
-                  <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="input-royale text-center text-xl font-black" />
+                  <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="input-royale text-center text-2xl font-black" />
                 </div>
               </div>
 
@@ -238,11 +239,11 @@ export default function InventoryForm({
           </div>
 
           {/* SPECS & ORIGIN */}
-          <div className="space-y-6">
-            <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-              <ShieldCheck size={14} /> Especificaciones Técnicas
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="space-y-6">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                <ShieldCheck size={14} /> Especificaciones Técnicas
+              </p>
               <div className="space-y-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Unidad de Medida</label>
@@ -257,13 +258,18 @@ export default function InventoryForm({
                   </select>
                 </div>
               </div>
+            </div>
 
+            <div className="space-y-6">
+              <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
+                <DollarSign size={14} /> Costos y Ubicación
+              </p>
               <div className="space-y-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Costo por Unidad</label>
                   <div className="relative group">
                     <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400 group-focus-within:text-emerald-300 transition-colors" size={18} />
-                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-emerald-400 font-mono font-bold" />
+                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-emerald-400 font-mono font-bold text-xl" />
                   </div>
                 </div>
                 <div className="space-y-2.5">

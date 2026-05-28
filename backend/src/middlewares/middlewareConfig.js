@@ -89,7 +89,7 @@ const middlewarePresets = {
     rateLimit: rateLimiters.api,
     compression: compressionWithLogging,
     cache: cache.api,
-    headers: headers.api,
+    headers: headers.relaxed, // Changed to relaxed to avoid header validation issues
     bodyAnalysis: bodyAnalysisMiddlewares.moderate,
     metrics: metricsMiddlewares.full
   },

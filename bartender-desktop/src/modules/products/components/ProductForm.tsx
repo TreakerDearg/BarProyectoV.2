@@ -113,7 +113,7 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
       <div className="fixed top-1/4 right-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
       <div className="fixed bottom-1/4 left-1/4 w-[300px] h-[300px] bg-emerald-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-      <div className="w-full max-w-2xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+      <div className="w-full max-w-5xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
         
         {/* HEADER */}
         <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
@@ -143,7 +143,7 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
         </div>
 
         {/* BODY */}
-        <div className="p-10 md:p-12 space-y-8 min-h-[400px]">
+        <div className="p-10 md:p-12 space-y-8 min-h-[500px]">
           
           {error && (
             <div className="p-5 bg-red/5 border border-red/20 rounded-2xl flex items-center gap-4 animate-shake">
@@ -154,12 +154,18 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
 
           {/* STEP 1: IDENTITY */}
           {step === 0 && (
-            <div className="space-y-6 animate-slide-up">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre del Activo</label>
-                <input name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Signature Old Fashioned" className="input-royale" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
+              <div className="space-y-6">
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre del Activo</label>
+                  <input name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Signature Old Fashioned" className="input-royale" />
+                </div>
+                <div className="space-y-2.5">
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Descripción de Experiencia</label>
+                  <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Relato visual y gustativo..." className="input-royale !h-32 py-4 resize-none" />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Categoría</label>
                   <input name="category" value={formData.category} onChange={handleChange} placeholder="Ej: Classic Cocktails" className="input-royale" />
@@ -171,53 +177,51 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
                   </select>
                 </div>
               </div>
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Descripción de Experiencia</label>
-                <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Relato visual y gustativo..." className="input-royale !h-24 py-4 resize-none" />
-              </div>
             </div>
           )}
 
           {/* STEP 2: FINANCES */}
           {step === 1 && (
-            <div className="space-y-10 animate-slide-up">
-              <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
+              <div className="space-y-8">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Precio de Venta (Carta)</label>
                   <div className="relative group">
                     <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-400" size={20} />
-                    <input name="price" type="number" value={formData.price} onChange={handleChange} className="input-royale !pl-14 text-xl font-black text-ivory" />
+                    <input name="price" type="number" value={formData.price} onChange={handleChange} className="input-royale !pl-14 text-2xl font-black text-ivory" />
                   </div>
                 </div>
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Costo Técnico Estimado</label>
                   <div className="relative group">
                     <Activity className="absolute left-5 top-1/2 -translate-y-1/2 text-gold" size={20} />
-                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-xl font-black text-gold" />
+                    <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="input-royale !pl-14 text-2xl font-black text-gold" />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-surface-3/50 p-8 rounded-[2.5rem] border border-white/5 space-y-4">
+              <div className="bg-surface-3/50 p-8 rounded-[2.5rem] border border-white/5 space-y-6 flex flex-col justify-center">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <TrendingUp size={16} className={margin > 50 ? 'text-lime' : 'text-gold'} />
+                    <TrendingUp size={20} className={margin > 50 ? 'text-lime' : 'text-gold'} />
                     <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">Margen de Rentabilidad</p>
                   </div>
-                  <span className={`text-3xl font-black ${margin > 50 ? 'text-lime' : 'text-gold'} tracking-tighter`}>{margin}%</span>
+                  <span className={`text-4xl font-black ${margin > 50 ? 'text-lime' : 'text-gold'} tracking-tighter`}>{margin}%</span>
                 </div>
-                <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden">
+                <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden">
                   <div className={`h-full transition-all duration-1000 ${margin > 50 ? 'bg-lime shadow-lime-glow' : 'bg-grad-gold shadow-gold-glow'}`} style={{ width: `${Math.min(100, margin)}%` }} />
                 </div>
+                <p className="text-[9px] text-muted font-black uppercase tracking-widest text-center">
+                  {margin > 50 ? '✨ Excelente rentabilidad' : margin > 30 ? '📊 Rentabilidad saludable' : '⚠️ Revisar precios'}
+                </p>
               </div>
             </div>
           )}
 
           {/* STEP 3: MEDIA */}
           {step === 2 && (
-            <div className="space-y-8 animate-slide-up">
-              {/* Main Image Upload */}
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
+              <div className="space-y-6">
                 <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
                   <ImageIcon size={14} /> Imagen Principal
                 </p>
@@ -230,29 +234,24 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
                 />
               </div>
 
-              {/* Gallery Upload - Simplified for now */}
-              <div className="space-y-4">
-                <p className="text-[10px] font-black text-gold uppercase tracking-[0.4em] flex items-center gap-3">
-                  <ImageIcon size={14} /> Galería Adicional
-                </p>
-                <div className="p-4 bg-surface-3/30 rounded-2xl border border-white/5 text-center">
+              <div className="space-y-6">
+                {formData.image && (
+                  <div className="h-80 rounded-[2rem] bg-black/40 border border-white/5 overflow-hidden">
+                    <img src={formData.image} alt="Product preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="p-6 bg-surface-3/30 rounded-2xl border border-white/5 text-center">
                   <p className="text-sm text-muted">Galería múltiple próximamente</p>
                   <p className="text-xs text-muted mt-1">Funcionalidad en desarrollo</p>
                 </div>
               </div>
-
-              {formData.image && (
-                <div className="h-64 rounded-[2rem] bg-black/40 border border-white/5 overflow-hidden">
-                  <img src={formData.image} alt="Product preview" className="w-full h-full object-cover" />
-                </div>
-              )}
             </div>
           )}
 
           {/* STEP 4: EXTRAS */}
           {step === 3 && (
-            <div className="space-y-8 animate-slide-up">
-              <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-slide-up">
+              <div className="space-y-6">
                 <div className="space-y-2.5">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Tiempo de Prep. (Min)</label>
                   <div className="relative group">
@@ -274,19 +273,19 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <button 
                   onClick={() => setFormData({ ...formData, available: !formData.available })}
-                  className={`h-20 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.available ? 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
+                  className={`w-full h-24 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.available ? 'bg-emerald-400/10 border-emerald-400/30 text-emerald-400' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
                 >
-                  <CheckCircle size={20} />
+                  <CheckCircle size={24} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Disponible en Red</span>
                 </button>
                 <button 
                   onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-                  className={`h-20 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.featured ? 'bg-gold/10 border-gold/40 text-gold shadow-gold-glow' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
+                  className={`w-full h-24 rounded-2xl border flex items-center justify-center gap-4 transition-all ${formData.featured ? 'bg-gold/10 border-gold/40 text-gold shadow-gold-glow' : 'bg-white/5 border-white/5 text-muted opacity-50'}`}
                 >
-                  <Star size={20} className={formData.featured ? 'fill-current' : ''} />
+                  <Star size={24} className={formData.featured ? 'fill-current' : ''} />
                   <span className="text-[10px] font-black uppercase tracking-widest">Activo Destacado</span>
                 </button>
               </div>
