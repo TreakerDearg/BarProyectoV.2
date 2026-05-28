@@ -444,22 +444,22 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
   const isValid = formData.name.trim() && formData.price > 0;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
-      <div className="nebula-forms-root w-full max-w-7xl">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-6">
+      <div className="nebula-forms-root w-full max-w-6xl lg:max-w-7xl">
         <div className="nebula-forms-aurora" />
         
         <div className="nebula-form-panel">
           {/* HEADER */}
-          <div className="p-6 border-b border-violet-500/10 flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-2xl shadow-lg">
+          <div className="p-4 md:p-6 border-b border-violet-500/10 flex justify-between items-center shrink-0">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="p-2 md:p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-xl md:rounded-2xl shadow-lg">
                 <Box className="text-white" size={24} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-ivory">
+                <h2 className="text-xl md:text-2xl font-bold text-ivory">
                   {product ? "Editar Producto" : "Nuevo Producto"}
                 </h2>
-                <p className="text-sm text-muted">
+                <p className="text-xs md:text-sm text-muted">
                   Sistema Nebula de Productos
                 </p>
               </div>
@@ -470,8 +470,8 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
           </div>
 
           {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
-          <div className="p-6 max-h-[75vh] overflow-y-auto nebula-forms-scroll">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="p-4 md:p-6 flex-1 overflow-y-auto nebula-forms-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               {/* LEFT COLUMN - Identity & Finance */}
               <div className="space-y-6">
                 {/* Identity Section */}
@@ -598,17 +598,17 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
           </div>
 
           {/* FOOTER */}
-          <div className="p-6 border-t border-violet-500/10 flex gap-4">
+          <div className="p-4 md:p-6 border-t border-violet-500/10 flex gap-3 md:gap-4 shrink-0">
             <button
               onClick={onClose}
-              className="nebula-form-button-secondary flex-1"
+              className="nebula-form-button-secondary flex-1 text-sm md:text-base"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={loading || !isValid}
-              className="nebula-form-button-primary flex-[2]"
+              className="nebula-form-button-primary flex-[2] text-sm md:text-base"
             >
               {loading ? (
                 <>

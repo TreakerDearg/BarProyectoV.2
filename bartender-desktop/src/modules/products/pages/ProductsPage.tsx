@@ -295,34 +295,14 @@ export default function ProductsPage() {
 
       {/* MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="nebula-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-ivory">
-                  {selectedProduct ? 'Editar Producto' : 'Nuevo Producto'}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setSelectedProduct(null);
-                  }}
-                  className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-ivory transition-colors"
-                >
-                  <Plus size={20} className="rotate-45" />
-                </button>
-              </div>
-              <ProductForm
-                product={selectedProduct}
-                onSave={handleSave}
-                onClose={() => {
-                  setIsModalOpen(false);
-                  setSelectedProduct(null);
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <ProductForm
+          product={selectedProduct}
+          onSave={handleSave}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedProduct(null);
+          }}
+        />
       )}
     </div>
   );

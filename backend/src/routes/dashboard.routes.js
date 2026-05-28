@@ -14,11 +14,11 @@ router.get("/", getDashboardStats);
 /* =========================================================
    MODOS ESPECÍFICOS (FILTERED MODE)
 ========================================================= */
-router.get("/sales", (req, res, next) => { req.query.mode = "sales"; return getDashboardStats(req, res, next); });
-router.get("/drinks", (req, res, next) => { req.query.mode = "drinks"; return getDashboardStats(req, res, next); });
-router.get("/food", (req, res, next) => { req.query.mode = "food"; return getDashboardStats(req, res, next); });
-router.get("/tables", (req, res, next) => { req.query.mode = "tables"; return getDashboardStats(req, res, next); });
-router.get("/inventory", (req, res, next) => { req.query.mode = "inventory"; return getDashboardStats(req, res, next); });
-router.get("/live", (req, res, next) => { req.query.mode = "live"; return getDashboardStats(req, res, next); });
+router.get("/sales", (req, res) => { req.query.mode = "sales"; return getDashboardStats(req, res); });
+router.get("/drinks", (req, res) => { req.query.mode = "drinks"; return getDashboardStats(req, res); });
+router.get("/food", (req, res) => { req.query.mode = "food"; return getDashboardStats(req, res); });
+router.get("/tables", (req, res) => { req.query.mode = "tables"; return getDashboardStats(req, res); });
+router.get("/inventory", (req, res) => { req.query.mode = "inventory"; return getDashboardStats(req, res); });
+router.get("/live", (req, res) => { req.query.mode = "live"; return getDashboardStats(req, res); });
 
 export default router;

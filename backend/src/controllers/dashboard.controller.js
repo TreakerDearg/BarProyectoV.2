@@ -9,7 +9,7 @@ import { logger }   from "../config/logger.js";
 import { getIO }   from "../socket/index.js";
 import { ok }       from "../utils/response.js";
 
-export const getDashboardStats = async (req, res, next) => {
+export const getDashboardStats = async (req, res) => {
   try {
     const { range = "7", view = "all" } = req.query;
     const days = Math.min(Math.max(Number(range) || 7, 1), 90);

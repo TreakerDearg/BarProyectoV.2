@@ -249,28 +249,11 @@ export default function InventoryPage() {
 
       {/* FORM MODAL */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="nebula-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-ivory">
-                  {selected ? 'Editar Insumo' : 'Nuevo Insumo'}
-                </h2>
-                <button
-                  onClick={() => { setOpen(false); setSelected(null); }}
-                  className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-ivory transition-colors"
-                >
-                  <Plus size={20} className="rotate-45" />
-                </button>
-              </div>
-              <InventoryForm
-                item={selected}
-                onSave={handleSave}
-                onCancel={() => { setOpen(false); setSelected(null); }}
-              />
-            </div>
-          </div>
-        </div>
+        <InventoryForm
+          item={selected}
+          onSave={handleSave}
+          onClose={() => { setOpen(false); setSelected(null); }}
+        />
       )}
     </div>
   );
