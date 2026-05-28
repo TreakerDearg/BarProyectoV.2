@@ -341,7 +341,7 @@ export default function ReservationForm({
         </div>
 
         {/* CONTENT (SCROLLABLE AREA) */}
-        <div className="p-8 md:p-12 space-y-10 max-h-[65vh] overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.03)_0%,transparent_50%)]">
+        <div className="p-100 md:p-44 space-y-22 max-h-[65vh] overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.03)_0%,transparent_50%)]">
           
           {/* ERROR FEEDBACK */}
           {error && (
@@ -549,7 +549,7 @@ export default function ReservationForm({
           </div>
 
           {/* CHRONOGRAM SECTION WITH QUICK DURATION */}
-          <div className="bg-surface-3/40 p-8 rounded-[2.5rem] border border-white/5 space-y-8 shadow-inner">
+          <div className="bg-surface-3/40 p-10 rounded-[2.5rem] border border-white/5 space-y-10 shadow-inner">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 text-gold">
                 <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
@@ -557,7 +557,7 @@ export default function ReservationForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               <div className="space-y-2.5">
                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Check-in (Entrada)</label>
                 <div className="relative group/field">
@@ -671,7 +671,7 @@ export default function ReservationForm({
         </div>
 
         {/* FOOTER ACTIONS (STICKY) */}
-        <div className="p-8 md:p-10 bg-surface-3 border-t border-white/10 flex gap-6 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
+        <div className="p-10 md:p-12 bg-surface-3 border-t border-white/10 flex gap-8 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
           <button
             type="button"
             onClick={onClose}

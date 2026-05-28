@@ -7,6 +7,7 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { createTableSchema } from "../utils/schemas.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
@@ -14,29 +15,29 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 /* =========================================================
    READ ROUTES
 ========================================================= */
-router.get("/", getTables);
-router.get("/:id", getTableById);
+router.get("/", asyncHandler(getTables));
+router.get("/:id", asyncHandler(getTableById));
 
 /* =========================================================
    POS FLOW (abrir/cerrar mesa)
 ========================================================= */
 // En el futuro, protect y validar roles de POS
-router.post("/:id/open", openTable);
-router.post("/:id/close", closeTable);
+router.post("/:id/open", asyncHandler(openTable));
+router.post("/:id/close", asyncHandler(closeTable));
 
 /* =========================================================
    CRUD TABLES (ADMIN ONLY)
 ========================================================= */
-router.post("/", ...adminOnly, validate(createTableSchema), createTable);
-router.put("/:id", ...adminOnly, updateTable);
-router.delete("/:id", ...adminOnly, deleteTable);
+router.post("/", ...adminOnly, validate(createTableSchema), asyncHandler(createTable));
+router.put("/:id", ...adminOnly, asyncHandler(updateTable));
+router.delete("/:id", ...adminOnly, asyncHandler(deleteTable));
 
 /* =========================================================
    TAGS
 ========================================================= */
-router.post("/:id/tags", addTableTag);
-router.delete("/:id/tags/:label", removeTableTag);
-router.delete("/:id/tags", clearTableTags);
+router.post("/:id/tags", asyncHandler(addTableTag));
+router.delete("/:id/tags/:label", asyncHandler(removeTableTag));
+router.delete("/:id/tags", asyncHandler(clearTableTags));
 
 /* =========================================================
    ANALYTICS ROUTES
@@ -45,28 +46,28 @@ router.get(
   "/analytics",
   // protect,
   // authorizeRoles("admin", "manager"),
-  getTableAnalytics
+  asyncHandler(getTableAnalytics)
 );
 
 router.get(
   "/:id/analytics",
   // protect,
   // authorizeRoles("admin", "manager"),
-  getTableAnalyticsById
+  asyncHandler(getTableAnalyticsById)
 );
 
 router.post(
   "/:id/analytics/generate",
   // protect,
   // authorizeRoles("admin", "manager"),
-  generateTableAnalytics
+  asyncHandler(generateTableAnalytics)
 );
 
 router.get(
   "/analytics/ranking",
   // protect,
   // authorizeRoles("admin", "manager"),
-  getTablePerformanceRanking
+  asyncHandler(getTablePerformanceRanking)
 );
 
 export default router;

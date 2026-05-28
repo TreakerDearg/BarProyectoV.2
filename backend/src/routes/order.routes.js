@@ -11,6 +11,7 @@ import {
   applyDiscountSchema,
 } from "../utils/schemas.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
@@ -24,16 +25,16 @@ router.get("/:id", getOrderById);
 /* =========================================================
    CREATE & UPDATE
 ========================================================= */
-router.post("/", protect, validate(createOrderSchema), createOrder);
+router.post("/", protect, validate(createOrderSchema), asyncHandler(createOrder));
 
-router.patch("/:id/status", protect, validate(updateOrderStatusSchema), updateOrderStatus);
-router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatusSchema), updateOrderItemStatus);
+router.patch("/:id/status", protect, validate(updateOrderStatusSchema), asyncHandler(updateOrderStatus));
+router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatusSchema), asyncHandler(updateOrderItemStatus));
 
 /* =========================================================
    DISCOUNTS
 ========================================================= */
 
-router.post("/:orderId/discount", protect, validate(applyDiscountSchema), applyDiscount);
+router.post("/:orderId/discount", protect, validate(applyDiscountSchema), asyncHandler(applyDiscount));
 
 router.delete("/:orderId/discount/:discountId", ...adminOnly, (req, res) => {
   res.status(501).json({ success: false, message: "Not implemented yet" });
@@ -42,6 +43,6 @@ router.delete("/:orderId/discount/:discountId", ...adminOnly, (req, res) => {
 /* =========================================================
    DELETE
 ========================================================= */
-router.delete("/:id", ...adminOnly, deleteOrder);
+router.delete("/:id", ...adminOnly, asyncHandler(deleteOrder));
 
 export default router;

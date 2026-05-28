@@ -24,7 +24,7 @@ router.post(
   "/",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  createPayment
+  asyncHandler(createPayment)
 );
 
 /* =========================================================
@@ -34,21 +34,21 @@ router.get(
   "/payment/:id",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  getPaymentById
+  asyncHandler(getPaymentById)
 );
 
 router.get(
   "/table/:tableId",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  getTablePayments
+  asyncHandler(getTablePayments)
 );
 
 router.get(
   "/session/:sessionId",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  getSessionPayments
+  asyncHandler(getSessionPayments)
 );
 
 /* =========================================================
@@ -58,7 +58,7 @@ router.get(
   "/payment/:id/receipt",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  generateReceipt
+  asyncHandler(generateReceipt)
 );
 
 /* =========================================================
@@ -68,7 +68,7 @@ router.post(
   "/payment/:id/refund",
   protect,
   authorizePermissions("REFUND_PAYMENT"),
-  refundPayment
+  asyncHandler(refundPayment)
 );
 
 /* =========================================================
@@ -78,14 +78,14 @@ router.get(
   "/summary",
   protect,
   authorizeRoles("admin", "manager"),
-  getPaymentsSummary
+  asyncHandler(getPaymentsSummary)
 );
 
 router.get(
   "/by-table",
   protect,
   authorizeRoles("admin", "manager"),
-  getPaymentsByTable
+  asyncHandler(getPaymentsByTable)
 );
 
 /* =========================================================
@@ -97,7 +97,7 @@ router.get(
   "/methods/available",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  getAvailablePaymentMethods
+  asyncHandler(getAvailablePaymentMethods)
 );
 
 /* Split payment */
@@ -105,7 +105,7 @@ router.post(
   "/split",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  createSplitPayment
+  asyncHandler(createSplitPayment)
 );
 
 /* Partial payment */
@@ -113,7 +113,7 @@ router.post(
   "/partial",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  createPartialPayment
+  asyncHandler(createPartialPayment)
 );
 
 /* Card payment */
@@ -121,7 +121,7 @@ router.post(
   "/card",
   protect,
   authorizeRoles("admin", "manager", "staff"),
-  createCardPayment
+  asyncHandler(createCardPayment)
 );
 
 export default router;

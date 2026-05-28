@@ -466,10 +466,10 @@ export default function InventoryForm({
           </div>
 
           {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
-          <div className="p-4 md:p-6 flex-1 overflow-y-auto nebula-forms-scroll">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               {/* LEFT COLUMN - Basic & Stock */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Basic Info Section */}
                 <div className="nebula-form-section">
                   <div
@@ -551,7 +551,7 @@ export default function InventoryForm({
               </div>
 
               {/* RIGHT COLUMN - Alerts & Preview */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Alerts Section */}
                 <div className="nebula-form-section">
                   <div

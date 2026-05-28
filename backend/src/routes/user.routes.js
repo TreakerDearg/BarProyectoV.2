@@ -14,6 +14,7 @@ import {
   updateUserSchema,
   updatePermissionsSchema,
 } from "../utils/schemas.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = express.Router();
 const adminOnly = [protect, authorizeRoles("admin")];
@@ -21,28 +22,28 @@ const adminOnly = [protect, authorizeRoles("admin")];
 /* =========================================================
    EMPLOYEES MODULE
 ========================================================= */
-router.post("/employees", ...adminOnly, validate(createEmployeeSchema), createEmployee);
-router.get("/employees", ...adminOnly, getEmployees);
+router.post("/employees", ...adminOnly, validate(createEmployeeSchema), asyncHandler(createEmployee));
+router.get("/employees", ...adminOnly, asyncHandler(getEmployees));
 
 /* =========================================================
    USER CORE MANAGEMENT
 ========================================================= */
-router.get("/:id", ...adminOnly, getUser);
-router.put("/:id", ...adminOnly, validate(updateUserSchema), updateUser);
+router.get("/:id", ...adminOnly, asyncHandler(getUser));
+router.put("/:id", ...adminOnly, validate(updateUserSchema), asyncHandler(updateUser));
 
 /* =========================================================
    SECURITY & STATUS
 ========================================================= */
-router.patch("/:id/password", ...adminOnly, validate(changePasswordSchema), changePassword);
-router.patch("/:id/deactivate", ...adminOnly, deactivateUser);
-router.patch("/:id/activate", ...adminOnly, activateUser);
+router.patch("/:id/password", ...adminOnly, validate(changePasswordSchema), asyncHandler(changePassword));
+router.patch("/:id/deactivate", ...adminOnly, asyncHandler(deactivateUser));
+router.patch("/:id/activate", ...adminOnly, asyncHandler(activateUser));
 
 /* =========================================================
    PERMISSIONS & BULK ACTIONS
 ========================================================= */
-router.patch("/role/:role/permissions", ...adminOnly, validate(updatePermissionsSchema), updateRolePermissions);
-router.patch("/shift/:shift/permissions", ...adminOnly, validate(updatePermissionsSchema), updateShiftPermissions);
-router.patch("/:id/permissions", ...adminOnly, validate(updatePermissionsSchema), updatePermissions);
-router.patch("/:id/shift", ...adminOnly, validate(assignShiftSchema), assignShift);
+router.patch("/role/:role/permissions", ...adminOnly, validate(updatePermissionsSchema), asyncHandler(updateRolePermissions));
+router.patch("/shift/:shift/permissions", ...adminOnly, validate(updatePermissionsSchema), asyncHandler(updateShiftPermissions));
+router.patch("/:id/permissions", ...adminOnly, validate(updatePermissionsSchema), asyncHandler(updatePermissions));
+router.patch("/:id/shift", ...adminOnly, validate(assignShiftSchema), asyncHandler(assignShift));
 
 export default router;

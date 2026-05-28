@@ -518,8 +518,8 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           </div>
 
           {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
-          <div className="p-4 md:p-6 flex-1 overflow-y-auto nebula-forms-scroll">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               {/* LEFT COLUMN - Product & Ingredients */}
               <div className="space-y-6">
                 {/* Product Section */}
@@ -615,7 +615,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               </div>
 
               {/* RIGHT COLUMN - Cost & Preview */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Cost Section */}
                 <div className="nebula-form-section">
                   <div
