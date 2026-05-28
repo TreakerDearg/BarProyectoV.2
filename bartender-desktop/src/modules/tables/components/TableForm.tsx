@@ -114,15 +114,15 @@ export default function TableForm({
   };
 
   return (
-    <div className="glass rounded-[2.5rem] border-white/5 overflow-hidden shadow-2xl relative">
+    <div className="w-full max-w-5xl glass-royale rounded-[3rem] border-white/5 overflow-hidden shadow-royale relative">
       {/* HEADER */}
-      <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+      <div className="p-8 md:p-10 border-b border-white/5 flex justify-between items-center bg-surface-3/50">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gold/10 border border-gold/20 text-gold shadow-gold-glow/20">
-            <Layout size={24} />
+          <div className="p-4 rounded-2xl bg-grad-gold shadow-gold-glow">
+            <Layout size={28} className="text-bg" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-grad-gold tracking-tight uppercase leading-none">
+            <h2 className="text-3xl font-black text-grad-gold tracking-tight uppercase leading-none">
               {table ? "Configurar Activo" : "Registrar Activo"}
             </h2>
             <p className="text-[10px] text-muted font-bold uppercase tracking-[0.3em] mt-2">
@@ -132,13 +132,13 @@ export default function TableForm({
         </div>
         <button 
           onClick={onClose}
-          className="w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/5 hover:text-gold transition-all border border-white/5"
+          className="w-14 h-14 rounded-full flex items-center justify-center hover:bg-white/5 hover:text-gold transition-all border border-white/5"
         >
-          <X size={24} />
+          <X size={28} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <form onSubmit={handleSubmit} className="p-10 md:p-12 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
         {error && (
           <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-fade-in">
             <AlertCircle size={18} />
@@ -147,84 +147,83 @@ export default function TableForm({
         )}
 
         {/* SECTION 1: BASIC SPECS */}
-        <div className="space-y-6">
-           <div className="flex items-center gap-2">
-              <Hash size={12} className="text-gold opacity-50" />
-              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Especificaciones Base</h3>
-           </div>
-
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Identificador</label>
-              <div className="relative">
-                <Hash size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
-                <input
-                  type="number"
-                  name="number"
-                  value={formData.number}
-                  onChange={handleChange}
-                  className="input !pl-14 !py-4 rounded-2xl border-white/5"
-                  placeholder="0"
-                  required
-                />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+           <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                 <Hash size={12} className="text-gold opacity-50" />
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Especificaciones Base</h3>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máxima</label>
-              <div className="relative">
-                <Users size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
-                <input
-                  type="number"
-                  name="capacity"
-                  value={formData.capacity}
-                  onChange={handleChange}
-                  className="input !pl-14 !py-4 rounded-2xl border-white/5"
-                  min="1"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+             <div className="space-y-6">
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Identificador</label>
+                 <div className="relative">
+                   <Hash size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
+                   <input
+                     type="number"
+                     name="number"
+                     value={formData.number}
+                     onChange={handleChange}
+                     className="input !pl-14 !py-4 rounded-2xl border-white/5"
+                     placeholder="0"
+                     required
+                   />
+                 </div>
+               </div>
 
-        {/* SECTION 2: PHYSICAL ATTRIBUTES */}
-        <div className="space-y-6">
-           <div className="flex items-center gap-2">
-              <Maximize size={12} className="text-gold opacity-50" />
-              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Atributos Físicos (Plano)</h3>
-           </div>
-
-          <div className="grid grid-cols-2 gap-8">
-             <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Forma</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { val: 'rect', icon: <Square size={20} />, label: 'Rectángulo' },
-                    { val: 'circle', icon: <Circle size={20} />, label: 'Círculo' },
-                    { val: 'square', icon: <Square size={20} className="rotate-45" />, label: 'Cuadrado' }
-                  ].map((s) => (
-                    <button
-                      key={s.val}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, shape: s.val as any }))}
-                      className={`
-                        flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 aspect-square
-                        ${formData.shape === s.val
-                          ? "bg-gold/10 border-gold/40 text-gold shadow-gold-glow/20"
-                          : "bg-white/5 border-white/10 text-muted hover:border-white/20 hover:bg-white/10"}
-                      `}
-                    >
-                      <div className={`p-3 rounded-xl ${formData.shape === s.val ? "bg-gold/20" : "bg-white/5"}`}>
-                        {s.icon}
-                      </div>
-                      <span className="text-[9px] font-black uppercase tracking-wider">{s.label}</span>
-                    </button>
-                  ))}
-                </div>
+               <div className="space-y-2">
+                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máxima</label>
+                 <div className="relative">
+                   <Users size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
+                   <input
+                     type="number"
+                     name="capacity"
+                     value={formData.capacity}
+                     onChange={handleChange}
+                     className="input !pl-14 !py-4 rounded-2xl border-white/5"
+                     min="1"
+                     required
+                   />
+                 </div>
+               </div>
              </div>
+           </div>
 
-             <div className="space-y-4">
+           <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                 <Maximize size={12} className="text-gold opacity-50" />
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Atributos Físicos (Plano)</h3>
+              </div>
+
+             <div className="space-y-6">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Forma</label>
+                   <div className="grid grid-cols-3 gap-3">
+                     {[
+                       { val: 'rect', icon: <Square size={20} />, label: 'Rectángulo' },
+                       { val: 'circle', icon: <Circle size={20} />, label: 'Círculo' },
+                       { val: 'square', icon: <Square size={20} className="rotate-45" />, label: 'Cuadrado' }
+                     ].map((s) => (
+                       <button
+                         key={s.val}
+                         type="button"
+                         onClick={() => setFormData(prev => ({ ...prev, shape: s.val as any }))}
+                         className={`
+                           flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 aspect-square
+                           ${formData.shape === s.val
+                             ? "bg-gold/10 border-gold/40 text-gold shadow-gold-glow/20"
+                             : "bg-white/5 border-white/10 text-muted hover:border-white/20 hover:bg-white/10"}
+                         `}
+                       >
+                         <div className={`p-3 rounded-xl ${formData.shape === s.val ? "bg-gold/20" : "bg-white/5"}`}>
+                           {s.icon}
+                         </div>
+                         <span className="text-[9px] font-black uppercase tracking-wider">{s.label}</span>
+                       </button>
+                     ))}
+                   </div>
+                </div>
+
                 <div className="space-y-2">
                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación</label>
                    <div className="relative">
@@ -272,10 +271,10 @@ export default function TableForm({
                   </div>
                 </div>
              </div>
-          </div>
+           </div>
         </div>
 
-        {/* SECTION 3: NOTES */}
+        {/* SECTION 2: NOTES */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <MessageSquare size={12} className="text-gold opacity-50" />
@@ -290,7 +289,7 @@ export default function TableForm({
           />
         </div>
 
-        {/* SECTION 4: TAGS */}
+        {/* SECTION 3: TAGS */}
         <div className="space-y-4">
            <div className="flex items-center gap-2">
               <Tag size={12} className="text-gold opacity-50" />
@@ -331,15 +330,15 @@ export default function TableForm({
           <button
             type="button"
             onClick={onClose}
-            className="btn btn-ghost py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-white/5"
+            className="btn btn-ghost !py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-white/5 hover:bg-white/5"
           >
             Descartar
           </button>
           <button
             type="submit"
-            className="btn btn-gold py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-gold-glow flex items-center justify-center gap-3"
+            className="btn btn-gold !py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-gold-glow flex items-center justify-center gap-3"
           >
-            <Save size={18} />
+            <Save size={20} />
             {table ? "Actualizar" : "Registrar Mesa"}
           </button>
         </div>

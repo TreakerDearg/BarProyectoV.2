@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Order        from "../models/Order.js";
 import Product      from "../models/Product.js";
 import Menu         from "../models/Menu.js";
+import Table        from "../models/Table.js";
 import Discount     from "../models/Discount.js";
 import ActivityLog  from "../models/ActivityLog.js";
 import { io }       from "../server.js";

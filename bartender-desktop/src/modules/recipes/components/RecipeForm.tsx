@@ -152,16 +152,16 @@ export default function RecipeForm({ onSave, onClose }: Props) {
       <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
       <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-emerald-400/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
 
-      <div className="w-full max-w-6xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
+      <div className="w-full max-w-7xl glass-royale rounded-[3rem] overflow-hidden shadow-royale border border-white/5 animate-float my-auto">
         
         {/* HEADER */}
-        <div className="p-8 md:p-10 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <div className="p-4 bg-grad-gold rounded-2xl shadow-gold-glow">
-              <Layers className="text-bg" size={32} />
+        <div className="p-10 md:p-14 bg-surface-3/50 border-b border-white/5 flex justify-between items-center">
+          <div className="flex items-center gap-8">
+            <div className="p-5 bg-grad-gold rounded-2xl shadow-gold-glow">
+              <Layers className="text-bg" size={36} />
             </div>
             <div>
-              <h2 className="text-3xl font-black text-grad-gold tracking-tighter uppercase leading-none">
+              <h2 className="text-4xl font-black text-grad-gold tracking-tighter uppercase leading-none">
                 {step === 5 ? "Validar Arquitectura" : "Nueva Arquitectura"}
               </h2>
               <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em] mt-2">
@@ -169,8 +169,8 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-14 h-14 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
-            <X size={28} />
+          <button onClick={onClose} className="w-16 h-16 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all">
+            <X size={32} />
           </button>
         </div>
 
