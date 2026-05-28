@@ -8,18 +8,24 @@ import {
   Search,
   Layers,
   Box,
-  Plus,
   ArrowUp,
   ArrowDown,
   Loader2,
   CheckCircle,
-  Sparkles,
   LayoutGrid,
   Zap,
-  Target
+  Target,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+
+  Grid3x3,
+  List,
+  Info
 } from "lucide-react";
 
 import ImageUploader from "../../../components/shared/ImageUploader";
+import "../../../styles/nebula-forms-theme.css";
 
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
@@ -61,10 +67,315 @@ interface Props {
   onClose: () => void;
 }
 
+// MenuIdentitySection Component
+function MenuIdentitySection({ form, setForm, onImageUpload }: { form: Payload; setForm: (f: Payload) => void; onImageUpload: (url: string) => void }) {
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-violet-500/10 rounded-xl">
+          <Target className="text-violet-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Identidad del Menú</h3>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <label className="nebula-form-label">Nombre del Menú</label>
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Ej: Signature Cocktails 2026"
+              className="nebula-form-input w-full"
+            />
+          </div>
+
+          <div>
+            <label className="nebula-form-label">Descripción</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Descripción del menú..."
+              className="nebula-form-textarea w-full h-24"
+            />
+          </div>
+
+          <div>
+            <label className="nebula-form-label">Tipo</label>
+            <div className="nebula-form-toggle">
+              {TYPE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setForm({ ...form, type: opt.value })}
+                  className={form.type === opt.value ? 'active' : ''}
+                >
+                  {opt.icon}
+                  <span className="ml-1">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="nebula-form-label">Imagen del Menú</label>
+          <ImageUploader
+            onImageUpload={onImageUpload}
+            currentImage={form.image}
+            folder="menus"
+            mode="advanced"
+            label="Subir imagen"
+          />
+          {form.image && (
+            <div className="mt-3 relative rounded-lg overflow-hidden border border-violet-500/20">
+              <img src={form.image} alt="Preview" className="w-full h-32 object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// MenuCategoryBuilder Component
+function MenuCategoryBuilder({ form, onCategoryChange }: { form: Payload; setForm: (f: Payload) => void; onCategoryChange: (cat: string) => void }) {
+  const currentCategory = form.categories[0];
+  
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-cyan-500/10 rounded-xl">
+          <Grid3x3 className="text-cyan-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Categoría del Menú</h3>
+      </div>
+      
+      <div className="flex flex-wrap gap-2">
+        {CATEGORY_OPTIONS.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => onCategoryChange(cat)}
+            className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+              currentCategory?.name === cat
+                ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                : 'bg-white/5 text-muted hover:bg-white/10 border border-white/10'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+      
+      <div className="mt-4 flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+        <div className="flex items-center gap-2">
+          <List className="text-muted" size={16} />
+          <span className="text-xs text-muted">Productos en categoría</span>
+        </div>
+        <span className="text-sm font-bold text-violet-400">{currentCategory?.products.length || 0}</span>
+      </div>
+    </div>
+  );
+}
+
+// MenuProductSelector Component
+function MenuProductSelector({ 
+  products, 
+  search, 
+  setSearch, 
+  currentCategory, 
+  onToggleProduct, 
+  onToggleFeatured,
+}: { 
+  products: Product[];
+  search: string;
+  setSearch: (s: string) => void;
+  currentCategory: Category;
+  onToggleProduct: (id: string) => void;
+  onToggleFeatured: (id: string) => void;
+  onMoveProduct: (index: number, dir: "up" | "down") => void;
+}) {
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.category?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [products, search]);
+
+  const selectedProductIds = new Set(currentCategory?.products?.map(p => p.product) || []);
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gold/10 rounded-xl">
+            <Box className="text-gold" size={20} />
+          </div>
+          <h3 className="text-sm font-bold text-ivory">Selector de Productos</h3>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-2 rounded-lg transition-all ${viewMode === "list" ? 'bg-violet-500/20 text-violet-400' : 'bg-white/5 text-muted'}`}
+          >
+            <List size={16} />
+          </button>
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`p-2 rounded-lg transition-all ${viewMode === "grid" ? 'bg-violet-500/20 text-violet-400' : 'bg-white/5 text-muted'}`}
+          >
+            <Grid3x3 size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar productos..."
+          className="nebula-form-input w-full pl-10"
+        />
+      </div>
+
+      <div className={`grid gap-2 ${viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"} max-h-64 overflow-y-auto nebula-forms-scroll`}>
+        {filteredProducts.map((product) => {
+          const isSelected = selectedProductIds.has(product._id);
+          const menuProduct = currentCategory?.products?.find(p => p.product === product._id);
+          
+          return (
+            <div
+              key={product._id}
+              onClick={() => onToggleProduct(product._id)}
+              className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                isSelected
+                  ? 'bg-violet-500/10 border-violet-500/30'
+                  : 'bg-white/5 border-white/10 hover:border-violet-500/20'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ivory truncate">{product.name}</p>
+                  <p className="text-xs text-muted truncate">{product.category || 'Sin categoría'}</p>
+                </div>
+                {isSelected && (
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onToggleFeatured(product._id); }}
+                      className={`p-1 rounded transition-all ${menuProduct?.featured ? 'text-gold' : 'text-muted hover:text-gold'}`}
+                    >
+                      <Star size={14} fill={menuProduct?.featured ? "currentColor" : "none"} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-8">
+          <Info className="text-muted mx-auto mb-2" size={24} />
+          <p className="text-sm text-muted">No se encontraron productos</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// MenuPreviewCard Component
+function MenuPreviewCard({ form, currentCategory }: { form: Payload; currentCategory: Category }) {
+  return (
+    <div className="nebula-form-card nebula-form-animate-scale-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-emerald-500/10 rounded-xl">
+          <Eye className="text-emerald-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Vista Previa</h3>
+      </div>
+
+      <div className="space-y-3">
+        <div className="p-4 bg-gradient-to-br from-violet-500/10 to-cyan-500/10 rounded-lg border border-violet-500/20">
+          {form.image && (
+            <img src={form.image} alt={form.name} className="w-full h-32 object-cover rounded-lg mb-3" />
+          )}
+          <h4 className="text-lg font-bold text-ivory">{form.name || "Sin nombre"}</h4>
+          <p className="text-xs text-muted mt-1">{form.description || "Sin descripción"}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-semibold">
+              {form.type}
+            </span>
+            <span className="px-2 py-1 bg-gold/20 text-gold rounded text-xs font-semibold">
+              {currentCategory?.name}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted">Productos</span>
+            <span className="font-bold text-ivory">{currentCategory?.products.length || 0}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm mt-2">
+            <span className="text-muted">Destacados</span>
+            <span className="font-bold text-gold">
+              {currentCategory?.products?.filter(p => p.featured).length || 0}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// MenuValidationPanel Component
+function MenuValidationPanel({ errors, isValid }: { errors: string[]; isValid: boolean }) {
+  if (errors.length === 0 && isValid) return null;
+
+  return (
+    <div className={`nebula-form-card ${errors.length > 0 ? 'border-red-500/30' : 'border-emerald-500/30'}`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`p-2 ${errors.length > 0 ? 'bg-red-500/10' : 'bg-emerald-500/10'} rounded-xl`}>
+          {errors.length > 0 ? (
+            <AlertTriangle className="text-red-400" size={20} />
+          ) : (
+            <CheckCircle className="text-emerald-400" size={20} />
+          )}
+        </div>
+        <h3 className="text-sm font-bold text-ivory">
+          {errors.length > 0 ? 'Validación' : 'Listo para guardar'}
+        </h3>
+      </div>
+
+      {errors.length > 0 ? (
+        <div className="space-y-2">
+          {errors.map((error, idx) => (
+            <div key={idx} className="flex items-start gap-2 text-xs text-red-400">
+              <span className="mt-0.5">•</span>
+              <span>{error}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-emerald-400">Todos los campos requeridos están completos.</p>
+      )}
+    </div>
+  );
+}
+
 export default function MenuForm({ menu, onSave, onClose }: Props) {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({
+    identity: false,
+    category: false,
+    products: false,
+    preview: false,
+  });
 
   const [form, setForm] = useState<Payload>({
     name: "",
@@ -100,12 +411,9 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
 
   const currentCategory = form.categories[0];
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [products, search]);
+  const toggleSection = (section: keyof typeof collapsedSections) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const toggleProduct = (id: string) => {
     const exists = currentCategory.products.find(p => p.product === id);
@@ -149,6 +457,13 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
     }));
   };
 
+  const handleCategoryChange = (categoryName: string) => {
+    setForm(prev => ({
+      ...prev,
+      categories: [{ name: categoryName, products: [] }],
+    }));
+  };
+
   const handleImageUpload = (imageUrl: string) => {
     setForm(prev => ({
       ...prev,
@@ -171,116 +486,216 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
     setLoading(false);
   };
 
+  const isValid = form.name.trim() && form.categories[0].products.length > 0;
+
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
-      
-      <div className="w-full max-w-6xl bg-surface-2 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+      <div className="nebula-forms-root w-full max-w-7xl">
+        <div className="nebula-forms-aurora" />
         
-        {/* HEADER */}
-        <div className="p-6 bg-surface-3 border-b border-white/10 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gold/20 rounded-xl">
-              <Layers className="text-gold" size={24} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {menu ? "Editar Menú" : "Nuevo Menú"}
-              </h2>
-              <p className="text-sm text-muted">
-                Gestión de menús
-              </p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <X size={24} className="text-muted" />
-          </button>
-        </div>
-
-        {/* MAIN CONTENT */}
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Nombre del Menú</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ej: Signature Cocktails 2026"
-                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold"
-                />
+        <div className="nebula-form-panel">
+          {/* HEADER */}
+          <div className="p-6 border-b border-violet-500/10 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-2xl shadow-lg">
+                <Layers className="text-white" size={24} />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Descripción del menú..."
-                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold resize-none h-24"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
-                <div className="flex gap-4">
-                  <button onClick={() => setForm({ ...form, type: 'drink' })} className={`flex-1 py-3 px-4 rounded-lg border ${form.type === 'drink' ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}>
-                    Bebidas
-                  </button>
-                  <button onClick={() => setForm({ ...form, type: 'food' })} className={`flex-1 py-3 px-4 rounded-lg border ${form.type === 'food' ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}>
-                    Comida
-                  </button>
-                  <button onClick={() => setForm({ ...form, type: 'mixed' })} className={`flex-1 py-3 px-4 rounded-lg border ${form.type === 'mixed' ? 'bg-gold/10 border-gold/30 text-gold' : 'bg-surface-3 border-white/10 text-gray-400'}`}>
-                    Mixto
-                  </button>
-                </div>
+                <h2 className="text-2xl font-bold text-ivory">
+                  {menu ? "Editar Menú" : "Nuevo Menú"}
+                </h2>
+                <p className="text-sm text-muted">
+                  Sistema Nebula de Menús
+                </p>
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Imagen</label>
-              <ImageUploader
-                onImageUpload={handleImageUpload}
-                currentImage={form.image}
-                folder="menus"
-                mode="advanced"
-                label="Subir imagen"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Productos</label>
-            <div className="space-y-2">
-              {form.categories[0]?.products.map((p, idx) => (
-                <div key={idx} className="bg-surface-3 p-4 rounded-lg border border-white/10 flex justify-between items-center">
-                  <span className="text-gray-300">{p.product}</span>
-                  <button onClick={() => toggleProduct(p.product)} className="text-red-400 hover:text-red-300">
-                    Eliminar
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => {}} className="mt-4 py-2 px-4 bg-surface-3 border border-white/10 rounded-lg text-gray-300 hover:bg-white/5 transition-colors">
-              + Agregar producto
+            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <X size={24} className="text-muted" />
             </button>
           </div>
-        </div>
 
-        {/* FOOTER */}
-        <div className="p-6 bg-surface-3 border-t border-white/10 flex gap-4">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex-[2] py-3 rounded-lg bg-gold text-black font-medium hover:bg-gold/90 transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Guardando...' : menu ? 'Actualizar' : 'Guardar'}
-          </button>
+          {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
+          <div className="p-6 max-h-[75vh] overflow-y-auto nebula-forms-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* LEFT COLUMN - Identity & Category */}
+              <div className="space-y-6">
+                {/* Identity Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('identity')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Target className="text-violet-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Identidad</span>
+                    </div>
+                    {collapsedSections.identity ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.identity && (
+                    <div className="nebula-form-section-content">
+                      <MenuIdentitySection form={form} setForm={setForm} onImageUpload={handleImageUpload} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Category Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('category')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Grid3x3 className="text-cyan-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Categoría</span>
+                    </div>
+                    {collapsedSections.category ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.category && (
+                    <div className="nebula-form-section-content">
+                      <MenuCategoryBuilder form={form} setForm={setForm} onCategoryChange={handleCategoryChange} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* CENTER COLUMN - Product Selector */}
+              <div className="space-y-6">
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('products')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Box className="text-gold" size={18} />
+                      <span className="text-sm font-bold text-ivory">Productos</span>
+                      <span className="px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded text-xs font-semibold">
+                        {currentCategory?.products.length || 0}
+                      </span>
+                    </div>
+                    {collapsedSections.products ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.products && (
+                    <div className="nebula-form-section-content">
+                      <MenuProductSelector
+                        products={products}
+                        search={search}
+                        setSearch={setSearch}
+                        currentCategory={currentCategory}
+                        onToggleProduct={toggleProduct}
+                        onToggleFeatured={toggleFeatured}
+                        onMoveProduct={moveProduct}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Products List */}
+                {currentCategory?.products && currentCategory.products.length > 0 && (
+                  <div className="nebula-form-card">
+                    <div className="flex items-center gap-3 mb-4">
+                      <List className="text-muted" size={18} />
+                      <h3 className="text-sm font-bold text-ivory">Productos Seleccionados</h3>
+                    </div>
+                    <div className="space-y-2 max-h-48 overflow-y-auto nebula-forms-scroll">
+                      {currentCategory.products.map((menuProduct, idx) => {
+                        const product = products.find(p => p._id === menuProduct.product);
+                        if (!product) return null;
+                        
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <span className="text-xs text-muted w-6">{idx + 1}.</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-ivory truncate">{product.name}</p>
+                                {menuProduct.featured && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <Star size={10} className="text-gold fill-current" />
+                                    <span className="text-xs text-gold">Destacado</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => moveProduct(idx, 'up')}
+                                disabled={idx === 0}
+                                className="p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-30"
+                              >
+                                <ArrowUp size={14} className="text-muted" />
+                              </button>
+                              <button
+                                onClick={() => moveProduct(idx, 'down')}
+                                disabled={idx === currentCategory.products.length - 1}
+                                className="p-1 hover:bg-white/10 rounded transition-colors disabled:opacity-30"
+                              >
+                                <ArrowDown size={14} className="text-muted" />
+                              </button>
+                              <button
+                                onClick={() => toggleProduct(menuProduct.product)}
+                                className="p-1 hover:bg-red-500/10 rounded transition-colors"
+                              >
+                                <X size={14} className="text-red-400" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN - Preview & Validation */}
+              <div className="space-y-6">
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('preview')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Eye className="text-emerald-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Vista Previa</span>
+                    </div>
+                    {collapsedSections.preview ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.preview && (
+                    <div className="nebula-form-section-content">
+                      <MenuPreviewCard form={form} currentCategory={currentCategory} />
+                    </div>
+                  )}
+                </div>
+
+                <MenuValidationPanel errors={errors} isValid={isValid} />
+              </div>
+            </div>
+          </div>
+
+          {/* FOOTER */}
+          <div className="p-6 border-t border-violet-500/10 flex gap-4">
+            <button
+              onClick={onClose}
+              className="nebula-form-button-secondary flex-1"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !isValid}
+              className="nebula-form-button-primary flex-[2]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={18} />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2" size={18} />
+                  {menu ? 'Actualizar' : 'Guardar'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

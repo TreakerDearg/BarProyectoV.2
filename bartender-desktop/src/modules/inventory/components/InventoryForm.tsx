@@ -6,15 +6,21 @@ import {
   CheckCircle,
   AlertTriangle,
   Package,
-  Tag,
   DollarSign,
   Loader2,
-  Zap,
   Target,
-  ShieldCheck
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  MapPin,
+  Activity,
+  Gauge,
+  Bell,
+  Warehouse
 } from "lucide-react";
 
-import ImageUploader from "../../../components/shared/ImageUploader";
+import "../../../styles/nebula-forms-theme.css";
 
 import type { InventoryItem } from "../types/inventory";
 
@@ -34,15 +40,360 @@ const EMPTY_FORM: any = {
   category: "",
   cost: 0,
   supplier: "",
-  location: "Bóveda Central",
+  location: "bar",
   isActive: true,
-  image: "",
-  imagePublicId: ""
 };
 
 const UNIT_OPTIONS = ["ml", "l", "g", "kg", "unit", "oz", "portion", "box"];
 const SECTOR_OPTIONS = ["bar", "kitchen", "general"];
 const LOCATION_OPTIONS = ["Bóveda Central", "Barra Principal", "Cocina VIP", "Bodega Externa"];
+
+// InventoryBasicInfo Component
+function InventoryBasicInfo({ formData, setFormData }: { formData: InventoryItem; setFormData: (f: InventoryItem) => void }) {
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-violet-500/10 rounded-xl">
+          <Target className="text-violet-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Información Básica</h3>
+      </div>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="nebula-form-label">Nombre del Insumo</label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Ej: Gin Mare Premium"
+            className="nebula-form-input w-full"
+          />
+        </div>
+
+        <div>
+          <label className="nebula-form-label">Categoría</label>
+          <input
+            name="category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            placeholder="Ej: Destilados"
+            className="nebula-form-input w-full"
+          />
+        </div>
+
+        <div>
+          <label className="nebula-form-label">Proveedor</label>
+          <input
+            name="supplier"
+            value={formData.supplier || ""}
+            onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+            placeholder="Ej: Diageo"
+            className="nebula-form-input w-full"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// StockLevelIndicator Component
+function StockLevelIndicator({ formData, setFormData }: { formData: InventoryItem; setFormData: (f: InventoryItem) => void }) {
+  const stockPercent = useMemo(() => {
+    if (!formData.maxStock) return 0;
+    return Math.min((formData.stock / formData.maxStock) * 100, 100);
+  }, [formData.stock, formData.maxStock]);
+
+  const isCritical = formData.stock <= formData.minStock;
+  const isLow = formData.stock <= formData.minStock * 1.5 && !isCritical;
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-emerald-500/10 rounded-xl">
+          <Gauge className="text-emerald-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Nivel de Stock</h3>
+      </div>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="nebula-form-label">Actual</label>
+            <input
+              name="stock"
+              type="number"
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+              className="nebula-form-input w-full text-center"
+            />
+          </div>
+          <div>
+            <label className="nebula-form-label">Mínimo</label>
+            <input
+              name="minStock"
+              type="number"
+              value={formData.minStock}
+              onChange={(e) => setFormData({ ...formData, minStock: Number(e.target.value) })}
+              className="nebula-form-input w-full text-center"
+            />
+          </div>
+          <div>
+            <label className="nebula-form-label">Máximo</label>
+            <input
+              name="maxStock"
+              type="number"
+              value={formData.maxStock}
+              onChange={(e) => setFormData({ ...formData, maxStock: Number(e.target.value) })}
+              className="nebula-form-input w-full text-center"
+            />
+          </div>
+        </div>
+
+        <div className="p-4 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 rounded-lg border border-emerald-500/20">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs text-muted">Nivel actual</span>
+            <span className={`text-2xl font-bold ${isCritical ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-emerald-400'}`}>
+              {stockPercent.toFixed(0)}%
+            </span>
+          </div>
+          <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+            <div 
+              className={`h-full transition-all ${isCritical ? 'bg-red-400' : isLow ? 'bg-amber-400' : 'bg-emerald-400'}`} 
+              style={{ width: `${stockPercent}%` }} 
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-xs">
+            <span className="text-muted">Estado:</span>
+            <span className={`font-semibold ${isCritical ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-emerald-400'}`}>
+              {isCritical ? 'Crítico' : isLow ? 'Bajo' : 'Normal'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-xs text-muted">Stock mínimo</p>
+            <p className="text-lg font-bold text-ivory">{formData.minStock}</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-xs text-muted">Stock máximo</p>
+            <p className="text-lg font-bold text-ivory">{formData.maxStock}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// InventoryLocationPicker Component
+function InventoryLocationPicker({ formData, setFormData }: { formData: InventoryItem; setFormData: (f: InventoryItem) => void }) {
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-cyan-500/10 rounded-xl">
+          <MapPin className="text-cyan-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Ubicación y Especificaciones</h3>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div>
+            <label className="nebula-form-label">Unidad de Medida</label>
+            <select
+              name="unit"
+              value={formData.unit}
+              onChange={(e) => setFormData({ ...formData, unit: e.target.value as any })}
+              className="nebula-form-select w-full"
+            >
+              {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="nebula-form-label">Sector</label>
+            <select
+              name="sector"
+              value={formData.sector}
+              onChange={(e) => setFormData({ ...formData, sector: e.target.value as any })}
+              className="nebula-form-select w-full"
+            >
+              {SECTOR_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="nebula-form-label">Ubicación Física</label>
+            <select
+              name="location"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value as any })}
+              className="nebula-form-select w-full"
+            >
+              {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <div className="flex items-center gap-2">
+              <Warehouse className="text-muted" size={16} />
+              <span className="text-xs text-muted">Almacenamiento actual</span>
+            </div>
+            <p className="text-sm font-semibold text-ivory mt-1">{formData.location}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// InventoryCostCalculator Component
+function InventoryCostCalculator({ formData, setFormData }: { formData: InventoryItem; setFormData: (f: InventoryItem) => void }) {
+  const totalValue = useMemo(() => {
+    return formData.stock * formData.cost;
+  }, [formData.stock, formData.cost]);
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-gold/10 rounded-xl">
+          <DollarSign className="text-gold" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Calculadora de Costos</h3>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="nebula-form-label">Costo por Unidad</label>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+            <input
+              name="cost"
+              type="number"
+              value={formData.cost}
+              onChange={(e) => setFormData({ ...formData, cost: Number(e.target.value) })}
+              className="nebula-form-input w-full pl-10"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div className="p-4 bg-gradient-to-br from-gold/10 to-amber-500/10 rounded-lg border border-gold/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted">Valor total del stock</span>
+            <span className="text-2xl font-bold text-gold">${totalValue.toFixed(2)}</span>
+          </div>
+          <div className="text-xs text-muted">
+            {formData.stock} unidades × ${formData.cost.toFixed(2)} / unidad
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// StockAlertConfig Component
+function StockAlertConfig({ formData }: { formData: InventoryItem }) {
+  const isCritical = formData.stock <= formData.minStock;
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-red-500/10 rounded-xl">
+          <Bell className="text-red-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Configuración de Alertas</h3>
+      </div>
+
+      <div className="space-y-3">
+        {isCritical && (
+          <div className="p-3 bg-red/5 border border-red/20 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="text-red-400" size={16} />
+              <span className="text-xs text-red-400 font-semibold">Stock crítico - Requiere reposición inmediata</span>
+            </div>
+          </div>
+        )}
+
+        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-muted" size={16} />
+              <span className="text-xs text-muted">Alerta de stock bajo</span>
+            </div>
+            <span className="text-xs font-semibold text-ivory">
+              Cuando stock ≤ {formData.minStock}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="text-muted" size={16} />
+              <span className="text-xs text-muted">Estado del insumo</span>
+            </div>
+            <span className={`text-xs font-semibold ${formData.isActive ? 'text-emerald-400' : 'text-red-400'}`}>
+              {formData.isActive ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// InventoryPreview Component
+function InventoryPreview({ formData }: { formData: InventoryItem }) {
+  const isCritical = formData.stock <= formData.minStock;
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-scale-in">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-violet-500/10 rounded-xl">
+          <Eye className="text-violet-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory">Vista Previa</h3>
+      </div>
+
+      <div className="space-y-3">
+        <div className="p-4 bg-gradient-to-br from-violet-500/10 to-cyan-500/10 rounded-lg border border-violet-500/20">
+          <h4 className="text-lg font-bold text-ivory">{formData.name || "Sin nombre"}</h4>
+          <p className="text-xs text-muted mt-1">{formData.category || "Sin categoría"}</p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-semibold">
+              {formData.unit.toUpperCase()}
+            </span>
+            <span className={`px-2 py-1 rounded text-xs font-semibold ${isCritical ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+              {formData.stock} en stock
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-xs text-muted">Ubicación</p>
+            <p className="text-sm font-semibold text-ivory truncate">{formData.location}</p>
+          </div>
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-xs text-muted">Sector</p>
+            <p className="text-sm font-semibold text-ivory capitalize">{formData.sector}</p>
+          </div>
+        </div>
+
+        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted">Costo total</span>
+            <span className="text-lg font-bold text-gold">${(formData.stock * formData.cost).toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function InventoryForm({
   item,
@@ -52,29 +403,22 @@ export default function InventoryForm({
   const [formData, setFormData] = useState<InventoryItem>(EMPTY_FORM);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState({
+    basic: false,
+    stock: false,
+    location: false,
+    cost: false,
+    alerts: false,
+    preview: false,
+  });
 
   useEffect(() => {
     setFormData(item ? { ...EMPTY_FORM, ...item } : EMPTY_FORM);
     setErrors([]);
   }, [item]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: ["stock", "minStock", "maxStock", "cost"].includes(name)
-        ? Number(value)
-        : value,
-    }));
-  };
-
-  const handleImageUpload = (imageUrl: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      image: imageUrl,
-    }));
+  const toggleSection = (section: keyof typeof collapsedSections) => {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   const validate = () => {
@@ -86,177 +430,220 @@ export default function InventoryForm({
     return err.length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!validate()) return;
     setLoading(true);
     await onSave(formData);
     setLoading(false);
   };
 
-  const stockPercent = useMemo(() => {
-    if (!formData.maxStock) return 0;
-    return Math.min((formData.stock / formData.maxStock) * 100, 100);
-  }, [formData.stock, formData.maxStock]);
-
-  const isCritical = formData.stock <= formData.minStock;
+  const isValid = formData.name.trim() && formData.category.trim() && formData.minStock <= formData.maxStock;
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[100] p-6 animate-fade-in">
-      
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-6xl bg-surface-2 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
-      >
-        {/* HEADER */}
-        <div className="p-6 bg-surface-3 border-b border-white/10 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gold/20 rounded-xl">
-              <Package className="text-gold" size={24} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {item ? "Editar Inventario" : "Nuevo Inventario"}
-              </h2>
-              <p className="text-sm text-muted">
-                Gestión de inventario
-              </p>
-            </div>
-          </div>
-          <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <X size={24} className="text-muted" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
-          
-          {/* ERRORS */}
-          {errors.length > 0 && (
-            <div className="p-5 bg-red/5 border border-red/20 rounded-2xl space-y-2 animate-shake">
-              {errors.map((e, i) => (
-                <p key={i} className="text-[9px] font-black text-red uppercase tracking-widest flex items-center gap-2">
-                  <AlertTriangle size={10} /> {e}
+    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
+      <div className="nebula-forms-root w-full max-w-7xl">
+        <div className="nebula-forms-aurora" />
+        
+        <div className="nebula-form-panel">
+          {/* HEADER */}
+          <div className="p-6 border-b border-violet-500/10 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-2xl shadow-lg">
+                <Package className="text-white" size={24} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-ivory">
+                  {item ? "Editar Inventario" : "Nuevo Inventario"}
+                </h2>
+                <p className="text-sm text-muted">
+                  Sistema Nebula de Inventario
                 </p>
-              ))}
-            </div>
-          )}
-
-          {/* BASIC INFO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Ej: Gin Mare Premium"
-                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Categoría</label>
-                <input
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  placeholder="Ej: Destilados"
-                  className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold"
-                />
               </div>
             </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <X size={24} className="text-muted" />
+            </button>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Imagen</label>
-              <ImageUploader
-                onImageUpload={handleImageUpload}
-                currentImage={formData.image}
-                folder="inventory"
-                mode="advanced"
-                label="Subir imagen"
-              />
+          {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
+          <div className="p-6 max-h-[75vh] overflow-y-auto nebula-forms-scroll">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* LEFT COLUMN - Basic & Stock */}
+              <div className="space-y-6">
+                {/* Basic Info Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('basic')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Target className="text-violet-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Información Básica</span>
+                    </div>
+                    {collapsedSections.basic ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.basic && (
+                    <div className="nebula-form-section-content">
+                      <InventoryBasicInfo formData={formData} setFormData={setFormData} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Stock Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('stock')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Gauge className="text-emerald-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Nivel de Stock</span>
+                    </div>
+                    {collapsedSections.stock ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.stock && (
+                    <div className="nebula-form-section-content">
+                      <StockLevelIndicator formData={formData} setFormData={setFormData} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* CENTER COLUMN - Location & Cost */}
+              <div className="space-y-6">
+                {/* Location Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('location')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <MapPin className="text-cyan-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Ubicación</span>
+                    </div>
+                    {collapsedSections.location ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.location && (
+                    <div className="nebula-form-section-content">
+                      <InventoryLocationPicker formData={formData} setFormData={setFormData} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Cost Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('cost')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="text-gold" size={18} />
+                      <span className="text-sm font-bold text-ivory">Costos</span>
+                    </div>
+                    {collapsedSections.cost ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.cost && (
+                    <div className="nebula-form-section-content">
+                      <InventoryCostCalculator formData={formData} setFormData={setFormData} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN - Alerts & Preview */}
+              <div className="space-y-6">
+                {/* Alerts Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('alerts')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Bell className="text-red-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Alertas</span>
+                    </div>
+                    {collapsedSections.alerts ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.alerts && (
+                    <div className="nebula-form-section-content">
+                      <StockAlertConfig formData={formData} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview Section */}
+                <div className="nebula-form-section">
+                  <div
+                    className="nebula-form-section-header"
+                    onClick={() => toggleSection('preview')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Eye className="text-violet-400" size={18} />
+                      <span className="text-sm font-bold text-ivory">Vista Previa</span>
+                    </div>
+                    {collapsedSections.preview ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
+                  </div>
+                  {!collapsedSections.preview && (
+                    <div className="nebula-form-section-content">
+                      <InventoryPreview formData={formData} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Validation Panel */}
+                {errors.length > 0 && (
+                  <div className="nebula-form-card border-red-500/30">
+                    <div className="space-y-2">
+                      {errors.map((error, idx) => (
+                        <div key={idx} className="flex items-start gap-2 text-xs text-red-400">
+                          <AlertTriangle size={12} className="mt-0.5" />
+                          <span>{error}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {isValid && errors.length === 0 && (
+                  <div className="nebula-form-card border-emerald-500/30">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="text-emerald-400" size={20} />
+                      <p className="text-xs text-emerald-400">Listo para guardar</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* STOCK LOGISTICS */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Actual</label>
-                <input name="stock" type="number" value={formData.stock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Mínimo</label>
-                <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Stock Máximo</label>
-                <input name="maxStock" type="number" value={formData.maxStock} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white text-center focus:outline-none focus:border-gold" />
-              </div>
-            </div>
-
-            <div className="bg-surface-3 p-4 rounded-lg border border-white/10">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-300">Nivel de Stock</span>
-                <span className={`text-sm font-bold ${isCritical ? 'text-red-400' : 'text-green-400'}`}>{stockPercent.toFixed(0)}%</span>
-              </div>
-              <div className="h-2 bg-surface-2 rounded-full overflow-hidden">
-                <div className={`h-full ${isCritical ? 'bg-red-400' : 'bg-green-400'}`} style={{ width: `${stockPercent}%` }} />
-              </div>
-            </div>
-          </div>
-
-          {/* SPECS & ORIGIN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Unidad de Medida</label>
-                <select name="unit" value={formData.unit} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
-                  {UNIT_OPTIONS.map(u => <option key={u} value={u}>{u.toUpperCase()}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Sector</label>
-                <select name="sector" value={formData.sector} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
-                  {SECTOR_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Costo por Unidad</label>
-                <input name="cost" type="number" value={formData.cost} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Ubicación</label>
-                <select name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-surface-3 border border-white/10 rounded-lg text-white focus:outline-none focus:border-gold">
-                  {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
-                </select>
-              </div>
-            </div>
+          {/* FOOTER */}
+          <div className="p-6 border-t border-violet-500/10 flex gap-4">
+            <button
+              onClick={onClose}
+              className="nebula-form-button-secondary flex-1"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !isValid}
+              className="nebula-form-button-primary flex-[2]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={18} />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2" size={18} />
+                  {item ? 'Actualizar' : 'Guardar'}
+                </>
+              )}
+            </button>
           </div>
         </div>
-
-        {/* FOOTER */}
-        <div className="p-6 bg-surface-3 border-t border-white/10 flex gap-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 transition-colors"
-          >
-            Cancelar
-          </button>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-[2] py-3 rounded-lg bg-gold text-black font-medium hover:bg-gold/90 transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Guardando...' : item ? 'Actualizar' : 'Guardar'}
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
