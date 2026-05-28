@@ -151,7 +151,7 @@ export const createPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando pago:", error);
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -263,7 +263,7 @@ export const generateReceipt = async (req, res, next) => {
 
     return ok(res, receipt, "Recibo generado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -538,7 +538,7 @@ export const createSplitPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando split payment:", error);
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -872,7 +872,7 @@ export const createCardPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando pago con tarjeta:", error);
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }

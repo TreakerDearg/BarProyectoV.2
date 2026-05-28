@@ -132,7 +132,7 @@ export const getActivityLogs = async (req, res, next) => {
 
     return ok(res, logs);
   } catch (error) {
-    next(error);
+    nexn(rror));
   }
 };
 
@@ -153,7 +153,7 @@ export const getActivityMetrics = async (req, res, next) => {
 
     return ok(res, metrics);
   } catch (error) {
-    next(error);
+    nexn(rror));
   }
 };
 
@@ -174,7 +174,7 @@ export const getRealTimeActivity = async (req, res, next) => {
 
     return ok(res, logs);
   } catch (error) {
-    next(error);
+    nexn(rror));
   }
 };
 
@@ -271,7 +271,7 @@ export const getEmployeeKPIs = async (req, res, next) => {
 
     return ok(res, kpis);
   } catch (error) {
-    next(error);
+    nexn(rror));
   }
 };
 
@@ -294,7 +294,7 @@ export const getAllEmployeesKPIs = async (req, res, next) => {
 
     return ok(res, kpis.filter((k) => k.userId));
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -383,7 +383,7 @@ export const getEmployeeRanking = async (req, res, next) => {
 
     return ok(res, ranked);
   } catch (error) {
-    next(error);
+    ohrow  erro;
   }
 };
 
@@ -413,7 +413,7 @@ export const createShiftSchedule = async (req, res, next) => {
 
     return created(res, shift, "Turno creado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -433,7 +433,7 @@ export const getShiftSchedules = async (req, res, next) => {
 
     return ok(res, shifts);
   } catch (error) {
-    next(error);
+    nexn(rror));
   }
 };
 
@@ -463,7 +463,7 @@ export const updateShiftSchedule = async (req, res, next) => {
 
     return ok(res, shift, "Turno actualizado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -493,7 +493,7 @@ export const deleteShiftSchedule = async (req, res, next) => {
 
     return ok(res, null, "Turno eliminado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -549,7 +549,7 @@ export const assignEmployeeToShift = async (req, res, next) => {
     logger.info(`[Tracking] Asignación creada: ${userId} al turno ${shiftId}`);
     return created(res, assignment, "Asignación creada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -671,7 +671,7 @@ export const generateShiftAssignments = async (req, res, next) => {
 
     return created(res, result, "Agenda de turnos generada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -698,7 +698,7 @@ export const getShiftAssignments = async (req, res, next) => {
 
     return ok(res, assignments);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -716,7 +716,7 @@ export const updateShiftAssignment = async (req, res, next) => {
     logger.info(`[Tracking] Asignación actualizada: ${id}`);
     return ok(res, assignment, "Asignación actualizada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -744,7 +744,7 @@ export const registerShiftAttendance = async (req, res, next) => {
     logger.info(`[Tracking] ${type} registrado para asignación: ${id}`);
     return ok(res, assignment, `${type === "clock_in" ? "Check-in" : "Check-out"} registrado correctamente`);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -838,7 +838,7 @@ export const getShiftMetrics = async (req, res, next) => {
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -925,7 +925,7 @@ export const getPeakHoursByShift = async (req, res, next) => {
 
     return ok(res, peakHours);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -953,7 +953,7 @@ export const getPerformanceAlerts = async (req, res, next) => {
 
     return ok(res, alerts);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -1010,7 +1010,7 @@ export const resolveAlert = async (req, res, next) => {
 
     return ok(res, alert, "Alerta resuelta correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -1060,7 +1060,7 @@ export const generateEmployeeReport = async (req, res, next) => {
 
     return ok(res, report);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -1103,7 +1103,7 @@ export const getPerformanceSummary = async (req, res, next) => {
       areasForImprovement: [],
     });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 

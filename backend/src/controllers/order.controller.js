@@ -246,7 +246,7 @@ const [order] = await Order.create(
 
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -287,11 +287,7 @@ export const updateOrderStatus = async (req, res, next) => {
     return ok(res, order, `Orden ${status} correctamente`);
   } catch (error) {
     logger.error("[Order] Error updating order status:", error);
-    if (typeof next === 'function') {
-      next(error);
-    } else {
-      return res.status(500).json({ success: false, message: error.message });
-    }
+    throw error;
   }
 };
 
@@ -343,7 +339,7 @@ export const updateOrderItemStatus = async (req, res, next) => {
   }
 };
 
-/* =========================================================
+/* ==hrow ==================================================
    DELETE ORDER
 ========================================================= */
 export const deleteOrder = async (req, res, next) => {
@@ -501,7 +497,7 @@ export const closeOrderWithPayment = async (req, res, next) => {
 
     return ok(res, order, "Orden cerrada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 

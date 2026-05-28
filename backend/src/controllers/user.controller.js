@@ -48,7 +48,7 @@ export const createEmployee = async (req, res, next) => {
 
     const userObj = user.toJSON();
     return created(res, userObj, "Empleado creado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -69,7 +69,7 @@ export const getEmployees = async (req, res, next) => {
       .lean();
 
     return ok(res, users);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -169,7 +169,7 @@ export const deactivateUser = async (req, res, next) => {
 
     logger.info(`[User] Desactivado: ${id}`);
     return ok(res, user, "Usuario desactivado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const activateUser = async (req, res, next) => {
@@ -229,7 +229,7 @@ export const updateRolePermissions = async (req, res, next) => {
 
     logger.info(`[User] Permisos masivos actualizados para rol: ${role}`);
     return ok(res, null, `Permisos actualizados para el rol ${role}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const updateShiftPermissions = async (req, res, next) => {
@@ -272,5 +272,5 @@ export const assignShift = async (req, res, next) => {
 
     logger.info(`[User] Turno asignado: ${shift} → ${id}`);
     return ok(res, user, `Turno ${shift} asignado correctamente`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

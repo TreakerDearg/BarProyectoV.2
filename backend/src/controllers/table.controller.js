@@ -110,7 +110,7 @@ export const createTable = async (req, res, next) => {
     await emitTableUpdate(table._id);
 
     return created(res, table, `Mesa #${number} creada correctamente`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -134,7 +134,7 @@ export const updateTable = async (req, res, next) => {
 
     await emitTableUpdate(id);
     return ok(res, table, "Mesa actualizada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -243,7 +243,7 @@ export const closeTable = async (req, res, next) => {
     return ok(res, table, "Mesa cerrada correctamente");
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -334,7 +334,7 @@ export const getTableSessionHistory = async (req, res, next) => {
     };
 
     return ok(res, history);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -456,6 +456,6 @@ export const getTablePerformanceRanking = async (req, res, next) => {
 
     return ok(res, ranking);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
