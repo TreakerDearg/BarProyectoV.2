@@ -68,7 +68,7 @@ export const validateQuery = (schema) => (req, res, next) => {
     req.query = result.data;
     next();
   } catch (err) {
-    next(err);
+    throw err;
   }
 };
 

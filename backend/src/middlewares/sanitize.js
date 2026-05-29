@@ -57,7 +57,7 @@ export const sanitize = (req, res, next) => {
 
     next();
   } catch (err) {
-    next(err);
+    throw err;
   }
 };
 

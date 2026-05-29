@@ -89,7 +89,7 @@ export const socketAuthMiddleware = (socket, next) => {
     next();
   } catch (error) {
     logger.error("[Socket Auth] Error en middleware:", error);
-    next(error);
+    next(new Error("Error de autenticación"));
   }
 };
 
