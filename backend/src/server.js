@@ -47,6 +47,8 @@ const allowedOrigins = new Set(
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://bar-proyecto-v-2-kns78t85g-treakerdeargs-projects.vercel.app",
+    "https://barproyectov-2.onrender.com",
     process.env.CLIENT_URL,
     process.env.DESKTOP_URL,
     ...extraOrigins,
@@ -54,7 +56,7 @@ const allowedOrigins = new Set(
 );
 
 const isVercelPreviewOrigin = (origin = "") =>
-  /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+  /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i.test(origin);
 
 const isAllowedOrigin = (origin) =>
   allowedOrigins.has(origin) || isVercelPreviewOrigin(origin);
