@@ -27716,3 +27716,13 @@
 {"level":"warn","message":"[DB] Intento 2/5 fallido. Reintentando en 6s...","timestamp":"2026-05-25 21:29:06"}
 {"level":"info","message":"[DB] Estado → error","timestamp":"2026-05-25 21:29:06"}
 {"level":"error","message":"[DB] Error de conexión: querySrv ETIMEOUT _mongodb._tcp.cluster0.8kd5wfu.mongodb.net","timestamp":"2026-05-25 21:29:06"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-05-28 18:02:14"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-05-28 18:02:16"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-05-28 18:02:18"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-05-28 18:02:18"}

@@ -106,7 +106,7 @@ export const logActivity = async (req, res, next) => {
 
     return created(res, activity, "Actividad registrada");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -344,7 +344,7 @@ export const getKPITrends = async (req, res, next) => {
 
     return ok(res, trends);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -866,7 +866,7 @@ export const getShiftMetricsRange = async (req, res, next) => {
 
     return ok(res, metrics.filter((m) => m.shiftType));
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -889,7 +889,7 @@ export const getAllShiftsMetrics = async (req, res, next) => {
 
     return ok(res, allMetrics);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -977,7 +977,7 @@ export const createPerformanceAlert = async (req, res, next) => {
 
     return created(res, alert, "Alerta creada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 

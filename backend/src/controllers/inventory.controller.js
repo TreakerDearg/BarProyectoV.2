@@ -37,7 +37,7 @@ export const getInventory = async (req, res, next) => {
       page:       Number(page),
       totalPages: Math.ceil(total / Number(limit)),
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -52,7 +52,7 @@ export const getInventoryItem = async (req, res, next) => {
     if (!item) return notFound(res, "Item no encontrado");
 
     return ok(res, item);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -85,7 +85,7 @@ export const createInventoryItem = async (req, res, next) => {
 
     logger.info(`[Inventory] Creado: ${item.name}`);
     return created(res, item, "Item creado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -136,7 +136,7 @@ export const updateInventoryItem = async (req, res, next) => {
 
     logger.info(`[Inventory] Actualizado: ${updated.name}`);
     return ok(res, updated, "Item actualizado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -162,7 +162,7 @@ export const deleteInventoryItem = async (req, res, next) => {
 
     logger.info(`[Inventory] Eliminado: ${deleted.name}`);
     return ok(res, null, "Item eliminado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -208,7 +208,7 @@ export const adjustStock = async (req, res, next) => {
 
     logger.info(`[Inventory] Stock ajustado: ${item.name} (${prevStock} → ${item.stock})`);
     return ok(res, item, `Stock ${type === "add" ? "aumentado" : "reducido"} correctamente`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -218,7 +218,7 @@ export const getInventoryCategories = async (req, res, next) => {
   try {
     const categories = await InventoryItem.distinct("category");
     return ok(res, categories.sort((a, b) => a.localeCompare(b)));
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -248,5 +248,5 @@ export const getInventoryStats = async (req, res, next) => {
       outOfStockItems,
       categories,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

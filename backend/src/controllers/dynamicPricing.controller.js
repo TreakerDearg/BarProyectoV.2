@@ -8,7 +8,7 @@ export const getRules = async (req, res, next) => {
   try {
     const rules = await DynamicPricingRule.find().sort({ createdAt: -1 });
     return ok(res, rules);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const updateGlobalMultiplier = async (req, res, next) => {
@@ -48,7 +48,7 @@ export const updateGlobalMultiplier = async (req, res, next) => {
     io.emit("pricing:multiplier_updated", { multiplier });
 
     return ok(res, rule, "Multiplicador actualizado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const getAutoPromotionsStatus = async (req, res, next) => {
@@ -59,7 +59,7 @@ export const getAutoPromotionsStatus = async (req, res, next) => {
       return ok(res, { isAutoPromotionsEnabled: true });
     }
     return ok(res, { isAutoPromotionsEnabled: rule.isActive });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const toggleAutoPromotionsStatus = async (req, res, next) => {
@@ -93,5 +93,5 @@ export const toggleAutoPromotionsStatus = async (req, res, next) => {
     io.emit("pricing:auto_promotions_updated", { isAutoPromotionsEnabled: isEnabled });
 
     return ok(res, { isAutoPromotionsEnabled: rule.isActive }, `Promociones automáticas ${isEnabled ? 'activadas' : 'desactivadas'}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

@@ -32,7 +32,7 @@ export const getRecipes = async (req, res, next) => {
 
     const recipes = await populateRecipe(Recipe.find(filter).sort({ createdAt: -1 })).lean();
     return ok(res, recipes);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -47,7 +47,7 @@ export const getRecipe = async (req, res, next) => {
     if (!recipe) return notFound(res, "Receta no encontrada");
 
     return ok(res, recipe);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -118,7 +118,7 @@ export const createRecipe = async (req, res, next) => {
     emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
 
     return created(res, populated, "Receta creada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -146,7 +146,7 @@ export const updateRecipe = async (req, res, next) => {
     emitRecipeEvent(RECIPE_EVENTS.UPDATED, populated);
 
     return ok(res, populated, "Receta actualizada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -173,7 +173,7 @@ export const deleteRecipe = async (req, res, next) => {
     emitRecipeEvent(RECIPE_EVENTS.DELETED, { id, productId });
 
     return ok(res, null, "Receta eliminada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -203,7 +203,7 @@ export const getRecipeProtocol = async (req, res, next) => {
             { stepNumber: 2, instruction: "Mezclar según receta" },
           ],
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -230,7 +230,7 @@ export const checkRecipeAvailability = async (req, res, next) => {
       available: missing.length === 0,
       missing,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -246,5 +246,5 @@ export const getRecipesByProduct = async (req, res, next) => {
     ).lean();
 
     return ok(res, recipes);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

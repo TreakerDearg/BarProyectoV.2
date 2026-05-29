@@ -37,7 +37,7 @@ export const getProducts = async (req, res, next) => {
     })));
 
     return ok(res, productsWithDynamicPrice);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -51,7 +51,7 @@ export const getProduct = async (req, res, next) => {
     if (!product) return notFound(res, "Producto no encontrado");
 
     return ok(res, product);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -111,7 +111,7 @@ export const createProduct = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.CREATED, product);
 
     return created(res, product, "Producto creado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -192,7 +192,7 @@ export const updateProduct = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.UPDATED, updated);
 
     return ok(res, updated, "Producto actualizado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -252,7 +252,7 @@ export const deleteProduct = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.DELETED, { id: product._id });
 
     return ok(res, null, "Producto eliminado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -272,7 +272,7 @@ export const toggleProductAvailability = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.AVAILABILITY_CHANGED, { id: product._id, available: product.available });
 
     return ok(res, product, `Producto ${product.available ? "activado" : "desactivado"}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -304,7 +304,7 @@ export const syncProductAvailability = async (req, res, next) => {
     }
 
     return ok(res, { updated }, `${updated} productos sincronizados`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -321,7 +321,7 @@ export const getProductStats = async (req, res, next) => {
     ]);
 
     return ok(res, { total, available, unavailable, byType, byCategory });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -353,5 +353,5 @@ export const getProductsWithRecipes = async (req, res, next) => {
     }));
 
     return ok(res, productsWithRecipes);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

@@ -89,7 +89,7 @@ export const getRouletteDrinks = async (req, res, next) => {
     }));
 
     return ok(res, result);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -118,7 +118,7 @@ export const createRouletteDrink = async (req, res, next) => {
     return created(res, drink);
   } catch (error) { 
     if (error.code === 11000) return res.status(409).json({ message: "Ya existe un trago con ese nombre o producto vinculado." });
-    next(error); 
+    throw error; 
   }
 };
 
@@ -127,14 +127,14 @@ export const updateRouletteDrink = async (req, res, next) => {
     const { id } = req.params;
     const drink = await RouletteDrink.findByIdAndUpdate(id, req.body, { new: true });
     return ok(res, drink);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const deleteRouletteDrink = async (req, res, next) => {
   try {
     await RouletteDrink.findByIdAndUpdate(req.params.id, { deleted: true });
     return ok(res, null);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -172,7 +172,7 @@ export const batchUpdateRouletteDrinks = async (req, res, next) => {
       modifiedCount: result.modifiedCount,
       matchedCount: result.matchedCount,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -421,7 +421,7 @@ export const spinRoulette = async (req, res, next) => {
         pityTarget: pityOverride,
       },
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -601,5 +601,5 @@ export const simulateRoulette = async (req, res, next) => {
           : "Se observa una pequeña desviación estadística típica de muestras aleatorias cortas. Para una auditoría perfecta de convergencia, corra 10,000 tiradas."
       }
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

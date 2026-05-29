@@ -6,7 +6,7 @@ export const getPromotions = async (req, res, next) => {
   try {
     const promotions = await Promotion.find().populate("applicableProducts").sort({ createdAt: -1 });
     return ok(res, promotions);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const createPromotion = async (req, res, next) => {
@@ -27,7 +27,7 @@ export const createPromotion = async (req, res, next) => {
     });
 
     return ok(res, promotion, "Promoción creada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const deletePromotion = async (req, res, next) => {
@@ -35,5 +35,5 @@ export const deletePromotion = async (req, res, next) => {
     const promotion = await Promotion.findByIdAndDelete(req.params.id);
     if (!promotion) return notFound(res, "Promoción no encontrada");
     return ok(res, null, "Promoción eliminada");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

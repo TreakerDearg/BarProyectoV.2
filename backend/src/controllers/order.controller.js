@@ -93,7 +93,7 @@ export const getOrders = async (req, res, next) => {
 
     return ok(res, orders);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -115,7 +115,7 @@ export const getOrderById = async (req, res, next) => {
 
     return ok(res, order);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -335,7 +335,7 @@ export const updateOrderItemStatus = async (req, res, next) => {
 
     return ok(res, order, "Item actualizado");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -358,7 +358,7 @@ export const deleteOrder = async (req, res, next) => {
 
     return ok(res, null, "Orden eliminada correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -460,7 +460,7 @@ export const applyDiscount = async (req, res, next) => {
 
     return ok(res, order, `Descuento de $${discountAmount.toFixed(2)} aplicado`);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 

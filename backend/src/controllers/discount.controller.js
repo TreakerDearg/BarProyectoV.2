@@ -134,7 +134,7 @@ export const applyDiscount = async (req, res, next) => {
 
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -154,7 +154,7 @@ export const getOrderDiscounts = async (req, res, next) => {
       .lean();
 
     return ok(res, discounts);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -176,7 +176,7 @@ export const getAllDiscounts = async (req, res, next) => {
       .lean();
 
     return ok(res, discounts);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -195,7 +195,7 @@ export const approveDiscount = async (req, res, next) => {
 
     logger.info(`[Discount] Aprobado: ${req.params.id}`);
     return ok(res, discount, "Descuento aprobado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const rejectDiscount = async (req, res, next) => {
@@ -211,5 +211,5 @@ export const rejectDiscount = async (req, res, next) => {
 
     logger.info(`[Discount] Rechazado: ${req.params.id}`);
     return ok(res, discount, "Descuento rechazado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

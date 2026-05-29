@@ -177,7 +177,7 @@ export const getPaymentById = async (req, res, next) => {
     return ok(res, payment);
   } catch (error) {
     logger.error("[Payment] Error getting payment by ID:", error);
-    next(error);
+    throw error;
   }
 };
 
@@ -204,7 +204,7 @@ export const getTablePayments = async (req, res, next) => {
     return ok(res, payments);
   } catch (error) {
     logger.error("[Payment] Error getting table payments:", error);
-    next(error);
+    throw error;
   }
 };
 
@@ -225,7 +225,7 @@ export const getSessionPayments = async (req, res, next) => {
 
     return ok(res, payments);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -311,7 +311,7 @@ export const refundPayment = async (req, res, next) => {
     return ok(res, payment, "Pago reembolsado correctamente");
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -365,7 +365,7 @@ export const getPaymentsSummary = async (req, res, next) => {
       transferAmount: 0,
     });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -418,7 +418,7 @@ export const getPaymentsByTable = async (req, res, next) => {
 
     return ok(res, byTable);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -667,7 +667,7 @@ export const createPartialPayment = async (req, res, next) => {
   } catch (error) {
     await session.abortTransaction();
     logger.error("[Payment] Error creando pago parcial:", error);
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
@@ -759,7 +759,7 @@ export const getAvailablePaymentMethods = async (req, res, next) => {
     return ok(res, defaultMethods);
   } catch (error) {
     logger.error("[Payment] Error in getAvailablePaymentMethods:", error);
-    next(error);
+    throw error;
   }
 };
 

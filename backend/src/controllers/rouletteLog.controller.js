@@ -45,7 +45,7 @@ export const getRouletteLogs = async (req, res, next) => {
       .limit(Number(limit))
       .lean();
     return ok(res, logs);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const getRouletteAnalytics = async (req, res, next) => {
@@ -125,5 +125,5 @@ export const getRouletteAnalytics = async (req, res, next) => {
       topDrinks,
       recentActivity: logs.slice(0, 20),
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

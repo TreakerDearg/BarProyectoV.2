@@ -148,7 +148,7 @@ export const getMenus = async (req, res, next) => {
 
     return ok(res, menus);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -190,7 +190,7 @@ export const createMenu = async (req, res, next) => {
 
     return created(res, populated, "Menú creado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -241,7 +241,7 @@ export const updateMenu = async (req, res, next) => {
 
     return ok(res, updated, "Menú actualizado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -274,7 +274,7 @@ export const deleteMenu = async (req, res, next) => {
 
     return ok(res, null, "Menú eliminado correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -342,7 +342,7 @@ export const getPublicMenu = async (req, res, next) => {
 
     return ok(res, result);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -365,6 +365,6 @@ export const getMenuById = async (req, res, next) => {
 
     return ok(res, menu);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

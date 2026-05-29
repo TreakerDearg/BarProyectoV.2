@@ -84,7 +84,7 @@ export const getUser = async (req, res, next) => {
     if (!user) return notFound(res, "Usuario no encontrado");
 
     return ok(res, user);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -121,7 +121,7 @@ export const updateUser = async (req, res, next) => {
 
     logger.info(`[User] Actualizado: ${id}`);
     return ok(res, user, "Usuario actualizado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -145,7 +145,7 @@ export const changePassword = async (req, res, next) => {
 
     logger.info(`[User] Contraseña cambiada para: ${id}`);
     return ok(res, null, "Contraseña actualizada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -186,7 +186,7 @@ export const activateUser = async (req, res, next) => {
 
     logger.info(`[User] Activado: ${id}`);
     return ok(res, user, "Usuario activado correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -210,7 +210,7 @@ export const updatePermissions = async (req, res, next) => {
 
     logger.info(`[User] Permisos actualizados: ${id}`);
     return ok(res, user, "Permisos actualizados correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const updateRolePermissions = async (req, res, next) => {
@@ -248,7 +248,7 @@ export const updateShiftPermissions = async (req, res, next) => {
 
     logger.info(`[User] Permisos masivos actualizados para turno: ${shift}`);
     return ok(res, null, `Permisos actualizados para el turno ${shift}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================

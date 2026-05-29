@@ -56,7 +56,7 @@ export const getTables = async (req, res, next) => {
     }));
 
     return ok(res, data);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -75,7 +75,7 @@ export const getTableById = async (req, res, next) => {
       .lean();
 
     return ok(res, { ...table, orders });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -157,7 +157,7 @@ export const deleteTable = async (req, res, next) => {
     logger.info(`[Table] Eliminada: mesa #${table.number}`);
 
     return ok(res, null, "Mesa eliminada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -192,7 +192,7 @@ export const openTable = async (req, res, next) => {
       if (err.code === "notFound") return notFound(res, err.message);
       throw err;
     }
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -271,7 +271,7 @@ export const addTableTag = async (req, res, next) => {
     await emitTableUpdate(id);
 
     return ok(res, table, "Tag agregado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const removeTableTag = async (req, res, next) => {
@@ -287,7 +287,7 @@ export const removeTableTag = async (req, res, next) => {
     await emitTableUpdate(id);
 
     return ok(res, table, "Tag eliminado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 export const clearTableTags = async (req, res, next) => {
@@ -303,7 +303,7 @@ export const clearTableTags = async (req, res, next) => {
     await emitTableUpdate(id);
 
     return ok(res, table, "Tags eliminados");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -376,7 +376,7 @@ export const getTableAnalytics = async (req, res, next) => {
 
     return ok(res, { analytics, summary });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -418,7 +418,7 @@ export const getTableAnalyticsById = async (req, res, next) => {
 
     return ok(res, { table, analytics, historical });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -441,7 +441,7 @@ export const generateTableAnalytics = async (req, res, next) => {
     logger.info(`[TableAnalytics] Generados analytics para mesa ${table.number} - ${period} - ${date}`);
     return created(res, analytics, "Analytics generados correctamente");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 

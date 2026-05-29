@@ -58,7 +58,7 @@ export const registerUser = async (req, res, next) => {
     }, "Registro exitoso");
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -112,7 +112,7 @@ export const loginUser = async (req, res, next) => {
     }, "Login exitoso");
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -129,6 +129,6 @@ export const getProfile = async (req, res, next) => {
 
     return ok(res, userPayload(user));
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

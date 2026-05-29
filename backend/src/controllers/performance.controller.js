@@ -134,7 +134,7 @@ export const getUserPerformance = async (req, res, next) => {
       period,
       dateRange: dateFilter,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -185,7 +185,7 @@ export const getPerformanceSummary = async (req, res, next) => {
       teamAverages,
       totalEmployees: summary.length,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -225,7 +225,7 @@ export const updatePerformance = async (req, res, next) => {
     logger.info(`[Performance] Updated: ${userId} module ${module}`);
 
     return ok(res, { module, data }, "Métricas de rendimiento actualizadas");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -273,7 +273,7 @@ export const getPerformanceRanking = async (req, res, next) => {
       period,
       count: ranking.length,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================

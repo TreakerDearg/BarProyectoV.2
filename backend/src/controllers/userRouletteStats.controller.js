@@ -70,7 +70,7 @@ export const getAllUserRouletteStats = async (req, res, next) => {
 
     return ok(res, result);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -121,7 +121,7 @@ export const getMyRouletteStats = async (req, res, next) => {
 
     return ok(res, data);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -133,7 +133,7 @@ export const getRouletteConfigEndpoint = async (req, res, next) => {
     const config = getRouletteConfig();
     return ok(res, config);
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -168,6 +168,6 @@ export const updateRouletteConfigEndpoint = async (req, res, next) => {
 
     return ok(res, newConfig, "Configuración de ruleta actualizada con éxito");
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

@@ -9,5 +9,5 @@ export const getPricingEvents = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(Number(limit));
     return ok(res, events);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };

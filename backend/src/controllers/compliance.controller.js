@@ -114,7 +114,7 @@ export const getUserCompliance = async (req, res, next) => {
         warnings: compliance.warnings || [],
       },
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -173,7 +173,7 @@ export const submitProtocolChecklist = async (req, res, next) => {
       timeCompliance: parseFloat(timeCompliance.toFixed(2)),
       notes,
     }, "Checklist de protocolo registrado");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -188,7 +188,7 @@ export const getProtocolDefinition = async (req, res, next) => {
     }
 
     return ok(res, PROTOCOLS[protocol]);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -242,7 +242,7 @@ export const reportViolation = async (req, res, next) => {
     logger.warn(`[Compliance] Violation reported: ${userId} - ${type} (${severity})`);
 
     return created(res, violation, "Violación reportada y registrada");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -274,7 +274,7 @@ export const resolveViolation = async (req, res, next) => {
     logger.info(`[Compliance] Violation resolved: ${userId} - ${violationId}`);
 
     return ok(res, { resolved: true }, "Violación marcada como resuelta");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -312,7 +312,7 @@ export const addWarning = async (req, res, next) => {
     logger.info(`[Compliance] Warning added: ${userId} - ${type}`);
 
     return created(res, warning, "Advertencia agregada");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -367,7 +367,7 @@ export const getComplianceReport = async (req, res, next) => {
       teamStats,
       totalEmployees: report.length,
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================

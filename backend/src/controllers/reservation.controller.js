@@ -63,7 +63,7 @@ export const getReservations = async (req, res, next) => {
       page: Number(page),
       totalPages: Math.ceil(total / limit)
     });
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -80,7 +80,7 @@ export const getReservationById = async (req, res, next) => {
 
     if (!reservation) return notFound(res, "Reserva no encontrada");
     return ok(res, reservation);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -202,7 +202,7 @@ export const createReservation = async (req, res, next) => {
 
     logger.info(`[Reservation] Creada: ${customerName} → Mesa ${assignedTable} → ${new Date(start).toLocaleString()}`);
     return created(res, populated, "Reserva creada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -289,7 +289,7 @@ export const updateReservationStatus = async (req, res, next) => {
     logger.info(`[Reservation] Status → ${status}: ${id}`);
 
     return ok(res, populated, `Reserva ${status}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -385,7 +385,7 @@ export const updateReservation = async (req, res, next) => {
     logger.info(`[Reservation] Editada: ${customerName} → Mesa ${assignedTable} → ${new Date(start).toLocaleString()}`);
     
     return ok(res, populated, "Reserva actualizada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -412,7 +412,7 @@ export const deleteReservation = async (req, res, next) => {
     logger.info(`[Reservation] Eliminada: ${id}`);
 
     return ok(res, { id }, "Reserva eliminada correctamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -441,7 +441,7 @@ export const getAvailableTables = async (req, res, next) => {
     }
 
     return ok(res, available);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -483,7 +483,7 @@ export const checkAvailability = async (req, res, next) => {
     return ok(res, { available });
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -568,7 +568,7 @@ export const cleanupExpiredReservations = async (req, res, next) => {
     return ok(res, results, "Cleanup completed successfully");
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
@@ -671,6 +671,6 @@ export const getAvailabilityHeatmap = async (req, res, next) => {
     });
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

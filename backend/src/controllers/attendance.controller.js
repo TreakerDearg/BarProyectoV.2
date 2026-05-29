@@ -76,7 +76,7 @@ export const checkIn = async (req, res, next) => {
     logger.info(`[Attendance] Check-in: ${user.email} (${shift})`);
 
     return created(res, attendance, "Check-in registrado exitosamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -150,7 +150,7 @@ export const checkOut = async (req, res, next) => {
     logger.info(`[Attendance] Check-out: ${userId} (${workedHours}h)`);
 
     return ok(res, attendance, "Check-out registrado exitosamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -172,7 +172,7 @@ export const getUserAttendance = async (req, res, next) => {
     );
 
     return ok(res, attendance);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -196,7 +196,7 @@ export const getTodayAttendance = async (req, res, next) => {
     };
 
     return ok(res, stats);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -209,7 +209,7 @@ export const getAttendanceStats = async (req, res, next) => {
     const stats = await Attendance.getAttendanceStats(startDate, endDate);
 
     return ok(res, stats);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -245,7 +245,7 @@ export const updateAttendance = async (req, res, next) => {
     logger.info(`[Attendance] Updated: ${attendanceId} by ${req.user.email}`);
 
     return ok(res, attendance, "Asistencia actualizada exitosamente");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -293,7 +293,7 @@ export const requestLeave = async (req, res, next) => {
     logger.info(`[Attendance] Leave requested: ${userId} (${type}, ${requestedDays} days)`);
 
     return created(res, leaveRequest, "Solicitud de licencia enviada");
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
 
 /* =========================================================
@@ -351,5 +351,5 @@ export const handleLeaveRequest = async (req, res, next) => {
     logger.info(`[Attendance] Leave ${status}: ${userId} request ${requestId}`);
 
     return ok(res, { status }, `Solicitud ${status === 'approved' ? 'aprobada' : 'rechazada'}`);
-  } catch (error) { next(error); }
+  } catch (error) { throw error; }
 };
