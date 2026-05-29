@@ -239,6 +239,14 @@ const [order] = await Order.create(
 
     await session.commitTransaction();
 
+    // Actualizar la mesa para reflejar la nueva orden
+    const updatedTable = await Table.findById(table).session(session);
+    if (updatedTable) {
+      await updatedTable.save({ session });
+      io.emit("table:update", updatedTable);
+      io.to(`table:${table}`).emit("table:update", updatedTable);
+    }
+
     logger.info(`[Order] Nueva orden creada: ${order._id} → mesa ${table}`);
     emitOrderCreate(order);
 
@@ -279,6 +287,13 @@ export const updateOrderStatus = async (req, res, next) => {
     }
 
     await order.save();
+
+    // Actualizar la mesa para reflejar el cambio en la orden
+    const updatedTable = await Table.findById(order.table).session(session);
+    if (updatedTable) {
+      io.emit("table:update", updatedTable);
+      io.to(`table:${order.table}`).emit("table:update", updatedTable);
+    }
 
     emitOrderUpdate(order);
 
@@ -325,6 +340,13 @@ export const updateOrderItemStatus = async (req, res, next) => {
     }
 
     await order.save();
+
+    // Actualizar la mesa para reflejar el cambio en el item de la orden
+    const updatedTable = await Table.findById(order.table).session(session);
+    if (updatedTable) {
+      io.emit("table:update", updatedTable);
+      io.to(`table:${order.table}`).emit("table:update", updatedTable);
+    }
 
     emitOrderUpdate(order);
 

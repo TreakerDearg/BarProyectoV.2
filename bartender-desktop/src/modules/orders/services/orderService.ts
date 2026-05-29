@@ -99,9 +99,15 @@ export const createOrder = async (order: {
     notes: order.notes?.trim() ?? "",
   };
 
-  console.log("🧾 CREATE ORDER PAYLOAD =>", payload);
+
 
   const { data } = await api.post("/orders", payload);
+  
+  // Emitir evento para actualizar la mesa en tiempo real
+  if (typeof window !== 'undefined' && (window as any).socket) {
+    (window as any).socket.emit('order:created', data);
+  }
+  
   return data;
 };
 /* ==============================
@@ -117,6 +123,11 @@ export const updateOrderStatus = async (
     const { data } = await api.patch(`/orders/${id}/status`, {
       status,
     });
+
+    // Emitir evento para actualizar la mesa en tiempo real
+    if (typeof window !== 'undefined' && (window as any).socket) {
+      (window as any).socket.emit('order:update', data);
+    }
 
     return data;
   } catch (error) {
@@ -142,6 +153,11 @@ export const updateOrderItemStatus = async (
       `/orders/${orderId}/item/${itemId}/status`,
       { status }
     );
+
+    // Emitir evento para actualizar la mesa en tiempo real
+    if (typeof window !== 'undefined' && (window as any).socket) {
+      (window as any).socket.emit('order:update', data);
+    }
 
     return data;
 

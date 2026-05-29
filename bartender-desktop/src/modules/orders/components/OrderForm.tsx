@@ -210,7 +210,7 @@ export default function OrderForm({
                   <button
                     key={m._id}
                     onClick={() => addMenu(m)}
-                    className="group relative bg-gold/10 hover:bg-gold/20 border border-gold/30 hover:border-gold/50 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square"
+                    className="group relative bg-gold/10 hover:bg-gold/20 border border-gold/30 hover:border-gold/50 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square shadow-gold-glow/20"
                   >
                     <div className="flex justify-between items-start">
                        <div className="p-2.5 rounded-xl bg-gold/20 text-gold border border-gold/30">
@@ -233,7 +233,7 @@ export default function OrderForm({
                     className="group relative bg-surface-3 hover:bg-gold/10 border border-white/5 hover:border-gold/30 p-6 rounded-[2rem] transition-all text-left flex flex-col justify-between aspect-square"
                   >
                     <div className="flex justify-between items-start">
-                       <div className={`p-2.5 rounded-xl ${p.type === 'food' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'} border border-white/5`}>
+                       <div className={`p-2.5 rounded-xl ${p.type === 'food' ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'} border`}>
                           {p.type === 'food' ? <Utensils size={16} /> : <Wine size={16} />}
                        </div>
                        <Plus size={18} className="text-muted group-hover:text-gold transition-colors" />
@@ -293,9 +293,9 @@ export default function OrderForm({
 
            {/* SELECTED TABLE INFO */}
            {selectedTableId && (
-              <div className="p-6 bg-gold/5 rounded-3xl border border-gold/20 flex items-center justify-between">
+              <div className="p-6 bg-gold/5 rounded-3xl border border-gold/20 flex items-center justify-between shadow-gold-glow/10">
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gold text-bg flex items-center justify-center font-black text-xl">
+                    <div className="w-12 h-12 rounded-2xl bg-gold text-bg flex items-center justify-center font-black text-xl shadow-gold-glow">
                        {selectedTableNumber}
                     </div>
                     <div>
@@ -309,9 +309,12 @@ export default function OrderForm({
 
            {/* ITEMS LIST */}
            <div className="flex-1 space-y-4 min-h-0 flex flex-col">
-              <div className="flex items-center gap-2">
-                 <ShoppingCart size={12} className="text-muted" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Ticket de Consumo</h3>
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2">
+                   <ShoppingCart size={12} className="text-muted" />
+                   <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Ticket de Consumo</h3>
+                 </div>
+                 <span className="text-[8px] font-black text-gold uppercase tracking-widest">{items.length} items</span>
               </div>
               
               <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
@@ -323,21 +326,24 @@ export default function OrderForm({
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center justify-between group"
+                        className="bg-black/20 p-4 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-gold/20 transition-all"
                       >
                          <div className="flex-1 min-w-0 pr-4">
                             <div className="flex items-center gap-2">
                               {i.type === "menu" && <Check size={12} className="text-gold" />}
                               <h5 className="text-[11px] font-black text-white truncate uppercase">{i.name}</h5>
                             </div>
-                            <p className="text-[9px] text-muted font-bold">${i.price} / unidad</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-[9px] text-muted font-bold">${i.price} / unidad</p>
+                              <p className="text-[9px] font-black text-gold">x{i.quantity}</p>
+                            </div>
                          </div>
-                         <div className="flex items-center gap-4">
-                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity - 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 text-muted hover:text-red-500 transition-all">
+                         <div className="flex items-center gap-3">
+                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity - 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500/20 text-muted hover:text-red-500 transition-all border border-white/5">
                                <Minus size={14} />
                             </button>
                             <span className="text-xs font-black text-gold w-4 text-center">{i.quantity}</span>
-                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity + 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-gold/20 text-muted hover:text-gold transition-all">
+                            <button type="button" onClick={() => updateQty(i.product || i.menu!, i.quantity + 1)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-gold/20 text-muted hover:text-gold transition-all border border-white/5">
                                <Plus size={14} />
                             </button>
                          </div>
@@ -362,6 +368,7 @@ export default function OrderForm({
                  </div>
                  <div className="text-right">
                     <p className="text-[8px] font-black text-muted uppercase tracking-widest">Impuestos Incl.</p>
+                    <p className="text-xs font-black text-gold uppercase tracking-widest">{items.length} items</p>
                  </div>
               </div>
 
