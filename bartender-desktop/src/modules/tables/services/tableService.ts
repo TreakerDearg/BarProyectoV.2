@@ -11,11 +11,29 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
     return data as T;
   } catch (error: any) {
     const msg =
+      error?.response?.data?.message ||
       error?.response?.data?.error ||
       error?.message ||
-      "Unexpected error";
+      "Error inesperado";
 
-    throw new Error(msg);
+    const statusCode = error?.response?.status || 500;
+    const errorCode = error?.response?.data?.code || "UNKNOWN_ERROR";
+
+    // Log detailed error for debugging
+    console.error("[Payment Service Error]:", {
+      message: msg,
+      statusCode,
+      errorCode,
+      fullError: error,
+    });
+
+    // Create enhanced error object
+    const enhancedError = new Error(msg) as any;
+    enhancedError.statusCode = statusCode;
+    enhancedError.errorCode = errorCode;
+    enhancedError.originalError = error;
+
+    throw enhancedError;
   }
 };
 

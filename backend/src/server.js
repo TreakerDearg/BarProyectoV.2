@@ -2,13 +2,10 @@ import express    from "express";
 import mongoose   from "mongoose";
 import cors       from "cors";
 import dotenv     from "dotenv";
-import helmet     from "helmet";
 import http       from "http";
-import os         from "os";
 import { Server } from "socket.io";
 
 import { connectDB }    from "./config/db.js";
-import { getDbStatus }  from "./config/dbStatus.js";
 import { logger }       from "./config/logger.js";
 import apiRoutes        from "./routes/index.js";
 import { initializeSocketEvents } from "./utils/socketEvents.js";
@@ -92,9 +89,14 @@ const middlewareBuilder = MiddlewareBuilder.create(env);
 // Construir cadena de middlewares
 const middlewares = middlewareBuilder.build();
 
-// Aplicar middlewares
-middlewares.forEach(middleware => {
-  app.use(middleware);
+// Aplicar middlewares con validación defensiva
+middlewares.forEach((middleware, index) => {
+  if (typeof middleware === 'function') {
+    app.use(middleware);
+  } else {
+    console.error(`[Server] Middleware inválido en índice ${index}:`, typeof middleware, middleware);
+    logger.error(`[Server] Middleware inválido en índice ${index}:`, { type: typeof middleware, middleware });
+  }
 });
 
 // =========================================================

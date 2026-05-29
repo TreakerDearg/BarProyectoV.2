@@ -1,4 +1,8 @@
 import { logger } from "../config/logger.js";
+import {
+  PaymentError,
+  isPaymentError,
+} from "../utils/paymentErrors.js";
 
 /* =========================================================
    GLOBAL ERROR HANDLER — Bartender System
@@ -9,19 +13,40 @@ export const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || 500;
   let message    = err.message   || "Error interno del servidor";
   let errors     = null;
+  let errorCode  = null;
+
+  /* ==============================
+     PAYMENT-SPECIFIC ERRORS
+  ============================== */
+  if (isPaymentError(err)) {
+    statusCode = err.statusCode;
+    message = err.message;
+    errorCode = err.code;
+    logger.error(
+      `[Payment Error] ${err.code}: ${message}`,
+      {
+        path: req.originalUrl,
+        method: req.method,
+        body: req.body,
+        stack: err.stack,
+      }
+    );
+  }
 
   /* ==============================
      LOG ESTRUCTURADO
   ============================== */
-  logger.error(
-    `[${req.method}] ${req.originalUrl} → ${statusCode} — ${message}`,
-    {
-      path:   req.originalUrl,
-      method: req.method,
-      body:   req.body,
-      stack:  err.stack,
-    }
-  );
+  if (!isPaymentError(err)) {
+    logger.error(
+      `[${req.method}] ${req.originalUrl} → ${statusCode} — ${message}`,
+      {
+        path:   req.originalUrl,
+        method: req.method,
+        body:   req.body,
+        stack:  err.stack,
+      }
+    );
+  }
 
   /* ==============================
      MONGOOSE — CAST ERROR (ID inválido)
@@ -86,6 +111,7 @@ export const errorHandler = (err, req, res, _next) => {
   };
 
   if (errors) payload.errors = errors;
+  if (errorCode) payload.code = errorCode;
 
   if (process.env.NODE_ENV !== "production") {
     payload.stack = err.stack;

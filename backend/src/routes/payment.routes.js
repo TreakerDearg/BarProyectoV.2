@@ -15,6 +15,14 @@ import {
 } from "../controllers/payment.controller.js";
 import { protect, authorizeRoles, authorizePermissions } from "../middlewares/auth.middleware.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
+import { validate } from "../middlewares/validate.js";
+import {
+  createPaymentSchema,
+  createSplitPaymentSchema,
+  createPartialPaymentSchema,
+  createCardPaymentSchema,
+  refundPaymentSchema,
+} from "../utils/schemas.js";
 
 const router = express.Router();
 
@@ -25,6 +33,7 @@ router.post(
   "/",
   protect,
   authorizeRoles("admin", "manager", "staff"),
+  validate(createPaymentSchema),
   asyncHandler(createPayment)
 );
 
@@ -69,6 +78,7 @@ router.post(
   "/payment/:id/refund",
   protect,
   authorizePermissions("REFUND_PAYMENT"),
+  validate(refundPaymentSchema),
   asyncHandler(refundPayment)
 );
 
@@ -106,6 +116,7 @@ router.post(
   "/split",
   protect,
   authorizeRoles("admin", "manager", "staff"),
+  validate(createSplitPaymentSchema),
   asyncHandler(createSplitPayment)
 );
 
@@ -114,6 +125,7 @@ router.post(
   "/partial",
   protect,
   authorizeRoles("admin", "manager", "staff"),
+  validate(createPartialPaymentSchema),
   asyncHandler(createPartialPayment)
 );
 
@@ -122,6 +134,7 @@ router.post(
   "/card",
   protect,
   authorizeRoles("admin", "manager", "staff"),
+  validate(createCardPaymentSchema),
   asyncHandler(createCardPayment)
 );
 

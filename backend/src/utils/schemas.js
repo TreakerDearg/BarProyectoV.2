@@ -200,8 +200,60 @@ export const createPaymentSchema = z.object({
   tableId:   z.string().min(1, "tableId es obligatorio"),
   orderId:   z.string().min(1, "orderId es obligatorio"),
   method:    z.enum(["cash", "transfer"]),
-  amountPaid: z.number().positive().optional(),
+  amountPaid: z.number().positive("amountPaid debe ser positivo").optional(),
   notes:     z.string().max(500).optional().default(""),
+}).refine(
+  (data) => {
+    if (data.method === "cash" && !data.amountPaid) {
+      return false;
+    }
+    return true;
+  },
+  { message: "amountPaid es obligatorio para pagos en efectivo", path: ["amountPaid"] }
+);
+
+export const createSplitPaymentSchema = z.object({
+  tableId:     z.string().min(1, "tableId es obligatorio"),
+  orderId:     z.string().min(1, "orderId es obligatorio"),
+  totalSplits: z.number().int().min(2, "totalSplits debe ser al menos 2"),
+  method:      z.enum(["cash", "transfer", "card"]),
+  amounts:     z.array(z.number().positive()).optional(),
+}).refine(
+  (data) => {
+    if (data.amounts && data.amounts.length !== data.totalSplits) {
+      return false;
+    }
+    return true;
+  },
+  { message: "La cantidad de montos debe coincidir con totalSplits", path: ["amounts"] }
+);
+
+export const createPartialPaymentSchema = z.object({
+  tableId:    z.string().min(1, "tableId es obligatorio"),
+  orderId:    z.string().min(1, "orderId es obligatorio"),
+  method:     z.enum(["cash", "transfer", "card"]),
+  amount:     z.number().positive("amount debe ser positivo"),
+  amountPaid: z.number().positive("amountPaid debe ser positivo").optional(),
+}).refine(
+  (data) => {
+    if (data.method === "cash" && !data.amountPaid) {
+      return false;
+    }
+    return true;
+  },
+  { message: "amountPaid es obligatorio para pagos en efectivo", path: ["amountPaid"] }
+);
+
+export const createCardPaymentSchema = z.object({
+  tableId:     z.string().min(1, "tableId es obligatorio"),
+  orderId:     z.string().min(1, "orderId es obligatorio"),
+  cardDetails: z.object({
+    lastFour:            z.string().length(4).regex(/^\d+$/, "lastFour debe ser 4 dígitos"),
+    cardType:            z.enum(["visa", "mastercard", "amex", "other"]).optional().default("other"),
+    authorizationCode:  z.string().optional(),
+    terminalId:          z.string().optional(),
+  }),
+  amount: z.number().positive().optional(),
 });
 
 export const refundPaymentSchema = z.object({

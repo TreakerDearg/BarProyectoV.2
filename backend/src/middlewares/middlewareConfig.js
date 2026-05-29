@@ -197,52 +197,76 @@ export class MiddlewareBuilder {
   build() {
     const middlewares = [];
     
+    // Helper function to normalize middleware to array
+    const normalizeMiddleware = (middleware) => {
+      if (!middleware) return [];
+      if (Array.isArray(middleware)) return middleware.flat(); // Flatten nested arrays
+      if (typeof middleware === 'function') return [middleware];
+      console.error('[MiddlewareBuilder] Invalid middleware type:', typeof middleware, middleware);
+      return [];
+    };
+    
     // Security middleware (first)
     if (this.options.enableSecurity && this.preset.security) {
-      middlewares.push(...this.preset.security);
+      middlewares.push(...normalizeMiddleware(this.preset.security));
     }
     
     // Rate limiting (second)
     if (this.preset.rateLimit) {
-      middlewares.push(this.preset.rateLimit);
+      middlewares.push(...normalizeMiddleware(this.preset.rateLimit));
     }
     
     // Headers validation
     if (this.preset.headers) {
-      middlewares.push(this.preset.headers);
+      middlewares.push(...normalizeMiddleware(this.preset.headers));
     }
     
     // Body parser (built into Express)
     // Compression
     if (this.options.enableCompression && this.preset.compression) {
-      middlewares.push(this.preset.compression);
+      middlewares.push(...normalizeMiddleware(this.preset.compression));
     }
     
     // Logging
     if (this.options.enableLogging && this.preset.logging) {
-      middlewares.push(this.preset.logging);
+      middlewares.push(...normalizeMiddleware(this.preset.logging));
     }
     
     // Body analysis
     if (this.preset.bodyAnalysis) {
-      middlewares.push(this.preset.bodyAnalysis);
+      middlewares.push(...normalizeMiddleware(this.preset.bodyAnalysis));
     }
     
     // Metrics
     if (this.options.enableMetrics && this.preset.metrics) {
-      middlewares.push(this.preset.metrics);
+      middlewares.push(...normalizeMiddleware(this.preset.metrics));
     }
     
     // Cache (last before routes)
     if (this.options.enableCache && this.preset.cache) {
-      middlewares.push(this.preset.cache);
+      middlewares.push(...normalizeMiddleware(this.preset.cache));
     }
     
     // Add custom middlewares at their positions
-    const startMiddlewares = this.customMiddlewares.filter(m => m.position === 'start').map(m => m.middleware);
-    const endMiddlewares = this.customMiddlewares.filter(m => m.position === 'end').map(m => m.middleware);
+    const startMiddlewares = this.customMiddlewares
+      .filter(m => m.position === 'start')
+      .map(m => normalizeMiddleware(m.middleware))
+      .flat();
+    const endMiddlewares = this.customMiddlewares
+      .filter(m => m.position === 'end')
+      .map(m => normalizeMiddleware(m.middleware))
+      .flat();
     
-    return [...startMiddlewares, ...middlewares, ...endMiddlewares];
+    // Validate all middlewares are functions
+    const validMiddlewares = [...startMiddlewares, ...middlewares, ...endMiddlewares].filter(middleware => {
+      if (typeof middleware !== 'function') {
+        console.error('[MiddlewareBuilder] Invalid middleware found, skipping:', middleware);
+        return false;
+      }
+      return true;
+    });
+    
+    return validMiddlewares;
   }
 }
 

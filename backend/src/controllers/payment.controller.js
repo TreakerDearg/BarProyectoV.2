@@ -8,6 +8,19 @@ import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, forbidden,
 } from "../utils/response.js";
+import {
+  PaymentValidationError,
+  TableNotFoundError,
+  OrderNotFoundError,
+  OrderAlreadyPaidError,
+  OrderAlreadyClosedError,
+  TableNoActiveSessionError,
+  SessionMismatchError,
+  InvalidAmountError,
+  PaymentAlreadyRefundedError,
+  DatabaseError,
+  PaymentProcessingError,
+} from "../utils/paymentErrors.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -35,7 +48,7 @@ const emitTableUpdate = async (tableId) => {
 /* =========================================================
    CREATE PAYMENT
 ========================================================= */
-export const createPayment = async (req, res) => {
+export const createPayment = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -44,30 +57,29 @@ export const createPayment = async (req, res) => {
     const { tableId, orderId, method, amountPaid, notes } = req.body;
 
     /* ─── Validaciones básicas ─── */
-    if (!tableId) return (await session.abortTransaction(), badRequest(res, "tableId es obligatorio"));
-    if (!orderId) return (await session.abortTransaction(), badRequest(res, "orderId es obligatorio"));
-    if (!method) return (await session.abortTransaction(), badRequest(res, "method es obligatorio"));
+    if (!tableId) throw new PaymentValidationError("tableId es obligatorio");
+    if (!orderId) throw new PaymentValidationError("orderId es obligatorio");
+    if (!method) throw new PaymentValidationError("method es obligatorio");
     if (!["cash", "transfer"].includes(method)) {
-      return (await session.abortTransaction(), badRequest(res, "method debe ser 'cash' o 'transfer'"));
+      throw new PaymentValidationError("method debe ser 'cash' o 'transfer'");
     }
     if (method === "cash" && (!amountPaid || amountPaid <= 0)) {
-      return (await session.abortTransaction(), badRequest(res, "amountPaid es obligatorio para efectivo"));
+      throw new PaymentValidationError("amountPaid es obligatorio para efectivo");
     }
 
     /* ─── Validar mesa ─── */
     const table = await Table.findById(tableId).session(session);
-    if (!table) { await session.abortTransaction(); return notFound(res, "Mesa no encontrada"); }
-    if (!table.currentSessionId) { await session.abortTransaction(); return badRequest(res, "Mesa sin sesión activa"); }
+    if (!table) throw new TableNotFoundError("Mesa no encontrada");
+    if (!table.currentSessionId) throw new TableNoActiveSessionError("Mesa sin sesión activa");
 
     /* ─── Validar orden ─── */
     const order = await Order.findById(orderId).session(session);
-    if (!order) { await session.abortTransaction(); return notFound(res, "Orden no encontrada"); }
-    if (order.sessionStatus === "closed") { await session.abortTransaction(); return badRequest(res, "La orden ya está cerrada"); }
-    if (order.paymentStatus === "paid") { await session.abortTransaction(); return badRequest(res, "La orden ya está pagada"); }
-    if (String(order.table) !== String(tableId)) { await session.abortTransaction(); return badRequest(res, "La orden no pertenece a la mesa indicada"); }
+    if (!order) throw new OrderNotFoundError("Orden no encontrada");
+    if (order.sessionStatus === "closed") throw new OrderAlreadyClosedError("La orden ya está cerrada");
+    if (order.paymentStatus === "paid") throw new OrderAlreadyPaidError("La orden ya está pagada");
+    if (String(order.table) !== String(tableId)) throw new PaymentValidationError("La orden no pertenece a la mesa indicada");
     if (order.sessionId && table.currentSessionId && String(order.sessionId) !== String(table.currentSessionId)) {
-      await session.abortTransaction();
-      return badRequest(res, "La sesión de la orden no coincide con la sesión activa de la mesa");
+      throw new SessionMismatchError("La sesión de la orden no coincide con la sesión activa de la mesa");
     }
 
     /* ─── Calcular subtotal ─── */
@@ -160,7 +172,7 @@ export const createPayment = async (req, res) => {
 /* =========================================================
    GET PAYMENT BY ID
 ========================================================= */
-export const getPaymentById = async (req, res) => {
+export const getPaymentById = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
@@ -184,7 +196,7 @@ export const getPaymentById = async (req, res) => {
 /* =========================================================
    GET TABLE PAYMENTS
 ========================================================= */
-export const getTablePayments = async (req, res) => {
+export const getTablePayments = async (req, res, next) => {
   try {
     const { tableId } = req.params;
     const { sessionId, limit = 50 } = req.query;
@@ -211,7 +223,7 @@ export const getTablePayments = async (req, res) => {
 /* =========================================================
    GET SESSION PAYMENTS
 ========================================================= */
-export const getSessionPayments = async (req, res) => {
+export const getSessionPayments = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     if (!sessionId) return badRequest(res, "sessionId es obligatorio");
@@ -232,7 +244,7 @@ export const getSessionPayments = async (req, res) => {
 /* =========================================================
    GENERATE RECEIPT
 ========================================================= */
-export const generateReceipt = async (req, res) => {
+export const generateReceipt = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
@@ -270,7 +282,7 @@ export const generateReceipt = async (req, res) => {
 /* =========================================================
    REFUND PAYMENT (FUTURO)
 ========================================================= */
-export const refundPayment = async (req, res) => {
+export const refundPayment = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -320,7 +332,7 @@ export const refundPayment = async (req, res) => {
 /* =========================================================
    GET PAYMENTS SUMMARY (DASHBOARD)
 ========================================================= */
-export const getPaymentsSummary = async (req, res) => {
+export const getPaymentsSummary = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -372,7 +384,7 @@ export const getPaymentsSummary = async (req, res) => {
 /* =========================================================
    GET PAYMENTS BY TABLE (DASHBOARD)
 ========================================================= */
-export const getPaymentsByTable = async (req, res) => {
+export const getPaymentsByTable = async (req, res, next) => {
   try {
     const { startDate, endDate, limit = 20 } = req.query;
 
@@ -425,7 +437,7 @@ export const getPaymentsByTable = async (req, res) => {
 /* =========================================================
    CREATE SPLIT PAYMENT
 ========================================================= */
-export const createSplitPayment = async (req, res) => {
+export const createSplitPayment = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -547,7 +559,7 @@ export const createSplitPayment = async (req, res) => {
 /* =========================================================
    CREATE PARTIAL PAYMENT
 ========================================================= */
-export const createPartialPayment = async (req, res) => {
+export const createPartialPayment = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
@@ -676,7 +688,7 @@ export const createPartialPayment = async (req, res) => {
 /* =========================================================
    GET AVAILABLE PAYMENT METHODS
 ========================================================= */
-export const getAvailablePaymentMethods = async (req, res) => {
+export const getAvailablePaymentMethods = async (req, res, next) => {
   try {
     // Intentar obtener métodos de la base de datos
     try {
@@ -766,7 +778,7 @@ export const getAvailablePaymentMethods = async (req, res) => {
 /* =========================================================
    CREATE PAYMENT WITH CARD
 ========================================================= */
-export const createCardPayment = async (req, res) => {
+export const createCardPayment = async (req, res, next) => {
   const session = await mongoose.startSession();
 
   try {
