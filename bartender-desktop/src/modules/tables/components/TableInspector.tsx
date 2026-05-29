@@ -407,17 +407,15 @@ export default function TableInspector({
               <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Nueva Orden</span>
             </motion.button>
 
-            {totalAmount > 0 && onPaymentSelector && (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onPaymentSelector}
-                className="w-full btn btn-gold !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 shadow-gold-glow"
-              >
-                <Wallet size={16} className="w-4 h-4 md:w-5 md:h-5" />
-                <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Procesar Pago</span>
-              </motion.button>
-            )}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onPaymentSelector}
+              className="w-full btn btn-gold !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 shadow-gold-glow"
+            >
+              <Wallet size={16} className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Procesar Pago</span>
+            </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.02 }}

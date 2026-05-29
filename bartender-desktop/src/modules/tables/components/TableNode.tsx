@@ -403,6 +403,15 @@ export default function TableNode({
             </span>
           </div>
 
+          {/* Order indicator for occupied tables */}
+          {table.status === "occupied" && totalItems > 0 && (
+            <div className="flex items-center gap-1 bg-orange/10 border border-orange/20 rounded-full px-2 py-0.5">
+              <span className="text-[6px] font-black text-orange uppercase">
+                {totalItems} items
+              </span>
+            </div>
+          )}
+
           {/* Time & Total in Spatial */}
           {table.status === "occupied" && (
             <div className="mt-1.5 flex items-center gap-1">
@@ -422,6 +431,15 @@ export default function TableNode({
                 }`}>
                   <span className="text-[7.5px] font-black">
                     ${totalAmount.toFixed(0)}
+                  </span>
+                </div>
+              )}
+              {totalItems > 0 && (
+                <div className={`flex items-center gap-1 border rounded-full px-2 py-0.5 ${
+                  "bg-orange/10 border-orange/20 text-orange"
+                }`}>
+                  <span className="text-[7.5px] font-black">
+                    {totalItems} items
                   </span>
                 </div>
               )}
@@ -490,6 +508,15 @@ export default function TableNode({
                 {config.label}
               </span>
             </div>
+
+            {/* Order count indicator */}
+            {table.status === "occupied" && totalItems > 0 && (
+              <div className="flex items-center gap-1 bg-orange/10 border border-orange/20 rounded-md px-2 py-1">
+                <span className="text-[7px] md:text-[8px] font-black text-orange uppercase">
+                  {totalItems} items
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Footer: Orders detail / warning */}
@@ -500,7 +527,7 @@ export default function TableNode({
                   Items
                 </span>
                 <span className="text-[10px] md:text-[11px] font-black text-white/70">
-                  {totalItems}
+                  {totalItems > 0 ? totalItems : '0'}
                 </span>
               </div>
 
@@ -509,8 +536,10 @@ export default function TableNode({
                   Total
                 </span>
                 <span className={`text-[10px] md:text-[11px] font-black ${
-                  visualStatus === "occupied_paid" ? "text-emerald-400" :
-                  visualStatus === "occupied_partial" ? "text-purple-400" : "text-white/80"
+                  totalAmount > 0 
+                    ? (visualStatus === "occupied_paid" ? "text-emerald-400" :
+                       visualStatus === "occupied_partial" ? "text-purple-400" : "text-white/80")
+                    : "text-white/40"
                 }`}>
                   ${totalAmount.toFixed(0)}
                 </span>
