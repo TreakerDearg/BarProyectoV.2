@@ -383,7 +383,7 @@ export const getEmployeeRanking = async (req, res, next) => {
 
     return ok(res, ranked);
   } catch (error) {
-    ohrow  erro;
+    throw  error;
   }
 };
 
