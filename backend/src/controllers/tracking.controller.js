@@ -132,7 +132,7 @@ export const getActivityLogs = async (req, res, next) => {
 
     return ok(res, logs);
   } catch (error) {
-    nexn(rror));
+    throw error;
   }
 };
 
@@ -153,7 +153,7 @@ export const getActivityMetrics = async (req, res, next) => {
 
     return ok(res, metrics);
   } catch (error) {
-    nexn(rror));
+    throw error;
   }
 };
 
@@ -174,7 +174,7 @@ export const getRealTimeActivity = async (req, res, next) => {
 
     return ok(res, logs);
   } catch (error) {
-    nexn(rror));
+    throw error;
   }
 };
 
@@ -271,7 +271,7 @@ export const getEmployeeKPIs = async (req, res, next) => {
 
     return ok(res, kpis);
   } catch (error) {
-    nexn(rror));
+    throw error;
   }
 };
 
@@ -433,7 +433,7 @@ export const getShiftSchedules = async (req, res, next) => {
 
     return ok(res, shifts);
   } catch (error) {
-    nexn(rror));
+    throw error;
   }
 };
 
