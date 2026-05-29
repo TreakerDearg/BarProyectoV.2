@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check } from "lucide-react";
-import { getAvailablePaymentMethods } from "../services/tableService";
+import { getAvailablePaymentMethodsV2 } from "../services/tableService.v2";
+import {
+  PaymentServiceError,
+  getPaymentErrorMessage,
+  isNetworkError
+} from "../services/tableService.v2";
 
 interface PaymentMethod {
   _id: string;
@@ -101,15 +106,33 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
   const fetchAvailableMethods = async () => {
     try {
       setLoading(true);
-      const data = await getAvailablePaymentMethods();
-      if (data && data.length > 0) {
-        setMethods(data);
+      const response = await getAvailablePaymentMethodsV2();
+      if (response && response.methods && response.methods.length > 0) {
+        // Convert V2 format to component format
+        const convertedMethods = response.methods.map((m: any) => ({
+          _id: m.id,
+          method: m.id,
+          displayName: m.name,
+          description: m.description,
+          isActive: !m.disabled,
+          isAvailable: !m.disabled,
+          priority: 100,
+          icon: m.icon
+        }));
+        setMethods(convertedMethods);
       } else {
         // Usar métodos por defecto si la API retorna vacío
         setMethods(DEFAULT_PAYMENT_METHODS);
       }
     } catch (error) {
       console.error("Error fetching payment methods, using defaults:", error);
+      if (error instanceof PaymentServiceError) {
+        console.error("Payment Service Error:", {
+          message: getPaymentErrorMessage(error),
+          code: error.errorCode,
+          isNetwork: isNetworkError(error)
+        });
+      }
       // Usar métodos por defecto en caso de error
       setMethods(DEFAULT_PAYMENT_METHODS);
     } finally {

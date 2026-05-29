@@ -89,13 +89,27 @@ const middlewareBuilder = MiddlewareBuilder.create(env);
 // Construir cadena de middlewares
 const middlewares = middlewareBuilder.build();
 
-// Aplicar middlewares con validación defensiva
+// Aplicar middlewares con validación defensiva y debugging exhaustivo
 middlewares.forEach((middleware, index) => {
+  console.log("[Middleware Debug]", index, typeof middleware, middleware?.name || 'anonymous');
+
   if (typeof middleware === 'function') {
+    // Verificar que tenga la firma correcta de Express
+    const paramCount = middleware.length;
+    console.log(`[Middleware Debug] ${index} - Function length (params): ${paramCount}`);
+
+    if (paramCount < 2 || paramCount > 4) {
+      console.error(`[Middleware Debug] ${index} - Invalid parameter count: ${paramCount} (expected 2-4)`);
+    }
+
     app.use(middleware);
   } else {
-    console.error(`[Server] Middleware inválido en índice ${index}:`, typeof middleware, middleware);
-    logger.error(`[Server] Middleware inválido en índice ${index}:`, { type: typeof middleware, middleware });
+    console.error("[Middleware inválido detectado]", index, typeof middleware, middleware);
+    logger.error("[Server] Middleware inválido detectado", {
+      index,
+      type: typeof middleware,
+      middleware: middleware?.toString?.() || middleware,
+    });
   }
 });
 
@@ -224,6 +238,15 @@ app.use((req, res) => {
 /* =========================================================
    GLOBAL ERROR HANDLER
 ========================================================= */
+console.log("errorHandler:", typeof errorHandler);
+console.log("errorHandler.length:", errorHandler.length);
+if (typeof errorHandler !== 'function') {
+  console.error("[ERROR] errorHandler is not a function!");
+} else if (errorHandler.length !== 4) {
+  console.error(`[ERROR] errorHandler has ${errorHandler.length} parameters, expected 4 (err, req, res, next)`);
+} else {
+  console.log("[OK] errorHandler is a valid error handler with 4 parameters");
+}
 app.use(errorHandler);
 
 /* =========================================================

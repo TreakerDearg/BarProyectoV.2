@@ -39,7 +39,7 @@ export const getTables = async (req, res, next) => {
 
     /* Adjuntar órdenes abiertas por mesa */
     const tableIds = tables.map((t) => t._id);
-    const orders   = await Order.find({ table: { $in: tableIds }, sessionStatus: "open" })
+    const orders   = await Order.find({ table: { $in: tableIds }, sessionStatus: "active" })
       .populate("items.product", "name type")
       .lean();
 
