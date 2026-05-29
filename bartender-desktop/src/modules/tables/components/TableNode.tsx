@@ -62,8 +62,9 @@ export default function TableNode({
     }
   };
 
-  // Calcular totales financieros para estados en vivo
-  const totalAmount = table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0;
+  // Usar valores calculados por el backend si están disponibles
+  const totalAmount = table.totalAmount || (table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0);
+  const totalItems = table.totalItems || table.orders?.length || 0;
   const totalPaid = table.totalPayments || 0;
   
   let visualStatus: "available" | "reserved" | "maintenance" | "occupied_empty" | "occupied_consuming" | "occupied_partial" | "occupied_paid" = "available";
@@ -496,10 +497,10 @@ export default function TableNode({
             <div className="pt-1.5 border-t border-white/5 w-full flex items-center justify-between relative z-10">
               <div className="flex flex-col">
                 <span className="text-[6.5px] md:text-[7.5px] font-bold text-white/30 uppercase tracking-wider">
-                  Pedidos
+                  Items
                 </span>
                 <span className="text-[10px] md:text-[11px] font-black text-white/70">
-                  {table.orders?.length || 0}
+                  {totalItems}
                 </span>
               </div>
 

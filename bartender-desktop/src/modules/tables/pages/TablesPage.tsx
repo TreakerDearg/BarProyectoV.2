@@ -774,6 +774,19 @@ export default function TablesPage() {
 
                 await fetchTables();
                 console.log("Pago registrado con éxito:", response);
+                
+                // Auto-cerrar mesa después del pago completo
+                if (response && (response.status === 'completed' || response.paymentStatus === 'completed')) {
+                  try {
+                    await closeTable(selectedTable._id!);
+                    await fetchTables();
+                    console.log("Mesa cerrada automáticamente después del pago");
+                  } catch (closeError) {
+                    console.error("Error al cerrar la mesa automáticamente:", closeError);
+                    setError("Pago registrado pero hubo un error al cerrar la mesa automáticamente");
+                  }
+                }
+                
                 setIsPaymentSelectorOpen(false);
               } catch (err: any) {
                 if (err instanceof PaymentServiceError) {
