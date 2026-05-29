@@ -80,7 +80,7 @@ export default function ReservationsPage() {
 
   /* PAGINATION SYSTEM */
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 12;
 
   /* LIVE CLOCK for radar countdowns */
   const [now, setNow] = useState(new Date());
@@ -338,7 +338,7 @@ export default function ReservationsPage() {
             </p>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
-            Reservas del salón
+            Gestión de Reservas
           </h1>
         </div>
 
@@ -375,7 +375,7 @@ export default function ReservationsPage() {
             </div>
             <input
               type="text"
-              placeholder="Buscar cliente..."
+              placeholder="Buscar por nombre o teléfono..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-surface-3 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-ivory focus:border-gold/40 focus:ring-4 focus:ring-gold/5 outline-none transition-all w-64 md:w-80 group-hover:border-white/10"

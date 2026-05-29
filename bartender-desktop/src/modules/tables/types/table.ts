@@ -68,4 +68,9 @@ export interface Table {
   /* PAYMENT TRACKING */
   totalPayments?: number;
   lastPaymentAt?: string | null;
+
+  /* ORDER SUMMARY */
+  totalAmount?: number;
+  totalItems?: number;
+  itemCounts?: Record<string, number>;
 }

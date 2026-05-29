@@ -268,8 +268,8 @@ export default function OrdersPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-12 h-12 rounded-xl nebula-btn-primary flex items-center justify-center"
-          title="Nuevo pedido"
+          className="w-12 h-12 rounded-xl nebula-btn-primary flex items-center justify-center shadow-gold-glow"
+          title="Nueva orden"
         >
           <Plus size={22} />
         </button>
@@ -282,7 +282,7 @@ export default function OrdersPage() {
               Nebula · Comandas
             </p>
             <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
-              Pedidos en cocina y barra
+              Órdenes Activas
             </h1>
           </div>
 
@@ -311,10 +311,10 @@ export default function OrdersPage() {
               />
               <input
                 type="text"
-                placeholder="Mesa o plato…"
+                placeholder="Buscar por mesa o producto…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-surface-2 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-ivory outline-none focus:border-violet-400/40 w-48 md:w-56"
+                className="bg-surface-2 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-ivory outline-none focus:border-violet-400/40 w-48 md:w-64"
               />
             </div>
 

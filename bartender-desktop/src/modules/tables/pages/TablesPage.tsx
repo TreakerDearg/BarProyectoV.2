@@ -9,8 +9,6 @@ import {
   AlertCircle,
   X,
   Sparkles,
-  Lock,
-  Unlock,
   HelpCircle,
 } from "lucide-react";
 
@@ -23,12 +21,17 @@ import {
   closeTable,
   getTablePayments,
   generateReceipt,
-  createSplitPayment,
-  createPartialPayment,
-  createCardPayment,
-  createStandardPayment,
   updateTableLayout,
 } from "../services/tableService";
+
+import {
+  createStandardPaymentV2,
+  createSplitPaymentV2,
+  createPartialPaymentV2,
+  createCardPaymentV2,
+  PaymentServiceError,
+  getPaymentErrorMessage,
+} from "../services/tableService.v2";
 
 import type { Table } from "../types/table";
 import { connectSalonSockets, getMainSocket } from "../../../services/socket";
@@ -66,8 +69,6 @@ export default function TablesPage() {
   const [selectedOrderIdForPayment, setSelectedOrderIdForPayment] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
-  const [viewType, setViewType] = useState<"grid" | "spatial">("spatial");
-  const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const salonMode = useSalonUiStore((s) => s.mode);
@@ -467,48 +468,6 @@ export default function TablesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Selector de Vista Humano */}
-            <div className="flex bg-white/5 border border-white/5 p-1 rounded-xl gap-0.5">
-              <button
-                onClick={() => {
-                  setViewType("spatial");
-                  setIsEditMode(false);
-                }}
-                className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                  viewType === "spatial" ? "bg-gold text-black shadow-gold-glow" : "text-muted hover:text-white"
-                }`}
-              >
-                Plano
-              </button>
-              <button
-                onClick={() => {
-                  setViewType("grid");
-                  setIsEditMode(false);
-                }}
-                className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                  viewType === "grid" ? "bg-gold text-black shadow-gold-glow" : "text-muted hover:text-white"
-                }`}
-              >
-                Lista
-              </button>
-            </div>
-
-            {/* Diseño / Modo Diseñador */}
-            {salonMode === "advanced" && viewType === "spatial" && (
-              <button
-                onClick={() => setIsEditMode(!isEditMode)}
-                className={`btn !p-3 rounded-xl border flex items-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${
-                  isEditMode 
-                    ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20" 
-                    : "bg-white/5 border-white/10 text-muted hover:bg-white/10 hover:text-white"
-                }`}
-                title={isEditMode ? "Bloquear plano de salón" : "Editar plano de salón"}
-              >
-                {isEditMode ? <Lock size={15} /> : <Unlock size={15} />}
-                <span className="hidden sm:inline">{isEditMode ? "Bloquear" : "Editar Plano"}</span>
-              </button>
-            )}
-
             <button
               onClick={fetchTables}
               className="btn btn-ghost !p-3 rounded-xl hover:bg-white/5 border border-white/5"
@@ -612,8 +571,8 @@ export default function TablesPage() {
               setSelectedTable(table);
               if (isMobile) setIsInspectorOpen(true);
             }}
-            viewType={viewType}
-            isEditMode={isEditMode}
+            viewType="grid"
+            isEditMode={false}
             onTableLayoutChange={handleTableLayoutChange}
           />
         </div>
@@ -778,15 +737,16 @@ export default function TablesPage() {
                 setError(null);
                 setLoading(true);
                 let response;
+
                 if (method === "card") {
-                  response = await createCardPayment({
+                  response = await createCardPaymentV2({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     cardDetails: data.cardDetails,
                     amount: currentOrderTotal
                   });
                 } else if (method === "split") {
-                  response = await createSplitPayment({
+                  response = await createSplitPaymentV2({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     totalSplits: data.totalSplits,
@@ -794,7 +754,7 @@ export default function TablesPage() {
                     amounts: data.amounts
                   });
                 } else if (method === "partial") {
-                  response = await createPartialPayment({
+                  response = await createPartialPaymentV2({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     amount: data.amount,
@@ -802,7 +762,7 @@ export default function TablesPage() {
                     amountPaid: data.amountPaid
                   });
                 } else if (method === "cash" || method === "transfer") {
-                  response = await createStandardPayment({
+                  response = await createStandardPaymentV2({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     method: method,
@@ -811,12 +771,22 @@ export default function TablesPage() {
                 } else {
                   throw new Error("Método de pago no soportado");
                 }
-                
+
                 await fetchTables();
                 console.log("Pago registrado con éxito:", response);
+                setIsPaymentSelectorOpen(false);
               } catch (err: any) {
-                setError(err.message || "Error al procesar el pago");
-                console.error("Error processing payment:", err);
+                if (err instanceof PaymentServiceError) {
+                  setError(getPaymentErrorMessage(err));
+                  console.error("Payment Service Error:", {
+                    code: err.errorCode,
+                    statusCode: err.statusCode,
+                    originalError: err.originalError
+                  });
+                } else {
+                  setError(err.message || "Error al procesar el pago");
+                  console.error("Error processing payment:", err);
+                }
               } finally {
                 setLoading(false);
                 setIsPaymentSelectorOpen(false);
