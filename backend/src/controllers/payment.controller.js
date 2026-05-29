@@ -35,7 +35,7 @@ const emitTableUpdate = async (tableId) => {
 /* =========================================================
    CREATE PAYMENT
 ========================================================= */
-export const createPayment = async (req, res, next) => {
+export const createPayment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
@@ -160,7 +160,7 @@ export const createPayment = async (req, res, next) => {
 /* =========================================================
    GET PAYMENT BY ID
 ========================================================= */
-export const getPaymentById = async (req, res, next) => {
+export const getPaymentById = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
@@ -184,7 +184,7 @@ export const getPaymentById = async (req, res, next) => {
 /* =========================================================
    GET TABLE PAYMENTS
 ========================================================= */
-export const getTablePayments = async (req, res, next) => {
+export const getTablePayments = async (req, res) => {
   try {
     const { tableId } = req.params;
     const { sessionId, limit = 50 } = req.query;
@@ -211,7 +211,7 @@ export const getTablePayments = async (req, res, next) => {
 /* =========================================================
    GET SESSION PAYMENTS
 ========================================================= */
-export const getSessionPayments = async (req, res, next) => {
+export const getSessionPayments = async (req, res) => {
   try {
     const { sessionId } = req.params;
     if (!sessionId) return badRequest(res, "sessionId es obligatorio");
@@ -232,7 +232,7 @@ export const getSessionPayments = async (req, res, next) => {
 /* =========================================================
    GENERATE RECEIPT
 ========================================================= */
-export const generateReceipt = async (req, res, next) => {
+export const generateReceipt = async (req, res) => {
   try {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
@@ -270,7 +270,7 @@ export const generateReceipt = async (req, res, next) => {
 /* =========================================================
    REFUND PAYMENT (FUTURO)
 ========================================================= */
-export const refundPayment = async (req, res, next) => {
+export const refundPayment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
@@ -320,7 +320,7 @@ export const refundPayment = async (req, res, next) => {
 /* =========================================================
    GET PAYMENTS SUMMARY (DASHBOARD)
 ========================================================= */
-export const getPaymentsSummary = async (req, res, next) => {
+export const getPaymentsSummary = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -372,7 +372,7 @@ export const getPaymentsSummary = async (req, res, next) => {
 /* =========================================================
    GET PAYMENTS BY TABLE (DASHBOARD)
 ========================================================= */
-export const getPaymentsByTable = async (req, res, next) => {
+export const getPaymentsByTable = async (req, res) => {
   try {
     const { startDate, endDate, limit = 20 } = req.query;
 
@@ -425,7 +425,7 @@ export const getPaymentsByTable = async (req, res, next) => {
 /* =========================================================
    CREATE SPLIT PAYMENT
 ========================================================= */
-export const createSplitPayment = async (req, res, next) => {
+export const createSplitPayment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
@@ -547,7 +547,7 @@ export const createSplitPayment = async (req, res, next) => {
 /* =========================================================
    CREATE PARTIAL PAYMENT
 ========================================================= */
-export const createPartialPayment = async (req, res, next) => {
+export const createPartialPayment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
@@ -676,7 +676,7 @@ export const createPartialPayment = async (req, res, next) => {
 /* =========================================================
    GET AVAILABLE PAYMENT METHODS
 ========================================================= */
-export const getAvailablePaymentMethods = async (req, res, next) => {
+export const getAvailablePaymentMethods = async (req, res) => {
   try {
     // Intentar obtener métodos de la base de datos
     try {
@@ -766,7 +766,7 @@ export const getAvailablePaymentMethods = async (req, res, next) => {
 /* =========================================================
    CREATE PAYMENT WITH CARD
 ========================================================= */
-export const createCardPayment = async (req, res, next) => {
+export const createCardPayment = async (req, res) => {
   const session = await mongoose.startSession();
 
   try {
