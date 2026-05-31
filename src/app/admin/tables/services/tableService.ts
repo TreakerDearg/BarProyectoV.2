@@ -22,8 +22,9 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
 /* ==============================
    TABLES (REST)
 ============================== */
-export const getTables = async (): Promise<Table[]> => {
-  return safeRequest<Table[]>(api.get("/tables"));
+export const getTables = async (date?: string): Promise<Table[]> => {
+  const url = date ? `/tables?date=${date}` : "/tables";
+  return safeRequest<Table[]>(api.get(url));
 };
 
 export const getTableById = async (id: string): Promise<Table> => {

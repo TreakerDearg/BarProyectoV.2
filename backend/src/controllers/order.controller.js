@@ -289,7 +289,7 @@ export const updateOrderStatus = async (req, res, next) => {
     await order.save();
 
     // Actualizar la mesa para reflejar el cambio en la orden
-    const updatedTable = await Table.findById(order.table).session(session);
+    const updatedTable = await Table.findById(order.table);
     if (updatedTable) {
       io.emit("table:update", updatedTable);
       io.to(`table:${order.table}`).emit("table:update", updatedTable);
@@ -342,7 +342,7 @@ export const updateOrderItemStatus = async (req, res, next) => {
     await order.save();
 
     // Actualizar la mesa para reflejar el cambio en el item de la orden
-    const updatedTable = await Table.findById(order.table).session(session);
+    const updatedTable = await Table.findById(order.table);
     if (updatedTable) {
       io.emit("table:update", updatedTable);
       io.to(`table:${order.table}`).emit("table:update", updatedTable);

@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Crown,
   Wallet,
-  Globe
+  Globe,
+  MessageCircle
 } from "lucide-react";
 import type { Reservation } from "../types/reservation";
 import { format } from "date-fns";
@@ -30,6 +31,7 @@ interface Props {
   onSeat?: (id: string) => void;
   onDelete?: (id: string) => void;
   onClick?: () => void;
+  onWhatsapp?: (r: Reservation) => void;
 }
 
 const statusConfig: any = {
@@ -101,18 +103,22 @@ export default function ReservationCard({
   return (
     <div
       className={`
-        glass p-0 rounded-[2.5rem] border border-white/5 transition-all duration-500
+        p-0 rounded-[2.5rem] transition-all duration-500
         group relative overflow-hidden flex flex-col cursor-pointer
         hover:translate-y-[-8px] hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
         active:scale-[0.97]
         ${config.glow}
+        ${r.isVIP 
+          ? 'bg-gradient-to-br from-violet-950/40 via-[#0d091a] to-purple-950/40 border-gold/30 shadow-[0_0_30px_rgba(139,92,246,0.15)] hover:border-gold hover:shadow-[0_0_40px_rgba(212,163,64,0.3)] ring-1 ring-gold/20' 
+          : 'glass border-white/5'
+        }
         ${isDelayed ? 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)] ring-1 ring-red-500/20' : ''}
         ${highlighted ? 'ring-2 ring-violet-400/50 border-violet-400/40' : ''}
       `}
       onClick={onClick}
     >
       {/* CASINO DECOR BAR */}
-      <div className={`h-2.5 w-full ${isDelayed ? 'bg-red-500' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-60 shadow-lg`} />
+      <div className={`h-2.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-gradient-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-60 shadow-lg`} />
 
       {/* DELAY ALARM STRIP */}
       {isDelayed && (
@@ -228,6 +234,19 @@ export default function ReservationCard({
                 title="Eliminar Registro"
               >
                 <Trash2 size={20} />
+              </button>
+            )}
+
+            {onWhatsapp && (r.status === "pending" || r.status === "confirmed") && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onWhatsapp(r);
+                }}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-lg"
+                title="Enviar confirmación por WhatsApp"
+              >
+                <MessageCircle size={20} className="fill-current text-emerald-500 hover:text-emerald-400" />
               </button>
             )}
 

@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Pencil,
   Trash2,
-  Check
+  Check,
+  MessageCircle
 } from "lucide-react";
 import type { Reservation } from "../types/reservation";
 import { format } from "date-fns";
@@ -25,6 +26,7 @@ interface Props {
   onStatusChange: (status: Reservation["status"]) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onWhatsapp?: (r: Reservation) => void;
 }
 
 export default function ReservationActionModal({
@@ -33,6 +35,7 @@ export default function ReservationActionModal({
   onStatusChange,
   onEdit,
   onDelete,
+  onWhatsapp,
 }: Props) {
   const startTime = new Date(reservation.startTime);
   const timeStr = isNaN(startTime.getTime()) ? "--:--" : format(startTime, "HH:mm 'hs'", { locale: es });
@@ -221,6 +224,18 @@ export default function ReservationActionModal({
                     <p className="text-sm font-black uppercase tracking-widest leading-none">SENTAR CLIENTE EN MESA</p>
                     <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest mt-1">Activar mesa en el plano del salón</p>
                   </div>
+                </button>
+              )}
+
+              {/* WHATSAPP ACTION BUTTON */}
+              {onWhatsapp && (reservation.status === "pending" || reservation.status === "confirmed") && (
+                <button
+                  type="button"
+                  onClick={() => onWhatsapp(reservation)}
+                  className="col-span-2 h-16 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_10px_20px_rgba(16,185,129,0.05)]"
+                >
+                  <MessageCircle size={18} className="fill-current text-emerald-400" />
+                  ENVIAR CONFIRMACIÓN POR WHATSAPP
                 </button>
               )}
 

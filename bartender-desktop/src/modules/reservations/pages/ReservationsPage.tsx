@@ -14,12 +14,14 @@ import {
   XCircle,
   Sparkles,
   HelpCircle,
+  MessageCircle,
   ArrowRight,
 } from "lucide-react";
 
 import ReservationForm from "../components/ReservationForm";
 import ReservationCard from "../components/ReservationCard";
 import ReservationActionModal from "../components/ReservationActionModal";
+import WhatsappModal from "../components/WhatsappModal";
 
 import {
   getReservations,
@@ -73,6 +75,8 @@ export default function ReservationsPage() {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [_error, setError] = useState<string | null>(null);
+  const [whatsappReservation, setWhatsappReservation] = useState<Reservation | null>(null);
+  const [isWhatsappOpen, setIsWhatsappOpen] = useState(false);
 
   /* VIEW SYSTEM */
   const [activeView, setActiveView] = useState<ViewMode>("confirmed");
@@ -209,6 +213,11 @@ export default function ReservationsPage() {
     // Close action modal, open form in edit mode
     setIsActionModalOpen(false);
     setIsFormOpen(true);
+  };
+
+  const handleOpenWhatsapp = (reservation: Reservation) => {
+    setWhatsappReservation(reservation);
+    setIsWhatsappOpen(true);
   };
 
   const handleCardClick = (r: Reservation) => {
@@ -514,6 +523,20 @@ export default function ReservationsPage() {
                         </button>
                       </>
                     )}
+                    {/* WhatsApp button */}
+                    {(r.status === "pending" || r.status === "confirmed") && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenWhatsapp(r);
+                        }}
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-lg"
+                        title="Enviar confirmación por WhatsApp"
+                      >
+                        <MessageCircle size={20} className="fill-current text-emerald-500 hover:text-emerald-400" />
+                      </button>
+                    )}
                   </div>
                 </button>
               );
@@ -574,6 +597,7 @@ export default function ReservationsPage() {
                     highlighted={highlightId === r._id}
                     onSeat={(id) => handleStatusChange(id, "seated")}
                     onDelete={handleDeleteReservation}
+                    onWhatsapp={handleOpenWhatsapp}
                     onClick={() => handleCardClick(r)}
                   />
                 ))}
@@ -644,13 +668,22 @@ export default function ReservationsPage() {
       {/* ===========================
          MODAL: RESERVATION FORM (new or edit)
       =========================== */}
-      {isFormOpen && (
-        <ReservationForm
-          reservation={selectedReservation}
-          onSave={async (data) => { await handleSave(data); }}
-          onClose={() => { setIsFormOpen(false); setSelectedReservation(null); }}
-        />
-      )}
+        {isFormOpen && (
+          <ReservationForm
+            reservation={selectedReservation}
+            onSave={async (data) => { await handleSave(data); }}
+            onClose={() => { setIsFormOpen(false); setSelectedReservation(null); }}
+          />
+        )}
+        {isWhatsappOpen && whatsappReservation && (
+          <WhatsappModal
+            reservation={whatsappReservation}
+            onClose={() => {
+              setIsWhatsappOpen(false);
+              setWhatsappReservation(null);
+            }}
+          />
+        )}
     </div>
   );
 }

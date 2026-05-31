@@ -4,36 +4,28 @@ import {
   getPaymentById,
   getTablePayments,
   getSessionPayments,
+  getAvailablePaymentMethods,
+  createSplitPayment,
+  createPartialPayment,
+  createCardPayment,
   generateReceipt,
   refundPayment,
   getPaymentsSummary,
   getPaymentsByTable,
-  createSplitPayment,
-  createPartialPayment,
-  getAvailablePaymentMethods,
-  createCardPayment,
 } from "../controllers/payment.controller.js";
 import { protect, authorizeRoles, authorizePermissions } from "../middlewares/auth.middleware.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
-import { validate } from "../middlewares/validate.js";
-import {
-  createPaymentSchema,
-  createSplitPaymentSchema,
-  createPartialPaymentSchema,
-  createCardPaymentSchema,
-  refundPaymentSchema,
-} from "../utils/schemas.js";
 
 const router = express.Router();
+const staffOnly = [protect, authorizeRoles("admin", "manager", "staff")];
+const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
 /* =========================================================
-   CREATE PAYMENT
+   CREATE PAYMENT (Cobro Estándar)
 ========================================================= */
 router.post(
   "/",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
-  validate(createPaymentSchema),
+  ...staffOnly,
   asyncHandler(createPayment)
 );
 
@@ -42,99 +34,80 @@ router.post(
 ========================================================= */
 router.get(
   "/payment/:id",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
+  ...staffOnly,
   asyncHandler(getPaymentById)
 );
 
 router.get(
   "/table/:tableId",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
+  ...staffOnly,
   asyncHandler(getTablePayments)
 );
 
 router.get(
   "/session/:sessionId",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
+  ...staffOnly,
   asyncHandler(getSessionPayments)
 );
 
 /* =========================================================
-   RECEIPT
+   DIGITAL RECEIPT
 ========================================================= */
 router.get(
   "/payment/:id/receipt",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
+  ...staffOnly,
   asyncHandler(generateReceipt)
 );
 
 /* =========================================================
-   REFUND (FUTURO - Requiere permiso especial)
+   ADMINISTRATIVE REFUNDS
 ========================================================= */
 router.post(
   "/payment/:id/refund",
   protect,
   authorizePermissions("REFUND_PAYMENT"),
-  validate(refundPaymentSchema),
   asyncHandler(refundPayment)
 );
 
 /* =========================================================
-   DASHBOARD ANALYTICS
+   DASHBOARD ANALYTICS & REPORTS
 ========================================================= */
 router.get(
   "/summary",
-  protect,
-  authorizeRoles("admin", "manager"),
+  ...adminOnly,
   asyncHandler(getPaymentsSummary)
 );
 
 router.get(
   "/by-table",
-  protect,
-  authorizeRoles("admin", "manager"),
+  ...adminOnly,
   asyncHandler(getPaymentsByTable)
 );
 
 /* =========================================================
-   NEW PAYMENT METHODS
+   NEW INTEGRATED BILL-FLOWS
 ========================================================= */
-
-/* Available payment methods */
 router.get(
   "/methods/available",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
+  ...staffOnly,
   asyncHandler(getAvailablePaymentMethods)
 );
 
-/* Split payment */
 router.post(
   "/split",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
-  validate(createSplitPaymentSchema),
+  ...staffOnly,
   asyncHandler(createSplitPayment)
 );
 
-/* Partial payment */
 router.post(
   "/partial",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
-  validate(createPartialPaymentSchema),
+  ...staffOnly,
   asyncHandler(createPartialPayment)
 );
 
-/* Card payment */
 router.post(
   "/card",
-  protect,
-  authorizeRoles("admin", "manager", "staff"),
-  validate(createCardPaymentSchema),
+  ...staffOnly,
   asyncHandler(createCardPayment)
 );
 

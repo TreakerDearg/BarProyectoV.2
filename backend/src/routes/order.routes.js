@@ -19,8 +19,8 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 /* =========================================================
    READ
 ========================================================= */
-router.get("/", getOrders);
-router.get("/:id", getOrderById);
+router.get("/", asyncHandler(getOrders));
+router.get("/:id", asyncHandler(getOrderById));
 
 /* =========================================================
    CREATE & UPDATE

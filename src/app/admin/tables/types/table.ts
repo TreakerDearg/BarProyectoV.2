@@ -28,6 +28,12 @@ export interface TableOrder {
 /* =========================
    TABLE (FIXED POS MODEL FRONT)
 ========================= */
+export interface Discount {
+  percent: number;
+  description: string;
+  active: boolean;
+}
+
 export interface Table {
   _id: string;
 
@@ -62,4 +68,7 @@ export interface Table {
 
   /* virtual backend */
   activeTime?: number;
+
+  // New discounts field
+  discounts?: Discount[];
 }

@@ -22,16 +22,13 @@ import {
   getTablePayments,
   generateReceipt,
   updateTableLayout,
-} from "../services/tableService";
-
-import {
-  createStandardPaymentV2,
-  createSplitPaymentV2,
-  createPartialPaymentV2,
-  createCardPaymentV2,
+  createStandardPayment,
+  createSplitPayment,
+  createPartialPayment,
+  createCardPayment,
   PaymentServiceError,
   getPaymentErrorMessage,
-} from "../services/tableService.v2";
+} from "../services/tableService";
 
 import type { Table } from "../types/table";
 import { connectSalonSockets, getMainSocket } from "../../../services/socket";
@@ -739,14 +736,14 @@ export default function TablesPage() {
                 let response;
 
                 if (method === "card") {
-                  response = await createCardPaymentV2({
+                  response = await createCardPayment({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     cardDetails: data.cardDetails,
                     amount: currentOrderTotal
                   });
                 } else if (method === "split") {
-                  response = await createSplitPaymentV2({
+                  response = await createSplitPayment({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     totalSplits: data.totalSplits,
@@ -754,7 +751,7 @@ export default function TablesPage() {
                     amounts: data.amounts
                   });
                 } else if (method === "partial") {
-                  response = await createPartialPaymentV2({
+                  response = await createPartialPayment({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     amount: data.amount,
@@ -762,7 +759,7 @@ export default function TablesPage() {
                     amountPaid: data.amountPaid
                   });
                 } else if (method === "cash" || method === "transfer") {
-                  response = await createStandardPaymentV2({
+                  response = await createStandardPayment({
                     tableId: selectedTable._id!,
                     orderId: selectedOrderIdForPayment,
                     method: method,
@@ -774,19 +771,6 @@ export default function TablesPage() {
 
                 await fetchTables();
                 console.log("Pago registrado con éxito:", response);
-                
-                // Auto-cerrar mesa después del pago completo
-                if (response && (response.status === 'completed' || response.paymentStatus === 'completed')) {
-                  try {
-                    await closeTable(selectedTable._id!);
-                    await fetchTables();
-                    console.log("Mesa cerrada automáticamente después del pago");
-                  } catch (closeError) {
-                    console.error("Error al cerrar la mesa automáticamente:", closeError);
-                    setError("Pago registrado pero hubo un error al cerrar la mesa automáticamente");
-                  }
-                }
-                
                 setIsPaymentSelectorOpen(false);
               } catch (err: any) {
                 if (err instanceof PaymentServiceError) {
