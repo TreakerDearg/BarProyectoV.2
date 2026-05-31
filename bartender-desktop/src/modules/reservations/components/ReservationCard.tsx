@@ -88,6 +88,7 @@ export default function ReservationCard({
   highlighted,
   onSeat,
   onDelete,
+  onWhatsapp,
   onClick,
 }: Props) {
   const config = statusConfig[r.status] || statusConfig.pending;
