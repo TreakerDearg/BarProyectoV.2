@@ -51,7 +51,7 @@ export interface PaymentMethod {
 }
 
 /* =========================================================
-   ENHANCED ERROR CLASS
+   ENHANCED ERROR CLASS & HELPERS
 ========================================================= */
 export class PaymentServiceError extends Error {
   statusCode: number;
@@ -71,6 +71,37 @@ export class PaymentServiceError extends Error {
     this.originalError = originalError;
   }
 }
+
+export const getPaymentErrorMessage = (error: any): string => {
+  if (error instanceof PaymentServiceError) {
+    switch (error.errorCode) {
+      case "INSUFFICIENT_FUNDS":
+        return "Fondos insuficientes para completar la transacción.";
+      case "CARD_DECLINED":
+        return "La tarjeta fue rechazada por el banco emisor.";
+      case "EXPIRED_CARD":
+        return "La tarjeta ha caducado. Pruebe con otra.";
+      case "INCORRECT_PIN":
+        return "El PIN ingresado es incorrecto.";
+      case "NETWORK_ERROR":
+        return "Error de comunicación con el procesador de pagos.";
+      case "TERMINAL_OFFLINE":
+        return "La terminal de pago no responde o está fuera de línea.";
+      case "UNAUTHORIZED":
+        return "No autorizado para procesar el pago.";
+      default:
+        return error.message || "Error al procesar el pago.";
+    }
+  }
+  return error?.message || "Ocurrió un error inesperado al procesar el pago.";
+};
+
+export const isNetworkError = (error: any): boolean => {
+  if (error instanceof PaymentServiceError) {
+    return error.errorCode === "NETWORK_ERROR" || error.errorCode === "TERMINAL_OFFLINE";
+  }
+  return error?.message?.toLowerCase().includes("network") || false;
+};
 
 /* =========================================================
    SAFE WRAPPER (Soporte Inteligente para Estructura de Respuestas)
@@ -369,6 +400,8 @@ export default {
   getSessionPayments,
   getPaymentById,
   generateReceipt,
+  getPaymentErrorMessage,
+  isNetworkError,
 
   // Cobro Flows
   createStandardPayment,

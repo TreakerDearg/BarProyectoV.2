@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check } from "lucide-react";
-import { getAvailablePaymentMethodsV2 } from "../services/tableService.v2";
 import {
+  getAvailablePaymentMethods,
   PaymentServiceError,
   getPaymentErrorMessage,
   isNetworkError
-} from "../services/tableService.v2";
+} from "../services/tableService";
 
 interface PaymentMethod {
   _id: string;
@@ -106,10 +106,13 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
   const fetchAvailableMethods = async () => {
     try {
       setLoading(true);
-      const response = await getAvailablePaymentMethodsV2();
-      if (response && response.methods && response.methods.length > 0) {
-        // Convert V2 format to component format
-        const convertedMethods = response.methods.map((m: any) => ({
+      const response = await getAvailablePaymentMethods();
+      const methodsArray = Array.isArray(response)
+        ? response
+        : (response && (response as any).methods) || [];
+
+      if (methodsArray && methodsArray.length > 0) {
+        const convertedMethods = methodsArray.map((m: any) => ({
           _id: m.id,
           method: m.id,
           displayName: m.name,

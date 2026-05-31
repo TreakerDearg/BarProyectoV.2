@@ -22,6 +22,8 @@ import ReservationForm from "../components/ReservationForm";
 import ReservationCard from "../components/ReservationCard";
 import ReservationActionModal from "../components/ReservationActionModal";
 import WhatsappModal from "../components/WhatsappModal";
+import MiniCalendarFilter from "../components/MiniCalendarFilter";
+import { isSameDay } from "date-fns";
 
 import {
   getReservations,
@@ -81,6 +83,7 @@ export default function ReservationsPage() {
   /* VIEW SYSTEM */
   const [activeView, setActiveView] = useState<ViewMode>("confirmed");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilterDate, setSelectedFilterDate] = useState<Date | null>(null);
 
   /* PAGINATION SYSTEM */
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,7 +92,7 @@ export default function ReservationsPage() {
   /* LIVE CLOCK for radar countdowns */
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 30_000); // Update every 30s
+    const interval = setInterval(() => setNow(new Date()), 15_000); // Update every 15s
     return () => clearInterval(interval);
   }, []);
 
@@ -276,9 +279,14 @@ export default function ReservationsPage() {
       );
     }
 
+    // MiniCalendar Date Filter
+    if (selectedFilterDate) {
+      list = list.filter(r => isSameDay(new Date(r.startTime), selectedFilterDate));
+    }
+
     // Sort by Date
     return list.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }, [reservations, activeView, searchQuery]);
+  }, [reservations, activeView, searchQuery, selectedFilterDate]);
 
   /* PAGINATION LOGIC */
   const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
@@ -288,8 +296,8 @@ export default function ReservationsPage() {
   }, [filteredReservations, currentPage]);
 
   useEffect(() => {
-    setCurrentPage(1); // Reset page on view/search change
-  }, [activeView, searchQuery]);
+    setCurrentPage(1); // Reset page on view/search/date change
+  }, [activeView, searchQuery, selectedFilterDate]);
 
   /* KPI STATS */
   const stats = useMemo(() => ({
@@ -401,6 +409,15 @@ export default function ReservationsPage() {
           </button>
         </div>
       </div>
+
+      {/* ===========================
+         📅 AGENDA SEMANAL HORIZONTAL (MINI-CALENDAR)
+      =========================== */}
+      <MiniCalendarFilter
+        reservations={reservations}
+        selectedDate={selectedFilterDate}
+        onSelectDate={setSelectedFilterDate}
+      />
 
       {/* ===========================
          TIMELINE RADAR — "Radar de Llegadas"

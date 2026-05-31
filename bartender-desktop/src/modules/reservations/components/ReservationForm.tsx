@@ -23,6 +23,7 @@ import {
 
 import type { Reservation } from "../types/reservation";
 import { getAvailableTables } from "../services/reservationService";
+import MiniFloorPlan from "./MiniFloorPlan";
 
 /* =========================
    TYPES
@@ -91,6 +92,7 @@ export default function ReservationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [useVisualPicker, setUseVisualPicker] = useState(true);
 
   const isEditing = Boolean(reservation?._id);
 
@@ -474,74 +476,97 @@ export default function ReservationForm({
                     <MapPin size={12} className="text-gold" />
                     Mesa Asignada
                   </span>
-                  {loadingTables && <Loader2 className="animate-spin text-gold" size={14} />}
+                  <div className="flex items-center gap-3">
+                    {loadingTables && <Loader2 className="animate-spin text-gold animate-duration-slow" size={12} />}
+                    <button
+                      type="button"
+                      onClick={() => setUseVisualPicker(!useVisualPicker)}
+                      className="text-[9px] font-black text-gold hover:text-white uppercase tracking-widest bg-white/5 border border-white/5 hover:border-gold/30 px-2.5 py-1 rounded-lg transition-all"
+                    >
+                      {useVisualPicker ? "Lista de Mesas" : "Mapa de Salón"}
+                    </button>
+                  </div>
                 </label>
-                <div className="relative group/field">
-                  <MapPin size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity z-10" />
-                  <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-                  <select
-                    name="tableId"
-                    value={formData.tableId}
-                    onChange={handleChange}
-                    className="input-royale !pl-14 !pr-12 appearance-none cursor-pointer"
-                  >
-                    <option value="">— Seleccionar Mesa —</option>
-                    {Object.entries(groupedTables).map(([location, locationTables]) => {
-                      const config = getLocationConfig(location);
-                      return (
-                        <optgroup key={location} label={`${config.icon} ${config.label}`}>
-                          {locationTables.map((t) => (
-                            <option key={t._id} value={t._id}>
-                              Mesa {t.number} — Capacidad: {t.capacity} personas
-                            </option>
-                          ))}
-                        </optgroup>
-                      );
-                    })}
-                  </select>
-                </div>
 
-                {/* VISUAL TABLE TILES (grouped by location) */}
-                {tables.length > 0 && (
-                  <div className="space-y-4 mt-4">
-                    {Object.entries(groupedTables).map(([location, locationTables]) => {
-                      const config = getLocationConfig(location);
-                      return (
-                        <div key={location}>
-                          <p className={`text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
-                            <span>{config.icon}</span>
-                            {config.label}
-                            <span className="text-muted/50">({locationTables.length})</span>
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {locationTables.map((t) => {
-                              const isSelected = formData.tableId === t._id;
-                              const overCapacity = formData.guests > t.capacity;
-                              return (
-                                <button
-                                  key={t._id}
-                                  type="button"
-                                  onClick={() => setFormData((prev: any) => ({ ...prev, tableId: t._id }))}
-                                  className={`
-                                    px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border
-                                    ${isSelected
-                                      ? 'bg-gold/20 text-gold border-gold/40 shadow-gold-glow scale-105'
-                                      : overCapacity
-                                      ? 'bg-red-500/5 text-red-400/50 border-red-500/10 opacity-50 line-through'
-                                      : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory'
-                                    }
-                                  `}
-                                  title={overCapacity ? `Capacidad insuficiente (${t.capacity} max)` : `Mesa ${t.number} · ${t.capacity} personas`}
-                                >
-                                  M{t.number}
-                                  <span className="text-[8px] ml-1 opacity-60">({t.capacity}p)</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                {useVisualPicker ? (
+                  /* 🗺️ MINI FLOOR PLAN VISUAL PICKER */
+                  <MiniFloorPlan
+                    availableTables={tables}
+                    selectedTableId={formData.tableId}
+                    onSelectTable={(id) => setFormData((prev: any) => ({ ...prev, tableId: id }))}
+                    guestsCount={formData.guests}
+                  />
+                ) : (
+                  /* 📋 FALLBACK TRADITIONAL LIST SELECTOR */
+                  <div className="space-y-4">
+                    <div className="relative group/field">
+                      <MapPin size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity z-10" />
+                      <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+                      <select
+                        name="tableId"
+                        value={formData.tableId}
+                        onChange={handleChange}
+                        className="input-royale !pl-14 !pr-12 appearance-none cursor-pointer"
+                      >
+                        <option value="">— Seleccionar Mesa —</option>
+                        {Object.entries(groupedTables).map(([location, locationTables]) => {
+                          const config = getLocationConfig(location);
+                          return (
+                            <optgroup key={location} label={`${config.icon} ${config.label}`}>
+                              {locationTables.map((t) => (
+                                <option key={t._id} value={t._id}>
+                                  Mesa {t.number} — Capacidad: {t.capacity} personas
+                                </option>
+                              ))}
+                            </optgroup>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* VISUAL TABLE TILES (grouped by location) */}
+                    {tables.length > 0 && (
+                      <div className="space-y-4 mt-4">
+                        {Object.entries(groupedTables).map(([location, locationTables]) => {
+                          const config = getLocationConfig(location);
+                          return (
+                            <div key={location}>
+                              <p className={`text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
+                                <span>{config.icon}</span>
+                                {config.label}
+                                <span className="text-muted/50">({locationTables.length})</span>
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {locationTables.map((t) => {
+                                  const isSelected = formData.tableId === t._id;
+                                  const overCapacity = formData.guests > t.capacity;
+                                  return (
+                                    <button
+                                      key={t._id}
+                                      type="button"
+                                      onClick={() => setFormData((prev: any) => ({ ...prev, tableId: t._id }))}
+                                      className={`
+                                        px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border
+                                        ${isSelected
+                                          ? 'bg-gold/20 text-gold border-gold/40 shadow-gold-glow scale-105'
+                                          : overCapacity
+                                          ? 'bg-red-500/5 text-red-400/50 border-red-500/10 opacity-50 line-through'
+                                          : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory'
+                                        }
+                                      `}
+                                      title={overCapacity ? `Capacidad insuficiente (${t.capacity} max)` : `Mesa ${t.number} · ${t.capacity} personas`}
+                                    >
+                                      M{t.number}
+                                      <span className="text-[8px] ml-1 opacity-60">({t.capacity}p)</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

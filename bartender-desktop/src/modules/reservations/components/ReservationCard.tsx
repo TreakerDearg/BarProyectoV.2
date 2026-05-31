@@ -24,6 +24,7 @@ import {
 import type { Reservation } from "../types/reservation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { motion } from "framer-motion";
 
 interface Props {
   r: Reservation;
@@ -100,13 +101,33 @@ export default function ReservationCard({
                     (now.getTime() - startTime.getTime()) > 15 * 60 * 1000;
   const delayMinutes = isDelayed ? Math.floor((now.getTime() - startTime.getTime()) / (60 * 1000)) : 0;
 
+  // Tolerance countdown progress bar (15 minutes limit)
+  const elapsedMs = now.getTime() - startTime.getTime();
+  const elapsedMin = elapsedMs / (60 * 1000);
+  const isInTolerance = (r.status === "pending" || r.status === "confirmed") && 
+                        !isNaN(startTime.getTime()) && 
+                        elapsedMin >= 0 && elapsedMin <= 15;
+  const toleranceRemaining = 15 - elapsedMin;
+  const tolerancePercent = Math.max(0, Math.min(100, (toleranceRemaining / 15) * 100));
+
+  let toleranceColor = "bg-emerald-500";
+  let toleranceGlow = "shadow-emerald-500/30";
+  if (tolerancePercent < 33) {
+    toleranceColor = "bg-red-500 animate-pulse";
+    toleranceGlow = "shadow-red-500/40";
+  } else if (tolerancePercent < 66) {
+    toleranceColor = "bg-amber-500";
+    toleranceGlow = "shadow-amber-500/30";
+  }
+
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -8, scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
       className={`
         p-0 rounded-[2.5rem] transition-all duration-500
         group relative overflow-hidden flex flex-col cursor-pointer
-        hover:translate-y-[-8px] hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
-        active:scale-[0.97]
+        hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
         ${config.glow}
         ${r.isVIP 
           ? 'bg-gradient-to-br from-violet-950/40 via-[#0d091a] to-purple-950/40 border-gold/30 shadow-[0_0_30px_rgba(139,92,246,0.15)] hover:border-gold hover:shadow-[0_0_40px_rgba(212,163,64,0.3)] ring-1 ring-gold/20' 
@@ -117,6 +138,11 @@ export default function ReservationCard({
       `}
       onClick={onClick}
     >
+      {/* Shimmer light effect for VIP Obsidian Card */}
+      {r.isVIP && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+      )}
+
       {/* CASINO DECOR BAR */}
       <div className={`h-2.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-gradient-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-60 shadow-lg`} />
 
@@ -128,6 +154,25 @@ export default function ReservationCard({
             <span>Alerta de Retraso</span>
           </div>
           <span className="bg-red-500/20 px-2 py-0.5 rounded text-white font-black">+{delayMinutes} MIN</span>
+        </div>
+      )}
+
+      {/* TOLERANCE PROGRESS BAR STRIP */}
+      {isInTolerance && !isDelayed && (
+        <div className="bg-emerald-500/5 border-b border-white/5 px-8 py-2.5 flex flex-col gap-1.5 z-10 text-left">
+          <div className="flex items-center justify-between text-[8px] font-black tracking-widest uppercase text-muted">
+            <span className="flex items-center gap-1.5">
+              <Clock size={10} className="text-emerald-400" />
+              Tolerancia de Espera
+            </span>
+            <span className="text-ivory">{Math.ceil(toleranceRemaining)} MIN RESTANTES</span>
+          </div>
+          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${toleranceColor} ${toleranceGlow}`}
+              style={{ width: `${tolerancePercent}%` }}
+            />
+          </div>
         </div>
       )}
 
@@ -300,6 +345,6 @@ export default function ReservationCard({
 
       {/* CASINO GLOW DECOR */}
       <div className={`absolute -bottom-32 -right-32 w-64 h-64 ${config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-0 group-hover:opacity-10 blur-[120px] transition-all duration-1000`} />
-    </div>
+    </motion.div>
   );
 }
