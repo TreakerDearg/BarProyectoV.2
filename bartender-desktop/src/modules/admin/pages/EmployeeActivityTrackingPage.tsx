@@ -4,7 +4,6 @@ import {
   Clock, 
   Filter, 
   Search, 
-  User as UserIcon, 
   Sparkles,
   TrendingUp,
   Eye,
@@ -182,42 +181,33 @@ export default function EmployeeActivityTrackingPage() {
       <div className="relative z-10 max-w-7xl mx-auto space-y-8">
         
         {/* ================= HEADER ================= */}
-        <div className="flex items-end justify-between animate-fade-in-up">
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-gold opacity-20 blur-xl rounded-2xl animate-pulse" />
-              <div className="relative p-5 glass-card">
-                <Activity className="text-[#d4af37]" size={36} />
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-[#d4af37] font-semibold tracking-[0.3em] uppercase mb-2 opacity-80">
-                Sistema en Vivo
-              </p>
-              <h1 className="text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-                Tracking de
-                <span className="gradient-text"> Actividad</span>
-              </h1>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              Tracking de Actividad
+            </h1>
+            <p className="text-sm text-white/50 font-medium mt-1">
+              Sistema en vivo de monitoreo de empleados
+            </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* WebSocket Connection Indicator */}
             <button
               onClick={() => setRealtimeEnabled(!realtimeEnabled)}
-              className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-500 ${
+              className={`flex items-center gap-2 h-10 px-4 rounded-xl transition-all duration-200 ${
                 realtimeEnabled && socketConnected
-                  ? "bg-gradient-emerald text-black font-semibold" 
-                  : "glass-card text-white/70 hover:text-white"
+                  ? "bg-[#00FF95] text-black font-semibold" 
+                  : "bg-white/5 text-white/60 hover:text-white"
               }`}
               title={socketConnected ? "WebSocket conectado" : "WebSocket desconectado"}
             >
               {socketConnected ? (
-                <Wifi size={20} />
+                <Wifi size={18} />
               ) : (
-                <WifiOff size={20} />
+                <WifiOff size={18} />
               )}
-              <span className="text-sm font-semibold tracking-wide">
+              <span className="text-sm font-semibold">
                 {socketConnected ? "Real-time" : "Polling"}
               </span>
             </button>
@@ -225,14 +215,14 @@ export default function EmployeeActivityTrackingPage() {
             {/* Auto-refresh Toggle */}
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
-              className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all duration-500 ${
+              className={`flex items-center gap-2 h-10 px-4 rounded-xl transition-all duration-200 ${
                 autoRefresh 
-                  ? "bg-gradient-gold text-black font-semibold" 
-                  : "glass-card text-white/70 hover:text-white"
+                  ? "bg-[#00E5FF] text-black font-semibold" 
+                  : "bg-white/5 text-white/60 hover:text-white"
               }`}
             >
-              <RefreshCw size={20} className={autoRefresh ? "animate-spin" : ""} />
-              <span className="text-sm font-semibold tracking-wide">
+              <RefreshCw size={18} className={autoRefresh ? "animate-spin" : ""} />
+              <span className="text-sm font-semibold">
                 {autoRefresh ? "Live: ON" : "Live: OFF"}
               </span>
             </button>
@@ -241,37 +231,41 @@ export default function EmployeeActivityTrackingPage() {
 
         {/* ================= METRICS CARDS ================= */}
         {metrics && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
             <MetricCard
               label="Total Actividades"
               value={metrics.totalActivities}
-              icon={<Activity size={24} className="text-[#00d4ff]" />}
-              color="#00d4ff"
+              icon={<Activity size={32} className="text-[#00E5FF]" />}
+              color="#00E5FF"
             />
             <MetricCard
               label="Tiempo Promedio"
               value={`${Math.round(metrics.averageSessionDuration / 60000)} min`}
-              icon={<Clock size={24} className="text-[#d4af37]" />}
-              color="#d4af37"
+              icon={<Clock size={32} className="text-[#9D4EDD]" />}
+              color="#9D4EDD"
             />
             <MetricCard
               label="Hora Pico"
               value={metrics.peakActivityTime}
-              icon={<TrendingUp size={24} className="text-[#00ff88]" />}
-              color="#00ff88"
+              icon={<TrendingUp size={32} className="text-[#00FF95]" />}
+              color="#00FF95"
             />
             <MetricCard
               label="Módulos Activos"
               value={metrics.mostUsedModules.length}
-              icon={<Sparkles size={24} className="text-[#b147ff]" />}
-              color="#b147ff"
+              icon={<Sparkles size={32} className="text-[#FFD166]" />}
+              color="#FFD166"
             />
           </div>
         )}
 
         {/* ================= FILTERS ================= */}
-        <div className="glass-card p-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <div className="flex flex-wrap gap-4 items-center">
+        <div className="p-5 rounded-xl animate-fade-in-up" style={{
+          background: 'rgba(18, 18, 25, 0.85)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          animationDelay: '0.1s'
+        }}>
+          <div className="flex flex-wrap gap-3 items-center">
             <div className="flex-1 min-w-[200px] relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={18} />
               <input
@@ -279,14 +273,24 @@ export default function EmployeeActivityTrackingPage() {
                 placeholder="Buscar actividad..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 font-medium focus:outline-none focus:border-[#d4af37]/50 transition-all"
+                className="w-full h-12 pl-12 pr-4 rounded-xl text-white placeholder-white/40 font-medium focus:outline-none transition-all"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '14px'
+                }}
               />
             </div>
 
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:outline-none focus:border-[#d4af37]/50 transition-all cursor-pointer"
+              className="h-12 px-4 rounded-xl text-white font-medium focus:outline-none transition-all cursor-pointer"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '14px'
+              }}
             >
               <option value="">Todos los empleados</option>
               {employees.map(emp => (
@@ -297,7 +301,12 @@ export default function EmployeeActivityTrackingPage() {
             <select
               value={selectedActivityType}
               onChange={(e) => setSelectedActivityType(e.target.value as ActivityType | "")}
-              className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:outline-none focus:border-[#d4af37]/50 transition-all cursor-pointer"
+              className="h-12 px-4 rounded-xl text-white font-medium focus:outline-none transition-all cursor-pointer"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '14px'
+              }}
             >
               <option value="">Todos los tipos</option>
               {activityTypes.map(type => (
@@ -308,7 +317,12 @@ export default function EmployeeActivityTrackingPage() {
             <select
               value={selectedShift}
               onChange={(e) => setSelectedShift(e.target.value)}
-              className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white font-medium focus:outline-none focus:border-[#d4af37]/50 transition-all cursor-pointer"
+              className="h-12 px-4 rounded-xl text-white font-medium focus:outline-none transition-all cursor-pointer"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '14px'
+              }}
             >
               <option value="">Todos los turnos</option>
               {shifts.map(shift => (
@@ -318,7 +332,7 @@ export default function EmployeeActivityTrackingPage() {
 
             <button
               onClick={fetchData}
-              className="flex items-center gap-2 h-12 px-5 rounded-xl bg-gradient-gold text-black font-semibold hover:shadow-lg hover:shadow-[#d4af37]/20 transition-all"
+              className="flex items-center gap-2 h-12 px-5 rounded-xl bg-[#00E5FF] text-black font-semibold hover:bg-[#00E5FF]/90 active:scale-95 transition-all duration-200"
             >
               <Filter size={18} />
               <span className="text-sm font-semibold">Aplicar</span>
@@ -327,83 +341,89 @@ export default function EmployeeActivityTrackingPage() {
         </div>
 
         {/* ================= ACTIVITY LIST ================= */}
-        <div className="glass-card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <div className="p-6 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white flex items-center gap-3" style={{ fontFamily: 'var(--font-display)' }}>
-                <Clock className="text-[#d4af37]" size={24} />
-                Actividad en Tiempo Real
-              </h2>
-              <span className="text-sm text-white/60 font-semibold">
-                {filteredActivities.length} registros
-              </span>
-            </div>
+        <div className="p-5 rounded-xl animate-fade-in-up" style={{
+          background: 'rgba(18, 18, 25, 0.85)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          animationDelay: '0.15s'
+        }}>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Clock size={18} className="text-[#00E5FF]" />
+              Actividad en Tiempo Real
+            </h2>
+            <span className="text-sm text-white/50 font-medium">
+              {filteredActivities.length} registros
+            </span>
           </div>
 
           {loading ? (
-            <div className="p-12 text-center">
-              <div className="relative inline-block mb-4">
-                <div className="absolute inset-0 bg-gradient-gold opacity-20 blur-xl rounded-full animate-pulse" />
-                <RefreshCw size={48} className="relative text-[#d4af37] mx-auto animate-spin" />
-              </div>
-              <p className="text-white/60 font-semibold tracking-wide">
-                Cargando actividades...
-              </p>
+            <div className="p-8 text-center">
+              <RefreshCw size={32} className="text-white/40 mx-auto animate-spin" />
+              <p className="text-white/40 text-sm mt-2">Cargando actividades...</p>
             </div>
           ) : filteredActivities.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="relative inline-block mb-4">
-                <Activity size={48} className="text-white/20 mx-auto" />
-              </div>
-              <p className="text-white/40 font-semibold tracking-wide">
-                No hay actividades registradas
-              </p>
+            <div className="p-8 text-center">
+              <Activity size={32} className="text-white/20 mx-auto mb-2" />
+              <p className="text-white/30 text-sm">No hay actividades registradas</p>
             </div>
           ) : (
-            <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto luxury-scrollbar">
-              {filteredActivities.map((activity, index) => {
+            <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
+              {filteredActivities.map((activity) => {
                 const config = getActivityConfig(activity.activityType);
                 return (
                   <div
                     key={activity._id}
-                    className="px-6 py-5 hover:bg-white/5 transition-all duration-300 flex items-center gap-6 animate-fade-in-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
+                    className="px-4 py-4 hover:bg-white/[0.02] transition-all duration-300 flex items-center gap-4"
                   >
                     {/* User Avatar */}
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center">
-                        <UserIcon size={24} className="text-white/60" />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00E5FF]/20 to-[#9D4EDD]/20 border border-white/10 flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {activity.userName.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#00ff88] border-2 border-[#0a0a0f]" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#00FF95] border-2 border-[#121215]" />
                     </div>
 
                     {/* Activity Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-base font-semibold text-white tracking-wide">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-sm font-semibold text-white">
                           {activity.userName}
                         </span>
-                        <span className="text-xs text-white/50 font-semibold uppercase tracking-wider px-2 py-1 rounded-full bg-white/5 border border-white/10">
+                        <span className="text-[10px] text-white/40 font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/5 border border-white/5">
                           {activity.userRole}
                         </span>
                       </div>
-                      <p className="text-sm text-white/60 font-medium truncate">
+                      <p className="text-xs text-white/50 font-medium truncate">
                         {activity.description}
                       </p>
                     </div>
 
                     {/* Activity Type Badge */}
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${config.color} bg-white/5 font-semibold text-xs uppercase tracking-wider border border-white/10`}>
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-[10px] uppercase tracking-wider border ${
+                      config.color === 'text-[#00ff88]' 
+                        ? 'bg-[#00FF95]/10 border-[#00FF95]/30 text-[#00FF95]'
+                        : config.color === 'text-[#ff4757]'
+                        ? 'bg-[#FF4D6D]/10 border-[#FF4D6D]/30 text-[#FF4D6D]'
+                        : config.color === 'text-[#00d4ff]'
+                        ? 'bg-[#00E5FF]/10 border-[#00E5FF]/30 text-[#00E5FF]'
+                        : config.color === 'text-[#d4af37]'
+                        ? 'bg-[#FFD166]/10 border-[#FFD166]/30 text-[#FFD166]'
+                        : config.color === 'text-[#b147ff]'
+                        ? 'bg-[#9D4EDD]/10 border-[#9D4EDD]/30 text-[#9D4EDD]'
+                        : 'bg-white/5 border-white/10 text-white/50'
+                    }`}>
                       {config.icon}
                       {config.label}
                     </div>
 
                     {/* Time */}
                     <div className="text-right flex-shrink-0">
-                      <div className="text-lg font-bold text-white tracking-wide">
+                      <div className="text-sm font-bold text-white">
                         {formatTime(activity.timestamp)}
                       </div>
-                      <div className="text-xs text-white/50 font-semibold uppercase tracking-wider">
+                      <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider">
                         {formatDate(activity.timestamp)}
                       </div>
                     </div>
@@ -428,23 +448,22 @@ interface MetricCardProps {
 
 const MetricCard = ({ label, value, icon, color }: MetricCardProps) => {
   return (
-    <div className="metric-card group">
-      <div className="relative">
-        <div className="flex items-start justify-between mb-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br opacity-30 blur-xl rounded-2xl" style={{ background: `linear-gradient(135deg, ${color} 0%, transparent 100%)` }} />
-            <div className="relative p-4 rounded-xl bg-white/5 border border-white/10">
-              {icon}
-            </div>
-          </div>
-          <div className="text-xs text-white/50 font-semibold uppercase tracking-wider">
+    <div className="p-4 rounded-xl transition-all hover:-translate-y-0.5" style={{
+      background: 'rgba(18, 18, 25, 0.85)',
+      border: '1px solid rgba(255, 255, 255, 0.08)'
+    }}>
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 rounded-lg" style={{ background: `${color}15`, border: `1px solid ${color}30` }}>
+          {icon}
+        </div>
+        <div className="flex-1">
+          <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
             {label}
           </div>
+          <div className="text-2xl font-bold text-white tracking-tight">
+            {value}
+          </div>
         </div>
-        <div className="text-4xl font-black text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-          {value}
-        </div>
-        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-radial opacity-0 group-hover:opacity-30 transition-opacity duration-500" style={{ background: `radial-gradient(circle, ${color} 0%, transparent 70%)` }} />
       </div>
     </div>
   );
