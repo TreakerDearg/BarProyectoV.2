@@ -74,6 +74,7 @@ export default function TablesPage() {
     closeTutorial: closeSalonTutorial,
     completeTutorial: completeSalonTutorial,
   } = useSalonTutorial(true);
+  const [, setCurrentOrderTotal] = useState<number>(0);
 
   const handleTableLayoutChange = async (id: string, x: number, y: number) => {
     try {
