@@ -15,6 +15,7 @@ import {
 } from "../utils/paymentErrors.js";
 import { attachTableSummary } from "./tableSummary.service.js";
 import { completeReservationOnTableClose } from "./tableSession.service.js";
+import { runTransactionWithRetry } from "../utils/retry.js";
 
 export const toMoney = (value) => Number(Number(value || 0).toFixed(2));
 
@@ -74,203 +75,245 @@ export const processSessionCheckout = async ({
   processedBy = null,
   ip = null,
 }) => {
-  const dbSession = await mongoose.startSession();
+  logger.info(`[Checkout] Starting session checkout for table ${tableId}, session ${sessionId}`);
+
+  if (!tableId) throw new PaymentValidationError("tableId es obligatorio");
+  if (!sessionId) throw new PaymentValidationError("sessionId es obligatorio");
+  if (!method) throw new PaymentValidationError("method es obligatorio");
+  if (!["cash", "transfer", "card", "split"].includes(method)) {
+    throw new PaymentValidationError("method debe ser cash, transfer, card o split");
+  }
+
+  // Pre-transaction checks to prevent double payment
+  const table = await Table.findById(tableId).lean();
+  if (!table) throw new TableNotFoundError("Mesa no encontrada");
+  if (!table.currentSessionId) throw new TableNoActiveSessionError("Mesa sin sesión activa");
+  if (String(table.currentSessionId) !== String(sessionId)) {
+    throw new SessionMismatchError("La sesión indicada no coincide con la sesión activa de la mesa");
+  }
+
+  // Check if checkout is already in progress
+  if (table.checkoutInProgress) {
+    throw new PaymentValidationError("Ya existe un checkout en progreso para esta mesa");
+  }
+
+  // Check for already paid/closed orders (double payment prevention)
+  const paidOrdersCount = await Order.countDocuments({
+    table: tableId,
+    sessionId,
+    sessionStatus: "closed",
+    paymentStatus: "paid",
+  });
+  if (paidOrdersCount > 0) {
+    throw new PaymentValidationError("La sesión ya fue cobrada anteriormente");
+  }
+
+  // Set checkout lock
+  await Table.findByIdAndUpdate(tableId, {
+    checkoutInProgress: true,
+    checkoutStartedAt: new Date(),
+  });
 
   try {
-    dbSession.startTransaction();
+    const result = await runTransactionWithRetry(async (dbSession) => {
+      const tableTx = await Table.findById(tableId).session(dbSession);
+      if (!tableTx) throw new TableNotFoundError("Mesa no encontrada");
+      if (!tableTx.currentSessionId) throw new TableNoActiveSessionError("Mesa sin sesión activa");
+      if (String(tableTx.currentSessionId) !== String(sessionId)) {
+        throw new SessionMismatchError("La sesión indicada no coincide con la sesión activa de la mesa");
+      }
 
-    if (!tableId) throw new PaymentValidationError("tableId es obligatorio");
-    if (!sessionId) throw new PaymentValidationError("sessionId es obligatorio");
-    if (!method) throw new PaymentValidationError("method es obligatorio");
-    if (!["cash", "transfer", "card", "split"].includes(method)) {
-      throw new PaymentValidationError("method debe ser cash, transfer, card o split");
-    }
+      const orders = await Order.find({
+        table: tableId,
+        sessionId,
+        sessionStatus: "open",
+        paymentStatus: { $ne: "paid" },
+        status: { $ne: "cancelled" },
+      }).session(dbSession);
 
-    const table = await Table.findById(tableId).session(dbSession);
-    if (!table) throw new TableNotFoundError("Mesa no encontrada");
-    if (!table.currentSessionId) throw new TableNoActiveSessionError("Mesa sin sesión activa");
-    if (String(table.currentSessionId) !== String(sessionId)) {
-      throw new SessionMismatchError("La sesión indicada no coincide con la sesión activa de la mesa");
-    }
+      if (!orders.length) {
+        throw new OrderNotFoundError("No hay órdenes abiertas para cobrar en esta mesa");
+      }
 
-    const orders = await Order.find({
-      table: tableId,
-      sessionId,
-      sessionStatus: "open",
-      paymentStatus: { $ne: "paid" },
-      status: { $ne: "cancelled" },
-    }).session(dbSession);
+      const orderBreakdown = orders.map((order) => ({
+        order,
+        ...getOrderFinancials(order),
+      }));
 
-    if (!orders.length) {
-      throw new OrderNotFoundError("No hay órdenes abiertas para cobrar en esta mesa");
-    }
+      const subtotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.subtotal, 0));
+      const discountTotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.discountTotal, 0));
+      const finalTotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.total, 0));
 
-    const pendingDiscounts = await Discount.countDocuments({
-      order: { $in: orders.map((order) => order._id) },
-      status: "PENDING",
-    }).session(dbSession);
-    if (pendingDiscounts > 0) {
-      throw new PaymentValidationError("Hay descuentos pendientes de aprobación antes de cobrar");
-    }
+      if (finalTotal <= 0) throw new InvalidAmountError("El total de la sesión debe ser mayor a 0");
 
-    const orderBreakdown = orders.map((order) => ({
-      order,
-      ...getOrderFinancials(order),
-    }));
+      const amountPaid =
+        method === "cash" ? Number(paymentDetails.amountPaid || finalTotal) : finalTotal;
+      if (method === "cash" && amountPaid < finalTotal) {
+        throw new InvalidAmountError(
+          `Monto insuficiente. Total: $${finalTotal}, Pagado: $${amountPaid}`
+        );
+      }
+      if (method === "card" && !paymentDetails.cardDetails?.lastFour) {
+        throw new PaymentValidationError("lastFour de tarjeta es obligatorio");
+      }
 
-    const subtotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.subtotal, 0));
-    const discountTotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.discountTotal, 0));
-    const finalTotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.total, 0));
+      const detailsWithIp = { ...paymentDetails, ip };
 
-    if (finalTotal <= 0) throw new InvalidAmountError("El total de la sesión debe ser mayor a 0");
+      // Prepare payment documents for bulk insert
+      const paymentDocuments = orderBreakdown.map((item, index) => {
+        const isLast = index === orderBreakdown.length - 1;
+        const paymentMethod = method === "split" ? "split" : method;
+        const paidForOrder =
+          method === "cash"
+            ? item.total + (isLast ? Math.max(0, amountPaid - finalTotal) : 0)
+            : item.total;
 
-    const amountPaid =
-      method === "cash" ? Number(paymentDetails.amountPaid || finalTotal) : finalTotal;
-    if (method === "cash" && amountPaid < finalTotal) {
-      throw new InvalidAmountError(
-        `Monto insuficiente. Total: $${finalTotal}, Pagado: $${amountPaid}`
-      );
-    }
-    if (method === "card" && !paymentDetails.cardDetails?.lastFour) {
-      throw new PaymentValidationError("lastFour de tarjeta es obligatorio");
-    }
-
-    const detailsWithIp = { ...paymentDetails, ip };
-    const payments = [];
-
-    for (let index = 0; index < orderBreakdown.length; index++) {
-      const item = orderBreakdown[index];
-      const isLast = index === orderBreakdown.length - 1;
-      const paymentMethod = method === "split" ? "split" : method;
-      const paidForOrder =
-        method === "cash"
-          ? item.total + (isLast ? Math.max(0, amountPaid - finalTotal) : 0)
-          : item.total;
-
-      const [payment] = await Payment.create(
-        [
-          {
-            table: tableId,
-            order: item.order._id,
-            sessionId,
-            method: paymentMethod,
-            amount: item.total,
-            amountPaid: toMoney(paidForOrder),
-            change: method === "cash" && isLast ? toMoney(Math.max(0, amountPaid - finalTotal)) : 0,
-            discountTotal: item.discountTotal,
-            subtotal: item.subtotal,
-            status: "completed",
-            cardDetails:
-              method === "card"
-                ? {
-                    lastFour: detailsWithIp.cardDetails.lastFour,
-                    cardType: detailsWithIp.cardDetails.cardType || "other",
-                    authorizationCode: detailsWithIp.cardDetails.authorizationCode || "000000",
-                    terminalId: detailsWithIp.cardDetails.terminalId || "TERM-01",
-                  }
-                : undefined,
-            splitDetails:
-              method === "split"
-                ? {
-                    isPartial: false,
-                    totalSplits: Number(detailsWithIp.totalSplits || 1),
-                    currentSplit: 1,
-                    splitAmount: item.total,
-                  }
-                : undefined,
-            receipt: {
-              items: item.order.items.map((orderItem) => ({
-                name: orderItem.name,
-                quantity: orderItem.quantity,
-                price: orderItem.price,
-                subtotal: (orderItem.price || 0) * (orderItem.quantity || 0),
-              })),
-            },
-            metadata: {
-              device: detailsWithIp.device,
-              ip: detailsWithIp.ip,
-              notes: detailsWithIp.notes || "Checkout de sesión",
-              skipTableSync: true,
-              checkoutType: "session",
-            },
-            processedBy,
+        return {
+          table: tableId,
+          order: item.order._id,
+          sessionId,
+          method: paymentMethod,
+          amount: item.total,
+          amountPaid: toMoney(paidForOrder),
+          change: method === "cash" && isLast ? toMoney(Math.max(0, amountPaid - finalTotal)) : 0,
+          discountTotal: item.discountTotal,
+          subtotal: item.subtotal,
+          status: "completed",
+          cardDetails:
+            method === "card"
+              ? {
+                  lastFour: detailsWithIp.cardDetails.lastFour,
+                  cardType: detailsWithIp.cardDetails.cardType || "other",
+                  authorizationCode: detailsWithIp.cardDetails.authorizationCode || "000000",
+                  terminalId: detailsWithIp.cardDetails.terminalId || "TERM-01",
+                }
+              : undefined,
+          splitDetails:
+            method === "split"
+              ? {
+                  isPartial: false,
+                  totalSplits: Number(detailsWithIp.totalSplits || 1),
+                  currentSplit: 1,
+                  splitAmount: item.total,
+                }
+              : undefined,
+          receipt: {
+            items: item.order.items.map((orderItem) => ({
+              name: orderItem.name,
+              quantity: orderItem.quantity,
+              price: orderItem.price,
+              subtotal: (orderItem.price || 0) * (orderItem.quantity || 0),
+            })),
           },
-        ],
-        { session: dbSession }
+          metadata: {
+            device: detailsWithIp.device,
+            ip: detailsWithIp.ip,
+            notes: detailsWithIp.notes || "Checkout de sesión",
+            skipTableSync: true,
+            checkoutType: "session",
+          },
+          processedBy,
+        };
+      });
+
+      // Bulk insert payments
+      const payments = await Payment.insertMany(paymentDocuments, { session: dbSession });
+
+      // Bulk update orders
+      const orderUpdateOperations = orders.map((order, index) => ({
+        updateOne: {
+          filter: { _id: order._id },
+          update: {
+            payment: payments[index]._id,
+            paymentStatus: "paid",
+            paymentMethod: method === "split" ? "mixed" : method,
+            sessionStatus: "closed",
+            status: order.status === "cancelled" ? "cancelled" : "completed",
+            paidAt: new Date(),
+            closedAt: new Date(),
+          },
+        },
+      }));
+      await Order.bulkWrite(orderUpdateOperations, { session: dbSession });
+
+      const maintenanceUntil = new Date(
+        Date.now() + Math.max(1, Number(maintenanceMinutes || 5)) * 60 * 1000
       );
+      tableTx.setMaintenance(maintenanceUntil);
+      tableTx.lastSessionClosedAt = new Date();
+      tableTx.totalPayments = Number((tableTx.totalPayments || 0) + finalTotal);
+      tableTx.lastPaymentAt = new Date();
+      tableTx.releaseCheckoutLock();
+      await tableTx.save({ session: dbSession });
 
-      payments.push(payment);
+      logger.info(`[Checkout] Transaction committed successfully for table ${tableId}`);
 
-      item.order.payment = payment._id;
-      item.order.paymentStatus = "paid";
-      item.order.paymentMethod = method === "split" ? "mixed" : method;
-      item.order.sessionStatus = "closed";
-      item.order.status = item.order.status === "cancelled" ? "cancelled" : "completed";
-      item.order.paidAt = new Date();
-      item.order.closedAt = new Date();
-      await item.order.save({ session: dbSession });
-    }
+      return {
+        payments,
+        orders,
+        table: tableTx,
+        subtotal,
+        discountTotal,
+        finalTotal,
+        amountPaid,
+        maintenanceUntil,
+      };
+    });
 
+    // Get applied discount IDs (safe to do outside transaction)
     const appliedDiscountIds = await Discount.find({
-      order: { $in: orders.map((order) => order._id) },
+      order: { $in: result.orders.map((order) => order._id) },
       status: "APPLIED",
     })
       .distinct("_id")
-      .session(dbSession);
-
-    const maintenanceUntil = new Date(
-      Date.now() + Math.max(1, Number(maintenanceMinutes || 5)) * 60 * 1000
-    );
-    table.setMaintenance(maintenanceUntil);
-    table.lastSessionClosedAt = new Date();
-    table.totalPayments = Number((table.totalPayments || 0) + finalTotal);
-    table.lastPaymentAt = new Date();
-    await table.save({ session: dbSession });
-
-    await dbSession.commitTransaction();
+      .lean();
 
     await completeReservationOnTableClose(tableId);
     await emitTableUpdate(tableId);
 
-    for (const payment of payments) {
+    for (const payment of result.payments) {
       emitPaymentCreated(payment);
       emitPaymentCompleted(payment);
     }
-    io.emit("table:closed", { tableId, sessionId, maintenanceUntil });
+    io.emit("table:closed", { tableId, sessionId, maintenanceUntil: result.maintenanceUntil });
 
     const updatedTable = await Table.findById(tableId).lean();
     const decoratedTable = await attachTableSummary(updatedTable);
 
     logger.info(
-      `[Payment] Session checkout OK mesa ${table.number} - $${finalTotal} - ${payments.length} pago(s)`
+      `[Payment] Session checkout OK mesa ${updatedTable.number} - $${result.finalTotal} - ${result.payments.length} pago(s)`
     );
 
     return {
-      payment: payments[0],
-      payments,
-      orders,
+      payment: result.payments[0],
+      payments: result.payments,
+      orders: result.orders,
       table: decoratedTable,
       receiptSummary: {
         sessionId,
-        subtotal,
-        discountTotal,
-        total: finalTotal,
+        subtotal: result.subtotal,
+        discountTotal: result.discountTotal,
+        total: result.finalTotal,
         method,
-        amountPaid: toMoney(amountPaid),
-        change: method === "cash" ? toMoney(Math.max(0, amountPaid - finalTotal)) : 0,
-        maintenanceUntil,
+        amountPaid: toMoney(result.amountPaid),
+        change: method === "cash" ? toMoney(Math.max(0, result.amountPaid - result.finalTotal)) : 0,
+        maintenanceUntil: result.maintenanceUntil,
         appliedDiscounts: appliedDiscountIds,
-        receiptNumber: payments[0]?.receipt?.receiptNumber,
-        issuedAt: payments[0]?.receipt?.issuedAt || payments[0]?.createdAt,
+        receiptNumber: result.payments[0]?.receipt?.receiptNumber,
+        issuedAt: result.payments[0]?.receipt?.issuedAt || result.payments[0]?.createdAt,
       },
       balanceDue: 0,
     };
   } catch (error) {
-    if (dbSession.inTransaction()) {
-      await dbSession.abortTransaction();
-    }
+    logger.error(`[Checkout] Transaction failed for table ${tableId}: ${error.message}`);
     throw error;
   } finally {
-    dbSession.endSession();
+    // Always release checkout lock
+    await Table.findByIdAndUpdate(tableId, {
+      checkoutInProgress: false,
+      checkoutStartedAt: null,
+    }).catch((err) => {
+      logger.error(`[Checkout] Failed to release checkout lock for table ${tableId}: ${err.message}`);
+    });
   }
 };

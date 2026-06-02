@@ -161,6 +161,20 @@ const tableSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    /* =========================
+       CHECKOUT LOCK
+    ========================= */
+    checkoutInProgress: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    checkoutStartedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -246,6 +260,29 @@ tableSchema.methods.setMaintenance = function (untilDate) {
   this.currentSessionId = null;
   this.openedAt = null;
   this.closedAt = new Date();
+};
+
+/**
+ * Inicia el bloqueo de checkout para prevenir concurrencia
+ */
+tableSchema.methods.startCheckoutLock = function () {
+  this.checkoutInProgress = true;
+  this.checkoutStartedAt = new Date();
+};
+
+/**
+ * Libera el bloqueo de checkout
+ */
+tableSchema.methods.releaseCheckoutLock = function () {
+  this.checkoutInProgress = false;
+  this.checkoutStartedAt = null;
+};
+
+/**
+ * Verifica si hay un checkout en progreso
+ */
+tableSchema.methods.isCheckoutInProgress = function () {
+  return this.checkoutInProgress === true;
 };
 
 /* =========================

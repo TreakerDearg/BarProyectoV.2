@@ -115,8 +115,82 @@ export const retryWithSession = async (operation, options = {}) => {
   return retry(operation, { ...defaultOptions, ...options });
 };
 
+/**
+ * Run a MongoDB transaction with automatic retry on transient errors
+ * Handles TransientTransactionError, UnknownTransactionCommitResult, and WriteConflict
+ * @param {Function} operation - Function that receives a session and performs transactional operations
+ * @param {Object} options - Retry options
+ * @param {number} options.maxRetries - Maximum number of retries (default: 3)
+ * @param {number} options.initialDelay - Initial delay in ms (default: 100)
+ * @returns {Promise} - Result of the transaction
+ */
+export const runTransactionWithRetry = async (operation, options = {}) => {
+  const {
+    maxRetries = 3,
+    initialDelay = 100,
+  } = options;
+
+  const retryableErrors = [
+    'TransientTransactionError',
+    'UnknownTransactionCommitResult',
+    'WriteConflict',
+    'MongoWriteConflict',
+  ];
+
+  let lastError;
+  let currentDelay = initialDelay;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const session = await mongoose.startSession();
+    
+    try {
+      session.startTransaction();
+      const result = await operation(session);
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      lastError = error;
+
+      // Check if error is retryable
+      const isRetryable = retryableErrors.some(errorType =>
+        error.name === errorType ||
+        error.code === errorType ||
+        error.message?.includes(errorType) ||
+        error.message?.includes('Write conflict')
+      );
+
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+
+      if (!isRetryable || attempt === maxRetries) {
+        logger.error(`[Transaction] Failed after ${attempt} attempt(s)`, {
+          error: error.message,
+          errorName: error.name,
+          errorCode: error.code,
+        });
+        throw error;
+      }
+
+      logger.warn(`[Transaction] Retry attempt ${attempt + 1}/${maxRetries} - Write conflict detected`, {
+        error: error.message,
+        errorName: error.name,
+      });
+
+      // Exponential backoff: 100ms, 200ms, 400ms
+      await new Promise(resolve => setTimeout(resolve, currentDelay));
+      currentDelay *= 2;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  throw lastError;
+};
+
 export default {
   retry,
   retryDatabaseOperation,
   retryWithSession,
+  runTransactionWithRetry,
 };
