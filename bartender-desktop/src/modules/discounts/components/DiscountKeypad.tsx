@@ -10,6 +10,10 @@ interface Props {
   valueInput: string;
   appendNumber: (v: string) => void;
   removeLast: () => void;
+  presets?: {
+    PERCENT?: number[];
+    FLAT?: number[];
+  };
 }
 
 export default function NebulaDiscountKeypad({
@@ -19,11 +23,14 @@ export default function NebulaDiscountKeypad({
   valueInput,
   appendNumber,
   removeLast,
+  presets,
 }: Props) {
   const numerosTeclado = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
   
-  // Valores rápidos comunes para descuentos Nebula
-  const descuentosRapidos = type === "PERCENT" ? [10, 15, 20, 25, 50] : [5, 10, 15, 20, 50];
+  // Valores rápidos configurables o defaults
+  const descuentosRapidos = type === "PERCENT"
+    ? presets?.PERCENT || [10, 15, 20, 25, 50]
+    : presets?.FLAT || [5, 10, 15, 20, 50];
   
   // Historial de valores recientes (simulado - en producción vendría de estado real)
   const valoresRecientes = [10, 15, 20];

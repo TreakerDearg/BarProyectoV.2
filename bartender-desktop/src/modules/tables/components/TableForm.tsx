@@ -293,16 +293,51 @@ export default function TableForm({
         <div className="space-y-4">
            <div className="flex items-center gap-2">
               <Tag size={12} className="text-gold opacity-50" />
-              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Etiquetas Dinámicas</h3>
+              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Etiquetas de Alerta Alimentaria</h3>
            </div>
            
-           <div className="flex gap-4">
+           {/* Preset Tags for Food Allergies/Diets */}
+           <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Celíaco", type: "allergy" as const, priority: "high" as const },
+                { label: "Alergia frutos secos", type: "allergy" as const, priority: "high" as const },
+                { label: "Alergia mariscos", type: "allergy" as const, priority: "high" as const },
+                { label: "Sin lactosa", type: "diet" as const, priority: "medium" as const },
+                { label: "Vegetariano", type: "diet" as const, priority: "medium" as const },
+              ].map((preset) => {
+                const isActive = formData.tags?.some(t => t.label === preset.label);
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => isActive ? removeTag(preset.label) : setFormData(prev => ({
+                      ...prev,
+                      tags: [...(prev.tags || []), { label: preset.label, type: preset.type, priority: preset.priority }]
+                    }))}
+                    className={`
+                      px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all
+                      ${isActive
+                        ? preset.priority === 'high'
+                          ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                          : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+                        : 'bg-white/5 text-muted border-white/10 hover:border-white/20'
+                      }
+                    `}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+           </div>
+
+           {/* Custom Tag Input */}
+           <div className="flex gap-4 pt-2">
              <input
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                 className="input !px-6 !py-4 rounded-2xl border-white/5 bg-white/5 flex-1"
-                placeholder="Añadir atributo..."
+                placeholder="Añadir etiqueta personalizada..."
              />
              <button
                 type="button"
@@ -313,9 +348,18 @@ export default function TableForm({
              </button>
            </div>
 
+           {/* All Tags Display */}
            <div className="flex flex-wrap gap-2">
               {formData.tags?.map((t, i) => (
-                <span key={i} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-gold/80 flex items-center gap-3">
+                <span key={i} className={`
+                  px-4 py-2 rounded-full text-[10px] font-black flex items-center gap-3 border
+                  ${t.priority === 'high'
+                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                    : t.priority === 'medium'
+                    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                    : 'bg-white/5 text-gold/80 border-white/10'
+                  }
+                `}>
                   {t.label}
                   <button type="button" onClick={() => removeTag(t.label)} className="hover:text-white transition-colors">
                     <X size={12} />

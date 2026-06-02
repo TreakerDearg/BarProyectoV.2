@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createPayment,
+  createSessionCheckout,
   getPaymentById,
   getTablePayments,
   getSessionPayments,
@@ -109,6 +110,12 @@ router.post(
   "/card",
   ...staffOnly,
   asyncHandler(createCardPayment)
+);
+
+router.post(
+  "/session-checkout",
+  ...staffOnly,
+  asyncHandler(createSessionCheckout)
 );
 
 export default router;

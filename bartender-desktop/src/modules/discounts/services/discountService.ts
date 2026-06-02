@@ -12,6 +12,7 @@ export interface ApplyDiscountDTO {
   value: number;
   reason: DiscountReason;
   note?: string;
+  promotionId?: string;
 }
 
 const extractError = (error: any): string => {
@@ -63,38 +64,25 @@ export const discountService = {
 
   async getTodayStats() {
     try {
-      const { data } = await api.get("/discounts", { params: { limit: 300 } });
-      const discounts = Array.isArray(data) ? data : [];
-      const today = new Date();
-
-      const sameDay = discounts.filter((d: any) => {
-        if (!d?.createdAt) return false;
-        const dt = new Date(d.createdAt);
-        return (
-          dt.getFullYear() === today.getFullYear() &&
-          dt.getMonth() === today.getMonth() &&
-          dt.getDate() === today.getDate()
-        );
-      });
-
-      const todayTotal = sameDay.reduce(
-        (acc: number, d: any) => acc + Number(d?.amountApplied || 0),
-        0
-      );
-
-      const percentDiscounts = sameDay.filter((d: any) => d?.type === "PERCENT");
-      const averagePercent = percentDiscounts.length
-        ? percentDiscounts.reduce(
-            (acc: number, d: any) => acc + Number(d?.value || 0),
-            0
-          ) / percentDiscounts.length
-        : 0;
-
+      const { data } = await api.get("/discounts/stats/daily");
       return {
-        todayTotal,
-        averagePercent,
-        appliedCount: sameDay.length,
+        todayTotal: data.summary.totalAmount,
+        averagePercent: data.byType.PERCENT.averageValue,
+        appliedCount: data.summary.totalDiscounts,
+        byType: data.byType,
+        byReason: data.byReason,
+        byEmployee: data.byEmployee,
+        byTable: data.byTable,
       };
+    } catch (error) {
+      throw new Error(extractError(error));
+    }
+  },
+
+  async getDailyLimitRemaining() {
+    try {
+      const { data } = await api.get("/discounts/limits/remaining");
+      return data;
     } catch (error) {
       throw new Error(extractError(error));
     }

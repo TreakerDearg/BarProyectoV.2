@@ -59,6 +59,39 @@ const discountSchema = new mongoose.Schema(
       index: true,
     },
 
+    menuId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Menu",
+      default: null,
+      index: true,
+    },
+
+    /* =========================
+       FECHA Y HORARIO DE APLICACIÓN
+    ========================= */
+    validFrom: {
+      type: Date,
+      default: null,
+    },
+
+    validUntil: {
+      type: Date,
+      default: null,
+    },
+
+    applicableDays: {
+      type: [Number], // 0 = Sunday, 6 = Saturday
+      default: null,
+    },
+
+    applicableHours: {
+      type: {
+        start: String, // "HH:mm"
+        end: String,   // "HH:mm"
+      },
+      default: null,
+    },
+
     items: {
       type: [discountItemSchema],
       validate: [(val) => val.length > 0, "Debe incluir al menos un item"],
@@ -95,6 +128,44 @@ const discountSchema = new mongoose.Schema(
       default: "APPLIED",
       index: true,
     },
+
+    /* =========================
+       CASCADE APPROVAL
+    ========================= */
+    approvalStage: {
+      type: String,
+      enum: ["NONE", "LEVEL_1", "LEVEL_2", "LEVEL_3", "FINAL"],
+      default: "NONE",
+      index: true,
+    },
+
+    approvalRequestedAt: Date,
+    approvalRequestedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    level1ApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    level1ApprovedAt: Date,
+
+    level2ApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    level2ApprovedAt: Date,
+
+    level3ApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    level3ApprovedAt: Date,
 
     /* =========================
        RAZÓN

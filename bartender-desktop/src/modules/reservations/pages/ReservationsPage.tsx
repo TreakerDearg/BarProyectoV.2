@@ -84,6 +84,7 @@ export default function ReservationsPage() {
   const [activeView, setActiveView] = useState<ViewMode>("confirmed");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilterDate, setSelectedFilterDate] = useState<Date | null>(null);
+  const [showVIPOnly, setShowVIPOnly] = useState(false);
 
   /* PAGINATION SYSTEM */
   const [currentPage, setCurrentPage] = useState(1);
@@ -271,6 +272,11 @@ export default function ReservationsPage() {
       list = list.filter(r => r.status === "completed" || r.status === "cancelled" || r.status === "no-show");
     }
 
+    // VIP Filter
+    if (showVIPOnly) {
+      list = list.filter(r => r.isVIP);
+    }
+
     // Search Filter
     if (searchQuery) {
       list = list.filter(r =>
@@ -286,7 +292,7 @@ export default function ReservationsPage() {
 
     // Sort by Date
     return list.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }, [reservations, activeView, searchQuery, selectedFilterDate]);
+  }, [reservations, activeView, searchQuery, selectedFilterDate, showVIPOnly]);
 
   /* PAGINATION LOGIC */
   const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
@@ -398,6 +404,20 @@ export default function ReservationsPage() {
               className="bg-surface-3 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-ivory focus:border-gold/40 focus:ring-4 focus:ring-gold/5 outline-none transition-all w-64 md:w-80 group-hover:border-white/10"
             />
           </div>
+
+          {/* VIP FILTER */}
+          <button
+            type="button"
+            onClick={() => setShowVIPOnly(!showVIPOnly)}
+            className={`px-4 py-4 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+              showVIPOnly
+                ? 'bg-violet-500/20 text-violet-300 border-violet-500/30 shadow-violet-500/20'
+                : 'bg-white/5 text-muted border-white/5 hover:border-white/10'
+            }`}
+          >
+            <Sparkles size={16} className={showVIPOnly ? 'text-violet-300' : 'text-muted'} />
+            VIP
+          </button>
 
           <button
             onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}

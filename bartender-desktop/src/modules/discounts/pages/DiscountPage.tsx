@@ -4,6 +4,8 @@ import OrderDetails from "../components/OrderDetails";
 import DiscountKeypad from "../components/DiscountKeypad";
 import DiscountReasonForm from "../components/DiscountReasonForm";
 import DiscountStats from "../components/DiscountStats";
+import DiscountTrendChart from "../components/DiscountTrendChart";
+import DiscountReasonPieChart from "../components/DiscountReasonPieChart";
 
 import { useDiscount } from "../hooks/useDiscount";
 import { discountService } from "../services/discountService";
@@ -12,7 +14,7 @@ import TourGuide from "../components/TourGuide";
 import type { TourStep } from "../components/TourGuide";
 
 import type { Order, SelectedItem } from "../types/discounts";
-import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw, HelpCircle } from "lucide-react";
+import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw, TrendingDown, AlertTriangle } from "lucide-react";
 
 export default function NebulaDiscountPage() {
   const [mode, setMode] = useState<"simple" | "advanced">(() => {
@@ -32,11 +34,25 @@ export default function NebulaDiscountPage() {
   const [loadingStats, setLoadingStats] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    todayTotal: number;
+    averagePercent: number;
+    appliedCount: number;
+    byType?: any;
+    byReason?: any;
+    byEmployee?: any;
+    byTable?: any;
+  }>({
     todayTotal: 0,
     averagePercent: 0,
     appliedCount: 0,
   });
+  const [dailyLimit, setDailyLimit] = useState<{
+    remainingAmount: number;
+    remainingCount: number;
+    maxAmount: number;
+    maxCount: number;
+  } | null>(null);
   
   // Estados mejorados para UX
   const [pasoActual, setPasoActual] = useState<1 | 2 | 3>(1);
@@ -47,9 +63,14 @@ export default function NebulaDiscountPage() {
     razon: false,
     estadisticas: true
   });
-  const [compactMode, setCompactMode] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "en-curso" | "completadas">("todas");
+
+  // Configuración de presets de descuento (puede venir de settings en el futuro)
+  const discountPresets = {
+    PERCENT: [5, 10, 15, 20, 25, 50],
+    FLAT: [5, 10, 15, 20, 50, 100],
+  };
 
   useEffect(() => {
     try {
@@ -199,9 +220,19 @@ export default function NebulaDiscountPage() {
     }
   };
 
+  const cargarLimiteDiario = async () => {
+    try {
+      const datos = await discountService.getDailyLimitRemaining();
+      setDailyLimit(datos.remaining);
+    } catch {
+      // el límite diario no debe bloquear la pantalla
+    }
+  };
+
   useEffect(() => {
     cargarOrdenes();
     cargarEstadisticas();
+    cargarLimiteDiario();
   }, []);
 
   /* =========================
@@ -325,6 +356,48 @@ export default function NebulaDiscountPage() {
             </button>
           </div>
         </div>
+
+        {/* INDICADOR DE IMPACTO FINANCIERO */}
+        {dailyLimit && mode === "advanced" && (
+          <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <TrendingDown size={16} className="text-violet-400" />
+                <span className="text-xs font-bold text-ivory uppercase tracking-wider">Límite Diario Restante</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted">Monto:</span>
+                <span className={`text-sm font-bold ${dailyLimit.remainingAmount < 100 ? 'text-red-400' : dailyLimit.remainingAmount < 300 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                  ${dailyLimit.remainingAmount.toFixed(2)}
+                </span>
+                <span className="text-xs text-muted">/ ${dailyLimit.maxAmount}</span>
+              </div>
+            </div>
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  dailyLimit.remainingAmount < 100
+                    ? 'bg-red-500'
+                    : dailyLimit.remainingAmount < 300
+                    ? 'bg-orange-500'
+                    : 'bg-emerald-500'
+                }`}
+                style={{ width: `${(dailyLimit.remainingAmount / dailyLimit.maxAmount) * 100}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[10px] text-muted">
+                {dailyLimit.remainingCount} descuentos restantes de {dailyLimit.maxCount}
+              </span>
+              {dailyLimit.remainingAmount < 100 && (
+                <div className="flex items-center gap-1 text-[10px] text-red-400">
+                  <AlertTriangle size={12} />
+                  <span className="font-bold">Límite crítico</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* INDICADOR DE PASOS MEJORADO NEBULA */}
         <div className={`mt-4 ${mode === "simple" ? "hidden" : ""}`}>
@@ -559,6 +632,7 @@ export default function NebulaDiscountPage() {
                   valueInput={discount.valueInput}
                   appendNumber={discount.appendNumber}
                   removeLast={discount.removeLast}
+                  presets={discountPresets}
                   data-tour="discount-keypad"
                 />
 
@@ -698,10 +772,32 @@ export default function NebulaDiscountPage() {
         </div>
 
         {!seccionesColapsadas.estadisticas && (
-          <DiscountStats 
-            data={stats} 
-            loading={loadingStats}
-          />
+          <div className="space-y-4">
+            <DiscountStats
+              data={stats}
+              loading={loadingStats}
+            />
+            
+            {/* New Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <DiscountTrendChart
+                  data={stats.byEmployee?.slice(0, 7).map((e: any) => ({
+                    date: e.name || 'N/A',
+                    amount: e.amount || 0,
+                    count: e.count || 0,
+                  })) || []}
+                  loading={loadingStats}
+                />
+              </div>
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <DiscountReasonPieChart
+                  data={stats.byReason || {}}
+                  loading={loadingStats}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
       )}

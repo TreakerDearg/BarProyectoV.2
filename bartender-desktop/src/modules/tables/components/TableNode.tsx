@@ -65,7 +65,8 @@ export default function TableNode({
   // Usar valores calculados por el backend si están disponibles
   const totalAmount = table.totalAmount || (table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0);
   const totalItems = table.totalItems || table.orders?.length || 0;
-  const totalPaid = table.totalPayments || 0;
+  const totalPaid = table.totalPaid || table.totalPayments || 0;
+  const balanceDue = table.balanceDue !== undefined ? table.balanceDue : Math.max(0, totalAmount - totalPaid);
   
   let visualStatus: "available" | "reserved" | "maintenance" | "occupied_empty" | "occupied_consuming" | "occupied_partial" | "occupied_paid" = "available";
 

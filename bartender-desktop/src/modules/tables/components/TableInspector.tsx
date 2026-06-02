@@ -91,6 +91,8 @@ export default function TableInspector({
 
   const config = statusConfig[table.status] || statusConfig.maintenance;
   const totalAmount = table.totalAmount || (table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0);
+  const totalPaid = table.totalPaid || table.totalPayments || 0;
+  const balanceDue = table.balanceDue !== undefined ? table.balanceDue : Math.max(0, totalAmount - totalPaid);
 
   return (
     <motion.div 
@@ -332,11 +334,23 @@ export default function TableInspector({
           </div>
 
           <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 space-y-2 md:space-y-3">
-            {table.totalPayments && table.totalPayments > 0 ? (
+            {totalAmount > 0 ? (
               <>
                 <div className="flex justify-between items-center">
+                  <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total Cuenta</span>
+                  <span className="text-base md:text-lg font-black text-white/80">${totalAmount.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total Pagado</span>
-                  <span className="text-base md:text-lg font-black text-blue-400">${table.totalPayments.toFixed(2)}</span>
+                  <span className="text-base md:text-lg font-black text-blue-400">${totalPaid.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Saldo Pendiente</span>
+                  <span className={`text-base md:text-lg font-black ${balanceDue > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                    ${balanceDue.toFixed(2)}
+                  </span>
                 </div>
 
                 {table.lastPaymentAt && (

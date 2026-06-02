@@ -243,6 +243,9 @@ tableSchema.methods.setMaintenance = function (untilDate) {
   this.status = "maintenance";
   this.maintenanceUntil = untilDate || null;
   this.isLocked = true;
+  this.currentSessionId = null;
+  this.openedAt = null;
+  this.closedAt = new Date();
 };
 
 /* =========================

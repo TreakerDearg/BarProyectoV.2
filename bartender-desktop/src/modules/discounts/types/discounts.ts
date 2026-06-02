@@ -75,6 +75,7 @@ export interface DiscountRequest {
   items: string[];
   reason: DiscountReason;
   note?: string;
+  promotionId?: string;
 }
 
 export interface DiscountResponse {

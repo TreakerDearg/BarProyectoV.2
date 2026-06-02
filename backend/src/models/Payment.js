@@ -311,12 +311,14 @@ paymentSchema.post("save", async function (doc) {
       });
     }
 
-    // Actualizar Table con total de pagos
-    const Table = mongoose.model("Table");
-    await Table.findByIdAndUpdate(doc.table, {
-      $inc: { totalPayments: doc.amount },
-      lastPaymentAt: new Date(),
-    });
+    // Actualizar Table con total de pagos, salvo flujos transaccionales que ya sincronizan mesa.
+    if (!doc.metadata?.skipTableSync) {
+      const Table = mongoose.model("Table");
+      await Table.findByIdAndUpdate(doc.table, {
+        $inc: { totalPayments: doc.amount },
+        lastPaymentAt: new Date(),
+      });
+    }
   } catch (error) {
     console.error("[Payment] Error en post-save hook:", error);
   }

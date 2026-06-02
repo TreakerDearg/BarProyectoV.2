@@ -11,6 +11,11 @@ import {
   startServiceSession,
   completeReservationOnTableClose,
 } from "../services/tableSession.service.js";
+import {
+  attachTableSummary,
+  attachTableSummaries,
+  releaseExpiredMaintenanceTables,
+} from "../services/tableSummary.service.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -20,8 +25,18 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 const emitTableUpdate = async (tableId) => {
   const table = await Table.findById(tableId).lean();
   if (!table) return;
-  io.emit("table:update", table);
-  io.to(`table:${tableId}`).emit("table:update", table);
+  const decorated = await attachTableSummary(table);
+  io.emit("table:update", decorated);
+  io.to(`table:${tableId}`).emit("table:update", decorated);
+};
+
+const releaseExpiredAndEmit = async () => {
+  const released = await releaseExpiredMaintenanceTables();
+  for (const table of released) {
+    const decorated = await attachTableSummary(table);
+    io.emit("table:update", decorated);
+    io.to(`table:${table._id}`).emit("table:update", decorated);
+  }
 };
 
 /* =========================================================
@@ -29,6 +44,8 @@ const emitTableUpdate = async (tableId) => {
 ========================================================= */
 export const getTables = async (req, res, next) => {
   try {
+    await releaseExpiredAndEmit();
+
     const { status, location } = req.query;
 
     const filter = {};
@@ -36,6 +53,8 @@ export const getTables = async (req, res, next) => {
     if (location) filter.location = location;
 
     const tables = await Table.find(filter).sort({ number: 1 }).lean();
+    const enrichedTables = await attachTableSummaries(tables);
+    return ok(res, enrichedTables);
 
     /* Adjuntar órdenes activas por mesa */
     const tableIds = tables.map((t) => t._id);
@@ -96,11 +115,14 @@ export const getTables = async (req, res, next) => {
 ========================================================= */
 export const getTableById = async (req, res, next) => {
   try {
+    await releaseExpiredAndEmit();
+
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
     const table = await Table.findById(id).lean();
     if (!table) return notFound(res, "Mesa no encontrada");
+    return ok(res, await attachTableSummary(table));
 
     const orders = await Order.find({ table: id, sessionStatus: "open" })
       .populate("items.product", "name type price")
