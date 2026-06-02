@@ -23,8 +23,8 @@ interface PaymentMethod {
 
 interface Props {
   tableId: string;
-  orderId: string;
-  totalAmount: number;
+  sessionId: string;
+  balanceDue: number;
   onSelect: (method: string, data?: any) => void;
   onClose: () => void;
 }
@@ -67,21 +67,19 @@ const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
     isAvailable: true,
     priority: 70,
   },
-  {
-    _id: "partial-default",
-    method: "partial",
-    displayName: "Pago Parcial",
-    description: "Realizar un pago parcial",
-    isActive: true,
-    isAvailable: true,
-    priority: 60,
-  },
 ];
 
-export default function PaymentMethodSelector({ tableId: _tableId, orderId: _orderId, totalAmount, onSelect, onClose }: Props) {
+export default function PaymentMethodSelector({
+  tableId: _tableId,
+  sessionId: _sessionId,
+  balanceDue,
+  onSelect,
+  onClose,
+}: Props) {
   const [methods, setMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cashAmountPaid, setCashAmountPaid] = useState(balanceDue);
   const [cardDetails, setCardDetails] = useState({
     lastFour: "",
     cardType: "other" as "visa" | "mastercard" | "amex" | "other",
@@ -93,11 +91,9 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
     amounts: [] as number[],
   });
 
-  const [partialDetails, setPartialDetails] = useState({
-    amount: 0,
-    method: "cash",
-    amountPaid: 0,
-  });
+  useEffect(() => {
+    setCashAmountPaid(balanceDue);
+  }, [balanceDue]);
 
   useEffect(() => {
     fetchAvailableMethods();
@@ -112,17 +108,19 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
         : (response && (response as any).methods) || [];
 
       if (methodsArray && methodsArray.length > 0) {
-        const convertedMethods = methodsArray.map((m: any) => ({
-          _id: m.id,
-          method: m.id,
-          displayName: m.name,
-          description: m.description,
-          isActive: !m.disabled,
-          isAvailable: !m.disabled,
-          priority: 100,
-          icon: m.icon
-        }));
-        setMethods(convertedMethods);
+        const convertedMethods = methodsArray
+          .filter((m: any) => m.id !== "partial")
+          .map((m: any) => ({
+            _id: m.id,
+            method: m.id,
+            displayName: m.name,
+            description: m.description,
+            isActive: !m.disabled,
+            isAvailable: !m.disabled,
+            priority: 100,
+            icon: m.icon,
+          }));
+        setMethods(convertedMethods.length ? convertedMethods : DEFAULT_PAYMENT_METHODS);
       } else {
         // Usar métodos por defecto si la API retorna vacío
         setMethods(DEFAULT_PAYMENT_METHODS);
@@ -169,40 +167,23 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
   const handleSplitPayment = () => {
     if (splitDetails.totalSplits < 2) return;
 
-    let amounts = splitDetails.amounts;
-    if (amounts.length === 0 || amounts.length !== splitDetails.totalSplits) {
-      const evenSplit = totalAmount / splitDetails.totalSplits;
-      amounts = Array(splitDetails.totalSplits).fill(evenSplit);
-    }
-
     onSelect("split", {
       totalSplits: splitDetails.totalSplits,
       method: splitDetails.method,
-      amounts,
     });
   };
 
-  const handlePartialPayment = () => {
-    if (partialDetails.amount <= 0 || partialDetails.amount > totalAmount) {
-      alert("Monto inválido");
+  const handleCashPayment = () => {
+    if (cashAmountPaid < balanceDue) {
+      alert(`Monto insuficiente. Total: $${balanceDue.toFixed(2)}`);
       return;
     }
-
-    if (partialDetails.method === "cash" && partialDetails.amountPaid < partialDetails.amount) {
-      alert("El monto pagado debe ser mayor o igual al monto a pagar");
-      return;
-    }
-
-    onSelect("partial", {
-      amount: partialDetails.amount,
-      method: partialDetails.method,
-      amountPaid: partialDetails.amountPaid,
-    });
+    onSelect("cash", { amountPaid: cashAmountPaid });
   };
 
   const handleStandardPayment = (method: string) => {
     if (method === "cash") {
-      onSelect("cash", { amountPaid: totalAmount });
+      handleCashPayment();
     } else {
       onSelect(method);
     }
@@ -280,72 +261,54 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
             </div>
             <div>
               <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Monto por División: ${(totalAmount / splitDetails.totalSplits).toFixed(2)}
+                Monto por División: ${(balanceDue / splitDetails.totalSplits).toFixed(2)}
               </label>
             </div>
             <button
               onClick={handleSplitPayment}
               className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
             >
-              Crear Pagos Divididos
+              Cerrar cuenta dividida
             </button>
           </motion.div>
         );
 
-      case "partial":
+      case "cash":
         return (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-6 p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4"
           >
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Pago Parcial</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Efectivo</h3>
             <div>
               <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Monto a Pagar (Restante: ${(totalAmount - partialDetails.amount).toFixed(2)})
+                Total a cobrar: ${balanceDue.toFixed(2)}
+              </label>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
+                Monto entregado
               </label>
               <input
                 type="number"
-                min={0}
-                max={totalAmount}
-                value={partialDetails.amount}
-                onChange={(e) => setPartialDetails({ ...partialDetails, amount: parseFloat(e.target.value) || 0 })}
+                min={balanceDue}
+                step="0.01"
+                value={cashAmountPaid}
+                onChange={(e) => setCashAmountPaid(parseFloat(e.target.value) || 0)}
                 className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
               />
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Método de Pago
-              </label>
-              <select
-                value={partialDetails.method}
-                onChange={(e) => setPartialDetails({ ...partialDetails, method: e.target.value })}
-                className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-              >
-                <option value="cash">Efectivo</option>
-                <option value="transfer">Transferencia</option>
-                <option value="card">Tarjeta</option>
-              </select>
-            </div>
-            {partialDetails.method === "cash" && (
-              <div>
-                <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                  Monto Entregado
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  value={partialDetails.amountPaid}
-                  onChange={(e) => setPartialDetails({ ...partialDetails, amountPaid: parseFloat(e.target.value) || 0 })}
-                  className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-                />
-              </div>
+            {cashAmountPaid >= balanceDue && (
+              <p className="text-sm font-bold text-gold">
+                Vuelto: ${(cashAmountPaid - balanceDue).toFixed(2)}
+              </p>
             )}
             <button
-              onClick={handlePartialPayment}
+              onClick={handleCashPayment}
               className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
             >
-              Procesar Pago Parcial
+              Procesar Pago
             </button>
           </motion.div>
         );
@@ -390,7 +353,8 @@ export default function PaymentMethodSelector({ tableId: _tableId, orderId: _ord
               <Wallet size={16} className="text-gold" />
               <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Método de Pago</p>
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">${totalAmount.toFixed(2)}</h2>
+            <h2 className="text-2xl font-black text-white tracking-tight">${balanceDue.toFixed(2)}</h2>
+            <p className="text-[10px] text-muted mt-1">Saldo de sesión</p>
           </div>
           <button
             onClick={onClose}

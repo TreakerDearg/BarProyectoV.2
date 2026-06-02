@@ -16,6 +16,8 @@ import {
 } from "../controllers/payment.controller.js";
 import { protect, authorizeRoles, authorizePermissions } from "../middlewares/auth.middleware.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
+import { validate } from "../middlewares/validate.js";
+import { createSessionCheckoutSchema } from "../utils/schemas.js";
 
 const router = express.Router();
 const staffOnly = [protect, authorizeRoles("admin", "manager", "staff")];
@@ -115,6 +117,7 @@ router.post(
 router.post(
   "/session-checkout",
   ...staffOnly,
+  validate(createSessionCheckoutSchema),
   asyncHandler(createSessionCheckout)
 );
 

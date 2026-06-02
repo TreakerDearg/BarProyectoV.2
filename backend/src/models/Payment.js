@@ -243,39 +243,33 @@ paymentSchema.methods.getRemainingAmount = function () {
 /* =========================================================
    PRE SAVE HOOK
 ========================================================= */
-paymentSchema.pre("save", function (next) {
-  // Generar número de recibo si no existe
+paymentSchema.pre("save", function () {
   if (!this.receipt?.receiptNumber) {
     if (!this.receipt) this.receipt = {};
     this.receipt.receiptNumber = this.generateReceiptNumber();
   }
 
-  // Validar que el cambio no sea mayor al monto pagado
   if (this.method === "cash" && this.change > this.amountPaid) {
     this.change = Math.max(0, this.amountPaid - this.amount);
   }
 
-  // Validar campos específicos por método
   if (this.method === "card" && !this.cardDetails?.lastFour) {
-    return next(new Error("Se requieren detalles de tarjeta para pagos con tarjeta"));
+    throw new Error("Se requieren detalles de tarjeta para pagos con tarjeta");
   }
 
   if (this.method === "qr" && !this.qrDetails?.transactionId) {
-    return next(new Error("Se requieren detalles de QR para pagos QR"));
+    throw new Error("Se requieren detalles de QR para pagos QR");
   }
 
   if (this.method === "wallet" && !this.walletDetails?.transactionId) {
-    return next(new Error("Se requieren detalles de billetera para pagos con wallet"));
+    throw new Error("Se requieren detalles de billetera para pagos con wallet");
   }
 
-  // Validar pagos divididos
   if (this.method === "split" || this.splitDetails?.isPartial) {
     if (!this.splitDetails?.splitAmount) {
       this.splitDetails.splitAmount = this.amount / (this.splitDetails?.totalSplits || 1);
     }
   }
-
-  next();
 });
 
 /* =========================================================

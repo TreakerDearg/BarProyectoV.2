@@ -27,6 +27,11 @@ export interface Payment {
   notes: string;
   status: "pending" | "completed" | "refunded";
   items: OrderItem[];
+  receipt?: {
+    receiptNumber?: string;
+    issuedAt?: string;
+    items?: OrderItem[];
+  };
   cardDetails?: {
     lastFour: string;
     cardType: string;
@@ -303,6 +308,49 @@ export const createCardPayment = async (data: {
   return safeRequest<any>(api.post("/payments/card", data));
 };
 
+export interface SessionCheckoutPayload {
+  tableId: string;
+  sessionId: string;
+  method: "cash" | "transfer" | "card" | "split";
+  maintenanceMinutes?: number;
+  paymentDetails?: {
+    amountPaid?: number;
+    notes?: string;
+    totalSplits?: number;
+    cardDetails?: {
+      lastFour: string;
+      cardType?: "visa" | "mastercard" | "amex" | "other";
+      authorizationCode?: string;
+      terminalId?: string;
+    };
+  };
+}
+
+export interface SessionCheckoutResult {
+  payment: Payment;
+  payments: Payment[];
+  table: Table;
+  receiptSummary: {
+    sessionId: string;
+    subtotal: number;
+    discountTotal: number;
+    total: number;
+    method: string;
+    amountPaid: number;
+    change: number;
+    maintenanceUntil: string;
+    receiptNumber?: string;
+    issuedAt?: string;
+  };
+  balanceDue: number;
+}
+
+export const createSessionCheckout = async (
+  data: SessionCheckoutPayload
+): Promise<SessionCheckoutResult> => {
+  return safeRequest<SessionCheckoutResult>(api.post("/payments/session-checkout", data));
+};
+
 /* =========================================================
    ANALYTICS & REPORTING
 ========================================================= */
@@ -408,6 +456,7 @@ export default {
   createSplitPayment,
   createPartialPayment,
   createCardPayment,
+  createSessionCheckout,
 
   // Analytics
   getTableAnalytics,

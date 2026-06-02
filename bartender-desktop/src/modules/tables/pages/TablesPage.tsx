@@ -22,12 +22,10 @@ import {
   getTablePayments,
   generateReceipt,
   updateTableLayout,
-  createStandardPayment,
-  createSplitPayment,
-  createPartialPayment,
-  createCardPayment,
+  createSessionCheckout,
   PaymentServiceError,
   getPaymentErrorMessage,
+  type SessionCheckoutResult,
 } from "../services/tableService";
 
 import type { Table } from "../types/table";
@@ -62,8 +60,8 @@ export default function TablesPage() {
   const [isPaymentSelectorOpen, setIsPaymentSelectorOpen] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
-  const [currentOrderTotal, setCurrentOrderTotal] = useState(0);
-  const [selectedOrderIdForPayment, setSelectedOrderIdForPayment] = useState<string | null>(null);
+  const [sessionBalanceDue, setSessionBalanceDue] = useState(0);
+  const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const navigate = useNavigate();
@@ -151,12 +149,20 @@ export default function TablesPage() {
       if (selectedTable?._id === id) setSelectedTable(null);
     };
 
+    const handleTableClosed = () => {
+      fetchTables();
+    };
+
     socket.on("table:update", handleUpdate);
     socket.on("table:created", handleCreated);
     socket.on("table:deleted", handleDeleted);
+    socket.on("table:closed", handleTableClosed);
+    socket.on("payment:completed", handleTableClosed);
 
     return () => {
       socket.off("table:update", handleUpdate);
+      socket.off("table:closed", handleTableClosed);
+      socket.off("payment:completed", handleTableClosed);
       socket.off("table:created", handleCreated);
       socket.off("table:deleted", handleDeleted);
     };
@@ -381,21 +387,60 @@ export default function TablesPage() {
   const handlePaymentSelector = () => {
     if (!selectedTable) return;
 
-    const openOrder = selectedTable.orders?.find((o) => o.sessionStatus === "open");
-    if (!openOrder?._id) {
-      setError("No hay una orden activa para cobrar en esta mesa.");
+    if (!selectedTable.currentSessionId) {
+      setError("La mesa no tiene una sesión activa para cobrar.");
       return;
     }
 
-    // Calcular total solo de órdenes abiertas
-    const total =
-      selectedTable.orders
-        ?.filter((o) => o.sessionStatus === "open")
-        .reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0;
+    const openOrders =
+      selectedTable.orders?.filter((o) => o.sessionStatus === "open") || [];
+    if (!openOrders.length) {
+      setError("No hay órdenes abiertas para cobrar en esta mesa.");
+      return;
+    }
 
-    setCurrentOrderTotal(total);
-    setSelectedOrderIdForPayment(openOrder._id);
+    const totalAmount =
+      selectedTable.totalAmount ??
+      openOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const balanceDue =
+      selectedTable.balanceDue !== undefined
+        ? selectedTable.balanceDue
+        : Math.max(0, totalAmount - (selectedTable.totalPaid || 0));
+
+    if (balanceDue <= 0) {
+      setError("No hay saldo pendiente en esta mesa.");
+      return;
+    }
+
+    setSessionBalanceDue(balanceDue);
     setIsPaymentSelectorOpen(true);
+  };
+
+  const buildReceiptFromCheckout = (
+    result: SessionCheckoutResult,
+    tableNumber: number
+  ) => {
+    const summary = result.receiptSummary;
+    const allItems =
+      result.payments?.flatMap((p) => p.receipt?.items || []) ||
+      result.payment?.receipt?.items ||
+      [];
+
+    return {
+      receiptNumber: summary.receiptNumber || result.payment?.receipt?.receiptNumber || "N/A",
+      issuedAt: summary.issuedAt || new Date().toISOString(),
+      table: { number: tableNumber, location: result.table?.location || "indoor" },
+      items: allItems.length
+        ? allItems
+        : [{ name: "Cuenta de mesa", quantity: 1, price: summary.total, subtotal: summary.total }],
+      subtotal: summary.subtotal,
+      discountTotal: summary.discountTotal,
+      total: summary.total,
+      method: summary.method as "cash" | "transfer" | "card" | "split",
+      change: summary.change,
+      processedBy: { name: "Caja", role: "staff" },
+      maintenanceUntil: summary.maintenanceUntil,
+    };
   };
 
   const [activeLocation, setActiveLocation] = useState<string>("all");
@@ -724,76 +769,74 @@ export default function TablesPage() {
           />
         )}
 
-        {isPaymentSelectorOpen && selectedTable && selectedOrderIdForPayment && (
+        {paymentSuccessMessage && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm font-bold">
+            {paymentSuccessMessage}
+          </div>
+        )}
+
+        {isPaymentSelectorOpen && selectedTable && selectedTable.currentSessionId && (
           <PaymentMethodSelector
             tableId={selectedTable._id!}
-            orderId={selectedOrderIdForPayment}
-            totalAmount={currentOrderTotal > 0 ? currentOrderTotal : 100}
+            sessionId={selectedTable.currentSessionId}
+            balanceDue={sessionBalanceDue > 0 ? sessionBalanceDue : 0}
             onSelect={async (method, data) => {
               try {
                 setError(null);
                 setLoading(true);
-                let response;
 
-                if (method === "card") {
-                  response = await createCardPayment({
-                    tableId: selectedTable._id!,
-                    orderId: selectedOrderIdForPayment,
-                    cardDetails: data.cardDetails,
-                    amount: currentOrderTotal
-                  });
-                } else if (method === "split") {
-                  response = await createSplitPayment({
-                    tableId: selectedTable._id!,
-                    orderId: selectedOrderIdForPayment,
-                    totalSplits: data.totalSplits,
-                    method: data.method,
-                    amounts: data.amounts
-                  });
-                } else if (method === "partial") {
-                  response = await createPartialPayment({
-                    tableId: selectedTable._id!,
-                    orderId: selectedOrderIdForPayment,
-                    amount: data.amount,
-                    method: data.method,
-                    amountPaid: data.amountPaid
-                  });
-                } else if (method === "cash" || method === "transfer") {
-                  response = await createStandardPayment({
-                    tableId: selectedTable._id!,
-                    orderId: selectedOrderIdForPayment,
-                    method: method,
-                    amountPaid: data?.amountPaid || currentOrderTotal
-                  });
-                } else {
-                  throw new Error("Método de pago no soportado");
+                const checkoutMethod = method as "cash" | "transfer" | "card" | "split";
+
+                const paymentDetails: Record<string, unknown> = {};
+                if (method === "cash") {
+                  paymentDetails.amountPaid = data?.amountPaid ?? sessionBalanceDue;
                 }
+                if (method === "card" && data?.cardDetails) {
+                  paymentDetails.cardDetails = data.cardDetails;
+                }
+                if (method === "split" && data?.totalSplits) {
+                  paymentDetails.totalSplits = data.totalSplits;
+                }
+                if (data?.notes) paymentDetails.notes = data.notes;
+
+                const response = await createSessionCheckout({
+                  tableId: selectedTable._id!,
+                  sessionId: selectedTable.currentSessionId!,
+                  method: checkoutMethod,
+                  paymentDetails,
+                });
 
                 await fetchTables();
-                console.log("Pago registrado con éxito:", response);
+                setSelectedReceipt(
+                  buildReceiptFromCheckout(response, selectedTable.number)
+                );
+                setIsReceiptModalOpen(true);
+                const mins = response.receiptSummary?.maintenanceUntil
+                  ? Math.max(
+                      1,
+                      Math.round(
+                        (new Date(response.receiptSummary.maintenanceUntil).getTime() -
+                          Date.now()) /
+                          60000
+                      )
+                    )
+                  : 5;
+                setPaymentSuccessMessage(
+                  `Cuenta cerrada. Mesa en mantenimiento ~${mins} min.`
+                );
+                setTimeout(() => setPaymentSuccessMessage(null), 6000);
                 setIsPaymentSelectorOpen(false);
               } catch (err: any) {
                 if (err instanceof PaymentServiceError) {
                   setError(getPaymentErrorMessage(err));
-                  console.error("Payment Service Error:", {
-                    code: err.errorCode,
-                    statusCode: err.statusCode,
-                    originalError: err.originalError
-                  });
                 } else {
                   setError(err.message || "Error al procesar el pago");
-                  console.error("Error processing payment:", err);
                 }
               } finally {
                 setLoading(false);
-                setIsPaymentSelectorOpen(false);
-                setSelectedOrderIdForPayment(null);
               }
             }}
-            onClose={() => {
-              setIsPaymentSelectorOpen(false);
-              setSelectedOrderIdForPayment(null);
-            }}
+            onClose={() => setIsPaymentSelectorOpen(false)}
           />
         )}
       </AnimatePresence>

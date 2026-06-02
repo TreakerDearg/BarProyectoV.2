@@ -23,6 +23,8 @@ export interface TableOrder {
   total: number;
   status: string;
   sessionStatus: "open" | "closed";
+  sessionId?: string;
+  paymentStatus?: "unpaid" | "partial" | "paid" | "refunded";
 }
 
 /* =========================

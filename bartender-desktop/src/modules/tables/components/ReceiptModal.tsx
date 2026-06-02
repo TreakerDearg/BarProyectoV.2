@@ -21,12 +21,13 @@ interface Receipt {
   subtotal: number;
   discountTotal: number;
   total: number;
-  method: "cash" | "transfer";
+  method: "cash" | "transfer" | "card" | "split";
   change: number;
   processedBy: {
     name: string;
     role: string;
   };
+  maintenanceUntil?: string;
   discounts?: Array<{
     type: string;
     value: number;
@@ -153,14 +154,26 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
             <div>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Método de Pago</p>
               <p className="text-sm font-bold text-gray-900 uppercase">
-                {receipt.method === "cash" ? "Efectivo" : "Transferencia"}
+                {{
+                  cash: "Efectivo",
+                  transfer: "Transferencia",
+                  card: "Tarjeta",
+                  split: "Cuenta dividida",
+                }[receipt.method] || receipt.method}
               </p>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Procesado por</p>
-              <p className="text-xs font-bold text-gray-700">{receipt.processedBy.name}</p>
+              <p className="text-xs font-bold text-gray-700">{receipt.processedBy?.name || "Caja"}</p>
             </div>
           </div>
+
+          {receipt.maintenanceUntil && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+              Mesa en mantenimiento hasta{" "}
+              {new Date(receipt.maintenanceUntil).toLocaleTimeString()}
+            </p>
+          )}
         </div>
 
         {/* FOOTER ACTIONS */}

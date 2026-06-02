@@ -263,15 +263,13 @@ discountSchema.virtual("isHighDiscount").get(function () {
 /* =========================================================
    PRE SAVE (consistencia)
 ========================================================= */
-discountSchema.pre("validate", function (next) {
-  // asegurar subtotal por item
+discountSchema.pre("validate", function () {
   if (this.items?.length) {
     this.items = this.items.map((item) => ({
       ...item,
       subtotal: item.price * item.quantity,
     }));
   }
-  next();
 });
 
 export default mongoose.model("Discount", discountSchema);

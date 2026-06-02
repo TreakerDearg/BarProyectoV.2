@@ -79,12 +79,14 @@ export default function TableNode({
   } else if (table.status === "occupied") {
     if (totalAmount === 0) {
       visualStatus = "occupied_empty";
-    } else if (totalPaid === 0) {
-      visualStatus = "occupied_consuming";
-    } else if (totalPaid < totalAmount) {
+    } else if (balanceDue > 0.01 && totalPaid > 0) {
       visualStatus = "occupied_partial";
-    } else {
+    } else if (balanceDue > 0.01) {
+      visualStatus = "occupied_consuming";
+    } else if (totalAmount > 0 && balanceDue <= 0.01) {
       visualStatus = "occupied_paid";
+    } else {
+      visualStatus = "occupied_consuming";
     }
   }
 

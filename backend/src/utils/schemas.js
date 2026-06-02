@@ -260,3 +260,41 @@ export const refundPaymentSchema = z.object({
   reason: z.string().min(1, "reason es obligatorio"),
   amount: z.number().positive().optional(),
 });
+
+export const createSessionCheckoutSchema = z.object({
+  tableId: z.string().min(1, "tableId es obligatorio"),
+  sessionId: z.string().min(1, "sessionId es obligatorio"),
+  method: z.enum(["cash", "transfer", "card", "split"]),
+  maintenanceMinutes: z.number().int().min(1).max(120).optional().default(5),
+  paymentDetails: z
+    .object({
+      amountPaid: z.number().positive().optional(),
+      notes: z.string().max(500).optional(),
+      device: z.string().optional(),
+      totalSplits: z.number().int().min(2).max(20).optional(),
+      cardDetails: z
+        .object({
+          lastFour: z.string().length(4).regex(/^\d+$/, "lastFour debe ser 4 dígitos"),
+          cardType: z.enum(["visa", "mastercard", "amex", "other"]).optional().default("other"),
+          authorizationCode: z.string().optional(),
+          terminalId: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional()
+    .default({}),
+}).refine(
+  (data) => {
+    if (data.method === "cash" && !data.paymentDetails?.amountPaid) {
+      return true;
+    }
+    if (data.method === "card" && !data.paymentDetails?.cardDetails?.lastFour) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "lastFour de tarjeta es obligatorio para pagos con tarjeta",
+    path: ["paymentDetails", "cardDetails", "lastFour"],
+  }
+);
