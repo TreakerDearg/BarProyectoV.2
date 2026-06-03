@@ -46,7 +46,24 @@ const EMPTY_FORM: any = {
 
 const UNIT_OPTIONS = ["ml", "l", "g", "kg", "unit", "oz", "portion", "box"];
 const SECTOR_OPTIONS = ["bar", "kitchen", "general"];
-const LOCATION_OPTIONS = ["Bóveda Central", "Barra Principal", "Cocina VIP", "Bodega Externa"];
+const LOCATION_OPTIONS = [
+  { value: "Bóveda Central", icon: <Warehouse size={16} />, label: "Bóveda Central" },
+  { value: "Barra Principal", icon: <Activity size={16} />, label: "Barra Principal" },
+  { value: "Cocina VIP", icon: <ShieldCheck size={16} />, label: "Cocina VIP" },
+  { value: "Bodega Externa", icon: <Package size={16} />, label: "Bodega Externa" },
+];
+
+const CATEGORY_LOCATION_MAPPING: Record<string, string> = {
+  "destilados": "Bóveda Central",
+  "licores": "Bóveda Central",
+  "cervezas": "Bodega Externa",
+  "vinos": "Bóveda Central",
+  "jugos": "Barra Principal",
+  "frutas": "Cocina VIP",
+  "hielo": "Barra Principal",
+  "garnish": "Cocina VIP",
+  "vasos": "Bodega Externa",
+};
 
 // InventoryBasicInfo Component
 function InventoryBasicInfo({ formData, setFormData }: { formData: InventoryItem; setFormData: (f: InventoryItem) => void }) {
@@ -150,7 +167,7 @@ function StockLevelIndicator({ formData, setFormData }: { formData: InventoryIte
           </div>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 rounded-lg border border-emerald-500/20">
+        <div className={`p-4 rounded-lg border transition-all ${isCritical ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-amber-500/10 border-amber-500/30' : 'bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border-emerald-500/20'}`}>
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-muted">Nivel actual</span>
             <span className={`text-2xl font-bold ${isCritical ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-emerald-400'}`}>
@@ -159,7 +176,7 @@ function StockLevelIndicator({ formData, setFormData }: { formData: InventoryIte
           </div>
           <div className="h-3 bg-white/10 rounded-full overflow-hidden">
             <div 
-              className={`h-full transition-all ${isCritical ? 'bg-red-400' : isLow ? 'bg-amber-400' : 'bg-emerald-400'}`} 
+              className={`h-full transition-all duration-500 ease-out ${isCritical ? 'bg-red-400 animate-pulse' : isLow ? 'bg-amber-400' : 'bg-emerald-400'}`} 
               style={{ width: `${stockPercent}%` }} 
             />
           </div>
@@ -169,6 +186,18 @@ function StockLevelIndicator({ formData, setFormData }: { formData: InventoryIte
               {isCritical ? 'Crítico' : isLow ? 'Bajo' : 'Normal'}
             </span>
           </div>
+          {isCritical && (
+            <div className="mt-3 flex items-start gap-2 text-xs text-red-400 bg-red-500/5 p-2 rounded">
+              <AlertTriangle size={12} className="mt-0.5 flex-shrink-0" />
+              <span>Stock crítico. Requiere reposición inmediata.</span>
+            </div>
+          )}
+          {isLow && !isCritical && (
+            <div className="mt-3 flex items-start gap-2 text-xs text-amber-400 bg-amber-500/5 p-2 rounded">
+              <Bell size={12} className="mt-0.5 flex-shrink-0" />
+              <span>Stock bajo. Considera reposición pronto.</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -233,13 +262,26 @@ function InventoryLocationPicker({ formData, setFormData }: { formData: Inventor
               onChange={(e) => setFormData({ ...formData, location: e.target.value as any })}
               className="nebula-form-select w-full"
             >
-              {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              {LOCATION_OPTIONS.map(l => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
             </select>
+            {formData.category && CATEGORY_LOCATION_MAPPING[formData.category.toLowerCase()] && (
+              <button
+                onClick={() => setFormData({ ...formData, location: CATEGORY_LOCATION_MAPPING[formData.category.toLowerCase()] as any })}
+                className="mt-2 w-full py-2 px-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-lg text-xs font-semibold text-cyan-400 transition-all flex items-center justify-center gap-2"
+              >
+                <MapPin size={12} />
+                Sugerir ubicación para esta categoría
+              </button>
+            )}
           </div>
 
           <div className="p-3 bg-white/5 rounded-lg border border-white/10">
             <div className="flex items-center gap-2">
-              <Warehouse className="text-muted" size={16} />
+              {LOCATION_OPTIONS.find(l => l.value === formData.location)?.icon || <Warehouse className="text-muted" size={16} />}
               <span className="text-xs text-muted">Almacenamiento actual</span>
             </div>
             <p className="text-sm font-semibold text-ivory mt-1">{formData.location}</p>
@@ -591,7 +633,7 @@ export default function InventoryForm({
                 </div>
 
                 {/* Validation Panel */}
-                {errors.length > 0 && (
+                {Array.isArray(errors) && errors.length > 0 && (
                   <div className="nebula-form-card border-red-500/30">
                     <div className="space-y-2">
                       {errors.map((error, idx) => (

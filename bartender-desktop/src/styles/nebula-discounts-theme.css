@@ -9,9 +9,9 @@
   min-height: 100%;
   padding: 0.5rem;
   background:
-    radial-gradient(circle at 8% 12%, rgba(139, 92, 246, 0.08), transparent 36%),
-    radial-gradient(circle at 88% 85%, rgba(34, 211, 238, 0.06), transparent 34%),
-    radial-gradient(circle at 50% 50%, rgba(212, 163, 64, 0.04), transparent 45%),
+    radial-gradient(circle at 8% 12%, rgba(0, 229, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 88% 85%, rgba(157, 78, 221, 0.06), transparent 34%),
+    radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.04), transparent 45%),
     var(--bg);
 }
 
@@ -26,9 +26,9 @@
   position: absolute;
   inset: -20% -10%;
   background:
-    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 64, 0.04) 0%, transparent 45%);
+    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(0, 229, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(157, 78, 221, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(255, 209, 102, 0.04) 0%, transparent 45%);
   pointer-events: none;
   animation: nebula-drift 18s ease-in-out infinite alternate;
 }
@@ -46,12 +46,8 @@
 
 /* Nebula Panel - Panel principal con estilo nebula */
 .nebula-discounts-panel {
-  background: linear-gradient(
-    145deg,
-    rgba(18, 16, 28, 0.92) 0%,
-    rgba(12, 11, 18, 0.88) 100%
-  );
-  border: 1px solid rgba(139, 92, 246, 0.12);
+  background: rgba(18, 18, 25, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.25rem;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.35),
@@ -61,21 +57,26 @@
 }
 
 .nebula-discounts-panel:hover {
-  border-color: rgba(139, 92, 246, 0.22);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Nebula Button Primary */
 .nebula-discounts-btn-primary {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(79, 70, 229, 0.85));
-  color: #fff;
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: var(--nebula-primary);
+  color: #000;
+  border: none;
   border-radius: 0.75rem;
   font-weight: 600;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
 }
 
 .nebula-discounts-btn-primary:hover {
-  opacity: 0.92;
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.nebula-discounts-btn-primary:active {
+  transform: scale(0.95);
 }
 
 /* =========================
@@ -91,8 +92,8 @@
 
 .nebula-discounts-page-frame {
   border-radius: 1.25rem;
-  border: 1px solid rgba(139, 92, 246, 0.1);
-  background: linear-gradient(160deg, rgba(17, 20, 28, 0.94), rgba(9, 12, 18, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(18, 18, 25, 0.94);
   box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
   padding: 0.6rem;
   min-height: calc(100vh - 12.5rem);
@@ -110,21 +111,23 @@
    NEBULA COLORS (DOMINANT)
 ========================= */
 .nebula-discounts-root {
-  --nebula-violet: rgba(139, 92, 246, 1);
-  --nebula-violet-soft: rgba(139, 92, 246, 0.15);
-  --nebula-cyan: rgba(34, 211, 238, 1);
-  --nebula-cyan-soft: rgba(34, 211, 238, 0.12);
-  --nebula-gold: rgba(212, 163, 64, 1);
-  --nebula-gold-soft: rgba(212, 163, 64, 0.14);
+  --nebula-primary: rgba(0, 229, 255, 1);
+  --nebula-primary-soft: rgba(0, 229, 255, 0.15);
+  --nebula-secondary: rgba(157, 78, 221, 1);
+  --nebula-secondary-soft: rgba(157, 78, 221, 0.12);
+  --nebula-accent: rgba(255, 209, 102, 1);
+  --nebula-accent-soft: rgba(255, 209, 102, 0.14);
+  --nebula-success: rgba(0, 255, 149, 1);
+  --nebula-danger: rgba(255, 77, 109, 1);
   
   /* Colores de texto */
-  --text-primary: #f3efe5;
-  --text-secondary: #c9c2b4;
-  --text-muted: rgba(201, 194, 180, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
   
   /* Colores de fondo */
-  --bg-surface: rgba(18, 21, 28, 0.95);
-  --bg-surface-2: rgba(12, 15, 20, 0.92);
+  --bg-surface: rgba(18, 18, 25, 0.95);
+  --bg-surface-2: rgba(18, 18, 25, 0.85);
   --bg-input: rgba(255, 255, 255, 0.04);
 }
 
@@ -132,11 +135,11 @@
    DISCOUNTS COLORS (SECUNDARIO)
 ========================= */
 .nebula-discounts-root {
-  --discount-accent: #d4af37;
-  --discount-accent-soft: rgba(212, 175, 55, 0.14);
-  --discount-accent-2: #ff8a3d;
-  --discount-ink: #f3efe5;
-  --discount-muted: #c9c2b4;
+  --discount-accent: #FFD166;
+  --discount-accent-soft: rgba(255, 209, 102, 0.14);
+  --discount-accent-2: #FF4D6D;
+  --discount-ink: #ffffff;
+  --discount-muted: rgba(255, 255, 255, 0.7);
 }
 
 /* =========================
@@ -204,20 +207,20 @@
 .nebula-discounts-root .bg-blue-500,
 .nebula-discounts-root .bg-blue-600,
 .nebula-discounts-root .bg-green-500 {
-  background: linear-gradient(135deg, var(--nebula-violet), rgba(79, 70, 229, 0.85)) !important;
+  background: var(--nebula-primary) !important;
 }
 
 .nebula-discounts-root .text-blue-700,
 .nebula-discounts-root .text-blue-600,
 .nebula-discounts-root .text-green-700,
 .nebula-discounts-root .text-green-600 {
-  color: #e9d5ff !important;
+  color: #000 !important;
 }
 
 .nebula-discounts-root .bg-blue-100,
 .nebula-discounts-root .bg-green-100,
 .nebula-discounts-root .bg-purple-100 {
-  background: var(--nebula-violet-soft) !important;
+  background: var(--nebula-primary-soft) !important;
 }
 
 /* =========================
@@ -251,19 +254,21 @@
 .nebula-discounts-root textarea {
   background: var(--bg-input) !important;
   color: var(--text-primary) !important;
-  border-color: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0.875rem !important;
+  height: 3rem !important;
 }
 
 .nebula-discounts-root input:focus,
 .nebula-discounts-root select:focus,
 .nebula-discounts-root textarea:focus {
-  border-color: var(--nebula-violet) !important;
+  border-color: var(--nebula-primary) !important;
   outline: none;
 }
 
 .nebula-discounts-root input::placeholder,
 .nebula-discounts-root textarea::placeholder {
-  color: rgba(225, 218, 204, 0.6) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* =========================
@@ -303,8 +308,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  border: 1px solid rgba(139, 92, 246, 0.15);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(34, 211, 238, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 1rem;
   padding: 0.6rem 0.85rem;
 }
@@ -313,13 +318,13 @@
    CALLOUTS
 ========================= */
 .nebula-discounts-callout-critical {
-  border-color: rgba(139, 92, 246, 0.35);
-  background: linear-gradient(145deg, rgba(139, 92, 246, 0.10), rgba(18, 21, 28, 0.95));
+  border-color: rgba(255, 77, 109, 0.35);
+  background: rgba(18, 18, 25, 0.95);
 }
 
 .nebula-discounts-callout-success {
-  border-color: rgba(34, 211, 238, 0.35);
-  background: linear-gradient(145deg, rgba(34, 211, 238, 0.10), rgba(18, 21, 28, 0.95));
+  border-color: rgba(0, 255, 149, 0.35);
+  background: rgba(18, 18, 25, 0.95);
 }
 
 /* =========================
@@ -335,7 +340,7 @@
 }
 
 .nebula-discounts-scroll::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(0, 229, 255, 0.35);
   border-radius: 3px;
 }
 
@@ -344,7 +349,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(0, 229, 255, 0.35);
   border-radius: 3px;
 }
 
@@ -352,9 +357,9 @@
    GLASS CARD (NEBULA VERSION)
 ========================= */
 .glass-card {
-  background: rgba(18, 16, 28, 0.85);
+  background: rgba(18, 18, 25, 0.85);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* =========================
@@ -394,7 +399,7 @@
 .shadow-royale {
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.35),
-    0 0 40px rgba(139, 92, 246, 0.1);
+    0 0 40px rgba(0, 229, 255, 0.1);
 }
 
 /* =========================

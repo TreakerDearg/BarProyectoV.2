@@ -31,13 +31,13 @@ export default function NebulaDiscountEventsPage() {
   const getLevelConfig = (level: string) => {
     switch (level) {
       case "ok": 
-        return { color: "text-lime", bg: "bg-lime/5", border: "border-lime/20", icon: <CheckCircle2 size={16} className="text-lime" /> };
+        return { color: "text-[#00FF95]", bg: "bg-[#00FF95]/5", border: "border-[#00FF95]/20", icon: <CheckCircle2 size={16} className="text-[#00FF95]" /> };
       case "warn": 
-        return { color: "text-amber-400", bg: "bg-amber-400/5", border: "border-amber-400/20", icon: <AlertCircle size={16} className="text-amber-400" /> };
+        return { color: "text-[#FFD166]", bg: "bg-[#FFD166]/5", border: "border-[#FFD166]/20", icon: <AlertCircle size={16} className="text-[#FFD166]" /> };
       case "error": 
-        return { color: "text-red", bg: "bg-red/5", border: "border-red/20", icon: <ShieldAlert size={16} className="text-red" /> };
+        return { color: "text-[#FF4D6D]", bg: "bg-[#FF4D6D]/5", border: "border-[#FF4D6D]/20", icon: <ShieldAlert size={16} className="text-[#FF4D6D]" /> };
       default: 
-        return { color: "text-blue-400", bg: "bg-blue-400/5", border: "border-blue-400/20", icon: <Info size={16} className="text-blue-400" /> };
+        return { color: "text-[#00E5FF]", bg: "bg-[#00E5FF]/5", border: "border-[#00E5FF]/20", icon: <Info size={16} className="text-[#00E5FF]" /> };
     }
   };
 
@@ -55,23 +55,23 @@ export default function NebulaDiscountEventsPage() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Auditoría de descuentos</p>
-        <p className="text-xs text-amber-100/80">Seguimiento de cambios y validaciones en tiempo real</p>
+        <p className="text-xs font-bold tracking-wider uppercase text-[#00E5FF]">Auditoría de descuentos</p>
+        <p className="text-xs text-white/50">Seguimiento de cambios y validaciones en tiempo real</p>
       </div>
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10">
         <div className="flex items-center gap-6">
-          <div className="p-4 bg-surface-3 border border-white/5 rounded-2xl shadow-inner">
-            <Activity className="text-amber-400" size={32} />
+          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl shadow-inner">
+            <Activity className="text-[#00E5FF]" size={32} />
           </div>
           <div>
-            <p className="text-[10px] text-amber-400 font-black uppercase tracking-[0.4em] mb-1">
+            <p className="text-[10px] text-[#00E5FF] font-black uppercase tracking-[0.4em] mb-1">
               Registro de Auditoría
             </p>
-            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none">
+            <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
               Eventos de Descuento Nebula
             </h1>
-            <p className="text-xs text-muted font-bold tracking-widest uppercase mt-2">
+            <p className="text-xs text-white/50 font-bold tracking-widest uppercase mt-2">
               Trazabilidad operativa y de seguridad
             </p>
           </div>
@@ -80,12 +80,12 @@ export default function NebulaDiscountEventsPage() {
 
       <section className="bg-surface-2 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 shadow-royale relative z-10">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-          <h2 className="text-xs font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
-            <Clock size={16} className="text-amber-400" />
+          <h2 className="text-xs font-black text-white tracking-[0.2em] uppercase flex items-center gap-3">
+            <Clock size={16} className="text-[#00E5FF]" />
             Flujo de Eventos
           </h2>
-          <span className="px-3 py-1 bg-black/40 border border-white/5 rounded text-[10px] font-black text-lime uppercase tracking-widest flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse"></span>
+          <span className="px-3 py-1 bg-black/40 border border-white/5 rounded text-[10px] font-black text-[#00FF95] uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00FF95] animate-pulse"></span>
             Auto refresh: 30s
           </span>
         </div>

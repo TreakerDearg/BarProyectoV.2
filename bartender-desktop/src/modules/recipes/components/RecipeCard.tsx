@@ -5,8 +5,13 @@ import {
   Flame,
   Zap,
   ChevronRight,
-  TrendingUp,
-  Box
+  Clock,
+  AlertTriangle,
+  Copy,
+  DollarSign,
+  Beaker,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 
 import type { Recipe } from "../types/recipe";
@@ -15,14 +20,29 @@ interface Props {
   recipe: Recipe;
   onDelete: (id: string) => void;
   onOpen?: (recipe: Recipe) => void;
+  onDuplicate?: (recipe: Recipe) => void;
+  productImage?: string;
+  estimatedTime?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export default function RecipeCard({
   recipe,
   onDelete,
   onOpen,
+  onDuplicate,
+  productImage,
+  estimatedTime = 5,
+  difficulty = 'medium'
 }: Props) {
   const isDrink = recipe.type === "drink";
+  const totalCost = recipe.totalCost || 0;
+  const costPerPortion = totalCost > 0 ? totalCost : 0;
+  const difficultyConfig = {
+    easy: { label: 'FÁCIL', color: 'emerald' },
+    medium: { label: 'MEDIA', color: 'gold' },
+    hard: { label: 'DIFÍCIL', color: 'red' }
+  }[difficulty];
 
   const handleOpen = () => {
     if (!onOpen) return;
@@ -59,16 +79,32 @@ export default function RecipeCard({
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-4">
-          <div className={`p-4 rounded-2xl ${isDrink ? 'bg-gold/10 text-gold shadow-gold-glow' : 'bg-emerald-400/10 text-emerald-400 shadow-emerald-glow'}`}>
-            {isDrink ? <Martini size={24} /> : <Utensils size={24} />}
-          </div>
+          {productImage && (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0">
+              <img src={productImage} alt={recipe.product?.name} className="w-full h-full object-cover" />
+            </div>
+          )}
           <div>
-            <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate max-w-[150px]">
-              {recipe.product?.name || "Sin producto"}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate max-w-[150px]">
+                {recipe.product?.name || "Sin producto"}
+              </h3>
+              {recipe.isActive !== false ? (
+                <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
+              ) : (
+                <XCircle size={16} className="text-red-400 flex-shrink-0" />
+              )}
+            </div>
             <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mt-1">
               {recipe.category || "GENERAL"}
             </p>
+            <div className="flex items-center gap-2 mt-1">
+              <Clock size={10} className="text-muted" />
+              <span className="text-[8px] text-muted">~{estimatedTime} min</span>
+              <div className={`px-2 py-0.5 rounded text-[8px] font-semibold bg-${difficultyConfig.color}/20 text-${difficultyConfig.color}`}>
+                {difficultyConfig.label}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -90,33 +126,44 @@ export default function RecipeCard({
         <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
           <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">INGREDIENTES</p>
           <div className="flex items-center gap-2">
-            <Box size={12} className="text-gold" />
+            <Beaker size={12} className="text-gold" />
             <span className="text-sm font-black text-ivory">{recipe.ingredients?.length || 0}</span>
           </div>
         </div>
         <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">COSTO TOTAL</p>
+          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">COSTO/PORCIÓN</p>
           <div className="flex items-center gap-2">
-            <TrendingUp size={12} className="text-emerald-400" />
-            <span className="text-sm font-black text-ivory">${recipe.totalCost?.toFixed(2) || "0.00"}</span>
+            <DollarSign size={12} className="text-emerald-400" />
+            <span className="text-sm font-black text-ivory">${costPerPortion.toFixed(2)}</span>
           </div>
         </div>
       </div>
 
       {/* ================= PREVIEW INGREDIENTS ================= */}
       <div className="space-y-3 relative z-10">
-        <div className="flex items-center gap-2">
-          <Zap size={12} className="text-gold opacity-50" />
-          <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Composición Base</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap size={12} className="text-gold opacity-50" />
+            <p className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Composición Base</p>
+          </div>
+          {difficulty === 'hard' && (
+            <div className="flex items-center gap-1 text-[8px] text-red-400">
+              <AlertTriangle size={8} />
+              <span>Compleja</span>
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">
           {recipe.ingredients?.slice(0, 3).map((i, idx) => (
             <div key={idx} className="flex justify-between items-center bg-white/[0.02] p-2.5 rounded-xl border border-transparent group-hover:border-white/5 transition-colors">
-              <span className="text-xs font-bold text-ivory/80 truncate">
-                {i.inventoryItem?.name || "Ítem"}
-              </span>
-              <span className="text-[10px] font-black text-muted uppercase tracking-tighter">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Beaker size={10} className="text-gold opacity-50 flex-shrink-0" />
+                <span className="text-xs font-bold text-ivory/80 truncate">
+                  {i.inventoryItem?.name || "Ítem"}
+                </span>
+              </div>
+              <span className="text-[10px] font-black text-muted uppercase tracking-tighter flex-shrink-0">
                 {i.quantity} {i.unit}
               </span>
             </div>
@@ -131,6 +178,14 @@ export default function RecipeCard({
 
       {/* ================= ACTIONS ================= */}
       <div className="flex gap-3 relative z-10 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
+        {onDuplicate && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDuplicate(recipe); }}
+            className="w-14 h-14 rounded-2xl bg-violet/5 border border-violet/10 flex items-center justify-center text-violet/40 hover:text-violet hover:bg-violet/20 transition-all"
+          >
+            <Copy size={18} />
+          </button>
+        )}
         <button
           onClick={handleOpenButton}
           className="flex-[2] h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between px-6 hover:bg-gold/10 hover:border-gold/30 transition-all group/btn"

@@ -10,9 +10,12 @@ import {
   Droplets,
   Box,
   TrendingUp,
+  TrendingDown,
   ChevronRight,
   ShieldCheck,
-  Zap
+  Calendar,
+  AlertTriangle,
+  DollarSign
 } from "lucide-react";
 
 import type { InventoryItem } from "../types/inventory";
@@ -22,6 +25,9 @@ interface Props {
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
   simplified?: boolean;
+  averageCost?: number;
+  lastRestock?: string;
+  stockTrend?: 'up' | 'down' | 'stable';
 }
 
 export default function InventoryCard({
@@ -29,11 +35,16 @@ export default function InventoryCard({
   onEdit,
   onDelete,
   simplified = false,
+  averageCost = 0,
+  lastRestock,
+  stockTrend = 'stable'
 }: Props) {
   const stock = Number(item.stock ?? 0);
   const minStock = Number(item.minStock ?? 0);
   const maxStock = Number(item.maxStock ?? 100);
   const cost = Number(item.cost ?? 0);
+  const totalValue = stock * cost;
+  const costVsAverage = averageCost > 0 ? ((cost - averageCost) / averageCost) * 100 : 0;
 
   const isLiquid = ['ml', 'l', 'oz', 'cl'].includes(item.unit?.toLowerCase() || "");
   const percent = Math.min((stock / maxStock) * 100, 100);
@@ -79,6 +90,22 @@ export default function InventoryCard({
               <MapPin size={10} className="text-gold" />
               {item.location || 'BÓVEDA CENTRAL'}
             </div>
+            {!simplified && (
+              <div className="flex items-center gap-2 mt-1">
+                {lastRestock && (
+                  <div className="flex items-center gap-1 text-[8px] text-muted">
+                    <Calendar size={8} />
+                    <span>Última: {lastRestock}</span>
+                  </div>
+                )}
+                {costVsAverage > 20 && (
+                  <div className="flex items-center gap-1 text-[8px] text-red-400">
+                    <AlertTriangle size={8} />
+                    <span>Costo alto</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -134,7 +161,11 @@ export default function InventoryCard({
               <div className={`w-2 h-2 rounded-full bg-${statusConfig.color} animate-pulse`} />
               <span className="text-[10px] font-black text-ivory uppercase tracking-widest">{percent.toFixed(0)}% DISPONIBLE</span>
             </div>
-            <p className="text-[10px] font-black text-muted uppercase tracking-widest">MÁX: {maxStock}</p>
+            <div className="flex items-center gap-2">
+              {stockTrend === 'up' && <TrendingUp size={12} className="text-emerald-400" />}
+              {stockTrend === 'down' && <TrendingDown size={12} className="text-red-400" />}
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest">MÁX: {maxStock}</p>
+            </div>
           </div>
         )}
       </div>
@@ -145,15 +176,20 @@ export default function InventoryCard({
           <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
             <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">COSTO UNITARIO</p>
             <div className="flex items-center gap-2">
-              <TrendingUp size={12} className="text-emerald-400" />
-              <span className="text-sm font-black text-ivory">${cost.toFixed(2)}</span>
+              <TrendingUp size={12} className={costVsAverage > 20 ? 'text-red-400' : costVsAverage < -20 ? 'text-emerald-400' : 'text-emerald-400'} />
+              <span className={`text-sm font-black ${costVsAverage > 20 ? 'text-red-400' : 'text-ivory'}`}>${cost.toFixed(2)}</span>
             </div>
+            {averageCost > 0 && (
+              <p className={`text-[8px] mt-1 ${costVsAverage > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {costVsAverage > 0 ? '+' : ''}{costVsAverage.toFixed(0)}% vs promedio
+              </p>
+            )}
           </div>
           <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">IDENTIFICADOR</p>
+            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">VALOR TOTAL</p>
             <div className="flex items-center gap-2">
-              <Zap size={12} className="text-gold" />
-              <span className="text-[10px] font-black text-ivory tracking-tighter">#{item._id?.slice(-6).toUpperCase()}</span>
+              <DollarSign size={12} className="text-gold" />
+              <span className="text-sm font-black text-gold">${totalValue.toFixed(2)}</span>
             </div>
           </div>
         </div>

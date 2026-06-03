@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
-import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check, Database, FileText, Target } from "lucide-react";
 import EmployeeCard from "../components/EmployeeCard";
 import EmployeeForm from "../components/EmployeeForm";
+import BackupSystem from "../../../components/shared/BackupSystem";
+import AuditLogSystem from "../../../components/shared/AuditLogSystem";
+import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
+import DataExportImport from "../../../components/shared/DataExportImport";
 import {
   getEmployees,
   createEmployee,
@@ -16,6 +20,48 @@ export default function EmployeesPage() {
   const [auditUser, setAuditUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSystemTab, setActiveSystemTab] = useState<"employees" | "backup" | "audit">("employees");
+  const [search, setSearch] = useState("");
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [showExportImport, setShowExportImport] = useState(false);
+
+  // Filter groups for AdvancedSearchFilter
+  const filterGroups = [
+    {
+      id: "role",
+      label: "Rol",
+      type: "radio" as const,
+      options: [
+        { value: "admin", label: "Admin" },
+        { value: "bartender", label: "Bartender" },
+        { value: "waiter", label: "Waiter" },
+        { value: "cashier", label: "Cashier" },
+        { value: "kitchen", label: "Kitchen" },
+      ],
+      selected: activeFilters["role"] || [],
+    },
+    {
+      id: "status",
+      label: "Estado",
+      type: "checkbox" as const,
+      options: [
+        { value: "active", label: "Activo" },
+        { value: "inactive", label: "Inactivo" },
+      ],
+      selected: activeFilters["status"] || [],
+    },
+    {
+      id: "shift",
+      label: "Turno",
+      type: "checkbox" as const,
+      options: [
+        { value: "morning", label: "Mañana" },
+        { value: "afternoon", label: "Tarde" },
+        { value: "night", label: "Noche" },
+      ],
+      selected: activeFilters["shift"] || [],
+    },
+  ];
 
   /* =====================================================
      FETCH EMPLOYEES (SIMPLIFICADO + SAFE SERVICE)
@@ -30,6 +76,68 @@ export default function EmployeesPage() {
     setUsers(data);
 
     setLoading(false);
+  };
+
+  /* =====================================================
+     FILTER EMPLOYEES
+  ===================================================== */
+  const filteredUsers = useMemo(() => {
+    let list = users;
+
+    // Apply search text
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      list = list.filter(u =>
+        u.name?.toLowerCase().includes(lower) ||
+        u.email?.toLowerCase().includes(lower)
+      );
+    }
+
+    // Apply role filter
+    if (activeFilters["role"]?.length > 0) {
+      list = list.filter(u => activeFilters["role"]!.includes(u.role));
+    }
+
+    // Apply status filter
+    if (activeFilters["status"]?.length > 0) {
+      list = list.filter(u => {
+        const filters = activeFilters["status"]!;
+        if (filters.includes("active") && !u.isActive) return false;
+        if (filters.includes("inactive") && u.isActive) return false;
+        return true;
+      });
+    }
+
+    // Apply shift filter
+    if (activeFilters["shift"]?.length > 0) {
+      list = list.filter(u => activeFilters["shift"]!.includes(u.shift || ""));
+    }
+
+    return list;
+  }, [users, search, activeFilters]);
+
+  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
+    try {
+      const data = filteredUsers;
+      const filename = `empleados-export-${new Date().toISOString().split('T')[0]}`;
+
+      if (options.format === "json") {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Error exporting employees:", err);
+      setError("Error al exportar empleados");
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    setError("Importación deshabilitada - solo exportación para auditoría");
   };
 
   useEffect(() => {
@@ -126,46 +234,152 @@ export default function EmployeesPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-3 h-14 px-6 rounded-2xl
-          luxury-button
-          hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
-          transition-all"
-        >
-          <Plus size={20} className="text-[#0a0a0f]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nuevo Colaborador</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {/* System Tabs */}
+          <div className="flex p-1 rounded-xl border border-white/8 bg-white/5">
+            <button
+              onClick={() => setActiveSystemTab("employees")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeSystemTab === "employees"
+                  ? "bg-[#d4af37]/20 text-[#d4af37]"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              Personal
+            </button>
+            <button
+              onClick={() => setActiveSystemTab("backup")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeSystemTab === "backup"
+                  ? "bg-[#d4af37]/20 text-[#d4af37]"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              <Database size={14} className="inline mr-1" />
+              Respaldos
+            </button>
+            <button
+              onClick={() => setActiveSystemTab("audit")}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                activeSystemTab === "audit"
+                  ? "bg-[#d4af37]/20 text-[#d4af37]"
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              <FileText size={14} className="inline mr-1" />
+              Auditoría
+            </button>
+          </div>
+
+          {activeSystemTab === "employees" && (
+            <>
+              <button
+                onClick={() => setShowExportImport(true)}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
+                title="Exportar/Importar"
+              >
+                <Target size={16} />
+              </button>
+              <button
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-3 h-14 px-6 rounded-2xl
+                luxury-button
+                hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
+                transition-all"
+              >
+                <Plus size={20} className="text-[#0a0a0f]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nuevo Colaborador</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* ================= EMPTY ================= */}
-      {!error && users.length === 0 && (
-        <div className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest glass-card p-6 rounded-2xl text-center border border-white/5">
-          No hay colaboradores en el sistema
-        </div>
-      )}
-
-      {/* ================= GRID ================= */}
-      <div
-        className="
-        grid 
-        grid-cols-1 
-        xl:grid-cols-2 
-        2xl:grid-cols-3 
-        gap-6
-        relative z-10
-      "
-      >
-        {users.map((u) => (
-          <div key={u._id}>
-            <EmployeeCard
-              user={u}
-              onDeactivate={handleDeactivate}
-              onInspect={setAuditUser}
+      {/* ================= EMPLOYEES TAB ================= */}
+      {activeSystemTab === "employees" && (
+        <>
+          {/* ================= SEARCH & FILTER ================= */}
+          <div className="mb-6">
+            <AdvancedSearchFilter
+              filterGroups={filterGroups}
+              onSearch={setSearch}
+              onFilterChange={setActiveFilters}
+              placeholder="Buscar colaboradores..."
+              savedFilters={[]}
+              onSaveFilter={() => {}}
+              onLoadFilter={() => {}}
             />
           </div>
-        ))}
-      </div>
+
+          {/* ================= EMPTY ================= */}
+          {!error && filteredUsers.length === 0 && (
+            <div className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest glass-card p-6 rounded-2xl text-center border border-white/5">
+              {search || Object.keys(activeFilters).length > 0
+                ? "No se encontraron colaboradores con los filtros aplicados"
+                : "No hay colaboradores en el sistema"}
+            </div>
+          )}
+
+          {/* ================= GRID ================= */}
+          <div
+            className="
+            grid
+            grid-cols-1
+            xl:grid-cols-2
+            2xl:grid-cols-3
+            gap-6
+            relative z-10
+          "
+          >
+            {filteredUsers.map((u) => (
+              <div key={u._id}>
+                <EmployeeCard
+                  user={u}
+                  onDeactivate={handleDeactivate}
+                  onInspect={setAuditUser}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ================= BACKUP TAB ================= */}
+      {activeSystemTab === "backup" && (
+        <BackupSystem
+          onBackup={async () => {
+            // Implement backup logic
+            console.log("Backup triggered");
+          }}
+          onRestore={async (backupId) => {
+            // Implement restore logic
+            console.log("Restore triggered:", backupId);
+          }}
+          onDelete={async (backupId) => {
+            // Implement delete logic
+            console.log("Delete triggered:", backupId);
+          }}
+          config={{
+            enabled: true,
+            interval: 60,
+            maxBackups: 10,
+            autoCleanup: true
+          }}
+        />
+      )}
+
+      {/* ================= AUDIT TAB ================= */}
+      {activeSystemTab === "audit" && (
+        <AuditLogSystem
+          logs={[]}
+          onExport={() => {
+            console.log("Export audit logs");
+          }}
+          onClear={() => {
+            console.log("Clear audit logs");
+          }}
+        />
+      )}
 
       {/* ================= MODAL ================= */}
       {open && (
@@ -181,6 +395,30 @@ export default function EmployeesPage() {
           onClose={() => setAuditUser(null)}
           onRefresh={fetchData}
         />
+      )}
+
+      {/* EXPORT/IMPORT PANEL */}
+      {showExportImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Empleados</h3>
+              <button
+                onClick={() => setShowExportImport(false)}
+                className="text-muted hover:text-ivory transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <DataExportImport
+              data={filteredUsers}
+              filename={`empleados-${new Date().toISOString().split('T')[0]}`}
+              onExport={handleExport}
+              onImport={handleImport}
+              availableFormats={["json"]}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -10,72 +10,87 @@ interface Props {
 
 export default function NebulaDiscountStats({ data, loading }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       
       {/* TOTAL DEL DÍA */}
-      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-green-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-           <div>
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                Ahorro total hoy
-              </p>
-              <p className="text-xs text-gray-400 mt-1">Descuentos aplicados</p>
-           </div>
-           <div className="p-3 bg-green-100 rounded-xl">
-              <TrendingUp size={24} className="text-green-600" />
-           </div>
+      <div className="p-4 rounded-xl transition-all hover:-translate-y-0.5" style={{
+        background: 'rgba(18, 18, 25, 0.85)',
+        border: '1px solid rgba(255, 255, 255, 0.08)'
+      }}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 255, 149, 0.15)', border: '1px solid rgba(0, 255, 149, 0.3)' }}>
+            <TrendingUp size={24} className="text-[#00FF95]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
+              Ahorro total hoy
+            </div>
+            <div className="text-xs text-white/50">
+              Descuentos aplicados
+            </div>
+          </div>
         </div>
-        <p className="text-4xl font-bold text-gray-800">
+        <div className="text-2xl font-bold text-white tracking-tight">
           {loading ? (
-            <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-lg" />
+            <div className="h-8 w-24 bg-white/10 animate-pulse rounded-lg" />
           ) : (
             `$${data.todayTotal.toLocaleString()}`
           )}
-        </p>
+        </div>
       </div>
 
       {/* CANTIDAD APLICADA */}
-      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-amber-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-           <div>
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                Descuentos aplicados
-              </p>
-              <p className="text-xs text-gray-400 mt-1">Cantidad total</p>
-           </div>
-           <div className="p-3 bg-amber-100 rounded-xl">
-              <Activity size={24} className="text-amber-600" />
-           </div>
+      <div className="p-4 rounded-xl transition-all hover:-translate-y-0.5" style={{
+        background: 'rgba(18, 18, 25, 0.85)',
+        border: '1px solid rgba(255, 255, 255, 0.08)'
+      }}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(255, 209, 102, 0.15)', border: '1px solid rgba(255, 209, 102, 0.3)' }}>
+            <Activity size={24} className="text-[#FFD166]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
+              Descuentos aplicados
+            </div>
+            <div className="text-xs text-white/50">
+              Cantidad total
+            </div>
+          </div>
         </div>
-        <p className="text-4xl font-bold text-gray-800">
+        <div className="text-2xl font-bold text-white tracking-tight">
           {loading ? (
-            <div className="h-10 w-24 bg-gray-200 animate-pulse rounded-lg" />
+            <div className="h-8 w-16 bg-white/10 animate-pulse rounded-lg" />
           ) : (
             data.appliedCount
           )}
-        </p>
+        </div>
       </div>
 
       {/* PROMEDIO DE DESCUENTO */}
-      <div className="bg-white rounded-3xl shadow-xl p-6 border-l-4 border-blue-500 relative overflow-hidden hover:shadow-2xl transition-shadow">
-        <div className="flex justify-between items-start mb-4">
-           <div>
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                Promedio de descuento
-              </p>
-              <p className="text-xs text-gray-400 mt-1">Porcentaje típico</p>
-           </div>
-           <div className="p-3 bg-blue-100 rounded-xl">
-              <PiggyBank size={24} className="text-blue-600" />
-           </div>
+      <div className="p-4 rounded-xl transition-all hover:-translate-y-0.5" style={{
+        background: 'rgba(18, 18, 25, 0.85)',
+        border: '1px solid rgba(255, 255, 255, 0.08)'
+      }}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 229, 255, 0.15)', border: '1px solid rgba(0, 229, 255, 0.3)' }}>
+            <PiggyBank size={24} className="text-[#00E5FF]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
+              Promedio de descuento
+            </div>
+            <div className="text-xs text-white/50">
+              Porcentaje típico
+            </div>
+          </div>
         </div>
-        <p className="text-4xl font-bold text-gray-800">
+        <div className="text-2xl font-bold text-white tracking-tight">
           {loading ? (
-            <div className="h-10 w-28 bg-gray-200 animate-pulse rounded-lg" />
+            <div className="h-8 w-20 bg-white/10 animate-pulse rounded-lg" />
           ) : (
             `${data.averagePercent.toFixed(1)}%`
           )}
-        </p>
+        </div>
       </div>
 
     </div>

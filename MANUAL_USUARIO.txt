@@ -1,0 +1,2151 @@
+================================================================================
+                    MANUAL DE USUARIO - SISTEMA BARTENDER
+================================================================================
+
+Versión: 1.0
+Fecha: Junio 2026
+Arquitectura: Backend (Express.js + MongoDB) + Frontend (Electron + React)
+
+================================================================================
+1. INTRODUCCIÓN AL SISTEMA
+================================================================================
+
+El Sistema Bartender es una solución integral de gestión para bares y restaurantes
+que combina un backend robusto con una aplicación de escritorio moderna. El sistema
+permite gestionar todos los aspectos operativos del establecimiento, desde la toma
+de órdenes hasta el control de inventario, pasando por la gestión de mesas,
+reservas, pagos y descuentos.
+
+ARQUITECTURA DEL SISTEMA:
+-------------------------
+- Backend: API REST construida con Express.js, MongoDB como base de datos,
+  Socket.io para comunicación en tiempo real, autenticación JWT
+- Frontend: Aplicación de escritorio construida con Electron + React, 
+  TailwindCSS para estilos, Zustand para gestión de estado
+
+PROPÓSITO Y OBJETIVOS:
+----------------------
+- Centralizar la gestión operativa del bar/restaurante
+- Optimizar el flujo de trabajo del personal
+- Proporcionar control total sobre inventario y costos
+- Facilitar la toma de decisiones con métricas en tiempo real
+- Mejorar la experiencia del cliente con reservas y atención eficiente
+
+REQUISITOS DEL SISTEMA:
+------------------------
+- Node.js (v18 o superior)
+- MongoDB (v6 o superior)
+- Navegador web moderno (para desarrollo)
+- Sistema operativo: Windows, macOS o Linux (para bartender-desktop)
+- Conexión a internet (para Cloudinary y servicios externos)
+
+
+================================================================================
+2. INSTALACIÓN Y CONFIGURACIÓN
+================================================================================
+
+2.1 CONFIGURACIÓN DEL BACKEND
+------------------------------
+
+REQUISITOS PREVIOS:
+- Node.js instalado
+- MongoDB instalado y corriendo
+- Cuenta en Cloudinary (para gestión de imágenes)
+
+PASOS DE INSTALACIÓN:
+
+1. Navegar al directorio del backend:
+   cd bartender-system/backend
+
+2. Instalar dependencias:
+   npm install
+
+3. Configurar variables de entorno:
+   Crear archivo .env con las siguientes variables:
+   
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/bartender
+   JWT_SECRET=your-secret-key-here
+   JWT_REFRESH_SECRET=your-refresh-secret-here
+   CLIENT_URL=http://localhost:5173
+   DESKTOP_URL=http://localhost:5173
+   CLOUDINARY_CLOUD_NAME=your-cloud-name
+   CLOUDINARY_API_KEY=your-api-key
+   CLOUDINARY_API_SECRET=your-api-secret
+   NODE_ENV=development
+
+4. Iniciar el servidor:
+   npm run dev (para desarrollo)
+   npm start (para producción)
+
+El backend estará disponible en: http://localhost:5000
+
+
+2.2 CONFIGURACIÓN DEL BARTENDER-DESKTOP
+----------------------------------------
+
+REQUISITOS PREVIOS:
+- Node.js instalado
+- Backend corriendo
+
+PASOS DE INSTALACIÓN:
+
+1. Navegar al directorio del frontend:
+   cd bartender-system/bartender-desktop
+
+2. Instalar dependencias:
+   npm install
+
+3. Configurar conexión al backend:
+   El archivo de configuración principal está en src/services/api.ts
+   Asegúrate de que la URL base del API coincida con tu backend:
+   const API_BASE_URL = process.env.API_URL || 'http://localhost:5000/api';
+
+4. Iniciar la aplicación:
+   npm run dev (para desarrollo con hot-reload)
+   npm run build && npm start (para producción)
+
+La aplicación de escritorio se abrirá automáticamente.
+
+
+================================================================================
+3. ROLES Y PERMISOS
+================================================================================
+
+El sistema cuenta con 6 roles principales, cada uno con permisos específicos:
+
+3.1 ADMIN
+---------
+ACCESO: Completo a todo el sistema
+PERMISOS:
+- Gestión de usuarios y roles
+- Configuración del sistema
+- Acceso a todos los módulos
+- Visualización de logs y métricas
+- Gestión de promociones y precios dinámicos
+- Control total sobre descuentos
+
+3.2 BARTENDER
+-------------
+ACCESO: /dashboard, /orders, /tables, /reservations, /discounts, 
+        /discounts/dynamic-pricing, /discounts/promotions, /discounts/events, /roulette
+PERMISOS:
+- Gestión de órdenes y mesas
+- Aplicación de descuentos
+- Gestión de reservas
+- Acceso a la ruleta de bebidas
+- Visualización de dashboard
+
+3.3 WAITER
+----------
+ACCESO: /dashboard, /orders, /tables, /reservations, /discounts
+PERMISOS:
+- Gestión de órdenes y mesas
+- Gestión de reservas
+- Aplicación de descuentos básicos
+- Visualización de dashboard
+
+3.4 CASHIER
+-----------
+ACCESO: /dashboard, /orders, /tables, /reservations, /discounts,
+        /discounts/dynamic-pricing, /discounts/promotions, /discounts/events
+PERMISOS:
+- Procesamiento de pagos
+- Gestión de órdenes y mesas
+- Gestión de reservas
+- Aplicación de descuentos con aprobación
+- Visualización de dashboard
+
+3.5 KITCHEN
+----------
+ACCESO: /dashboard, /orders, /inventory, /recipes
+PERMISOS:
+- Visualización de órdenes
+- Gestión de inventario
+- Gestión de recetas
+- Visualización de dashboard
+
+3.6 CLIENT
+---------
+ACCESO: Limitado
+PERMISOS:
+- Visualización básica
+- Acceso a información pública
+
+
+MATRIZ DE PERMISOS POR MÓDULO:
+--------------------------------
+Módulo              | Admin | Bartender | Waiter | Cashier | Kitchen | Client
+--------------------|-------|-----------|--------|---------|---------|--------
+Dashboard           |   ✓   |     ✓     |   ✓    |    ✓    |    ✓    |   -
+Auth                |   ✓   |     ✓     |   ✓    |    ✓    |    ✓    |   ✓
+Products            |   ✓   |     -     |   -    |    -    |    -    |   -
+Menus               |   ✓   |     -     |   -    |    -    |    -    |   -
+Recipes             |   ✓   |     -     |   -    |    -    |    ✓    |   -
+Inventory           |   ✓   |     -     |   -    |    -    |    ✓    |   -
+Orders              |   ✓   |     ✓     |   ✓    |    ✓    |    ✓    |   -
+Tables              |   ✓   |     ✓     |   ✓    |    ✓    |    -    |   -
+Reservations        |   ✓   |     ✓     |   ✓    |    ✓    |    -    |   -
+Discounts           |   ✓   |     ✓     |   ✓    |    ✓    |    -    |   -
+Dynamic Pricing     |   ✓   |     ✓     |   -    |    ✓    |    -    |   -
+Promotions          |   ✓   |     ✓     |   -    |    ✓    |    -    |   -
+Payments            |   ✓   |     -     |   -    |    ✓    |    -    |   -
+Roulette            |   ✓   |     ✓     |   -    |    -    |    -    |   -
+Attendance          |   ✓   |     ✓     |   ✓    |    ✓    |    ✓    |   -
+Performance         |   ✓   |     ✓     |   ✓    |   ✓    |    ✓    |   -
+Users               |   ✓   |     -     |   -    |    -    |    -    |   -
+
+
+================================================================================
+4. MÓDULOS DEL SISTEMA
+================================================================================
+
+4.1 AUTENTICACIÓN
+-----------------
+
+DESCRIPCIÓN:
+Sistema de autenticación seguro basado en tokens JWT que permite el acceso
+controlado al sistema.
+
+FUNCIONALIDADES:
+- Inicio de sesión con email y contraseña
+- Cierre de sesión seguro
+- Auto-login con persistencia de token
+- Validación de credenciales en tiempo real
+- Bloqueo temporal después de 5 intentos fallidos
+- Recuperación de contraseña (futuro)
+
+FLUJO DE USO:
+1. Ingresar email y contraseña en la pantalla de login
+2. El sistema valida las credenciales
+3. Si son correctas, genera un token JWT
+4. El token se almacena localmente para persistencia
+5. El usuario es redirigido al dashboard según su rol
+
+SEGURIDAD:
+- Contraseñas encriptadas con bcrypt
+- Tokens con expiración configurable
+- Rate limiting en endpoints de autenticación
+- Sanitización de inputs para prevenir ataques XSS
+
+
+4.2 DASHBOARD
+-------------
+
+DESCRIPCIÓN:
+Panel principal que proporciona una visión general del estado del establecimiento
+en tiempo real.
+
+COMPONENTES PRINCIPALES:
+
+KPIs (Key Performance Indicators):
+- Ventas totales del día
+- Número de órdenes procesadas
+- Mesas ocupadas vs disponibles
+- Promedio de ticket
+- Tiempo promedio de servicio
+
+GRÁFICOS:
+- Gráfico de ventas por hora
+- Gráfico de órdenes por categoría
+- Tendencia de ventas semanales/mensuales
+
+ALERTAS EN TIEMPO REAL:
+- Alertas de descuentos de alto valor
+- Alertas de stock bajo
+- Alertas de rendimiento del personal
+- Alertas de mesas con tiempo prolongado
+
+PANEL DE PRECIOS DINÁMICOS:
+- Visualización de reglas activas
+- Ajustes de precios según demanda
+- Eventos de pricing programados
+
+FLUJO DE USO:
+1. Al iniciar sesión, el usuario es redirigido al dashboard
+2. Los KPIs se actualizan automáticamente cada 30 segundos
+3. Las alertas se muestran en tiempo real vía Socket.io
+4. Se puede filtrar por período (hoy, semana, mes)
+5. Los gráficos son interactivos y permiten drill-down
+
+
+4.3 GESTIÓN DE PRODUCTOS
+-------------------------
+
+DESCRIPCIÓN:
+Módulo para crear, editar y gestionar el catálogo de productos del establecimiento.
+
+CAMPOS DE PRODUCTO:
+- Nombre (requerido, único)
+- Descripción (opcional, máx 300 caracteres)
+- Precio (requerido, mínimo 0)
+- Costo (opcional, para cálculo de márgenes)
+- Categoría (requerida)
+- Tipo: drink o food (requerido)
+- Subcategoría (opcional)
+- Tiempo de preparación (en minutos)
+- Disponible (boolean)
+- Auto-disponible (boolean)
+- Destacado (boolean)
+- Imagen (URL de Cloudinary)
+- Etiquetas (array de strings)
+- Impacto en stock (boolean)
+- Es alcohol (boolean)
+- Activo para POS (boolean)
+
+FUNCIONALIDADES:
+- Crear nuevo producto
+- Editar producto existente
+- Eliminar producto (soft delete)
+- Subir imagen a Cloudinary
+- Asignar a menús
+- Gestión de etiquetas para filtros
+- Productos destacados para promociones
+- Control de disponibilidad
+- Cálculo automático de margen de ganancia
+
+FLUJO DE USO:
+1. Navegar a /products
+2. Hacer clic en "Nuevo Producto"
+3. Completar los campos requeridos
+4. Subir imagen (opcional)
+5. Seleccionar categoría y tipo
+6. Guardar el producto
+7. El producto aparece en el catálogo y está disponible para POS
+
+NOTAS:
+- El nombre se normaliza a minúsculas para evitar duplicados
+- Los productos tipo "drink" tienen impacto automático en stock
+- El costo se sincroniza con la receta si existe
+
+
+4.4 GESTIÓN DE MENÚS
+-------------------
+
+DESCRIPCIÓN:
+Módulo para crear y gestionar menús que agrupan múltiples productos con precios
+especiales.
+
+CAMPOS DE MENÚ:
+- Nombre (requerido)
+- Descripción (opcional)
+- Precio (requerido)
+- Categoría (opcional)
+- Productos asociados (array)
+- Disponible (boolean)
+- Imagen (opcional)
+
+FUNCIONALIDADES:
+- Crear menús con múltiples productos
+- Asociar productos existentes
+- Establecer precio especial del menú
+- Gestión de disponibilidad
+- Imagen del menú
+
+FLUJO DE USO:
+1. Navegar a /menus
+2. Hacer clic en "Nuevo Menú"
+3. Ingresar nombre y precio
+4. Seleccionar productos del catálogo
+5. Guardar el menú
+6. El menú está disponible en el POS
+
+NOTAS:
+- Los menús pueden contener productos de cualquier tipo
+- El precio del menú es independiente de la suma de productos
+
+
+4.5 GESTIÓN DE RECETAS
+----------------------
+
+DESCRIPCIÓN:
+Módulo para definir recetas de productos, especificando ingredientes, cantidades
+y pasos de preparación. Permite el cálculo automático de costos.
+
+CAMPOS DE RECETA:
+- Producto asociado (requerido, único)
+- Tipo: drink o food
+- Ingredientes (array):
+  * Item de inventario
+  * Cantidad
+  * Unidad (ml, l, g, kg, oz, unit, portion)
+  * Multiplicador de unidad base
+- Método de preparación
+- Pasos (array con instrucciones ordenadas)
+- Categoría
+- Imagen
+- Especificaciones:
+  * Tipo de vaso
+  * Tipo de hielo
+- Costo total (calculado automáticamente)
+- Activa (boolean)
+
+UNIDADES DE MEDIDA:
+- ml: mililitros
+- l: litros (1 l = 1000 ml)
+- g: gramos
+- kg: kilogramos (1 kg = 1000 g)
+- oz: onzas (1 oz = 29.5735 ml)
+- unit: unidades
+- portion: porciones
+
+FUNCIONALIDADES:
+- Crear receta para producto existente
+- Agregar múltiples ingredientes
+- Especificar pasos de preparación
+- Cálculo automático de costo basado en inventario
+- Normalización de unidades para cálculo preciso
+- Sincronización automática con producto (costo, hasRecipe)
+- Cálculo de margen de ganancia
+
+FLUJO DE USO:
+1. Navegar a /recipes
+2. Hacer clic en "Nueva Receta"
+3. Seleccionar producto del catálogo
+4. Agregar ingredientes:
+   - Seleccionar item de inventario
+   - Especificar cantidad y unidad
+5. Agregar pasos de preparación
+6. Especificar método y especificaciones
+7. Guardar
+8. El costo se calcula automáticamente y se actualiza en el producto
+
+NOTAS:
+- Cada producto puede tener solo una receta
+- El costo se recalcula automáticamente al modificar ingredientes
+- Las unidades se normalizan internamente para cálculos precisos
+
+
+4.6 GESTIÓN DE INVENTARIO
+-------------------------
+
+DESCRIPCIÓN:
+Módulo para controlar el stock de ingredientes y materiales del establecimiento.
+
+CAMPOS DE ITEM DE INVENTARIO:
+- Nombre (requerido)
+- Descripción (opcional)
+- Cantidad actual
+- Unidad (ml, l, g, kg, oz, unit, portion)
+- Costo por unidad
+- Cantidad mínima (para alertas)
+- Categoría
+- Proveedor
+- Última actualización
+
+FUNCIONALIDADES:
+- Crear items de inventario
+- Actualizar stock manualmente
+- Actualización automática vía recetas
+- Alertas de stock bajo
+- Control de costos
+- Historial de movimientos (futuro)
+
+FLUJO DE USO:
+1. Navegar a /inventory
+2. Hacer clic en "Nuevo Item"
+3. Completar campos: nombre, unidad, costo, cantidad mínima
+4. Establecer cantidad inicial
+5. Guardar
+6. El item está disponible para usar en recetas
+
+ACTUALIZACIÓN DE STOCK:
+- Manual: Editar item y actualizar cantidad
+- Automática: Cuando se procesa una orden con receta, el stock se descuenta
+- Alertas: Cuando la cantidad está por debajo del mínimo
+
+NOTAS:
+- Las unidades deben coincidir con las usadas en recetas
+- El costo por unidad es esencial para cálculo de costos de recetas
+
+
+4.7 GESTIÓN DE MESAS
+-------------------
+
+DESCRIPCIÓN:
+Módulo para gestionar las mesas del establecimiento, incluyendo su ubicación,
+capacidad, estado y sesiones POS.
+
+CAMPOS DE MESA:
+- Número (requerido, único)
+- Capacidad (requerida, mínimo 1)
+- Ubicación: indoor, outdoor, bar
+- Coordenadas (x, y) para floor plan
+- Dimensiones (ancho, alto)
+- Forma: rect, circle, square
+- Estado: available, reserved, occupied, maintenance
+- ID de sesión actual
+- Hora de apertura
+- Hora de cierre
+- Reserva actual
+- Mantenimiento hasta (fecha)
+- Bloqueada (boolean)
+- Notas
+- Tags (alergias, dietas, preferencias, warnings)
+- Total de pagos
+- Último pago
+- Checkout en progreso (boolean)
+
+ESTADOS DE MESA:
+- available: Mesa libre y disponible
+- reserved: Mesa reservada para cliente específico
+- occupied: Mesa ocupada con sesión activa
+- maintenance: Mesa en mantenimiento
+
+FUNCIONALIDADES:
+- Vista de floor plan interactivo
+- Crear, editar, eliminar mesas
+- Arrastrar y soltar para reubicar
+- Abrir sesión de mesa (POS)
+- Cerrar sesión de mesa
+- Poner en mantenimiento
+- Asignar reserva
+- Analytics de mesas
+- Historial de pagos
+- Bloqueo para prevenir concurrencia
+
+FLUJO DE USO - FLOOR PLAN:
+1. Navegar a /tables
+2. Ver vista de floor plan con todas las mesas
+3. Las mesas se colorean según estado:
+   - Verde: available
+   - Amarillo: reserved
+   - Rojo: occupied
+   - Gris: maintenance
+4. Hacer clic en una mesa para ver detalles
+5. Arrastrar para reubicar
+6. Hacer clic derecho para opciones rápidas
+
+FLUJO DE USO - SESIÓN POS:
+1. Hacer clic en mesa available
+2. Confirmar apertura de sesión
+3. La mesa cambia a estado "occupied"
+4. Se puede agregar órdenes a la sesión
+5. Al finalizar, cerrar sesión y procesar pago
+6. La mesa vuelve a "available"
+
+FLUJO DE USO - MANTENIMIENTO:
+1. Hacer clic en mesa
+2. Seleccionar "Poner en mantenimiento"
+3. Especificar duración
+4. La mesa se bloquea automáticamente
+5. Al finalizar el tiempo, vuelve a available automáticamente
+
+NOTAS:
+- Solo una sesión activa por mesa
+- El bloqueo previene apertura concurrente
+- El checkout tiene bloqueo adicional para prevenir race conditions
+
+
+4.8 GESTIÓN DE ÓRDENES
+----------------------
+
+DESCRIPCIÓN:
+Módulo central para la toma y gestión de órdenes de clientes.
+
+CAMPOS DE ORDEN:
+- Items (array):
+  * Producto o Menú
+  * Cantidad
+  * Precio (snapshot)
+  * Tipo: drink, food, menu
+  * Items de menú (expandido)
+  * Estado: pending, preparing, ready, served, cancelled
+  * Tiempo de inicio
+  * Tiempo de listo
+  * Notas
+- Subtotal (calculado)
+- Descuento total
+- Total (calculado)
+- Descuentos aplicados (array)
+- Estado global: pending, in-progress, completed, cancelled
+- Mesa (requerida)
+- ID de sesión
+- Estado de sesión: open, closed
+- Pago (referencia)
+- Estado de pago: unpaid, partial, paid, refunded
+- Método de pago
+- Creado por (usuario)
+- Servido por (usuario)
+- Notas generales
+- Prioridad: low, normal, high
+- Hora de cierre
+
+ESTADOS DE ORDEN:
+- pending: Orden creada, no iniciada
+- in-progress: Orden en preparación
+- completed: Orden completada y servida
+- cancelled: Orden cancelada
+
+ESTADOS DE ITEM:
+- pending: Item pendiente de preparar
+- preparing: Item en preparación
+- ready: Item listo para servir
+- served: Item servido al cliente
+- cancelled: Item cancelado
+
+FUNCIONALIDADES:
+- Crear nueva orden
+- Agregar productos/menús
+- Agregar items individuales de menú
+- Modificar cantidades
+- Agregar notas a items
+- Cambiar estado de items
+- Cambiar estado global de orden
+- Aplicar descuentos
+- Asignar prioridad
+- Seguimiento en tiempo real
+- Notificaciones vía Socket.io
+
+FLUJO DE USO:
+1. Abrir sesión de mesa
+2. Hacer clic en "Nueva Orden"
+3. Seleccionar productos del catálogo
+4. Especificar cantidades
+5. Agregar notas si es necesario
+6. Guardar orden
+7. La orden aparece en kitchen/bar según tipo
+8. Los items cambian de estado según preparación
+9. Al completar, marcar como servido
+10. Cerrar orden y procesar pago
+
+FLUJO DE KITCHEN/BAR:
+1. Kitchen ve órdenes tipo "food"
+2. Bar ve órdenes tipo "drink"
+3. Items aparecen como "pending"
+4. Al iniciar preparación, cambiar a "preparing"
+5. Al terminar, cambiar a "ready"
+6. Waiter marca como "served" al entregar
+
+NOTAS:
+- Los precios se guardan como snapshot para auditoría
+- Los descuentos se calculan sobre el subtotal
+- Socket.io notifica cambios en tiempo real
+
+
+4.9 GESTIÓN DE PAGOS
+-------------------
+
+DESCRIPCIÓN:
+Módulo para procesar pagos de órdenes con múltiples métodos de pago.
+
+MÉTODOS DE PAGO:
+- cash: Efectivo
+- transfer: Transferencia bancaria
+- card: Tarjeta de crédito/débito
+- qr: Código QR (MercadoPago, PayPal, etc.)
+- wallet: Billetera digital (Apple Pay, Google Pay)
+- split: Pago dividido
+
+CAMPOS DE PAGO:
+- Mesa (requerida)
+- Orden (requerida)
+- ID de sesión (requerido)
+- Monto (requerido)
+- Método (requerido)
+- Estado: pending, completed, failed, refunded
+- Descuentos aplicados (array)
+- Total descuento
+- Subtotal
+- Cambio (para efectivo)
+- Monto pagado
+- Detalles de tarjeta:
+  * Últimos 4 dígitos
+  * Tipo (visa, mastercard, amex, other)
+  * Código de autorización
+  * ID de terminal
+- Detalles QR:
+  * Proveedor
+  * ID de transacción
+  * Código QR
+  * Expiración
+- Detalles wallet:
+  * Proveedor
+  * ID de transacción
+  * Email
+- Detalles split:
+  * Es parcial
+  * Total de divisiones
+  * División actual
+  * Monto de división
+  * Pago padre
+  * Pagos hijos
+- Procesado por (usuario)
+- Recibo:
+  * Número de recibo (único)
+  * Fecha de emisión
+  * Items
+- Metadata
+
+FUNCIONALIDADES:
+- Procesar pago con cualquier método
+- Calcular cambio para efectivo
+- Validar detalles de tarjeta
+- Generar códigos QR
+- Procesar billeteras digitales
+- Dividir pagos entre múltiples métodos
+- Generar recibos digitales
+- Historial de pagos
+- Reembolsos
+- Auditoría completa
+
+FLUJO DE USO - EFECTIVO:
+1. Seleccionar mesa con orden pendiente de pago
+2. Hacer clic en "Procesar Pago"
+3. Seleccionar método "cash"
+4. Ingresar monto recibido
+5. El sistema calcula el cambio automáticamente
+6. Confirmar pago
+7. Generar recibo
+8. Cerrar sesión de mesa
+
+FLUJO DE USO - TARJETA:
+1. Seleccionar método "card"
+2. Ingresar detalles de tarjeta:
+   - Últimos 4 dígitos
+   - Tipo de tarjeta
+   - Código de autorización
+3. Confirmar pago
+4. Generar recibo
+
+FLUJO DE USO - QR:
+1. Seleccionar método "qr"
+2. Seleccionar proveedor (MercadoPago, PayPal)
+3. Generar código QR
+4. Cliente escanea y paga
+5. Sistema confirma transacción
+6. Pago completado
+
+FLUJO DE USO - SPLIT:
+1. Seleccionar método "split"
+2. Especificar número de divisiones
+3. Procesar cada división
+4. Al completar todas, cerrar pago
+
+NOTAS:
+- Cada pago genera un número de recibo único
+- Los pagos actualizan automáticamente el estado de la orden
+- Socket.io notifica pagos en tiempo real
+- El historial de pagos se guarda por mesa
+
+
+4.10 SISTEMA DE DESCUENTOS
+--------------------------
+
+DESCRIPCIÓN:
+Sistema robusto para aplicar descuentos con aprobación en cascada y auditoría
+completa.
+
+TIPOS DE DESCUENTO:
+- PERCENT: Porcentaje del total
+- FLAT: Monto fijo
+
+RAZONES DE DESCUENTO:
+- WAIT_TIME: Tiempo de espera excesivo
+- QUALITY_ISSUE: Problema de calidad
+- COMP: Cortesía
+- EMPLOYEE: Descuento empleado
+- OTHER: Otro motivo
+
+CAMPOS DE DESCUENTO:
+- Orden (requerida)
+- Mesa
+- ID de sesión
+- ID de promoción
+- ID de menú
+- Fecha y horario de aplicación:
+  * Válido desde
+  * Válido hasta
+  * Días aplicables (0-6, Domingo-Sábado)
+  * Horas aplicables (inicio-fin)
+- Items afectados (array):
+  * Producto
+  * Nombre
+  * Precio
+  * Cantidad
+  * Subtotal
+- Tipo (PERCENT o FLAT)
+- Valor (porcentaje o monto)
+- Monto aplicado (calculado)
+- Estado: APPLIED, PENDING, REJECTED
+- Etapa de aprobación: NONE, LEVEL_1, LEVEL_2, LEVEL_3, FINAL
+- Solicitado por
+- Aprobado Level 1 por
+- Aprobado Level 2 por
+- Aprobado Level 3 por
+- Razón
+- Nota
+- Aplicado por
+- Aprobado por
+- Rechazado por
+- Total antes de descuento
+- Total después de descuento
+- Metadata
+
+SISTEMA DE APROBACIÓN EN CASCADA:
+- Level 1: Aprobación inicial (ej. bartender)
+- Level 2: Aprobación intermedia (ej. supervisor)
+- Level 3: Aprobación final (ej. gerente)
+- FINAL: Descuento completamente aprobado
+
+FUNCIONALIDADES:
+- Aplicar descuento por porcentaje
+- Aplicar descuento por monto fijo
+- Aplicar a items específicos o total
+- Solicitar aprobación según monto
+- Aprobar/rechazar en cascada
+- Validar fechas y horarios
+- Auditoría completa
+- Historial de descuentos
+- Alertas de descuentos de alto valor
+
+FLUJO DE USO:
+1. En la orden, hacer clic en "Aplicar Descuento"
+2. Seleccionar tipo (PERCENT o FLAT)
+3. Ingresar valor
+4. Seleccionar razón
+5. Seleccionar items (opcional, para descuento parcial)
+6. Agregar nota explicativa
+7. Solicitar aprobación si es necesario
+8. El descuento se aplica y se calcula el nuevo total
+9. Si requiere aprobación, espera aprobación de niveles superiores
+10. Una vez aprobado, se aplica definitivamente
+
+REGLAS DE APROBACIÓN:
+- Descuentos < 20% o < $50: Aprobación inmediata
+- Descuentos >= 20% o >= $50: Requieren Level 1
+- Descuentos >= 40% o >= $100: Requieren Level 2
+- Descuentos >= 60% o >= $200: Requieren Level 3
+
+NOTAS:
+- Todos los descuentos se auditan
+- El historial incluye quién aplicó, aprobó o rechazó
+- Los descuentos pueden rechazarse en cualquier etapa
+- Socket.io notifica solicitudes de aprobación en tiempo real
+
+
+4.11 PRECIOS DINÁMICOS
+----------------------
+
+DESCRIPCIÓN:
+Sistema para ajustar precios automáticamente según demanda, horario y eventos.
+
+CAMPOS DE REGLA:
+- Nombre
+- Tipo de ajuste: percent, fixed
+- Valor de ajuste
+- Condiciones:
+  * Días aplicables
+  * Horas aplicables
+  * Ocupación mínima
+  * Ocupación máxima
+- Productos afectados
+- Categorías afectadas
+- Activa
+
+FUNCIONALIDADES:
+- Crear reglas de precios dinámicos
+- Ajustar precios según horario (happy hour)
+- Ajustar según ocupación
+- Ajustar según eventos especiales
+- Activar/desactivar reglas
+- Prioridad de reglas
+
+FLUJO DE USO:
+1. Navegar a /discounts/dynamic-pricing
+2. Hacer clic en "Nueva Regla"
+3. Definir condiciones (días, horas, ocupación)
+4. Especificar ajuste (porcentaje o fijo)
+5. Seleccionar productos/categorías
+6. Activar regla
+7. Los precios se ajustan automáticamente
+
+NOTAS:
+- Las reglas se evalúan en orden de prioridad
+- Solo una regla se aplica por producto
+- Los ajustes son temporales y reversibles
+
+
+4.12 PROMOCIONES
+----------------
+
+DESCRIPCIÓN:
+Módulo para crear y gestionar promociones especiales con fechas y condiciones.
+
+CAMPOS DE PROMOCIÓN:
+- Nombre
+- Descripción
+- Tipo: percent, fixed, bogo, bundle
+- Valor
+- Fecha de inicio
+- Fecha de fin
+- Días aplicables
+- Horas aplicables
+- Menús asociados
+- Productos asociados
+- Categorías
+- Activa
+
+FUNCIONALIDADES:
+- Crear promociones temporales
+- Promociones 2x1 (BOGO)
+- Promociones de bundles
+- Promociones por porcentaje
+- Promociones por monto fijo
+- Programar fechas y horarios
+- Activar/desactivar
+
+FLUJO DE USO:
+1. Navegar a /discounts/promotions
+2. Hacer clic en "Nueva Promoción"
+3. Definir tipo y valor
+4. Establecer fechas y horarios
+5. Asociar productos/menús
+6. Activar promoción
+7. La promoción se aplica automáticamente en POS
+
+NOTAS:
+- Las promociones se validan al aplicar descuentos
+- Solo promociones activas se aplican
+- Se puede combinar con precios dinámicos
+
+
+4.13 GESTIÓN DE RESERVAS
+------------------------
+
+DESCRIPCIÓN:
+Sistema completo para gestionar reservas de clientes con control de disponibilidad.
+
+CAMPOS DE RESERVA:
+- Nombre del cliente (requerido)
+- Teléfono del cliente (requerido)
+- Hora de inicio (requerida)
+- Hora de fin (requerida)
+- Clave de día (YYYY-MM-DD, para performance)
+- Slot horario (HH:MM, para performance)
+- Número de guests (requerido, mínimo 1)
+- Es VIP (boolean)
+- Depósito
+- Mesa asignada
+- Estado: pending, confirmed, seated, completed, cancelled, no-show
+- ID de sesión POS
+- Notas
+- Tags (array):
+  * Alergias
+  * Dietas
+  * Preferencias
+  * VIP
+  * Otro
+- Fuente: web, app, admin
+- Bloqueada (boolean)
+- Hora de llegada
+- Hora de cancelación
+
+ESTADOS DE RESERVA:
+- pending: Reserva creada, no confirmada
+- confirmed: Reserva confirmada
+- seated: Cliente ha llegado y está sentado
+- completed: Reserva completada
+- cancelled: Reserva cancelada
+- no-show: Cliente no se presentó
+
+FUNCIONALIDADES:
+- Crear reservas
+- Verificar disponibilidad
+- Asignar mesa
+- Confirmar reservas
+- Marcar como sentado
+- Cancelar reservas
+- Gestión de VIP
+- Control de no-show
+- Tags para preferencias
+- Sistema de slots horarios
+- Verificación de superposición
+
+FLUJO DE USO - CREAR RESERVA:
+1. Navegar a /reservations
+2. Hacer clic en "Nueva Reserva"
+3. Ingresar nombre y teléfono del cliente
+4. Seleccionar fecha y hora
+5. Especificar número de guests
+6. El sistema verifica disponibilidad
+7. Si hay disponibilidad, seleccionar mesa
+8. Agregar notas y tags si es necesario
+9. Marcar como VIP si aplica
+10. Guardar reserva
+
+FLUJO DE USO - CONFIRMAR:
+1. Seleccionar reserva pendiente
+2. Hacer clic en "Confirmar"
+3. La reserva cambia a estado "confirmed"
+4. La mesa se marca como "reserved"
+
+FLUJO DE USO - CLIENTE LLEGA:
+1. Seleccionar reserva confirmada
+2. Hacer clic en "Cliente Sentado"
+3. La reserva cambia a "seated"
+4. Se abre sesión POS en la mesa
+5. Se registra hora de llegada
+
+FLUJO DE USO - CANCELAR:
+1. Seleccionar reserva
+2. Hacer clic en "Cancelar"
+3. Agregar razón de cancelación
+4. La reserva cambia a "cancelled"
+5. La mesa se libera
+
+VERIFICACIÓN DE DISPONIBILIDAD:
+- El sistema verifica superposición de horarios
+- Valida capacidad de la mesa
+- Considera reservas existentes
+- Retorna slots disponibles por hora
+
+NOTAS:
+- Las reservas bloquean las mesas automáticamente
+- El sistema previene reservas superpuestas
+- Los no-shows se registran para análisis
+- Los tags ayudan a personalizar el servicio
+
+
+4.14 RULETA DE BEBIDAS
+----------------------
+
+DESCRIPCIÓN:
+Módulo interactivo para selección aleatoria de bebidas, ideal para promociones
+y entretenimiento de clientes.
+
+CAMPOS DE BEBIDA EN RULETA:
+- Producto (requerido)
+- Nombre
+- Precio
+- Tipo: drink
+- Disponible
+- Activo para POS
+- Impacto en stock
+
+FUNCIONALIDADES:
+- Selección aleatoria de bebidas
+- Filtros automáticos (solo bebidas disponibles)
+- Animación de ruleta
+- Registro de giros
+- Estadísticas por usuario
+- Configuración de bebidas incluidas
+
+FLUJO DE USO:
+1. Navegar a /roulette
+2. Ver ruleta con bebidas disponibles
+3. Hacer clic en "Girar"
+4. La ruleta anima y selecciona bebida aleatoria
+5. Se muestra la bebida seleccionada
+6. Se puede agregar directamente a orden
+7. El giro se registra en estadísticas
+
+CONFIGURACIÓN:
+- Solo bebidas tipo "drink" se incluyen
+- Deben estar disponibles y activas para POS
+- Deben tener impacto en stock
+- Se excluyen bebidas sin stock
+
+ESTADÍSTICAS:
+- Veces que cada bebida ha sido seleccionada
+- Giros por usuario
+- Distribución de selecciones
+
+NOTAS:
+- La ruleta es ideal para promociones
+- Puede usarse para sugerencias aleatorias
+- Las estadísticas ayudan a identificar preferencias
+
+
+4.15 ASISTENCIA Y TURNOS
+-------------------------
+
+DESCRIPCIÓN:
+Sistema para controlar la asistencia de empleados, turnos y horarios.
+
+CAMPOS DE USUARIO (ASISTENCIA):
+- Estado actual: checked-in, checked-out, break, absent, late
+- Último check-in
+- Último check-out
+- Inicio de turno actual
+- Total minutos trabajados
+- Días consecutivos trabajados
+- Este mes:
+  * Presentes
+  * Ausentes
+  * Tardanzas
+  * Total horas
+- Balance de días libres:
+  * Vacaciones
+  * Enfermedad
+  * Personal
+- Solicitudes de permisos (array)
+
+TURNOS DISPONIBLES:
+- morning: Turno mañana
+- afternoon: Turno tarde
+- night: Turno noche
+- event: Eventos especiales
+
+PROGRAMACIÓN SEMANAL:
+- Para cada día de la semana:
+  * Disponible (boolean)
+  * Hora inicio
+  * Hora fin
+  * Inicio descanso
+  * Fin descanso
+
+FUNCIONALIDADES:
+- Check-in de empleados
+- Check-out de empleados
+- Registro de tardanzas
+- Control de horas trabajadas
+- Programación semanal
+- Solicitudes de permisos
+- Balance de días libres
+- Historial de asistencia
+
+FLUJO DE USO - CHECK-IN:
+1. El empleado inicia sesión
+2. Navega a su perfil o módulo de asistencia
+3. Hace clic en "Check-in"
+4. El sistema verifica si está programado para hoy
+5. Si está programado, registra hora de llegada
+6. Si llega tarde, marca como "late"
+7. El estado cambia a "checked-in"
+
+FLUJO DE USO - CHECK-OUT:
+1. El empleado hace clic en "Check-out"
+2. El sistema calcula minutos trabajados
+3. Actualiza total de horas
+4. El estado cambia a "checked-out"
+5. Registra hora de salida
+
+FLUJO DE USO - SOLICITAR PERMISO:
+1. Navegar a perfil
+2. Hacer clic en "Solicitar Permiso"
+3. Seleccionar tipo: vacation, sick, personal
+4. Especificar fechas
+5. Agregar razón
+6. Enviar solicitud
+7. Espera aprobación de admin
+
+NOTAS:
+- El sistema valida el horario programado
+- Las tardanzas se registran automáticamente
+- El balance de días libres se actualiza
+- Las solicitudes requieren aprobación
+
+
+4.16 RENDIMIENTO Y COMPLIANCE
+-----------------------------
+
+DESCRIPCIÓN:
+Sistema para monitorear el rendimiento de empleados y cumplimiento de protocolos.
+
+MÉTRICAS DE RENDIMIENTO:
+- Total de turnos
+- Total de horas trabajadas
+- Rating promedio
+- Total de órdenes procesadas
+- Total de ventas
+- Tiempo promedio de orden
+- Tasa de error
+- Tasa de puntualidad
+- Por módulo:
+  * Tables: mesas servidas, tiempo promedio, satisfacción
+  * Orders: órdenes procesadas, tiempo prep, precisión
+  * Payments: pagos procesados, tiempo proc, precisión
+  * Reservations: reservas gestionadas, tasa no-show, confirmación
+- Semanal: turnos, horas, ventas, rating
+- Mensual: turnos, horas, ventas, rating
+
+MÉTRICAS DE COMPLIANCE:
+- Puntaje general (0-100)
+- Adherencia a protocolos (0-100)
+- Cumplimiento de tiempo (0-100)
+- Puntaje de calidad (0-100)
+- Protocolos:
+  * Opening: completados/total, última verificación
+  * Closing: completados/total, última verificación
+  * Service: completados/total, última verificación
+  * Safety: completados/total, última verificación
+- Violaciones (array):
+  * Tipo
+  * Descripción
+  * Severidad: low, medium, high, critical
+  * Fecha
+  * Resuelto
+- Advertencias (array):
+  * Tipo
+  * Mensaje
+  * Fecha
+  * Reconocido
+
+FUNCIONALIDADES:
+- Monitoreo de rendimiento en tiempo real
+- Evaluación de compliance
+- Registro de violaciones
+- Gestión de advertencias
+- Protocolos de apertura/cierre
+- Métricas por módulo
+- Reportes semanales/mensuales
+- Comparativas entre empleados
+
+FLUJO DE USO - VER RENDIMIENTO:
+1. Navegar a /performance
+2. Seleccionar empleado
+3. Ver métricas generales
+4. Ver métricas por módulo
+5. Ver historial semanal/mensual
+6. Comparar con otros empleados
+
+FLUJO DE USO - REGISTRAR VIOLACIÓN:
+1. En perfil de empleado
+2. Hacer clic en "Registrar Violación"
+3. Seleccionar tipo y severidad
+4. Agregar descripción
+5. Guardar
+6. El puntaje de compliance se actualiza
+
+FLUJO DE USO - COMPLETAR PROTOCOLO:
+1. Navegar a protocolos
+2. Seleccionar protocolo (opening, closing, etc.)
+3. Marcar items completados
+4. Guardar
+5. El puntaje de compliance se actualiza
+
+NOTAS:
+- Las métricas se actualizan automáticamente
+- Las violaciones afectan el puntaje de compliance
+- Los protocolos se verifican periódicamente
+- Las advertencias requieren reconocimiento
+
+
+4.17 ADMINISTRACIÓN (ADMIN)
+---------------------------
+
+DESCRIPCIÓN:
+Módulo exclusivo para administradores con control total del sistema.
+
+FUNCIONALIDADES:
+
+GESTIÓN DE USUARIOS:
+- Crear nuevos usuarios
+- Editar usuarios existentes
+- Eliminar usuarios (soft delete)
+- Asignar roles
+- Asignar permisos específicos
+- Resetear contraseñas
+- Activar/desactivar cuentas
+- Ver historial de actividad
+
+CONFIGURACIÓN DEL SISTEMA:
+- Configuración de variables de entorno
+- Configuración de Cloudinary
+- Configuración de Socket.io
+- Configuración de rate limiting
+- Configuración de CORS
+- Configuración de middlewares
+
+LOGS DE ACTIVIDAD:
+- Ver todos los logs del sistema
+- Filtrar por usuario
+- Filtrar por tipo de actividad
+- Filtrar por fecha
+- Exportar logs
+
+MÉTRICAS Y ALERTAS:
+- Ver métricas del sistema
+- Configurar alertas
+- Ver endpoints de health check
+- Ver métricas de Prometheus
+- Ver alertas activas
+
+GESTIÓN DE PROMOCIONES:
+- Crear promociones globales
+- Configurar precios dinámicos
+- Configurar eventos de pricing
+
+FLUJO DE USO - CREAR USUARIO:
+1. Navegar a /admin/users
+2. Hacer clic en "Nuevo Usuario"
+3. Ingresar nombre, email, contraseña
+4. Seleccionar rol
+5. Configurar horarios si es empleado
+6. Guardar
+7. El usuario puede iniciar sesión
+
+FLUJO DE USO - VER LOGS:
+1. Navegar a /admin/logs
+2. Aplicar filtros deseados
+3. Ver lista de actividades
+4. Hacer clic en log para detalles
+
+NOTAS:
+- Solo usuarios con rol admin pueden acceder
+- Todas las acciones se auditan
+- Los cambios críticos requieren confirmación
+
+
+================================================================================
+5. FLUJO DE TRABAJO TÍPICO
+================================================================================
+
+5.1 FLUJO DE ATENCIÓN AL CLIENTE
+---------------------------------
+
+PASO 1: RESERVA O LLEGADA DIRECTA
+- Si el cliente tiene reserva:
+  * Verificar reserva en /reservations
+  * Confirmar que el cliente ha llegado
+  * Marcar como "seated"
+  * Abrir sesión POS en la mesa asignada
+- Si es llegada directa:
+  * Ver mesas disponibles en /tables
+  * Seleccionar mesa apropiada según capacidad
+  * Abrir sesión POS
+
+PASO 2: APERTURA DE SESIÓN DE MESA
+- Hacer clic en mesa available
+- Confirmar apertura de sesión
+- La mesa cambia a estado "occupied"
+- Se genera ID de sesión único
+
+PASO 3: TOMA DE ÓRDENES
+- Navegar a /orders
+- Crear nueva orden para la mesa
+- Seleccionar productos del catálogo
+- Especificar cantidades
+- Agregar notas especiales si es necesario
+- Guardar orden
+- La orden se envía a kitchen/bar según tipo
+
+PASO 4: PREPARACIÓN (KITCHEN/BAR)
+- Kitchen recibe órdenes tipo "food"
+- Bar recibe órdenes tipo "drink"
+- Items aparecen como "pending"
+- Al iniciar preparación, cambiar a "preparing"
+- Al terminar, cambiar a "ready"
+- Socket.io notifica al waiter en tiempo real
+
+PASO 5: SERVICIO
+- Waiter recibe notificación de items ready
+- Marca items como "served" al entregar
+- Cliente consume
+
+PASO 6: APLICACIÓN DE DESCUENTOS (SI APLICA)
+- Si el cliente solicita descuento:
+  * Navegar a la orden
+  * Hacer clic en "Aplicar Descuento"
+  * Seleccionar tipo y valor
+  * Especificar razón
+  * Solicitar aprobación si es necesario
+  * Esperar aprobación de niveles superiores
+  * Una vez aprobado, el descuento se aplica
+
+PASO 7: PROCESAMIENTO DE PAGO
+- Navegar a la mesa
+- Hacer clic en "Procesar Pago"
+- Seleccionar método de pago:
+  * Efectivo: Ingresar monto recibido, sistema calcula cambio
+  * Tarjeta: Ingresar detalles de tarjeta
+  * QR: Generar código QR, esperar confirmación
+  * Wallet: Procesar billetera digital
+  * Split: Dividir entre múltiples métodos
+- Confirmar pago
+- Generar recibo
+
+PASO 8: CIERRE DE SESIÓN DE MESA
+- El pago actualiza la orden como "paid"
+- Hacer clic en "Cerrar Sesión"
+- La mesa cambia a estado "available"
+- La sesión se cierra y se archiva
+
+PASO 9: LIBERACIÓN DE MESA
+- La mesa queda disponible para nuevos clientes
+- El historial de la sesión se guarda
+- Las métricas se actualizan
+
+
+5.2 FLUJO DE GESTIÓN DE INVENTARIO
+----------------------------------
+
+PASO 1: REGISTRO DE ITEMS
+- Navegar a /inventory
+- Hacer clic en "Nuevo Item"
+- Ingresar nombre, descripción
+- Especificar unidad de medida
+- Ingresar costo por unidad
+- Establecer cantidad mínima para alertas
+- Establecer cantidad inicial
+- Guardar
+
+PASO 2: ACTUALIZACIÓN DE STOCK
+- Manual:
+  * Editar item
+  * Actualizar cantidad actual
+  * Guardar
+- Automática:
+  * Cuando se procesa una orden con receta
+  * El sistema descuenta automáticamente los ingredientes
+  * Se genera alerta si está por debajo del mínimo
+
+PASO 3: CREACIÓN DE RECETAS
+- Navegar a /recipes
+- Hacer clic en "Nueva Receta"
+- Seleccionar producto del catálogo
+- Agregar ingredientes:
+  * Seleccionar item de inventario
+  * Especificar cantidad y unidad
+- Agregar pasos de preparación
+- Especificar método y especificaciones
+- Guardar
+- El costo se calcula automáticamente
+
+PASO 4: CONTROL DE COSTOS
+- El costo de la receta se calcula sumando:
+  * Cantidad de cada ingrediente
+  * Multiplicado por costo por unidad
+  * Normalizando unidades
+- El costo se actualiza en el producto
+- El margen de ganancia se calcula automáticamente
+
+PASO 5: ALERTAS DE STOCK BAJO
+- Cuando un item está por debajo del mínimo
+- El sistema genera alerta en dashboard
+- El admin puede ver items con stock bajo
+- Se puede generar orden de reposición
+
+
+5.3 FLUJO DE GESTIÓN DE RESERVAS
+--------------------------------
+
+PASO 1: SOLICITUD DE RESERVA
+- Cliente solicita reserva (web, app, teléfono)
+- Staff navega a /reservations
+- Hace clic en "Nueva Reserva"
+
+PASO 2: VERIFICACIÓN DE DISPONIBILIDAD
+- Ingresar fecha y hora deseada
+- Especificar número de guests
+- El sistema verifica:
+  * Mesas disponibles en ese horario
+  * Capacidad adecuada
+  * Sin superposición con otras reservas
+- Se muestran opciones disponibles
+
+PASO 3: CONFIRMACIÓN DE RESERVA
+- Seleccionar mesa disponible
+- Ingresar datos del cliente:
+  * Nombre
+  * Teléfono
+- Agregar notas y tags si es necesario
+- Marcar como VIP si aplica
+- Guardar reserva
+- Estado: "pending"
+
+PASO 4: CONFIRMACIÓN CON CLIENTE
+- Staff confirma reserva con cliente
+- Cambia estado a "confirmed"
+- La mesa se marca como "reserved"
+- Se envía confirmación (si es web/app)
+
+PASO 5: LLEGADA DEL CLIENTE
+- Cliente llega al establecimiento
+- Staff verifica reserva
+- Hace clic en "Cliente Sentado"
+- Estado cambia a "seated"
+- Se abre sesión POS en la mesa
+- Se registra hora de llegada
+
+PASO 6: FINALIZACIÓN
+- Cliente termina su visita
+- Procesa pago y cierra sesión
+- Reserva cambia a "completed"
+- Mesa se libera
+
+PASO 7: CANCELACIÓN / NO-SHOW
+- Si cliente cancela:
+  * Staff cancela reserva
+  * Estado: "cancelled"
+  * Mesa se libera
+- Si cliente no se presenta:
+  * Después de tiempo razonable, marcar como "no-show"
+  * Estado: "no-show"
+  * Se registra para análisis
+
+
+================================================================================
+6. CARACTERÍSTICAS TÉCNICAS
+================================================================================
+
+6.1 SOCKET.IO - ACTUALIZACIONES EN TIEMPO REAL
+---------------------------------------------
+
+DESCRIPCIÓN:
+Sistema de WebSockets para comunicación bidireccional en tiempo real entre
+backend y frontend.
+
+ROOMS (SALAS):
+- table:{tableId}: Notificaciones específicas de mesa
+- orders:global: Notificaciones globales de órdenes
+- role:kitchen: Notificaciones para kitchen
+- role:bartender: Notificaciones para bartender
+- payments:global: Notificaciones globales de pagos
+- user:{userId}: Notificaciones personalizadas por usuario
+- roulette:global: Notificaciones de ruleta
+
+EVENTOS PRINCIPALES:
+- join:table - Unirse a sala de mesa
+- leave:table - Salir de sala de mesa
+- join:orders - Unirse a sala de órdenes
+- join:kitchen - Unirse a sala de kitchen
+- join:bartender - Unirse a sala de bartender
+- join:payments - Unirse a sala de pagos
+- join:user - Unirse a sala de usuario
+- join:roulette - Unirse a sala de ruleta
+
+CASOS DE USO:
+- Kitchen recibe nuevas órdenes en tiempo real
+- Waiter recibe notificación cuando items están ready
+- Admin recibe alertas de descuentos de alto valor
+- Todos ven actualizaciones de mesas en floor plan
+- Pagos se notifican en tiempo real
+
+
+6.2 SISTEMA DE NOTIFICACIONES
+------------------------------
+
+DESCRIPCIÓN:
+Sistema integral de notificaciones para mantener al personal informado.
+
+TIPOS DE NOTIFICACIONES:
+- Nueva orden creada
+- Orden actualizada (cambio de estado)
+- Item ready para servir
+- Pago procesado
+- Descuento aplicado
+- Solicitud de aprobación de descuento
+- Reserva creada/confirmada/cancelada
+- Stock bajo
+- Alerta de rendimiento
+- Violación de compliance
+
+CANALES:
+- Socket.io (tiempo real)
+- Dashboard (banner de alertas)
+- Email (futuro)
+- SMS (futuro)
+
+
+6.3 AUDITORÍA COMPLETA DE ACCIONES
+-----------------------------------
+
+DESCRIPCIÓN:
+Sistema de logs que registra todas las acciones importantes del sistema.
+
+CAMPOS DE LOG:
+- ID de usuario
+- Nombre de usuario
+- Rol de usuario
+- Tipo de actividad
+- Descripción
+- Metadata (datos adicionales)
+- ID de sesión
+- ID de pago
+- ID de orden
+- ID de mesa
+- Timestamp
+
+TIPOS DE ACTIVIDAD REGISTRADOS:
+- login/logout
+- order_created
+- order_updated
+- payment_processed
+- discount_applied
+- discount_approved
+- discount_rejected
+- table_opened
+- table_closed
+- reservation_created
+- reservation_confirmed
+- user_created
+- user_updated
+- inventory_updated
+- recipe_created
+- recipe_updated
+
+
+6.4 LOGS DE ACTIVIDAD
+---------------------
+
+DESCRIPCIÓN:
+Sistema de logging estructurado usando Winston para monitoreo y debugging.
+
+NIVELES DE LOG:
+- error: Errores críticos
+- warn: Advertencias
+- info: Información general
+- http: Logs de HTTP
+- debug: Información de debugging
+
+ARCHIVOS DE LOG:
+- combined.log: Todos los logs
+- error.log: Solo errores
+- exceptions.log: Excepciones no capturadas
+
+CONSULTA DE LOGS:
+- Via endpoint /admin/logs
+- Filtrado por usuario, tipo, fecha
+- Exportación a CSV
+
+
+6.5 MÉTRICAS Y MONITOREO
+-------------------------
+
+DESCRIPCIÓN:
+Sistema de métricas para monitorear el rendimiento del sistema.
+
+ENDPOINTS DE MÉTRICAS:
+- /health - Health check del sistema
+- /metrics - Métricas personalizadas
+- /metrics/prometheus - Métricas en formato Prometheus
+- /alerts - Alertas activas
+- /metrics/reset - Resetear métricas (solo admin)
+
+MÉTRICAS REGISTRADAS:
+- Requests por segundo
+- Tiempo de respuesta promedio
+- Tasa de error
+- Conexiones activas
+- Memoria usada
+- CPU usada
+- Órdenes procesadas
+- Pagos procesados
+- Descuentos aplicados
+
+
+6.6 ENDPOINTS DE HEALTH CHECK
+------------------------------
+
+DESCRIPCIÓN:
+Endpoint para verificar el estado del sistema y sus componentes.
+
+RESPUESTA DE /HEALTH:
+{
+  "status": "ok",
+  "timestamp": "2026-06-03T...",
+  "uptime": 12345,
+  "database": "connected",
+  "redis": "connected",
+  "services": {
+    "cloudinary": "ok",
+    "socket": "ok"
+  }
+}
+
+USO:
+- Monitoreo externo
+- Load balancers
+- CI/CD pipelines
+- Alertas automáticas
+
+
+6.7 SISTEMA DE RATE LIMITING
+-----------------------------
+
+DESCRIPCIÓN:
+Sistema para limitar la tasa de requests y prevenir abuso.
+
+CONFIGURACIÓN:
+- Límites por IP
+- Límites por usuario
+- Límites por endpoint
+- Ventanas de tiempo (1 minuto, 15 minutos, 1 hora)
+
+RESPUESTA CUANDO SE EXCEDE:
+{
+  "success": false,
+  "message": "Too many requests",
+  "retryAfter": 60
+}
+
+ENDPOINTS PROTEGIDOS:
+- /api/auth/login
+- /api/auth/register
+- /api/payments
+- /api/discounts
+
+
+6.8 SEGURIDAD
+-------------
+
+HELMET:
+- Headers de seguridad HTTP
+- Protección contra XSS
+- Protección contra clickjacking
+- HSTS (HTTP Strict Transport Security)
+
+CORS:
+- Configuración de orígenes permitidos
+- Soporte para credenciales
+- Manejo de preflight OPTIONS
+
+SANITIZACIÓN XSS:
+- Limpieza de inputs de usuario
+- Prevención de inyección de scripts
+- Validación de datos
+
+VALIDACIÓN DE INPUTS:
+- Validación con Zod schemas
+- Tipado estricto
+- Mensajes de error claros
+
+ENCRYPTACIÓN:
+- Contraseñas con bcrypt (salt rounds: 10)
+- Tokens JWT con secret seguro
+- Variables de entorno sensibles
+
+
+================================================================================
+7. SOLUCIÓN DE PROBLEMAS COMUNES
+================================================================================
+
+7.1 ERRORES DE CONEXIÓN
+------------------------
+
+SÍNTOMA:
+- No se puede conectar al backend
+- Error: "Connection refused" o "ECONNREFUSED"
+
+SOLUCIONES:
+1. Verificar que el backend esté corriendo:
+   - Navegar a backend/
+   - Ejecutar: npm run dev
+   - Verificar que esté en puerto 5000
+
+2. Verificar que MongoDB esté corriendo:
+   - Ejecutar: mongod
+   - Verificar que esté en puerto 27017
+
+3. Verificar variables de entorno:
+   - Revisar archivo .env
+   - Verificar MONGODB_URI
+   - Verificar PORT
+
+4. Verificar firewall:
+   - Asegurarse de que el puerto 5000 esté abierto
+   - Desactivar firewall temporalmente para probar
+
+5. Verificar CORS:
+   - Revisar configuración en server.js
+   - Verificar que el origen del frontend esté permitido
+
+
+7.2 PROBLEMAS DE AUTENTICACIÓN
+------------------------------
+
+SÍNTOMA:
+- No se puede iniciar sesión
+- Error: "Invalid credentials" o "Token expired"
+
+SOLUCIONES:
+1. Verificar credenciales:
+   - Confirmar email y contraseña
+   - Verificar que el usuario esté activo
+
+2. Verificar token:
+   - Limpiar localStorage
+   - Volver a iniciar sesión
+   - Verificar que JWT_SECRET esté configurado
+
+3. Verificar usuario:
+   - Revisar en base de datos que el usuario exista
+   - Verificar que isActive sea true
+   - Verificar que no esté bloqueado
+
+4. Resetear contraseña:
+   - Admin puede resetear contraseña desde /admin/users
+   - Generar nueva contraseña temporal
+
+
+7.3 SINCRONIZACIÓN DE DATOS
+---------------------------
+
+SÍNTOMA:
+- Los datos no se actualizan en tiempo real
+- Cambios no se reflejan en otros clientes
+
+SOLUCIONES:
+1. Verificar Socket.io:
+   - Verificar que el servidor Socket.io esté corriendo
+   - Verificar que el cliente esté conectado
+   - Revisar console para errores de WebSocket
+
+2. Verificar rooms:
+   - Asegurarse de que el cliente se haya unido a las rooms correctas
+   - Revisar eventos join:table, join:orders, etc.
+
+3. Verificar eventos:
+   - Revisar que los eventos se emitan correctamente
+   - Verificar nombres de eventos (case-sensitive)
+
+4. Recargar página:
+   - A veces una recarga completa soluciona problemas de sincronización
+
+
+7.4 PROBLEMAS CON PAGOS
+-----------------------
+
+SÍNTOMA:
+- El pago no se procesa
+- Error: "Payment failed" o "Invalid payment method"
+
+SOLUCIONES:
+1. Verificar método de pago:
+   - Confirmar que el método sea válido
+   - Verificar detalles (tarjeta, QR, etc.)
+
+2. Verificar orden:
+   - Asegurarse de que la orden exista
+   - Verificar que no esté pagada ya
+   - Verificar que el total sea correcto
+
+3. Verificar mesa:
+   - Confirmar que la mesa tenga sesión activa
+   - Verificar que no esté en checkout
+
+4. Verificar conexión:
+   - Asegurarse de que haya conexión al backend
+   - Verificar que el endpoint de pagos esté accesible
+
+5. Revisar logs:
+   - Ver logs del backend para errores específicos
+   - Revisar logs de Payment controller
+
+
+7.5 ERRORES EN DESCUENTOS
+-------------------------
+
+SÍNTOMA:
+- El descuento no se aplica
+- Error: "Discount rejected" o "Approval required"
+
+SOLUCIONES:
+1. Verificar aprobación:
+   - Si el descuento requiere aprobación, esperar aprobación
+   - Verificar que el aprobador tenga permisos
+
+2. Verificar reglas:
+   - Confirmar que el descuento cumpla las reglas
+   - Verificar que no exceda límites
+
+3. Verificar estado:
+   - Asegurarse de que el descuento esté en estado "APPLIED"
+   - Verificar que no esté rechazado
+
+4. Verificar items:
+   - Confirmar que los items existan
+   - Verificar que estén en la orden
+
+5. Revisar auditoría:
+   - Ver quién aplicó el descuento
+   - Ver quién aprobó/rechazó
+   - Revisar notas y razones
+
+
+================================================================================
+8. APÉNDICE
+================================================================================
+
+8.1 GLOSARIO DE TÉRMINOS
+-------------------------
+
+- API: Application Programming Interface - Interfaz de programación de aplicaciones
+- Backend: Servidor y lógica del sistema
+- Frontend: Interfaz de usuario
+- POS: Point of Sale - Punto de venta
+- JWT: JSON Web Token - Token de autenticación
+- MongoDB: Base de datos NoSQL
+- Socket.io: Biblioteca para WebSockets
+- Electron: Framework para aplicaciones de escritorio
+- React: Biblioteca JavaScript para UI
+- TailwindCSS: Framework de CSS
+- Zustand: Biblioteca de gestión de estado
+- Cloudinary: Servicio de gestión de imágenes en la nube
+- CORS: Cross-Origin Resource Sharing
+- XSS: Cross-Site Scripting
+- Rate Limiting: Limitación de tasa de requests
+- Middleware: Función intermedia en Express
+- Hook: Función especial en React
+- Componente: Pieza reutilizable de UI en React
+- State: Estado de la aplicación
+- Props: Propiedades pasadas a componentes
+- Room: Sala en Socket.io para agrupar conexiones
+- Event: Evento emitido/recibido vía Socket.io
+- Schema: Estructura de datos en Mongoose
+- Model: Modelo de datos en Mongoose
+- Controller: Lógica de negocio en Express
+- Route: Ruta URL en Express
+- Endpoint: Punto final de una API
+- Request: Petición HTTP
+- Response: Respuesta HTTP
+- Promise: Objeto para operaciones asíncronas
+- Async/Await: Sintaxis para operaciones asíncronas
+- JSON: JavaScript Object Notation
+- BSON: Binary JSON (formato de MongoDB)
+- Collection: Colección en MongoDB
+- Document: Documento en MongoDB
+- Index: Índice para optimizar consultas
+- Virtual: Campo virtual en Mongoose
+- Populate: Poblar referencias en Mongoose
+- Soft Delete: Eliminación lógica (no física)
+- Audit Trail: Rastro de auditoría
+- KPI: Key Performance Indicator - Indicador clave de rendimiento
+- ROI: Return on Investment - Retorno de inversión
+- BOGO: Buy One Get One - Compra uno lleva otro
+- B2B: Business to Business
+- B2C: Business to Consumer
+- SaaS: Software as a Service
+- CI/CD: Continuous Integration/Continuous Deployment
+- TDD: Test Driven Development
+- DRY: Don't Repeat Yourself
+- SOLID: Principios de diseño de software
+- REST: Representational State Transfer
+- CRUD: Create, Read, Update, Delete
+- ACID: Atomicity, Consistency, Isolation, Durability
+- HTTP: Hypertext Transfer Protocol
+- HTTPS: HTTP Secure
+- TCP: Transmission Control Protocol
+- IP: Internet Protocol
+- DNS: Domain Name System
+- URL: Uniform Resource Locator
+- URI: Uniform Resource Identifier
+- DOM: Document Object Model
+- CSS: Cascading Style Sheets
+- HTML: HyperText Markup Language
+- TypeScript: Superset de JavaScript con tipado
+- JavaScript: Lenguaje de programación
+- Node.js: Runtime de JavaScript en servidor
+- npm: Node Package Manager
+- Git: Sistema de control de versiones
+- GitHub: Plataforma de hosting de código
+- Vercel: Plataforma de deployment
+- Render: Plataforma de deployment
+- Docker: Contenedores de aplicaciones
+- Kubernetes: Orquestación de contenedores
+- AWS: Amazon Web Services
+- Azure: Microsoft Azure
+- GCP: Google Cloud Platform
+- SSL: Secure Sockets Layer
+- TLS: Transport Layer Security
+- OAuth: Protocolo de autorización
+- 2FA: Two-Factor Authentication
+- MFA: Multi-Factor Authentication
+- GDPR: General Data Protection Regulation
+- HIPAA: Health Insurance Portability and Accountability Act
+- PCI DSS: Payment Card Industry Data Security Standard
+
+
+8.2 REFERENCIA DE API (ENDPOINTS PRINCIPALES)
+---------------------------------------------
+
+AUTENTICACIÓN:
+- POST /api/auth/login - Iniciar sesión
+- POST /api/auth/register - Registrar usuario
+- GET /api/auth/me - Obtener usuario actual
+- POST /api/auth/refresh - Refrescar token
+- POST /api/auth/logout - Cerrar sesión
+
+USUARIOS:
+- GET /api/users - Obtener todos los usuarios
+- GET /api/users/:id - Obtener usuario por ID
+- POST /api/users - Crear usuario
+- PUT /api/users/:id - Actualizar usuario
+- DELETE /api/users/:id - Eliminar usuario
+- GET /api/users/:id/performance - Obtener rendimiento
+
+PRODUCTOS:
+- GET /api/products - Obtener todos los productos
+- GET /api/products/:id - Obtener producto por ID
+- POST /api/products - Crear producto
+- PUT /api/products/:id - Actualizar producto
+- DELETE /api/products/:id - Eliminar producto
+- GET /api/products/category/:category - Filtrar por categoría
+
+MENÚS:
+- GET /api/menus - Obtener todos los menús
+- GET /api/menus/:id - Obtener menú por ID
+- POST /api/menus - Crear menú
+- PUT /api/menus/:id - Actualizar menú
+- DELETE /api/menus/:id - Eliminar menú
+
+RECETAS:
+- GET /api/recipes - Obtener todas las recetas
+- GET /api/recipes/:id - Obtener receta por ID
+- POST /api/recipes - Crear receta
+- PUT /api/recipes/:id - Actualizar receta
+- DELETE /api/recipes/:id - Eliminar receta
+
+INVENTARIO:
+- GET /api/inventory - Obtener todo el inventario
+- GET /api/inventory/:id - Obtener item por ID
+- POST /api/inventory - Crear item
+- PUT /api/inventory/:id - Actualizar item
+- DELETE /api/inventory/:id - Eliminar item
+- GET /api/inventory/low - Items con stock bajo
+
+ÓRDENES:
+- GET /api/orders - Obtener todas las órdenes
+- GET /api/orders/:id - Obtener orden por ID
+- POST /api/orders - Crear orden
+- PUT /api/orders/:id - Actualizar orden
+- DELETE /api/orders/:id - Eliminar orden
+- GET /api/orders/table/:tableId - Órdenes por mesa
+- PUT /api/orders/:id/status - Cambiar estado
+
+MESAS:
+- GET /api/tables - Obtener todas las mesas
+- GET /api/tables/:id - Obtener mesa por ID
+- POST /api/tables - Crear mesa
+- PUT /api/tables/:id - Actualizar mesa
+- DELETE /api/tables/:id - Eliminar mesa
+- POST /api/tables/:id/open - Abrir sesión
+- POST /api/tables/:id/close - Cerrar sesión
+- POST /api/tables/:id/maintenance - Poner en mantenimiento
+
+RESERVAS:
+- GET /api/reservations - Obtener todas las reservas
+- GET /api/reservations/:id - Obtener reserva por ID
+- POST /api/reservations - Crear reserva
+- PUT /api/reservations/:id - Actualizar reserva
+- DELETE /api/reservations/:id - Eliminar reserva
+- GET /api/reservations/availability - Ver disponibilidad
+- PUT /api/reservations/:id/confirm - Confirmar reserva
+- PUT /api/reservations/:id/seated - Marcar como sentado
+- PUT /api/reservations/:id/cancel - Cancelar reserva
+
+PAGOS:
+- GET /api/payments - Obtener todos los pagos
+- GET /api/payments/:id - Obtener pago por ID
+- POST /api/payments - Crear pago
+- PUT /api/payments/:id - Actualizar pago
+- DELETE /api/payments/:id - Eliminar pago
+- GET /api/payments/table/:tableId - Pagos por mesa
+- POST /api/payments/:id/refund - Reembolsar pago
+
+DESCUENTOS:
+- GET /api/discounts - Obtener todos los descuentos
+- GET /api/discounts/:id - Obtener descuento por ID
+- POST /api/discounts - Crear descuento
+- PUT /api/discounts/:id - Actualizar descuento
+- DELETE /api/discounts/:id - Eliminar descuento
+- PUT /api/discounts/:id/approve - Aprobar descuento
+- PUT /api/discounts/:id/reject - Rechazar descuento
+- GET /api/discounts/order/:orderId - Descuentos por orden
+
+PRECIOS DINÁMICOS:
+- GET /api/dynamic-pricing - Obtener reglas
+- GET /api/dynamic-pricing/:id - Obtener regla por ID
+- POST /api/dynamic-pricing - Crear regla
+- PUT /api/dynamic-pricing/:id - Actualizar regla
+- DELETE /api/dynamic-pricing/:id - Eliminar regla
+
+PROMOCIONES:
+- GET /api/promotions - Obtener promociones
+- GET /api/promotions/:id - Obtener promoción por ID
+- POST /api/promotions - Crear promoción
+- PUT /api/promotions/:id - Actualizar promoción
+- DELETE /api/promotions/:id - Eliminar promoción
+
+RULETA:
+- GET /api/roulette/spin - Girar ruleta
+- GET /api/roulette/drinks - Obtener bebidas disponibles
+- GET /api/roulette/stats - Obtener estadísticas
+- POST /api/roulette/log - Registrar giro
+
+ASISTENCIA:
+- GET /api/attendance - Obtener asistencia
+- POST /api/attendance/checkin - Check-in
+- POST /api/attendance/checkout - Check-out
+- GET /api/attendance/:userId - Asistencia por usuario
+- POST /api/attendance/leave - Solicitar permiso
+
+RENDIMIENTO:
+- GET /api/performance - Obtener rendimiento
+- GET /api/performance/:userId - Rendimiento por usuario
+- GET /api/performance/compliance - Compliance
+- POST /api/performance/violation - Registrar violación
+
+DASHBOARD:
+- GET /api/dashboard/kpi - Obtener KPIs
+- GET /api/dashboard/sales - Ventas
+- GET /api/dashboard/orders - Órdenes
+- GET /api/dashboard/alerts - Alertas
+
+UPLOAD:
+- POST /api/upload/image - Subir imagen
+- DELETE /api/upload/:publicId - Eliminar imagen
+
+
+8.3 CONFIGURACIÓN AVANZADA
+--------------------------
+
+VARIABLES DE ENTORNO ADICIONALES:
+- REDIS_URL: URL de Redis para caché (opcional)
+- EMAIL_SERVICE: Servicio de email (opcional)
+- SMS_SERVICE: Servicio de SMS (opcional)
+- STRIPE_SECRET_KEY: Clave de Stripe para pagos (opcional)
+- MERCADOPAGO_ACCESS_TOKEN: Token de MercadoPago (opcional)
+- SENTRY_DSN: DSN de Sentry para error tracking (opcional)
+
+CONFIGURACIÓN DE MIDDLEWARES:
+- Se puede configurar en backend/src/middlewares/middlewareConfig.js
+- Presets: development, production, testing
+- Middlewares disponibles:
+  * security
+  * rateLimiters
+  * enhancedLogger
+  * metricsMiddlewares
+  * compression
+  * cache
+
+CONFIGURACIÓN DE SOCKET.IO:
+- Transports: websocket, polling
+- Ping timeout: 20000ms
+- Ping interval: 25000ms
+- Configuración en backend/src/server.js
+
+CONFIGURACIÓN DE CLOUDINARY:
+- Cloud name
+- API key
+- API secret
+- Upload presets
+- Transformations
+
+
+8.4 CONTACTO DE SOPORTE
+-----------------------
+
+Para soporte técnico, contactar a:
+- Email: support@bartender-system.com
+- Documentación: https://docs.bartender-system.com
+- Issues: https://github.com/bartender-system/issues
+- Comunidad: https://community.bartender-system.com
+
+TIEMPOS DE RESPUESTA:
+- Crítico: 24 horas
+- Alto: 48 horas
+- Normal: 72 horas
+- Bajo: 5 días hábiles
+
+
+================================================================================
+FIN DEL MANUAL
+================================================================================
+
+Este manual está sujeto a actualizaciones periódicas. Para la versión más
+reciente, visite la documentación oficial en línea.
+
+© 2026 Sistema Nebula. Todos los derechos reservados.

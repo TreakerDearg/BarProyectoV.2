@@ -10,7 +10,12 @@ import {
   Zap,
   Activity,
   Box,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Copy,
+  CheckCircle,
+  XCircle,
+  Star,
+  Clock
 } from "lucide-react";
 
 import type { Product } from "../../../types/product";
@@ -20,6 +25,7 @@ interface Props {
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onInspect?: (product: Product) => void;
+  onDuplicate?: (product: Product) => void;
   simplified?: boolean;
 }
 
@@ -28,6 +34,7 @@ export default function ProductCard({
   onEdit,
   onDelete,
   onInspect,
+  onDuplicate,
   simplified = false
 }: Props) {
   const isDrink = product.type === "drink";
@@ -37,9 +44,6 @@ export default function ProductCard({
   const margin = dynamicPrice > 0 ? Math.round(((dynamicPrice - cost) / dynamicPrice) * 100) : 0;
   const hasAdjustment = Math.abs(dynamicPrice - price) > 0.01;
 
-  const typeTheme = isDrink 
-    ? { color: "gold", icon: <Wine size={20} /> } 
-    : { color: "emerald", icon: <UtensilsCrossed size={20} /> };
 
   return (
     <div className={`
@@ -57,23 +61,45 @@ export default function ProductCard({
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-4">
-          <div className={`p-4 rounded-2xl bg-surface-3 border border-white/5 text-${typeTheme.color} shadow-inner`}>
-            {typeTheme.icon}
-          </div>
+          {product.image && (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0">
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            </div>
+          )}
           <div>
-            <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate max-w-[150px]">
-              {product.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate max-w-[150px]">
+                {product.name}
+              </h3>
+              {product.available ? (
+                <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
+              ) : (
+                <XCircle size={16} className="text-red-400 flex-shrink-0" />
+              )}
+            </div>
             {!simplified && (
               <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mt-1">
                 {product.category || 'GENERAL'} · {product.type?.toUpperCase()}
               </p>
             )}
+            {Array.isArray(product.tags) && product.tags.length > 0 && (
+              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                {product.tags.slice(0, 2).map((tag, idx) => (
+                  <span key={idx} className="text-[8px] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded font-semibold">
+                    {tag}
+                  </span>
+                ))}
+                {product.tags.length > 2 && (
+                  <span className="text-[8px] text-muted">+{product.tags.length - 2}</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         {!simplified && (
-          <div className={`badge ${isDrink ? 'badge-gold' : 'badge-emerald'} text-[8px] px-3 py-1.5 rounded-xl font-black tracking-widest`}>
+          <div className={`badge ${isDrink ? 'badge-gold' : 'badge-emerald'} text-[8px] px-3 py-1.5 rounded-xl font-black tracking-widest flex items-center gap-1`}>
+            {product.featured && <Star size={10} fill="currentColor" />}
             VIP SELECTION
           </div>
         )}
@@ -114,6 +140,10 @@ export default function ProductCard({
             <p className="text-[9px] font-black text-muted uppercase tracking-widest">Costo: ${cost.toFixed(2)}</p>
           </div>
           <div className="flex items-center gap-2">
+            <Clock size={12} className="text-muted" />
+            <p className="text-[9px] font-black text-muted uppercase tracking-widest">{product.preparationTime || 5} min</p>
+          </div>
+          <div className="flex items-center gap-2">
             <LinkIcon size={12} className="text-gold opacity-50" />
             <p className="text-[9px] font-black text-muted uppercase tracking-widest">Fórmula Vinculada</p>
           </div>
@@ -133,6 +163,14 @@ export default function ProductCard({
         )}
 
         <div className={`flex gap-3 ${simplified ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'} transition-all duration-500`}>
+          {onDuplicate && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDuplicate(product); }}
+              className="w-14 h-14 rounded-2xl bg-violet/5 border border-violet/10 flex items-center justify-center text-violet/40 hover:text-violet hover:bg-violet/20 transition-all"
+            >
+              <Copy size={18} />
+            </button>
+          )}
           <button
             onClick={() => onEdit(product)}
             className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all"

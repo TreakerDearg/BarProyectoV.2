@@ -12,13 +12,16 @@ import {
   TrendingUp,
   LayoutGrid,
   HelpCircle,
-  List
+  List,
+  X
 } from "lucide-react";
 
 import InventoryCard from "../components/InventoryCard";
 import InventoryForm from "../components/InventoryForm";
 import InventoryTutorial from "../components/tutorial/InventoryTutorial";
 import InventoryAdvancedPanel from "../components/InventoryAdvancedPanel";
+import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
+import DataExportImport from "../../../components/shared/DataExportImport";
 
 import {
   getInventory,
@@ -40,6 +43,7 @@ export default function InventoryPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showExportImport, setShowExportImport] = useState(false);
 
   const {
     isOpen: tutorialOpen,
@@ -48,10 +52,71 @@ export default function InventoryPage() {
     completeTutorial,
   } = useInventoryTutorial();
 
+  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
+    try {
+      const data = filteredItems;
+      const filename = `inventario-export-${new Date().toISOString().split('T')[0]}`;
+
+      if (options.format === "json") {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Error exporting inventory:", err);
+      setError("Error al exportar inventario");
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    setError("Importación deshabilitada - solo exportación para auditoría");
+  };
+
   const { mode, setMode, view, toggleView } = useInventoryUiStore();
 
   const [search, setSearch] = useState("");
   const [filter] = useState<"all" | "bar" | "kitchen" | "general">("all");
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+
+  // Filter groups for AdvancedSearchFilter
+  const filterGroups = [
+    {
+      id: "category",
+      label: "Categoría",
+      type: "checkbox" as const,
+      options: Array.from(new Set(items.map(i => i.category))).filter(Boolean).map(cat => ({
+        value: cat,
+        label: cat,
+      })),
+      selected: activeFilters["category"] || [],
+    },
+    {
+      id: "sector",
+      label: "Sector",
+      type: "radio" as const,
+      options: [
+        { value: "bar", label: "Barra" },
+        { value: "kitchen", label: "Cocina" },
+        { value: "general", label: "General" },
+      ],
+      selected: activeFilters["sector"] || [],
+    },
+    {
+      id: "stock",
+      label: "Estado de Stock",
+      type: "checkbox" as const,
+      options: [
+        { value: "critical", label: "Crítico" },
+        { value: "low", label: "Bajo" },
+        { value: "normal", label: "Normal" },
+      ],
+      selected: activeFilters["stock"] || [],
+    },
+  ];
 
   const fetchData = useCallback(async () => {
     try {
@@ -72,9 +137,8 @@ export default function InventoryPage() {
 
   const filteredItems = useMemo(() => {
     let list = items;
-    if (filter !== "all") {
-      list = list.filter(i => i.sector?.toLowerCase() === filter);
-    }
+
+    // Apply search text
     if (search.trim()) {
       const lower = search.toLowerCase();
       list = list.filter((item) =>
@@ -82,8 +146,36 @@ export default function InventoryPage() {
         item.category?.toLowerCase().includes(lower)
       );
     }
+
+    // Apply sector filter
+    if (activeFilters["sector"]?.length > 0) {
+      list = list.filter(i => activeFilters["sector"]!.includes(i.sector?.toLowerCase() || ""));
+    }
+
+    // Apply category filter
+    if (activeFilters["category"]?.length > 0) {
+      list = list.filter(i => activeFilters["category"]!.includes(i.category));
+    }
+
+    // Apply stock status filter
+    if (activeFilters["stock"]?.length > 0) {
+      list = list.filter(i => {
+        const filters = activeFilters["stock"]!;
+        const stock = Number(i.stock);
+        const minStock = Number(i.minStock);
+        const isCritical = stock <= minStock;
+        const isLow = stock > minStock && stock <= minStock * 1.5;
+        const isNormal = stock > minStock * 1.5;
+
+        if (filters.includes("critical") && !isCritical) return false;
+        if (filters.includes("low") && !isLow) return false;
+        if (filters.includes("normal") && !isNormal) return false;
+        return true;
+      });
+    }
+
     return list;
-  }, [items, search, filter]);
+  }, [items, search, activeFilters]);
 
   const stats = useMemo(() => {
     const total = items.length;
@@ -147,18 +239,15 @@ export default function InventoryPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-violet-300/60 group-focus-within:text-violet-200 transition-colors" />
-            </div>
-            <input 
-              type="text"
-              placeholder="Buscar insumos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-surface-3/60 border border-violet-400/20 rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium text-ivory outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/10 transition-all w-64 backdrop-blur-sm"
-            />
-          </div>
+          <AdvancedSearchFilter
+            filterGroups={filterGroups}
+            onSearch={setSearch}
+            onFilterChange={setActiveFilters}
+            placeholder="Buscar insumos..."
+            savedFilters={[]}
+            onSaveFilter={() => {}}
+            onLoadFilter={() => {}}
+          />
 
           <button
             onClick={() => openTutorial()}
@@ -185,6 +274,14 @@ export default function InventoryPage() {
             title="Actualizar"
           >
             <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+
+          <button
+            onClick={() => setShowExportImport(true)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
+            title="Exportar/Importar"
+          >
+            <Target size={16} />
           </button>
 
           <button
@@ -254,6 +351,30 @@ export default function InventoryPage() {
           onSave={handleSave}
           onClose={() => { setOpen(false); setSelected(null); }}
         />
+      )}
+
+      {/* EXPORT/IMPORT PANEL */}
+      {showExportImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Inventario</h3>
+              <button
+                onClick={() => setShowExportImport(false)}
+                className="text-muted hover:text-ivory transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <DataExportImport
+              data={filteredItems}
+              filename={`inventario-${new Date().toISOString().split('T')[0]}`}
+              onExport={handleExport}
+              onImport={handleImport}
+              availableFormats={["json"]}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Sidebar from "../components/ui/Sidebar";
 import Header from "../components/ui/Header";
 import { useUIStore } from "../store/uiStore";
+import { NotificationCenterProvider } from "../components/shared/NotificationCenter";
 
 interface Props {
   children: ReactNode;
@@ -13,7 +14,8 @@ export default function DashboardLayout({ children }: Props) {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#030209] text-white">
+    <NotificationCenterProvider>
+      <div className="flex h-screen w-screen overflow-hidden bg-[#030209] text-white">
 
       {/* ================= SIDEBAR ================= */}
       <aside
@@ -72,5 +74,6 @@ export default function DashboardLayout({ children }: Props) {
         </main>
       </div>
     </div>
+    </NotificationCenterProvider>
   );
 }

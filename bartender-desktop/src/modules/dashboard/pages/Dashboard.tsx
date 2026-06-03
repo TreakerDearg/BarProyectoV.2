@@ -25,6 +25,7 @@ import SalesDiscounts from "../views/SalesDiscounts";
 import InventoryDashboard from "../views/InventoryDashboard";
 import RealTimeDiscountAlert from "../components/RealTimeDiscountAlert";
 import DashboardKpiStrip from "../components/DashboardKpiStrip";
+import AnalyticsDashboard from "../../../components/shared/AnalyticsDashboard";
 import {
   useDashboardUiStore,
   type DashboardTab,
@@ -156,6 +157,14 @@ export default function Dashboard() {
       <DashboardAlertsBanner />
 
       <DashboardKpiStrip tab={activeTab} data={data} mode={mode} />
+
+      {/* Analytics Dashboard Integration */}
+      {activeTab === "analytics" && mode === "advanced" && (
+        <AnalyticsDashboard
+          onRefresh={reload}
+          isLoading={loading}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
         {activeTab === "service" && (

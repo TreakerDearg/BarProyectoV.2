@@ -43,8 +43,33 @@ const EMPTY_FORM: Product = {
 };
 
 const TYPE_OPTIONS = [
-  { value: "drink", label: "Mixología / Bebida", icon: <Zap size={16} /> },
-  { value: "food", label: "Gastronomía / Plato", icon: <Box size={16} /> },
+  { value: "drink", label: "Mixología / Bebida", icon: <Zap size={20} /> },
+  { value: "food", label: "Gastronomía / Plato", icon: <Box size={20} /> },
+];
+
+const PREPARATION_TIME_PRESETS = [
+  { value: 3, label: "Rápido (3 min)" },
+  { value: 5, label: "Normal (5 min)" },
+  { value: 10, label: "Lento (10 min)" },
+  { value: 15, label: "Muy lento (15 min)" },
+];
+
+const CATEGORY_SUGGESTIONS = [
+  "Classic Cocktails",
+  "Signature Drinks",
+  "Mocktails",
+  "Whisky",
+  "Gin & Tonic",
+  "Rum",
+  "Tequila",
+  "Vodka",
+  "Wine",
+  "Beer",
+  "Appetizers",
+  "Main Course",
+  "Desserts",
+  "Tapas",
+  "Burgers",
 ];
 
 interface ProductFormProps {
@@ -95,8 +120,14 @@ function ProductIdentityCard({ formData, setFormData, onImageUpload }: { formDat
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               placeholder="Ej: Classic Cocktails"
+              list="category-suggestions"
               className="nebula-form-input w-full"
             />
+            <datalist id="category-suggestions">
+              {CATEGORY_SUGGESTIONS.map((cat) => (
+                <option key={cat} value={cat} />
+              ))}
+            </datalist>
           </div>
 
           <div>
@@ -108,8 +139,8 @@ function ProductIdentityCard({ formData, setFormData, onImageUpload }: { formDat
                   onClick={() => setFormData({ ...formData, type: opt.value as any })}
                   className={formData.type === opt.value ? 'active' : ''}
                 >
-                  {opt.icon}
-                  <span className="ml-1">{opt.label}</span>
+                  <span className="text-xl">{opt.icon}</span>
+                  <span className="ml-2 text-sm font-semibold">{opt.label}</span>
                 </button>
               ))}
             </div>
@@ -214,14 +245,37 @@ function ProductFinancePanel({ formData, setFormData }: { formData: Product; set
             </div>
           </div>
 
-          <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+          <div className={`p-4 rounded-lg border ${margin < 30 ? 'bg-red-500/10 border-red-500/30' : 'bg-white/5 border-white/10'}`}>
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted">Estado del margen</span>
-              <span className={`text-xs font-semibold ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-gold'}`}>
-                {margin > 50 ? 'Excelente' : margin > 30 ? 'Bueno' : 'Revisar'}
+              <span className={`text-xs font-semibold ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-red-400'}`}>
+                {margin > 50 ? 'Excelente' : margin > 30 ? 'Bueno' : 'Revisar (bajo)'}
               </span>
             </div>
+            {margin < 30 && (
+              <div className="mt-2 flex items-start gap-2 text-xs text-red-400">
+                <AlertTriangle size={12} className="mt-0.5" />
+                <span>El margen es bajo. Considera aumentar el precio.</span>
+              </div>
+            )}
           </div>
+
+          {formData.cost > 0 && (
+            <div className="p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-muted">Precio sugerido (30% margen)</span>
+                <span className="text-lg font-bold text-violet-400">
+                  ${(formData.cost / 0.7).toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={() => setFormData({ ...formData, price: Math.round(formData.cost / 0.7 * 100) / 100 })}
+                className="w-full py-2 px-3 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-xs font-semibold text-violet-400 transition-all"
+              >
+                Aplicar precio sugerido
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -264,16 +318,33 @@ function ProductAttributeGrid({ formData, setFormData }: { formData: Product; se
         <div className="space-y-4">
           <div>
             <label className="nebula-form-label">Tiempo de Preparación (min)</label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-              <input
-                name="preparationTime"
-                type="number"
-                value={formData.preparationTime}
-                onChange={(e) => setFormData({ ...formData, preparationTime: Number(e.target.value) })}
-                className="nebula-form-input w-full pl-10"
-                placeholder="5"
-              />
+            <div className="space-y-2">
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+                <input
+                  name="preparationTime"
+                  type="number"
+                  value={formData.preparationTime}
+                  onChange={(e) => setFormData({ ...formData, preparationTime: Number(e.target.value) })}
+                  className="nebula-form-input w-full pl-10"
+                  placeholder="5"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {PREPARATION_TIME_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    onClick={() => setFormData({ ...formData, preparationTime: preset.value })}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                      formData.preparationTime === preset.value
+                        ? 'bg-gold text-black'
+                        : 'bg-white/10 text-muted hover:bg-white/20'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -288,7 +359,7 @@ function ProductAttributeGrid({ formData, setFormData }: { formData: Product; se
                 className="nebula-form-input w-full pl-10"
               />
             </div>
-            {formData.tags.length > 0 && (
+            {Array.isArray(formData.tags) && formData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {formData.tags.map((tag, idx) => (
                   <span key={idx} className="nebula-form-tag">
@@ -378,7 +449,7 @@ function ProductPricePreview({ formData }: { formData: Product }) {
           </div>
         </div>
 
-        {formData.tags.length > 0 && (
+        {Array.isArray(formData.tags) && formData.tags.length > 0 && (
           <div className="p-3 bg-white/5 rounded-lg border border-white/10">
             <p className="text-xs text-muted mb-2">Etiquetas</p>
             <div className="flex flex-wrap gap-1">

@@ -26,75 +26,70 @@ export default function NebulaDiscountReasonForm({
   ];
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-6 space-y-6">
+    <div className="flex flex-col space-y-4">
       
-      {/* ENCABEZADO AMIGABLE NEBULA */}
       <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-2">
-          📝 Paso 3: Cuéntanos la razón
+        <h3 className="text-sm font-bold text-white mb-1">
+          Motivo del Descuento
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-white/50">
           Selecciona por qué estás aplicando este descuento
         </p>
       </div>
 
-      {/* TARJETAS DE RAZÓN - VISUAL Y AMIGABLE NEBULA */}
-      <div className="space-y-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-          Motivo del descuento
-        </p>
-        <div className="grid grid-cols-1 gap-3">
-          {razones.map((r) => {
-            const Icon = r.icon;
-            return (
-              <button
-                key={r.val}
-                onClick={() => setReason(r.val)}
-                className={`
-                  p-4 rounded-2xl text-left transition-all border-2 flex items-start gap-4
-                  ${reason === r.val
-                    ? "bg-purple-50 border-purple-500 shadow-md"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300"}
-                `}
-              >
-                <div className={`p-3 rounded-xl ${reason === r.val ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                  <Icon size={20} />
+      <div className="space-y-2">
+        {razones.map((r) => {
+          const Icon = r.icon;
+          return (
+            <button
+              key={r.val}
+              onClick={() => setReason(r.val)}
+              className={`
+                p-3 rounded-xl text-left transition-all border flex items-start gap-3
+                ${reason === r.val
+                  ? "bg-[#00E5FF] text-black border-[#00E5FF]"
+                  : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"}
+              `}
+            >
+              <div className={`p-2 rounded-lg ${reason === r.val ? 'bg-black/10 text-black' : 'bg-white/10 text-white/50'}`}>
+                <Icon size={18} />
+              </div>
+              <div className="flex-1">
+                <span className="font-semibold text-sm block mb-0.5">{r.label}</span>
+                <span className="text-[10px] opacity-70">{r.description}</span>
+              </div>
+              {reason === r.val && (
+                <div className="w-5 h-5 bg-black/20 rounded-full flex items-center justify-center">
+                  <span className="text-black text-xs font-bold">✓</span>
                 </div>
-                <div className="flex-1">
-                  <span className="font-semibold text-gray-800 block mb-1">{r.label}</span>
-                  <span className="text-xs text-gray-500">{r.description}</span>
-                </div>
-                {reason === r.val && (
-                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">✓</span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* NOTAS - ÚTILES Y ANIMADAS */}
-      <div className="space-y-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-          <FileText size={14} /> Notas adicionales (opcional)
+      <div className="space-y-2">
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider flex items-center gap-2">
+          <FileText size={12} /> Notas adicionales
         </p>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Agrega detalles extras si es necesario..."
-          className="w-full min-h-[100px] bg-gray-50 border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all resize-none placeholder:text-gray-400"
+          className="w-full min-h-[80px] bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-[#00E5FF] transition-all resize-none placeholder:text-white/30"
+          style={{ height: '3rem' }}
         />
-        <p className="text-xs text-gray-400">
+        <p className="text-[10px] text-white/30">
           {note.length}/500 caracteres
         </p>
       </div>
 
-      {/* CAJA INFORMATIVA NEBULA */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
-        <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-700 leading-relaxed">
+      <div className="p-3 rounded-lg border flex items-start gap-3" style={{
+        background: 'rgba(0, 229, 255, 0.1)',
+        borderColor: 'rgba(0, 229, 255, 0.2)'
+      }}>
+        <Info size={16} className="text-[#00E5FF] flex-shrink-0 mt-0.5" />
+        <p className="text-[10px] text-[#00E5FF]/80 leading-relaxed">
           Esta información ayuda a mejorar nuestro servicio. Tu nombre y la razón quedarán registrados para fines de auditoría.
         </p>
       </div>

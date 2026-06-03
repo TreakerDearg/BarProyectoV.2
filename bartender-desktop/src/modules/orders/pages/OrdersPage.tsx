@@ -15,11 +15,14 @@ import {
   AlertCircle,
   Sparkles,
   HelpCircle,
+  Target
 } from "lucide-react";
 
 import OrderCard from "../components/OrderCard/Card";
 import NewOrderTablePicker from "../components/NewOrderTablePicker";
 import FocusPanel from "../components/FocusPanel";
+import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
+import DataExportImport from "../../../components/shared/DataExportImport";
 
 import {
   getOrders,
@@ -51,6 +54,35 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [showExportImport, setShowExportImport] = useState(false);
+
+  // Filter groups for AdvancedSearchFilter
+  const filterGroups = [
+    {
+      id: "status",
+      label: "Estado",
+      type: "checkbox" as const,
+      options: [
+        { value: "pending", label: "Pendiente" },
+        { value: "in-progress", label: "En curso" },
+        { value: "completed", label: "Completada" },
+        { value: "cancelled", label: "Cancelada" },
+      ],
+      selected: activeFilters["status"] || [],
+    },
+    {
+      id: "priority",
+      label: "Prioridad",
+      type: "checkbox" as const,
+      options: [
+        { value: "critical", label: "Crítica" },
+        { value: "high", label: "Alta" },
+        { value: "normal", label: "Normal" },
+      ],
+      selected: activeFilters["priority"] || [],
+    },
+  ];
   const [selectedItem, setSelectedItem] = useState<{
     _id?: string;
     orderId?: string;
@@ -198,6 +230,24 @@ export default function OrdersPage() {
           )
       );
     }
+
+    // Apply status filter
+    if (activeFilters["status"]?.length > 0) {
+      list = list.filter(o => activeFilters["status"]!.includes(o.status));
+    }
+
+    // Apply priority filter
+    if (activeFilters["priority"]?.length > 0) {
+      list = list.filter(o => {
+        const priority = getOrderPriority(o);
+        const filters = activeFilters["priority"]!;
+        if (filters.includes("critical") && priority !== 3) return false;
+        if (filters.includes("high") && priority !== 2 && priority !== 3) return false;
+        if (filters.includes("normal") && priority !== 1) return false;
+        return true;
+      });
+    }
+
     return list.sort((a, b) => {
       const pa = getOrderPriority(a);
       const pb = getOrderPriority(b);
@@ -206,7 +256,31 @@ export default function OrdersPage() {
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeA - timeB;
     });
-  }, [orders, filter, searchQuery, salonMode]);
+  }, [orders, filter, searchQuery, salonMode, activeFilters]);
+
+  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
+    try {
+      const data = processedOrders;
+      const filename = `ordenes-export-${new Date().toISOString().split('T')[0]}`;
+
+      if (options.format === "json") {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Error exporting orders:", err);
+      setError("Error al exportar órdenes");
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    setError("Importación deshabilitada - solo exportación para auditoría");
+  };
 
   const stats = useMemo(
     () => ({
@@ -304,19 +378,15 @@ export default function OrdersPage() {
               </button>
             </div>
 
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-              />
-              <input
-                type="text"
-                placeholder="Buscar por mesa o producto…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-surface-2 border border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-ivory outline-none focus:border-violet-400/40 w-48 md:w-64"
-              />
-            </div>
+            <AdvancedSearchFilter
+              filterGroups={filterGroups}
+              onSearch={setSearchQuery}
+              onFilterChange={setActiveFilters}
+              placeholder="Buscar por mesa o producto..."
+              savedFilters={[]}
+              onSaveFilter={() => {}}
+              onLoadFilter={() => {}}
+            />
 
             <button
               type="button"
@@ -325,6 +395,15 @@ export default function OrdersPage() {
             >
               <HelpCircle size={16} />
               Tutorial
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowExportImport(true)}
+              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10"
+              title="Exportar/Importar"
+            >
+              <Target size={16} />
             </button>
 
             <button
@@ -419,6 +498,30 @@ export default function OrdersPage() {
             setIsModalOpen(false);
           }}
         />
+      )}
+
+      {/* EXPORT/IMPORT PANEL */}
+      {showExportImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Órdenes</h3>
+              <button
+                onClick={() => setShowExportImport(false)}
+                className="text-muted hover:text-ivory transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <DataExportImport
+              data={processedOrders}
+              filename={`ordenes-${new Date().toISOString().split('T')[0]}`}
+              onExport={handleExport}
+              onImport={handleImport}
+              availableFormats={["json"]}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

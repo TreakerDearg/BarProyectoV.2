@@ -72,7 +72,7 @@ function buildPayload(menu: any) {
     throw new Error("Debe tener al menos una categoría");
   }
 
-  const categories = menu.categories.map((cat: any, index: number) => {
+  const categories = Array.isArray(menu.categories) ? menu.categories.map((cat: any, index: number) => {
     if (!cat.name) {
       throw new Error(`Categoría #${index + 1} sin nombre`);
     }
@@ -81,7 +81,7 @@ function buildPayload(menu: any) {
       throw new Error(`La categoría "${cat.name}" está vacía`);
     }
 
-    const products = cat.products.map((p: any, i: number) => {
+    const products = Array.isArray(cat.products) ? cat.products.map((p: any, i: number) => {
       if (!p.product) {
         throw new Error(`Producto inválido en ${cat.name}`);
       }
@@ -92,7 +92,7 @@ function buildPayload(menu: any) {
         available: p.available ?? true,
         order: i, //  importante (no position)
       };
-    });
+    }) : [];
 
     return {
       name: cat.name,
@@ -100,7 +100,7 @@ function buildPayload(menu: any) {
       order: index,
       products,
     };
-  });
+  }) : [];
 
   return {
     name: menu.name.trim(),

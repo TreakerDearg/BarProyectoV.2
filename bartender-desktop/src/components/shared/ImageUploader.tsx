@@ -9,6 +9,8 @@ import {
   Loader2,
 } from "lucide-react";
 
+import api from "../../services/api";
+
 interface ImageUploaderProps {
   onImageUpload: (url: string) => void;
   currentImage?: string;
@@ -60,17 +62,18 @@ export default function ImageUploader({
       formData.append('image', file);
       formData.append('folder', folder);
 
-      // Aquí iría la llamada real a la API
-      // Por ahora simulamos el upload
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Simulación de respuesta
-      const mockUrl = localPreview; // En producción esto vendría del backend
-      onImageUpload(mockUrl);
+      // Use the axios instance with proper base URL and auth headers
+      const response: any = await api.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      onImageUpload(response.url);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch {
-      setError('Error al subir la imagen');
+    } catch (err: any) {
+      setError(err.message || 'Error al subir la imagen');
       setPreview(currentImage || null);
     } finally {
       setUploading(false);

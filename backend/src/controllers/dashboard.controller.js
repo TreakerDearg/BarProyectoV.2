@@ -235,6 +235,35 @@ const calculateKPIs = (orders, reservationsToday, today, previousOrders = []) =>
     avgOrderTimeMin = Math.round(totalMin / completed.length);
   }
 
+  // Calculate profit margin (revenue - cost)
+  let totalCost = 0;
+  orders.forEach(order => {
+    (order.items || []).forEach(item => {
+      const cost = item.product?.cost || 0;
+      totalCost += cost * (item.quantity || 0);
+    });
+  });
+  const totalProfit = totalSales - totalCost;
+  const profitMargin = totalSales > 0 ? +((totalProfit / totalSales) * 100).toFixed(2) : 0;
+
+  // Calculate order completion rate
+  const completedOrders = orders.filter(o => o.status === "completed" || o.status === "delivered").length;
+  const cancelledOrders = orders.filter(o => o.status === "cancelled").length;
+  const completionRate = totalOrders > 0 ? +((completedOrders / totalOrders) * 100).toFixed(2) : 0;
+  const cancellationRate = totalOrders > 0 ? +((cancelledOrders / totalOrders) * 100).toFixed(2) : 0;
+
+  // Calculate peak hours (hour with most orders)
+  const hourlyOrders = {};
+  orders.forEach(order => {
+    const hour = new Date(order.createdAt).getHours();
+    hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
+  });
+  const peakHour = Object.entries(hourlyOrders).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+  // Calculate average items per order
+  const totalItems = orders.reduce((acc, o) => acc + (o.items?.length || 0), 0);
+  const avgItemsPerOrder = totalOrders > 0 ? +(totalItems / totalOrders).toFixed(2) : 0;
+
   return {
     totalSales,
     totalOrders,
@@ -242,10 +271,23 @@ const calculateKPIs = (orders, reservationsToday, today, previousOrders = []) =>
     avgTicket,
     reservationsToday,
     avgOrderTimeMin,
+    totalProfit,
+    profitMargin,
+    completionRate,
+    cancellationRate,
+    peakHour,
+    avgItemsPerOrder,
     trends: {
       salesPct: pctChange(totalSales, prevSales),
       ordersPct: pctChange(totalOrders, prevOrders),
       ticketPct: pctChange(avgTicket, prevAvgTicket),
+      profitPct: pctChange(totalProfit, previousOrders.reduce((acc, o) => {
+        let cost = 0;
+        (o.items || []).forEach(item => {
+          cost += (item.product?.cost || 0) * (item.quantity || 0);
+        });
+        return acc + ((o.total || 0) - cost);
+      }, 0)),
     },
   };
 };
@@ -303,23 +345,93 @@ const calculateProductMetrics = (orders) => {
 };
 
 const calculateVersusStats = (sortedProducts, days) => {
-  const topDrinks = sortedProducts.filter(p => p.type === "drink");
-  const headToHead = topDrinks.slice(0, 5).map((p, idx) => ({
-    rank: idx + 1, name: p.name, category: p.category.toUpperCase(),
-    sold: p.qty, profit: `$${(p.revenue - (p.cost * p.qty)).toLocaleString()}`,
-    perf: Math.round((p.qty / (topDrinks[0]?.qty || 1)) * 100),
-  }));
-  return { headToHead, radarData: generateRadarData(topDrinks) };
+  const topDrinks = sortedProducts.filter(p => p.type === "drink").slice(0, 5);
+  
+  // Calculate head-to-head comparison
+  const headToHead = topDrinks.map((p, idx) => {
+    const profit = p.revenue - (p.cost * p.qty);
+    const margin = p.revenue > 0 ? (profit / p.revenue) * 100 : 0;
+    return {
+      rank: idx + 1,
+      name: p.name,
+      category: p.category.toUpperCase(),
+      sold: p.qty,
+      revenue: p.revenue,
+      profit: profit,
+      margin: margin.toFixed(2),
+      perf: Math.round((p.qty / (topDrinks[0]?.qty || 1)) * 100),
+    };
+  });
+
+  // Generate radar data based on actual product metrics
+  const radarData = generateRadarData(topDrinks);
+
+  return { headToHead, radarData };
 };
 
-const generateRadarData = (topDrinks) => [
-  { subject: 'POPULARITY', A: 120, B: 110, fullMark: 150 },
-  { subject: 'PROFIT', A: 98, B: 130, fullMark: 150 },
-  { subject: 'SPEED', A: 140, B: 80, fullMark: 150 },
-  { subject: 'TASTE', A: 110, B: 140, fullMark: 150 },
-  { subject: 'COMPLEXITY', A: 60, B: 140, fullMark: 150 },
-  { subject: 'MARGIN', A: 85, B: 130, fullMark: 150 },
-];
+const generateRadarData = (topDrinks) => {
+  if (topDrinks.length < 2) {
+    // Return default data if not enough drinks
+    return [
+      { subject: 'POPULARITY', A: 100, B: 80, fullMark: 150 },
+      { subject: 'PROFIT', A: 90, B: 100, fullMark: 150 },
+      { subject: 'SPEED', A: 110, B: 90, fullMark: 150 },
+      { subject: 'TASTE', A: 100, B: 100, fullMark: 150 },
+      { subject: 'COMPLEXITY', A: 70, B: 90, fullMark: 150 },
+      { subject: 'MARGIN', A: 85, B: 95, fullMark: 150 },
+    ];
+  }
+
+  const drinkA = topDrinks[0];
+  const drinkB = topDrinks[1] || topDrinks[0];
+
+  // Calculate metrics based on actual data
+  const maxQty = Math.max(drinkA.qty, drinkB.qty);
+  const maxRevenue = Math.max(drinkA.revenue, drinkB.revenue);
+  const maxMargin = Math.max(
+    drinkA.revenue > 0 ? (drinkA.revenue - drinkA.cost * drinkA.qty) / drinkA.revenue * 100 : 0,
+    drinkB.revenue > 0 ? (drinkB.revenue - drinkB.cost * drinkB.qty) / drinkB.revenue * 100 : 0
+  );
+
+  return [
+    {
+      subject: 'POPULARITY',
+      A: Math.round((drinkA.qty / maxQty) * 150),
+      B: Math.round((drinkB.qty / maxQty) * 150),
+      fullMark: 150
+    },
+    {
+      subject: 'REVENUE',
+      A: Math.round((drinkA.revenue / maxRevenue) * 150),
+      B: Math.round((drinkB.revenue / maxRevenue) * 150),
+      fullMark: 150
+    },
+    {
+      subject: 'MARGIN',
+      A: Math.round(((drinkA.revenue - drinkA.cost * drinkA.qty) / drinkA.revenue * 100) / maxMargin * 150),
+      B: Math.round(((drinkB.revenue - drinkB.cost * drinkB.qty) / drinkB.revenue * 100) / maxMargin * 150),
+      fullMark: 150
+    },
+    {
+      subject: 'CATEGORY',
+      A: drinkA.category === 'CLASSIC' ? 120 : drinkA.category === 'SIGNATURE' ? 140 : 100,
+      B: drinkB.category === 'CLASSIC' ? 120 : drinkB.category === 'SIGNATURE' ? 140 : 100,
+      fullMark: 150
+    },
+    {
+      subject: 'PERFORMANCE',
+      A: Math.round((drinkA.qty / (topDrinks[0]?.qty || 1)) * 150),
+      B: Math.round((drinkB.qty / (topDrinks[0]?.qty || 1)) * 150),
+      fullMark: 150
+    },
+    {
+      subject: 'CONSISTENCY',
+      A: Math.min(150, Math.round(drinkA.qty / 10 * 30)),
+      B: Math.min(150, Math.round(drinkB.qty / 10 * 30)),
+      fullMark: 150
+    },
+  ];
+};
 
 const calculateSalesByDay = (orders, days, rangeStart) => {
   const salesMap = {};

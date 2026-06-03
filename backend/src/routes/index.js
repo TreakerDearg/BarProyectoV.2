@@ -23,6 +23,9 @@ import paymentRoutes      from "./payment.routes.js";
 import trackingRoutes    from "./tracking.routes.js";
 import attendanceRoutes  from "./attendance.routes.js";
 import performanceRoutes from "./performance.routes.js";
+import uploadRoutes      from "./upload.routes.js";
+import auditRoutes       from "./audit.routes.js";
+import alertsRoutes      from "./alerts.routes.js";
 
 const router = Router();
 
@@ -49,5 +52,8 @@ router.use("/pricing-events", pricingEventRoutes);
 router.use("/tracking",     trackingRoutes);
 router.use("/attendance",   attendanceRoutes);
 router.use("/performance",  performanceRoutes);
+router.use("/upload",       uploadRoutes);
+router.use("/audit",        auditRoutes);
+router.use("/alerts",       alertsRoutes);
 
 export default router;

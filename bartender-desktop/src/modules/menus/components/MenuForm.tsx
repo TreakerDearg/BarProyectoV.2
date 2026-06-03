@@ -56,9 +56,9 @@ interface Payload {
 
 const CATEGORY_OPTIONS = ["Barra Royale", "Gastronomía", "Especiales VIP", "Temporada Umbra", "Premium Selection"];
 const TYPE_OPTIONS: { value: MenuType; label: string; icon: any }[] = [
-  { value: "drink", label: "Drink List", icon: <Zap size={16} /> },
-  { value: "food", label: "Menu Food", icon: <Box size={16} /> },
-  { value: "mixed", label: "Mixed Exper.", icon: <LayoutGrid size={16} /> },
+  { value: "drink", label: "Drink List", icon: <Zap size={20} /> },
+  { value: "food", label: "Menu Food", icon: <Box size={20} /> },
+  { value: "mixed", label: "Mixed Exper.", icon: <LayoutGrid size={20} /> },
 ];
 
 interface Props {
@@ -109,8 +109,8 @@ function MenuIdentitySection({ form, setForm, onImageUpload }: { form: Payload; 
                   onClick={() => setForm({ ...form, type: opt.value })}
                   className={form.type === opt.value ? 'active' : ''}
                 >
-                  {opt.icon}
-                  <span className="ml-1">{opt.label}</span>
+                  <span className="text-xl">{opt.icon}</span>
+                  <span className="ml-2 text-sm font-semibold">{opt.label}</span>
                 </button>
               ))}
             </div>
@@ -235,13 +235,31 @@ function MenuProductSelector({
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar productos..."
+          placeholder="Buscar productos por nombre o categoría..."
           className="nebula-form-input w-full pl-10"
         />
       </div>
+      
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button
+          onClick={() => setSearch("")}
+          className={`px-3 py-1 rounded text-xs font-medium transition-all ${search === "" ? 'bg-violet-500/20 text-violet-400' : 'bg-white/5 text-muted hover:bg-white/10'}`}
+        >
+          Todos
+        </button>
+        {[...new Set(products.map(p => p.category).filter(Boolean))].slice(0, 5).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSearch(cat)}
+            className={`px-3 py-1 rounded text-xs font-medium transition-all ${search === cat ? 'bg-violet-500/20 text-violet-400' : 'bg-white/5 text-muted hover:bg-white/10'}`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
       <div className={`grid gap-2 ${viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"} max-h-64 overflow-y-auto nebula-forms-scroll`}>
-        {filteredProducts.map((product) => {
+        {Array.isArray(filteredProducts) && filteredProducts.map((product) => {
           const isSelected = selectedProductIds.has(product._id);
           const menuProduct = currentCategory?.products?.find(p => p.product === product._id);
           
@@ -255,10 +273,18 @@ function MenuProductSelector({
                   : 'bg-white/5 border-white/10 hover:border-violet-500/20'
               }`}
             >
+              {viewMode === "grid" && product.image && (
+                <div className="mb-2 rounded-lg overflow-hidden">
+                  <img src={product.image} alt={product.name} className="w-full h-20 object-cover" />
+                </div>
+              )}
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-ivory truncate">{product.name}</p>
                   <p className="text-xs text-muted truncate">{product.category || 'Sin categoría'}</p>
+                  {viewMode === "list" && product.price && (
+                    <p className="text-xs font-semibold text-gold">${product.price.toFixed(2)}</p>
+                  )}
                 </div>
                 {isSelected && (
                   <div className="flex flex-col gap-1">
@@ -350,7 +376,7 @@ function MenuValidationPanel({ errors, isValid }: { errors: string[]; isValid: b
         </h3>
       </div>
 
-      {errors.length > 0 ? (
+      {Array.isArray(errors) && errors.length > 0 ? (
         <div className="space-y-2">
           {errors.map((error, idx) => (
             <div key={idx} className="flex items-start gap-2 text-xs text-red-400">
@@ -597,7 +623,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
                       <h3 className="text-sm font-bold text-ivory">Productos Seleccionados</h3>
                     </div>
                     <div className="space-y-2 max-h-48 overflow-y-auto nebula-forms-scroll">
-                      {currentCategory.products.map((menuProduct, idx) => {
+                      {Array.isArray(currentCategory?.products) && currentCategory.products.map((menuProduct, idx) => {
                         const product = products.find(p => p._id === menuProduct.product);
                         if (!product) return null;
                         

@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Plus, HelpCircle, LayoutGrid, List, Search, Target, Zap, Activity, TrendingUp, Package, RefreshCcw } from "lucide-react";
+import { Plus, HelpCircle, LayoutGrid, List, Search, Target, Zap, Activity, TrendingUp, Package, RefreshCcw, X } from "lucide-react";
 
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
 import ProductTutorial from "../components/tutorial/ProductTutorial";
+import DataExportImport from "../../../components/shared/DataExportImport";
+import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 
 import {
   getProducts,
@@ -15,6 +17,7 @@ import {
 import { useProductSocketEvents } from "../../../hooks/useSocket";
 import { useProductTutorial } from "../hooks/useProductTutorial";
 import { useProductUiStore } from "../store/productUiStore";
+import { useNotifications } from "../../../components/shared/NotificationCenter";
 
 import type { Product } from "../../../types/product";
 import "../../../styles/nebula-theme.css";
@@ -27,6 +30,69 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [showExportImport, setShowExportImport] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+
+  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
+    try {
+      const data = filteredProducts;
+      const filename = `productos-export-${new Date().toISOString().split('T')[0]}`;
+
+      // For now, use JSON export as base implementation
+      // TODO: Implement Excel export in backend
+      if (options.format === "json") {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Error exporting products:", err);
+      setError("Error al exportar productos");
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    // Import disabled for now - only export for auditing
+    setError("Importación deshabilitada - solo exportación para auditoría");
+  };
+
+  // Filter groups for AdvancedSearchFilter
+  const filterGroups = [
+    {
+      id: "category",
+      label: "Categoría",
+      type: "checkbox" as const,
+      options: Array.from(new Set(products.map(p => p.category))).map(cat => ({
+        value: cat,
+        label: cat,
+      })),
+      selected: activeFilters["category"] || [],
+    },
+    {
+      id: "type",
+      label: "Tipo",
+      type: "radio" as const,
+      options: [
+        { value: "drink", label: "Bebida" },
+        { value: "food", label: "Comida" },
+      ],
+      selected: activeFilters["type"] || [],
+    },
+    {
+      id: "availability",
+      label: "Disponibilidad",
+      type: "checkbox" as const,
+      options: [
+        { value: "available", label: "Disponible" },
+        { value: "featured", label: "Destacado" },
+      ],
+      selected: activeFilters["availability"] || [],
+    },
+  ];
 
   const {
     isOpen: tutorialOpen,
@@ -36,6 +102,7 @@ export default function ProductsPage() {
   } = useProductTutorial();
 
   const { mode, setMode, view, toggleView } = useProductUiStore();
+  const { addNotification } = useNotifications();
 
   /* =========================
      FETCH PRODUCTS
@@ -100,14 +167,40 @@ export default function ProductsPage() {
   );
 
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return products;
-    const lower = search.toLowerCase();
-    return products.filter((p) => 
-      p?.name?.toLowerCase().includes(lower) ||
-      p?.category?.toLowerCase().includes(lower) ||
-      p?.description?.toLowerCase().includes(lower)
-    );
-  }, [products, search]);
+    let list = products;
+
+    // Apply search text
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      list = list.filter((p) =>
+        p?.name?.toLowerCase().includes(lower) ||
+        p?.category?.toLowerCase().includes(lower) ||
+        p?.description?.toLowerCase().includes(lower)
+      );
+    }
+
+    // Apply category filter
+    if (activeFilters["category"]?.length > 0) {
+      list = list.filter(p => activeFilters["category"]!.includes(p.category));
+    }
+
+    // Apply type filter
+    if (activeFilters["type"]?.length > 0) {
+      list = list.filter(p => activeFilters["type"]!.includes(p.type));
+    }
+
+    // Apply availability filter
+    if (activeFilters["availability"]?.length > 0) {
+      list = list.filter(p => {
+        const filters = activeFilters["availability"]!;
+        if (filters.includes("available") && !p.available) return false;
+        if (filters.includes("featured") && !p.featured) return false;
+        return true;
+      });
+    }
+
+    return list;
+  }, [products, search, activeFilters]);
 
   const stats = useMemo(() => {
     const total = products.length;
@@ -189,18 +282,15 @@ export default function ProductsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-violet-300/60 group-focus-within:text-violet-200 transition-colors" />
-            </div>
-            <input 
-              type="text"
-              placeholder="Buscar productos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-surface-3/60 border border-violet-400/20 rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium text-ivory outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/10 transition-all w-64 backdrop-blur-sm"
-            />
-          </div>
+          <AdvancedSearchFilter
+            filterGroups={filterGroups}
+            onSearch={setSearch}
+            onFilterChange={setActiveFilters}
+            placeholder="Buscar productos..."
+            savedFilters={[]}
+            onSaveFilter={() => {}}
+            onLoadFilter={() => {}}
+          />
 
           <button
             onClick={() => openTutorial()}
@@ -227,6 +317,14 @@ export default function ProductsPage() {
             title="Actualizar"
           >
             <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+
+          <button
+            onClick={() => setShowExportImport(true)}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
+            title="Exportar/Importar"
+          >
+            <Target size={16} />
           </button>
 
           <button
@@ -303,6 +401,30 @@ export default function ProductsPage() {
             setSelectedProduct(null);
           }}
         />
+      )}
+
+      {/* EXPORT/IMPORT PANEL */}
+      {showExportImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Datos</h3>
+              <button
+                onClick={() => setShowExportImport(false)}
+                className="text-muted hover:text-ivory transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <DataExportImport
+              data={filteredProducts}
+              filename={`productos-${new Date().toISOString().split('T')[0]}`}
+              onExport={handleExport}
+              onImport={handleImport}
+              availableFormats={["json"]}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

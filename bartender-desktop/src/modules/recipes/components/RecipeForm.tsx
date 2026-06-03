@@ -66,7 +66,7 @@ function RecipeProductSelector({ form, setForm, products }: { form: Recipe; setF
             className="nebula-form-select w-full"
           >
             <option value="">Seleccionar producto...</option>
-            {products.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
+            {Array.isArray(products) && products.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
           </select>
         </div>
 
@@ -111,6 +111,31 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
   ingredientDraft: any;
   setIngredientDraft: (d: any) => void;
 }) {
+  const totalCost = useMemo(() => {
+    return form.ingredients.reduce((sum, ing) => {
+      const item = inventory.find(i => i._id === ing.inventoryItem?._id);
+      if (!item) return sum;
+      const unitCost = item.cost || 0;
+      const quantity = ing.quantity || 0;
+      let cost = 0;
+      
+      // Convert units to base unit for cost calculation
+      if (ing.unit === 'ml' && item.unit === 'l') {
+        cost = (quantity / 1000) * unitCost;
+      } else if (ing.unit === 'l' && item.unit === 'ml') {
+        cost = quantity * 1000 * unitCost;
+      } else if (ing.unit === 'g' && item.unit === 'kg') {
+        cost = (quantity / 1000) * unitCost;
+      } else if (ing.unit === 'kg' && item.unit === 'g') {
+        cost = quantity * 1000 * unitCost;
+      } else {
+        cost = quantity * unitCost;
+      }
+      
+      return sum + cost;
+    }, 0);
+  }, [form.ingredients, inventory]);
+
   const addIngredient = () => {
     if (!ingredientDraft.inventoryItem) return;
     const exists = form.ingredients.find(i => i.inventoryItem?._id === ingredientDraft.inventoryItem);
@@ -119,22 +144,33 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
     const selectedItem = inventory.find(inv => inv._id === ingredientDraft.inventoryItem);
     if (!selectedItem) return;
 
-    setForm(prev => ({
-      ...prev,
+    // Validate quantity
+    if (ingredientDraft.quantity <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    if (ingredientDraft.quantity > 10000) {
+      alert('La cantidad parece demasiado alta. Por favor verifica.');
+      return;
+    }
+
+    setForm({
+      ...form,
       ingredients: [
-        ...prev.ingredients,
+        ...form.ingredients,
         {
           inventoryItem: { _id: selectedItem._id, name: selectedItem.name },
           quantity: Number(ingredientDraft.quantity),
           unit: ingredientDraft.unit as any
         }
       ],
-    }));
+    });
     setIngredientDraft(EMPTY_INGREDIENT);
   };
 
   const removeIngredient = (index: number) => {
-    setForm(prev => ({ ...prev, ingredients: prev.ingredients.filter((_, i) => i !== index) }));
+    setForm({ ...form, ingredients: form.ingredients.filter((_, i) => i !== index) });
   };
 
   return (
@@ -148,7 +184,7 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
 
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
+          <div className="md:col-span-2">
             <label className="nebula-form-label">Insumo</label>
             <select
               value={ingredientDraft.inventoryItem}
@@ -156,7 +192,7 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
               className="nebula-form-select w-full"
             >
               <option value="">Seleccionar...</option>
-              {inventory.map((i) => <option key={i._id} value={i._id}>{i.name}</option>)}
+              {Array.isArray(inventory) && inventory.map((i) => <option key={i._id} value={i._id}>{i.name} ({i.unit})</option>)}
             </select>
           </div>
           <div>
@@ -166,6 +202,8 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
               value={ingredientDraft.quantity}
               onChange={(e) => setIngredientDraft({ ...ingredientDraft, quantity: Number(e.target.value) })}
               placeholder="1"
+              min="0.1"
+              step="0.1"
               className="nebula-form-input w-full"
             />
           </div>
@@ -192,7 +230,7 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
         </button>
 
         <div className="space-y-2 max-h-48 overflow-y-auto nebula-forms-scroll">
-          {form.ingredients.map((i, idx) => (
+          {Array.isArray(form.ingredients) && form.ingredients.map((i, idx) => (
             <div key={idx} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <span className="text-xs text-muted w-6">{idx + 1}.</span>
@@ -210,6 +248,18 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
             </div>
           ))}
         </div>
+
+        {form.ingredients.length > 0 && (
+          <div className="p-4 bg-gradient-to-br from-gold/10 to-amber-500/10 rounded-lg border border-gold/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted">Costo total de ingredientes</span>
+              <span className="text-2xl font-bold text-gold">${totalCost.toFixed(2)}</span>
+            </div>
+            <div className="text-xs text-muted">
+              {form.ingredients.length} ingrediente{form.ingredients.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        )}
 
         {form.ingredients.length === 0 && (
           <div className="text-center py-4">
@@ -258,37 +308,33 @@ function MethodEditor({ form, setForm }: { form: Recipe; setForm: (f: Recipe) =>
 // StepSequenceBuilder Component
 function StepSequenceBuilder({ form, setForm }: { form: Recipe; setForm: (f: Recipe) => void }) {
   const addStep = () => {
-    setForm(prev => ({
-      ...prev,
-      steps: [...(prev.steps || []), { stepNumber: (prev.steps?.length || 0) + 1, instruction: "" }],
-    }));
+    setForm({
+      ...form,
+      steps: [...(form.steps || []), { stepNumber: (form.steps?.length || 0) + 1, instruction: "" }],
+    });
   };
 
   const updateStep = (index: number, value: string) => {
-    setForm(prev => {
-      const steps = [...(prev.steps || [])];
-      if (steps[index]) {
-        steps[index].instruction = value;
-      }
-      return { ...prev, steps };
-    });
+    const steps = [...(form.steps || [])];
+    if (steps[index]) {
+      steps[index].instruction = value;
+    }
+    setForm({ ...form, steps });
   };
 
   const removeStep = (index: number) => {
-    setForm(prev => ({
-      ...prev,
-      steps: (prev.steps || []).filter((_, i) => i !== index).map((s, i) => ({ ...s, stepNumber: i + 1 })),
-    }));
+    setForm({
+      ...form,
+      steps: (form.steps || []).filter((_, i) => i !== index).map((s, i) => ({ ...s, stepNumber: i + 1 })),
+    });
   };
 
   const moveStep = (index: number, dir: "up" | "down") => {
-    setForm(prev => {
-      const steps = [...(prev.steps || [])];
-      const newIndex = dir === "up" ? index - 1 : index + 1;
-      if (newIndex < 0 || newIndex >= steps.length) return prev;
-      [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
-      return { ...prev, steps: steps.map((s, i) => ({ ...s, stepNumber: i + 1 })) };
-    });
+    const steps = [...(form.steps || [])];
+    const newIndex = dir === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= steps.length) return;
+    [steps[index], steps[newIndex]] = [steps[newIndex], steps[index]];
+    setForm({ ...form, steps: steps.map((s, i) => ({ ...s, stepNumber: i + 1 })) });
   };
 
   return (
@@ -302,7 +348,7 @@ function StepSequenceBuilder({ form, setForm }: { form: Recipe; setForm: (f: Rec
 
       <div className="space-y-4">
         <div className="space-y-2 max-h-64 overflow-y-auto nebula-forms-scroll">
-          {(form.steps || []).map((s, idx) => (
+          {Array.isArray(form.steps) && form.steps.map((s, idx) => (
             <div key={idx} className="flex items-center gap-2 p-3 bg-white/5 rounded-lg border border-white/10">
               <span className="text-xs text-muted w-6 font-bold">{idx + 1}</span>
               <input
