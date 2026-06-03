@@ -1,5 +1,5 @@
 import { ok, badRequest } from '../utils/response.js';
-import logger from '../config/logger.js';
+import { logger } from '../config/logger.js';
 
 /**
  * Create a custom alert

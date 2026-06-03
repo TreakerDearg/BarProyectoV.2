@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { ok, badRequest } from '../utils/response.js';
-import logger from '../config/logger.js';
+import { logger } from '../config/logger.js';
 
 /**
  * Export audit logs to Excel format
