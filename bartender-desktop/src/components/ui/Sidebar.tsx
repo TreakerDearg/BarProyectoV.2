@@ -15,6 +15,7 @@ import {
   Dices,
   Percent,
   ChevronLeft,
+  Settings,
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
@@ -34,6 +35,7 @@ const PATHS = {
   RECIPES: "/recipes",
   EMPLOYEES: "/employees",
   ROULETTE: "/roulette",
+  SETTINGS: "/settings",
 };
 
 export default function Sidebar() {
@@ -79,6 +81,7 @@ export default function Sidebar() {
       items: [
         { name: "Empleados", path: PATHS.EMPLOYEES, icon: Users },
         { name: "Ruleta", path: PATHS.ROULETTE, icon: Dices },
+        { name: "Configuracion", path: PATHS.SETTINGS, icon: Settings },
       ],
     },
   ].map((section) => ({

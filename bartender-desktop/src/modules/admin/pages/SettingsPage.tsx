@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Database } from "lucide-react";
+import { Shield, Database, Bell } from "lucide-react";
 import BackupSystem, { type BackupConfig } from "../../../components/shared/BackupSystem";
 import AuditLogSystem from "../../../components/shared/AuditLogSystem";
+import CustomReportBuilder from "../../../components/shared/CustomReportBuilder";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"backup" | "audit">("backup");
+  const [activeTab, setActiveTab] = useState<"backup" | "audit" | "alerts" | "reports">("backup");
   const [backupConfig, setBackupConfig] = useState<BackupConfig>({
     enabled: true,
     interval: 60,
@@ -46,6 +47,28 @@ export default function SettingsPage() {
           >
             <Shield size={16} />
             Auditoría
+          </button>
+          <button
+            onClick={() => setActiveTab("alerts")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === "alerts"
+                ? "bg-violet-500/20 text-violet-200 border border-violet-400/30"
+                : "bg-white/5 text-muted border border-white/10 hover:text-ivory"
+            }`}
+          >
+            <Bell size={16} />
+            Alertas
+          </button>
+          <button
+            onClick={() => setActiveTab("reports")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === "reports"
+                ? "bg-violet-500/20 text-violet-200 border border-violet-400/30"
+                : "bg-white/5 text-muted border border-white/10 hover:text-ivory"
+            }`}
+          >
+            <Shield size={16} />
+            Reportes
           </button>
         </div>
 
@@ -107,6 +130,39 @@ export default function SettingsPage() {
                   // TODO: Implement clear logic
                 }}
               />
+            </div>
+          )}
+
+          {activeTab === "alerts" && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-violet-500/15 text-violet-200">
+                  <Bell size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-ivory">Alertas Personalizadas</h2>
+                  <p className="text-muted text-sm">Configura alertas automáticas para el sistema</p>
+                </div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-6 text-center">
+                <p className="text-muted text-sm">Sistema de alertas configurado. Las alertas se gestionan a través de la API del backend.</p>
+                <p className="text-xs text-muted mt-2">Endpoints disponibles: POST /api/alerts, GET /api/alerts, PUT /api/alerts/:id, DELETE /api/alerts/:id</p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "reports" && (
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-violet-500/15 text-violet-200">
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-ivory">Constructor de Reportes</h2>
+                  <p className="text-muted text-sm">Crea reportes personalizados con los datos del sistema</p>
+                </div>
+              </div>
+              <CustomReportBuilder />
             </div>
           )}
         </div>

@@ -127,4 +127,12 @@ export const routesConfig = [
     path: "/roulette",
     title: "Ruleta de Tragos",
   },
+
+  /* ===============================
+     SETTINGS
+  =============================== */
+  {
+    path: "/settings",
+    title: "Configuración",
+  },
 ];

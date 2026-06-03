@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorizeRoles } from '../middleware/auth.middleware.js';
+import { protect, authorizeRoles } from '../middlewares/auth.middleware.js';
 import {
   createAlert,
   getAlerts,

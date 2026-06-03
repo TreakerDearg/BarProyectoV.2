@@ -5,6 +5,7 @@ import ShiftPermissionsPage from "../modules/admin/pages/ShiftPermissionsPage";
 import EmployeeActivityTrackingPage from "../modules/admin/pages/EmployeeActivityTrackingPage";
 import ShiftManagementPage from "../modules/admin/pages/ShiftManagementPage";
 import ShiftMetricsPage from "../modules/admin/pages/ShiftMetricsPage";
+import SettingsPage from "../modules/admin/pages/SettingsPage";
 
 export const adminRoutes = [
   {
@@ -34,5 +35,9 @@ export const adminRoutes = [
   {
     path: "/employees/shift-metrics",
     element: ShiftMetricsPage,
+  },
+  {
+    path: "/settings",
+    element: SettingsPage,
   },
 ];
