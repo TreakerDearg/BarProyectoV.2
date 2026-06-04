@@ -110,9 +110,10 @@ export const createPayment = async (req, res) => {
     return handleControllerError(res, error, "createPayment");
   }
 
-  const session = await mongoose.startSession();
-
+  /* ─── Cobro individual de una orden específica ─── */
+  let session;
   try {
+    session = await mongoose.startSession();
     session.startTransaction();
 
     const { tableId, orderId, method, amountPaid, notes } = req.body;
@@ -256,12 +257,12 @@ export const createPayment = async (req, res) => {
     return created(res, paymentResponse, "Pago procesado correctamente");
 
   } catch (error) {
-    if (session.inTransaction()) {
+    if (session?.inTransaction()) {
       await session.abortTransaction();
     }
     return handleControllerError(res, error, "createPayment");
   } finally {
-    session.endSession();
+    if (session) session.endSession();
   }
 };
 

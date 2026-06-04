@@ -21,36 +21,7 @@ import TableInspector from "./components/TableInspector";
 import TableStats from "./components/TableStats";
 import TableForm from "./components/TableForm";
 import OrderForm from "../../admin/orders/components/OrderForm";
-import MiniCalendar from "./components/MiniCalendar";
 
-export default function TablesPage() {
-  const [tables, setTables] = useState<Table[]>([]);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [filterDate, setFilterDate] = useState<string>("" );
-  const [activeLocation, setActiveLocation] = useState<string>("all");
-
-  const fetchTables = async (date?: string) => {
-    try {
-      setLoading(true);
-      const data = await getTables(date);
-      setTables(data || []);
-    } catch (err: any) {
-      setError("Fallo en la sincronización de activos");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTables();
-  }, []);
-
-  // existing useEffect for sockets unchanged ...
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
