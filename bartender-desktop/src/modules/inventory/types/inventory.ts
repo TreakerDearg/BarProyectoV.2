@@ -57,4 +57,16 @@ export interface InventoryItem {
   stockStatus?: "critical" | "low" | "optimal";
   isLowStock?: boolean;
   usagePercent?: number;
+
+  /* =========================
+     PRODUCT REFERENCES
+  ========================= */
+  usedInProducts?: string[];
+  usedInRecipes?: Array<{
+    recipeId: string;
+    productName: string;
+    productPrice: number;
+    quantity: number;
+    unit: string;
+  }>;
 }

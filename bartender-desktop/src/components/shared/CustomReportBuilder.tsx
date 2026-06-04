@@ -83,7 +83,7 @@ export default function CustomReportBuilder() {
   const updateFilter = (filterId: string, updates: Partial<ReportFilter>) => {
     setConfig(prev => ({
       ...prev,
-      filters: prev.filters.map(f => f.id === filterId ? { ...f, ...updates } : f),
+      filters: Array.isArray(prev.filters) ? prev.filters.map(f => f.id === filterId ? { ...f, ...updates } : f) : [],
     }));
   };
 

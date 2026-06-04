@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 
 import type { InventoryItem } from "../types/inventory";
+import ExpandableCardWrapper from "../../../components/ui/ExpandableCardWrapper";
+import InventoryExpandedPanel from "./InventoryExpandedPanel";
 
 interface Props {
   item: InventoryItem;
@@ -28,6 +30,8 @@ interface Props {
   averageCost?: number;
   lastRestock?: string;
   stockTrend?: 'up' | 'down' | 'stable';
+  expanded?: boolean;
+  onExpandToggle?: (id: string) => void;
 }
 
 export default function InventoryCard({
@@ -37,7 +41,9 @@ export default function InventoryCard({
   simplified = false,
   averageCost = 0,
   lastRestock,
-  stockTrend = 'stable'
+  stockTrend = 'stable',
+  expanded,
+  onExpandToggle
 }: Props) {
   const stock = Number(item.stock ?? 0);
   const minStock = Number(item.minStock ?? 0);
@@ -64,14 +70,20 @@ export default function InventoryCard({
   }[status];
 
   return (
-    <div className={`
-      relative group cursor-pointer
-      rounded-[2.5rem] p-8 space-y-8
-      border border-white/5
-      bg-surface-2 overflow-hidden transition-all duration-500
-      hover:translate-y-[-8px] hover:shadow-royale
-      ${statusConfig.glow}
-    `}>
+    <ExpandableCardWrapper
+      id={item._id}
+      expanded={expanded}
+      onExpandToggle={() => onExpandToggle?.(item._id!)}
+      expandedContent={<InventoryExpandedPanel item={item} />}
+    >
+      <div className={`
+        relative group cursor-pointer
+        rounded-[2.5rem] p-8 space-y-8
+        border border-white/5
+        bg-surface-2 overflow-hidden transition-all duration-500
+        hover:translate-y-[-8px] hover:shadow-royale
+        ${statusConfig.glow}
+      `}>
       
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 bg-${statusConfig.color}/10`} />
@@ -195,6 +207,16 @@ export default function InventoryCard({
         </div>
       )}
 
+      {/* ================= RECIPE INFO - Hidden in simplified mode ================= */}
+      {!simplified && item.usedInRecipes && item.usedInRecipes.length > 0 && (
+        <div className="flex items-center gap-2 relative z-10">
+          <Martini size={12} className="text-violet-400" />
+          <span className="text-[9px] font-black text-violet-400 uppercase tracking-widest">
+            {item.usedInRecipes.length} receta(s) usan este insumo
+          </span>
+        </div>
+      )}
+
       {/* ================= ACTIONS - Always visible but simplified in simple mode ================= */}
       <div className={`flex gap-3 relative z-10 ${simplified ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'} transition-all duration-500`}>
         <button
@@ -218,5 +240,6 @@ export default function InventoryCard({
         <ShieldCheck size={120} />
       </div>
     </div>
+    </ExpandableCardWrapper>
   );
 }

@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
 import InventoryItem from "../models/InventoryItem.js";
+import Recipe from "../models/Recipe.js";
 import { logger } from "../config/logger.js";
 import { uploadImage, deleteImage } from "../config/cloudinary.js";
 import {
   ok, created, badRequest, notFound,
 } from "../utils/response.js";
+import { getIO } from "../socket/index.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -83,6 +85,16 @@ export const createInventoryItem = async (req, res, next) => {
       imagePublicId: imagePublicId,
     });
 
+    // Emit socket event for inventory creation
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("inventory:created", { itemId: item._id, name: item.name });
+      }
+    } catch (socketError) {
+      logger.error("[Inventory] Error emitting inventory:created event:", socketError);
+    }
+
     logger.info(`[Inventory] Creado: ${item.name}`);
     return created(res, item, "Item creado correctamente");
   } catch (error) { throw error; }
@@ -133,6 +145,16 @@ export const updateInventoryItem = async (req, res, next) => {
     ).lean();
 
     if (!updated) return notFound(res, "Item no encontrado");
+
+    // Emit socket event for inventory update
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("inventory:updated", { itemId: updated._id, name: updated.name });
+      }
+    } catch (socketError) {
+      logger.error("[Inventory] Error emitting inventory:updated event:", socketError);
+    }
 
     logger.info(`[Inventory] Actualizado: ${updated.name}`);
     return ok(res, updated, "Item actualizado correctamente");
@@ -206,6 +228,16 @@ export const adjustStock = async (req, res, next) => {
 
     await item.save();
 
+    // Emit socket event for stock change
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("inventory:stock_changed", { itemId: item._id, name: item.name, stock: item.stock });
+      }
+    } catch (socketError) {
+      logger.error("[Inventory] Error emitting inventory:stock_changed event:", socketError);
+    }
+
     logger.info(`[Inventory] Stock ajustado: ${item.name} (${prevStock} → ${item.stock})`);
     return ok(res, item, `Stock ${type === "add" ? "aumentado" : "reducido"} correctamente`);
   } catch (error) { throw error; }
@@ -248,5 +280,43 @@ export const getInventoryStats = async (req, res, next) => {
       outOfStockItems,
       categories,
     });
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   INVENTORY WITH PRODUCTS
+========================================================= */
+export const getInventoryWithProducts = async (req, res, next) => {
+  try {
+    const items = await InventoryItem.find().lean();
+    const itemIds = items.map(i => i._id);
+    
+    const recipes = await Recipe.find({
+      "ingredients.inventoryItem": { $in: itemIds }
+    }).populate("product", "name price").lean();
+    
+    const itemRecipeMap = {};
+    recipes.forEach(r => {
+      r.ingredients.forEach(ing => {
+        const itemId = ing.inventoryItem.toString();
+        if (!itemRecipeMap[itemId]) {
+          itemRecipeMap[itemId] = [];
+        }
+        itemRecipeMap[itemId].push({
+          recipeId: r._id,
+          productName: r.product?.name,
+          productPrice: r.product?.price,
+          quantity: ing.quantity,
+          unit: ing.unit,
+        });
+      });
+    });
+    
+    const itemsWithProducts = items.map(item => ({
+      ...item,
+      usedInRecipes: itemRecipeMap[item._id.toString()] || []
+    }));
+    
+    return ok(res, itemsWithProducts);
   } catch (error) { throw error; }
 };

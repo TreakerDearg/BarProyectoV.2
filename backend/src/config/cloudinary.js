@@ -53,6 +53,9 @@ export const deleteImage = async (publicId) => {
 
 export const uploadMultipleImages = async (files, folder = 'general') => {
   try {
+    if (!files || !Array.isArray(files) || !files.length) {
+      throw new Error("files debe ser un array no vacío");
+    }
     const uploadPromises = files.map(file => uploadImage(file, folder));
     const results = await Promise.all(uploadPromises);
     return results;

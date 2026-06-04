@@ -12,9 +12,12 @@ import {
   onRecipeCreated,
   onRecipeUpdated,
   onRecipeDeleted,
+  onInventoryCreated,
+  onInventoryUpdated,
+  onInventoryStockChanged,
   disconnectSocket,
 } from "../services/socket";
-import type { MenuEventData, ProductEventData, RecipeEventData } from "../services/socket";
+import type { MenuEventData, ProductEventData, RecipeEventData, InventoryEventData } from "../services/socket";
 import { getToken } from "../utils/tokenStorage";
 
 /* =========================================================
@@ -154,11 +157,47 @@ export const useSocket = () => {
     }, [onCreated, onUpdated, onDeleted]);
   }, []);
 
+  /* =========================================================
+     INVENTORY EVENTS
+  ========================================================= */
+  const useInventoryEvents = useCallback((
+    onCreated?: (data: InventoryEventData) => void,
+    onUpdated?: (data: InventoryEventData) => void,
+    onStockChanged?: (data: InventoryEventData) => void
+  ) => {
+    useEffect(() => {
+      const cleanups: (() => void)[] = [];
+
+      if (onCreated) {
+        const cleanup = onInventoryCreated(onCreated);
+        cleanups.push(cleanup);
+        cleanupFunctionsRef.current.push(cleanup);
+      }
+
+      if (onUpdated) {
+        const cleanup = onInventoryUpdated(onUpdated);
+        cleanups.push(cleanup);
+        cleanupFunctionsRef.current.push(cleanup);
+      }
+
+      if (onStockChanged) {
+        const cleanup = onInventoryStockChanged(onStockChanged);
+        cleanups.push(cleanup);
+        cleanupFunctionsRef.current.push(cleanup);
+      }
+
+      return () => {
+        cleanups.forEach(cleanup => cleanup());
+      };
+    }, [onCreated, onUpdated, onStockChanged]);
+  }, []);
+
   return {
     socket: socketRef.current,
     useMenuEvents,
     useProductEvents,
     useRecipeEvents,
+    useInventoryEvents,
   };
 };
 
@@ -192,4 +231,13 @@ export const useRecipeSocketEvents = (
 ) => {
   const { useRecipeEvents } = useSocket();
   useRecipeEvents(onCreated, onUpdated, onDeleted);
+};
+
+export const useInventorySocketEvents = (
+  onCreated?: (data: InventoryEventData) => void,
+  onUpdated?: (data: InventoryEventData) => void,
+  onStockChanged?: (data: InventoryEventData) => void
+) => {
+  const { useInventoryEvents } = useSocket();
+  useInventoryEvents(onCreated, onUpdated, onStockChanged);
 };

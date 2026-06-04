@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import type { Recipe } from "../types/recipe";
+import ExpandableCardWrapper from "../../../components/ui/ExpandableCardWrapper";
+import RecipeExpandedPanel from "./RecipeExpandedPanel";
 
 interface Props {
   recipe: Recipe;
@@ -24,6 +26,8 @@ interface Props {
   productImage?: string;
   estimatedTime?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
+  expanded?: boolean;
+  onExpandToggle?: (id: string) => void;
 }
 
 export default function RecipeCard({
@@ -33,7 +37,9 @@ export default function RecipeCard({
   onDuplicate,
   productImage,
   estimatedTime = 5,
-  difficulty = 'medium'
+  difficulty = 'medium',
+  expanded,
+  onExpandToggle
 }: Props) {
   const isDrink = recipe.type === "drink";
   const totalCost = recipe.totalCost || 0;
@@ -62,17 +68,23 @@ export default function RecipeCard({
   };
 
   return (
-    <div
-      onClick={handleOpen}
-      className={`
-        relative group cursor-pointer
-        rounded-[2.5rem] p-8 space-y-6
-        border border-white/5
-        bg-surface-2 overflow-hidden transition-all duration-500
-        hover:translate-y-[-8px] hover:shadow-royale
-        ${isDrink ? 'hover:border-amber-400/30' : 'hover:border-emerald-400/30'}
-      `}
+    <ExpandableCardWrapper
+      id={recipe._id}
+      expanded={expanded}
+      onExpandToggle={() => onExpandToggle?.(recipe._id!)}
+      expandedContent={<RecipeExpandedPanel recipe={recipe} />}
     >
+      <div
+        onClick={handleOpen}
+        className={`
+          relative group cursor-pointer
+          rounded-[2.5rem] p-8 space-y-6
+          border border-white/5
+          bg-surface-2 overflow-hidden transition-all duration-500
+          hover:translate-y-[-8px] hover:shadow-royale
+          ${isDrink ? 'hover:border-amber-400/30' : 'hover:border-emerald-400/30'}
+        `}
+      >
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${isDrink ? 'bg-gold/10' : 'bg-emerald-400/10'}`} />
 
@@ -208,5 +220,6 @@ export default function RecipeCard({
         {isDrink ? <Martini size={120} /> : <Utensils size={120} />}
       </div>
     </div>
+    </ExpandableCardWrapper>
   );
 }

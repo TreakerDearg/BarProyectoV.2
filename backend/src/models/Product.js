@@ -62,9 +62,10 @@ const productSchema = new mongoose.Schema(
     /* ==============================
        POS LOGIC FLAGS
     ============================== */
-    hasRecipe: {
-      type: Boolean,
-      default: false,
+    recipeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      index: true,
     },
 
     preparationTime: {
@@ -207,6 +208,19 @@ productSchema.statics.findActiveByType = function (type) {
 /* ==============================
    VIRTUALS
 ============================== */
+
+// hasRecipe computed from recipeId
+productSchema.virtual("hasRecipe").get(function () {
+  return !!this.recipeId;
+});
+
+// recipe relationship
+productSchema.virtual("recipe", {
+  ref: "Recipe",
+  localField: "recipeId",
+  foreignField: "product",
+  justOne: true
+});
 
 // margen absoluto
 productSchema.virtual("profit").get(function () {

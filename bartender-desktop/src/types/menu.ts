@@ -8,6 +8,15 @@ export interface MenuProduct {
   /* Overrides */
   price?: number;
   available?: boolean;
+
+  /* Recipe & Inventory Info */
+  hasRecipe?: boolean;
+  missingIngredients?: Array<{
+    name: string;
+    required: number;
+    available: number;
+    unit: string;
+  }>;
 }
 
 /* =========================

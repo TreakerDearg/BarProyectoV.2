@@ -7,6 +7,7 @@ import {
   ok, created, badRequest, notFound, conflict,
 } from "../utils/response.js";
 import { emitRecipeEvent, RECIPE_EVENTS } from "../utils/socketEvents.js";
+import { getIO } from "../socket/index.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -113,6 +114,16 @@ export const createRecipe = async (req, res, next) => {
 
     const populated = await populateRecipe(Recipe.findById(recipe._id)).lean();
 
+    // Emit socket event for recipe creation
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("recipe:created", { recipeId: recipe._id, productId: recipe.product });
+      }
+    } catch (socketError) {
+      logger.error("[Recipe] Error emitting recipe:created event:", socketError);
+    }
+
     logger.info(`[Recipe] Creada para producto: ${product}`);
 
     emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
@@ -143,6 +154,16 @@ export const updateRecipe = async (req, res, next) => {
     const populated = await populateRecipe(Recipe.findById(id)).lean();
     logger.info(`[Recipe] Actualizada: ${id}`);
 
+    // Emit socket event for recipe update
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("recipe:updated", { recipeId: id, productId: updated.product });
+      }
+    } catch (socketError) {
+      logger.error("[Recipe] Error emitting recipe:updated event:", socketError);
+    }
+
     emitRecipeEvent(RECIPE_EVENTS.UPDATED, populated);
 
     return ok(res, populated, "Receta actualizada correctamente");
@@ -166,6 +187,16 @@ export const deleteRecipe = async (req, res, next) => {
 
     if (productId) {
       await Product.findByIdAndUpdate(productId, { hasRecipe: false });
+    }
+
+    // Emit socket event for recipe deletion
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("recipe:deleted", { recipeId: id, productId });
+      }
+    } catch (socketError) {
+      logger.error("[Recipe] Error emitting recipe:deleted event:", socketError);
     }
 
     logger.info(`[Recipe] Eliminada: ${id}`);
@@ -246,5 +277,29 @@ export const getRecipesByProduct = async (req, res, next) => {
     ).lean();
 
     return ok(res, recipes);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   RECIPES WITH VARIANTS
+========================================================= */
+export const getRecipesWithVariants = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    if (!isValidId(productId)) return badRequest(res, "ID inválido");
+    
+    const recipes = await populateRecipe(
+      Recipe.find({ product: productId }).sort({ isPrimary: -1, createdAt: -1 })
+    ).lean();
+    
+    // Group by primary and variants
+    const primary = recipes.find(r => r.isPrimary);
+    const variants = recipes.filter(r => !r.isPrimary);
+    
+    return ok(res, {
+      primary,
+      variants,
+      all: recipes
+    });
   } catch (error) { throw error; }
 };

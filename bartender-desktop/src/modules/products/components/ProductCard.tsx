@@ -3,22 +3,23 @@
 import {
   Pencil,
   Trash2,
-  Wine,
-  UtensilsCrossed,
   DollarSign,
   TrendingUp,
   Zap,
   Activity,
   Box,
-  Link as LinkIcon,
   Copy,
   CheckCircle,
   XCircle,
   Star,
-  Clock
+  Clock,
+  FileText,
+  Layers
 } from "lucide-react";
 
 import type { Product } from "../../../types/product";
+import ExpandableCardWrapper from "../../../components/ui/ExpandableCardWrapper";
+import ProductExpandedPanel from "./ProductExpandedPanel";
 
 interface Props {
   product: Product;
@@ -27,6 +28,8 @@ interface Props {
   onInspect?: (product: Product) => void;
   onDuplicate?: (product: Product) => void;
   simplified?: boolean;
+  expanded?: boolean;
+  onExpandToggle?: (id: string) => void;
 }
 
 export default function ProductCard({
@@ -35,7 +38,9 @@ export default function ProductCard({
   onDelete,
   onInspect,
   onDuplicate,
-  simplified = false
+  simplified = false,
+  expanded,
+  onExpandToggle
 }: Props) {
   const isDrink = product.type === "drink";
   const price = product.price ?? 0;
@@ -46,14 +51,20 @@ export default function ProductCard({
 
 
   return (
-    <div className={`
-      relative group cursor-pointer
-      rounded-[2.5rem] p-8 space-y-7
-      border border-white/5
-      bg-surface-2 overflow-hidden transition-all duration-500
-      hover:translate-y-[-8px] hover:shadow-royale
-      ${isDrink ? 'hover:border-gold/30' : 'hover:border-emerald-400/30'}
-    `}>
+    <ExpandableCardWrapper
+      id={product._id}
+      expanded={expanded}
+      onExpandToggle={() => onExpandToggle?.(product._id!)}
+      expandedContent={<ProductExpandedPanel product={product} />}
+    >
+      <div className={`
+        relative group cursor-pointer
+        rounded-[2.5rem] p-8 space-y-7
+        border border-white/5
+        bg-surface-2 overflow-hidden transition-all duration-500
+        hover:translate-y-[-8px] hover:shadow-royale
+        ${isDrink ? 'hover:border-gold/30' : 'hover:border-emerald-400/30'}
+      `}>
       
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${isDrink ? 'bg-gold/10' : 'bg-emerald-400/10'}`} />
@@ -143,10 +154,18 @@ export default function ProductCard({
             <Clock size={12} className="text-muted" />
             <p className="text-[9px] font-black text-muted uppercase tracking-widest">{product.preparationTime || 5} min</p>
           </div>
-          <div className="flex items-center gap-2">
-            <LinkIcon size={12} className="text-gold opacity-50" />
-            <p className="text-[9px] font-black text-muted uppercase tracking-widest">Fórmula Vinculada</p>
-          </div>
+          {product.hasRecipe && (
+            <div className="flex items-center gap-2">
+              <FileText size={12} className="text-emerald-400" />
+              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Tiene Receta</p>
+            </div>
+          )}
+          {product.menuIds && product.menuIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Layers size={12} className="text-violet-400" />
+              <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">{product.menuIds.length} menú(s)</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -192,5 +211,6 @@ export default function ProductCard({
         <Box size={100} />
       </div>
     </div>
+    </ExpandableCardWrapper>
   );
 }

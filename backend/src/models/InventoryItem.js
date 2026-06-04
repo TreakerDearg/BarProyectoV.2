@@ -171,6 +171,19 @@ const inventorySchema = new mongoose.Schema(
       default: [],
       select: false, //  evita sobrecargar queries normales
     },
+
+    /* =========================
+       PRODUCT REFERENCES
+    ========================= */
+    usedInProducts: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    }],
+
+    usedInRecipes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+    }],
   },
   {
     timestamps: true,

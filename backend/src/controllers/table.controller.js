@@ -55,58 +55,6 @@ export const getTables = async (req, res, next) => {
     const tables = await Table.find(filter).sort({ number: 1 }).lean();
     const enrichedTables = await attachTableSummaries(tables);
     return ok(res, enrichedTables);
-
-    /* Adjuntar órdenes activas por mesa */
-    const tableIds = tables.map((t) => t._id);
-    const orders   = await Order.find({ table: { $in: tableIds }, sessionStatus: "open" })
-      .populate("items.product", "name type price")
-      .lean();
-
-    /* Calcular totales por mesa */
-    const grouped = orders.reduce((acc, o) => {
-      const key = o.table.toString();
-      if (!acc[key]) {
-        acc[key] = {
-          orders: [],
-          totalAmount: 0,
-          totalItems: 0,
-          itemCounts: {}
-        };
-      }
-      
-      acc[key].orders.push(o);
-      
-      /* Calcular total de la orden */
-      const orderTotal = o.items.reduce((sum, item) => {
-        return sum + (item.price || 0) * (item.quantity || 0);
-      }, 0);
-      acc[key].totalAmount += orderTotal;
-      
-      /* Calcular total de items */
-      const orderItems = o.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-      acc[key].totalItems += orderItems;
-      
-      /* Contar items por nombre */
-      o.items.forEach(item => {
-        const name = item.name || "Sin nombre";
-        acc[key].itemCounts[name] = (acc[key].itemCounts[name] || 0) + (item.quantity || 0);
-      });
-      
-      return acc;
-    }, {});
-
-    const data = tables.map((t) => {
-      const tableData = grouped[t._id.toString()] || { orders: [], totalAmount: 0, totalItems: 0, itemCounts: {} };
-      return {
-        ...t,
-        orders: tableData.orders,
-        totalAmount: tableData.totalAmount,
-        totalItems: tableData.totalItems,
-        itemCounts: tableData.itemCounts
-      };
-    });
-
-    return ok(res, data);
   } catch (error) { throw error; }
 };
 
@@ -123,37 +71,6 @@ export const getTableById = async (req, res, next) => {
     const table = await Table.findById(id).lean();
     if (!table) return notFound(res, "Mesa no encontrada");
     return ok(res, await attachTableSummary(table));
-
-    const orders = await Order.find({ table: id, sessionStatus: "open" })
-      .populate("items.product", "name type price")
-      .lean();
-
-    /* Calcular totales */
-    const totalAmount = orders.reduce((sum, o) => {
-      return sum + o.items.reduce((orderSum, item) => {
-        return orderSum + (item.price || 0) * (item.quantity || 0);
-      }, 0);
-    }, 0);
-
-    const totalItems = orders.reduce((sum, o) => {
-      return sum + o.items.reduce((orderSum, item) => orderSum + (item.quantity || 0), 0);
-    }, 0);
-
-    const itemCounts = {};
-    orders.forEach(o => {
-      o.items.forEach(item => {
-        const name = item.name || "Sin nombre";
-        itemCounts[name] = (itemCounts[name] || 0) + (item.quantity || 0);
-      });
-    });
-
-    return ok(res, {
-      ...table,
-      orders,
-      totalAmount,
-      totalItems,
-      itemCounts
-    });
   } catch (error) { throw error; }
 };
 

@@ -70,8 +70,24 @@ const recipeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: true,
-      unique: true, // 1 receta por producto
       index: true,
+    },
+
+    isPrimary: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+
+    variantName: {
+      type: String,
+      default: "",
+    },
+
+    parentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      default: null,
     },
 
     type: {

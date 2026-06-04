@@ -56,7 +56,7 @@ export default function DataExportImport({
   };
 
   const exportToCSV = (data: any[], filename: string) => {
-    if (data.length === 0) return;
+    if (!data || !Array.isArray(data) || data.length === 0) return;
 
     const headers = Object.keys(data[0]);
     const csvContent = [

@@ -355,3 +355,33 @@ export const getProductsWithRecipes = async (req, res, next) => {
     return ok(res, productsWithRecipes);
   } catch (error) { throw error; }
 };
+
+/* =========================================================
+   PRODUCTS WITH INVENTORY
+========================================================= */
+export const getProductsWithInventory = async (req, res, next) => {
+  try {
+    const { type, category, available } = req.query;
+    const filter = {};
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+    if (available !== undefined) filter.available = available === "true";
+
+    const products = await Product.find(filter).lean();
+    const productIds = products.map(p => p._id);
+    
+    const recipes = await Recipe.find({ product: { $in: productIds } })
+      .populate("ingredients.inventoryItem", "name unit stock cost")
+      .lean();
+    
+    const recipeMap = Object.fromEntries(recipes.map(r => [r.product.toString(), r]));
+    
+    const productsWithInventory = products.map(p => ({
+      ...p,
+      recipe: recipeMap[p._id.toString()] || null,
+      hasRecipe: !!recipeMap[p._id.toString()]
+    }));
+
+    return ok(res, productsWithInventory);
+  } catch (error) { throw error; }
+};

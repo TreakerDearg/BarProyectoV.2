@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   getRecipes, getRecipe, createRecipe, updateRecipe, deleteRecipe,
-  getRecipeProtocol, getRecipesByProduct, checkRecipeAvailability
+  getRecipeProtocol, getRecipesByProduct, checkRecipeAvailability,
+  getRecipesWithVariants
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
@@ -15,6 +16,7 @@ router.use(protect);
 
 router.get("/", getRecipes);
 router.get("/product/:productId", getRecipesByProduct);
+router.get("/product/:productId/with-variants", getRecipesWithVariants);
 
 /* =========================================================
    OPERACIONES ESPECÍFICAS

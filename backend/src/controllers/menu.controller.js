@@ -327,7 +327,18 @@ export const getPublicMenu = async (req, res, next) => {
             p.available &&
             checkAvailability(recipeMap[productId], inventoryMap);
 
-          return { ...p, available };
+          // Calculate missing ingredients if not available
+          const missingIngredients = available ? [] :
+            recipeMap[productId]?.ingredients
+              .filter((i) => !i.inventoryItem || i.inventoryItem.stock < i.quantity)
+              .map((i) => ({
+                name: i.inventoryItem?.name || "Desconocido",
+                required: i.quantity,
+                available: i.inventoryItem?.stock || 0,
+                unit: i.unit,
+              })) || [];
+
+          return { ...p, available, missingIngredients };
         });
 
         if (hideUnavailable === "true") {

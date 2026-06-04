@@ -15,4 +15,8 @@ export interface Product {
   dynamicPrice?: number;
   createdAt?: string;
   updatedAt?: string;
+  hasRecipe?: boolean;
+  recipeId?: string;
+  recipe?: any;
+  menuIds?: string[];
 }

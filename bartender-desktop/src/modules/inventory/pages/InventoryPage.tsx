@@ -32,6 +32,7 @@ import {
 
 import { useInventoryTutorial } from "../hooks/useInventoryTutorial";
 import { useInventoryUiStore } from "../store/inventoryUiStore";
+import { useInventorySocketEvents } from "../../../hooks/useSocket";
 
 import type { InventoryItem } from "../types/inventory";
 import "../../../styles/nebula-theme.css";
@@ -134,6 +135,22 @@ export default function InventoryPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Socket events for real-time inventory updates
+  useInventorySocketEvents(
+    (data) => {
+      console.log("[Socket] Inventario creado:", data);
+      fetchData();
+    },
+    (data) => {
+      console.log("[Socket] Inventario actualizado:", data);
+      setItems(prev => prev.map(i => i._id === data.itemId ? { ...i, ...data } : i));
+    },
+    (data) => {
+      console.log("[Socket] Stock cambiado:", data);
+      setItems(prev => prev.map(i => i._id === data.itemId ? { ...i, stock: data.stock } : i));
+    }
+  );
 
   const filteredItems = useMemo(() => {
     let list = items;

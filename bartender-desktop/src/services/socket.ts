@@ -38,6 +38,9 @@ export interface SocketEventMap {
   "recipe:created": { recipeId: string; name?: string; timestamp: string };
   "recipe:updated": { recipeId: string; name?: string; timestamp: string };
   "recipe:deleted": { recipeId: string; timestamp: string };
+  "inventory:created": { itemId: string; name: string; timestamp: string };
+  "inventory:updated": { itemId: string; name: string; timestamp: string };
+  "inventory:stock_changed": { itemId: string; name: string; stock: number; timestamp: string };
 }
 
 export interface MenuEventData {
@@ -58,6 +61,13 @@ export interface ProductEventData {
 export interface RecipeEventData {
   recipeId: string;
   name?: string;
+  timestamp: string;
+}
+
+export interface InventoryEventData {
+  itemId: string;
+  name: string;
+  stock?: number;
   timestamp: string;
 }
 
@@ -287,6 +297,21 @@ export const onRecipeUpdated = (callback: (data: RecipeEventData) => void): (() 
 export const onRecipeDeleted = (callback: (data: RecipeEventData) => void): (() => void) => {
   socketService.on("recipe:deleted", callback);
   return () => socketService.off("recipe:deleted", callback);
+};
+
+export const onInventoryCreated = (callback: (data: InventoryEventData) => void): (() => void) => {
+  socketService.on("inventory:created", callback);
+  return () => socketService.off("inventory:created", callback);
+};
+
+export const onInventoryUpdated = (callback: (data: InventoryEventData) => void): (() => void) => {
+  socketService.on("inventory:updated", callback);
+  return () => socketService.off("inventory:updated", callback);
+};
+
+export const onInventoryStockChanged = (callback: (data: InventoryEventData) => void): (() => void) => {
+  socketService.on("inventory:stock_changed", callback);
+  return () => socketService.off("inventory:stock_changed", callback);
 };
 
 export default socketService;

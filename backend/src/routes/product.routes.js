@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getProducts, getProduct, createProduct, updateProduct, deleteProduct,
   syncProductAvailability, getProductStats, toggleProductAvailability,
-  getProductsWithRecipes
+  getProductsWithRecipes, getProductsWithInventory
 } from "../controllers/product.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createProductSchema, updateProductSchema } from "../utils/schemas.js";
@@ -17,6 +17,7 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 ========================================================= */
 router.get("/", getProducts);
 router.get("/with-recipes", getProductsWithRecipes);
+router.get("/with-inventory", getProductsWithInventory);
 router.get("/stats", getProductStats);
 router.get("/:id", getProduct);
 

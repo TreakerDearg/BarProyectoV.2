@@ -256,6 +256,16 @@ export const applyDiscount = async (req, res, next) => {
       await session.commitTransaction();
       session.endSession();
 
+      // Emit socket event for pending discount
+      try {
+        const io = getIO();
+        if (io) {
+          io.emit("discount:pending", { discountId: pendingDiscount._id, requestedBy: req.user.id, approvalStage });
+        }
+      } catch (socketError) {
+        logger.error("[Discount] Error emitting discount:pending event:", socketError);
+      }
+
       logger.info(`[Discount] Descuento pendiente de aprobación: ${pendingDiscount._id} (etapa ${approvalStage})`);
 
       return ok(res, pendingDiscount, `Descuento de $${discountAmount.toFixed(2)} requiere aprobación de nivel ${approvalStage}`);
@@ -388,6 +398,16 @@ export const approveDiscount = async (req, res, next) => {
     discount.approvedAt = new Date();
     await discount.save();
 
+    // Emit socket event for discount approval
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("discount:approved", { discountId: discount._id, approvedBy: req.user.id });
+      }
+    } catch (socketError) {
+      logger.error("[Discount] Error emitting discount:approved event:", socketError);
+    }
+
     logger.info(`[Discount] Aprobado: ${req.params.id}`);
     return ok(res, discount, "Descuento aprobado");
   } catch (error) { throw error; }
@@ -403,6 +423,16 @@ export const rejectDiscount = async (req, res, next) => {
     discount.rejectedBy = req.user.id;
     discount.rejectedAt = new Date();
     await discount.save();
+
+    // Emit socket event for discount rejection
+    try {
+      const io = getIO();
+      if (io) {
+        io.emit("discount:rejected", { discountId: discount._id, rejectedBy: req.user.id });
+      }
+    } catch (socketError) {
+      logger.error("[Discount] Error emitting discount:rejected event:", socketError);
+    }
 
     logger.info(`[Discount] Rechazado: ${req.params.id}`);
     return ok(res, discount, "Descuento rechazado");

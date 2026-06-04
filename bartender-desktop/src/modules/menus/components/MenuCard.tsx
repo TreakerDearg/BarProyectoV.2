@@ -10,7 +10,8 @@ import {
   Download,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  FileText
 } from "lucide-react";
 
 import type { Menu } from "../../../types/menu";
@@ -29,6 +30,11 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   const totalCategories = menu.categories?.length || 0;
   const mainCategory = menu.categories?.[0]?.name || "Gral";
   const isActive = menu.active;
+
+  // Calculate products with recipes
+  const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
+    return acc + (cat.products?.filter(p => p.hasRecipe).length || 0);
+  }, 0) || 0;
 
   return (
     <div className={`
@@ -128,6 +134,12 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
               {menu.categories.length > 3 && (
                 <span className="text-[8px] text-muted">+{menu.categories.length - 3} categorías</span>
               )}
+            </div>
+          )}
+          {productsWithRecipes > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <FileText size={10} className="text-emerald-400" />
+              <span className="text-[8px] text-emerald-400 font-semibold">{productsWithRecipes} productos con receta</span>
             </div>
           )}
         </div>

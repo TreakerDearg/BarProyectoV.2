@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getInventory, getInventoryItem, createInventoryItem,
   updateInventoryItem, deleteInventoryItem, getInventoryStats,
-  getInventoryCategories, adjustStock
+  getInventoryCategories, adjustStock, getInventoryWithProducts
 } from "../controllers/inventory.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createInventorySchema, adjustStockSchema } from "../utils/schemas.js";
@@ -18,6 +18,7 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 router.use(protect); // Todo el inventario requiere autenticación
 
 router.get("/", getInventory);
+router.get("/with-products", getInventoryWithProducts);
 router.get("/stats", getInventoryStats);
 router.get("/categories", getInventoryCategories);
 router.get("/:id", getInventoryItem);

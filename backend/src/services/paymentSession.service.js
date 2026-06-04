@@ -131,7 +131,7 @@ export const processSessionCheckout = async ({
         status: { $ne: "cancelled" },
       }).session(dbSession);
 
-      if (!orders.length) {
+      if (!orders || !Array.isArray(orders) || !orders.length) {
         throw new OrderNotFoundError("No hay órdenes abiertas para cobrar en esta mesa");
       }
 
@@ -139,6 +139,10 @@ export const processSessionCheckout = async ({
         order,
         ...getOrderFinancials(order),
       }));
+
+      if (!orderBreakdown || !Array.isArray(orderBreakdown) || !orderBreakdown.length) {
+        throw new OrderNotFoundError("No hay órdenes válidas para procesar");
+      }
 
       const subtotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.subtotal, 0));
       const discountTotal = toMoney(orderBreakdown.reduce((sum, item) => sum + item.discountTotal, 0));

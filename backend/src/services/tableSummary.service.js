@@ -34,7 +34,7 @@ export const summarizeOrders = (orders = []) => {
 };
 
 export const attachTableSummaries = async (tables = []) => {
-  if (!tables.length) return [];
+  if (!tables || !Array.isArray(tables) || !tables.length) return [];
 
   const tableIds = tables.map((t) => t._id);
   const activeSessionIds = tables
