@@ -6,23 +6,21 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Box, 
-  Zap, 
   DollarSign, 
   TrendingUp, 
   Image as ImageIcon, 
   Clock, 
-  Star, 
   Tag,
   Loader2,
   Activity,
-  ChevronDown,
-  ChevronUp,
   Eye,
   Sparkles,
-  Target
+  Target,
+  ChevronRight,
+  HelpCircle,
+  Upload
 } from "lucide-react";
 
-import ImageUploader from "../../../components/shared/ImageUploader";
 import "../../../styles/nebula-forms-theme.css";
 
 import type { Product } from "../../../types/product";
@@ -79,89 +77,74 @@ interface ProductFormProps {
 }
 
 // ProductIdentityCard Component
-function ProductIdentityCard({ formData, setFormData, onImageUpload }: { formData: Product; setFormData: (f: Product) => void; onImageUpload: (url: string) => void }) {
+function ProductIdentityCard({ formData, setFormData }: { formData: Product; setFormData: (f: Product) => void }) {
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-violet-500/10 rounded-xl">
-          <Target className="text-violet-400" size={20} />
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-rose/10 rounded-xl">
+          <Target className="text-rose-400" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory">Identidad del Producto</h3>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Product Core</h3>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <div>
-            <label className="nebula-form-label">Nombre del Producto</label>
-            <input
-              name="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Ej: Signature Old Fashioned"
-              className="nebula-form-input w-full"
-            />
-          </div>
-
-          <div>
-            <label className="nebula-form-label">Descripción</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Descripción del producto..."
-              className="nebula-form-textarea w-full h-24"
-            />
-          </div>
-
-          <div>
-            <label className="nebula-form-label">Categoría</label>
-            <input
-              name="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              placeholder="Ej: Classic Cocktails"
-              list="category-suggestions"
-              className="nebula-form-input w-full"
-            />
-            <datalist id="category-suggestions">
-              {CATEGORY_SUGGESTIONS.map((cat) => (
-                <option key={cat} value={cat} />
-              ))}
-            </datalist>
-          </div>
-
-          <div>
-            <label className="nebula-form-label">Tipo</label>
-            <div className="nebula-form-toggle">
-              {TYPE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setFormData({ ...formData, type: opt.value as any })}
-                  className={formData.type === opt.value ? 'active' : ''}
-                >
-                  <span className="text-xl">{opt.icon}</span>
-                  <span className="ml-2 text-sm font-semibold">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Name</label>
+          <input
+            name="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Ej: Signature Old Fashioned"
+            className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-rose/40 focus:border-transparent transition-all outline-none"
+          />
         </div>
 
         <div>
-          <label className="nebula-form-label">Imagen Principal</label>
-          <ImageUploader
-            onImageUpload={onImageUpload}
-            currentImage={formData.image}
-            folder="products"
-            mode="advanced"
-            label="Subir imagen"
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Commercial Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Descripción del producto..."
+            className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-rose/40 focus:border-transparent transition-all outline-none resize-none h-24"
           />
-          {formData.image && (
-            <div className="mt-3 relative rounded-lg overflow-hidden border border-violet-500/20">
-              <img src={formData.image} alt="Product preview" className="w-full h-40 object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            </div>
-          )}
+        </div>
+
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Menu Category</label>
+          <input
+            name="category"
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            placeholder="Ej: Classic Cocktails"
+            list="category-suggestions"
+            className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-rose/40 focus:border-transparent transition-all outline-none"
+          />
+          <datalist id="category-suggestions">
+            {CATEGORY_SUGGESTIONS.map((cat) => (
+              <option key={cat} value={cat} />
+            ))}
+          </datalist>
+        </div>
+
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Type</label>
+          <div className="flex gap-2">
+            {TYPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setFormData({ ...formData, type: opt.value as any })}
+                className={`flex-1 p-3 rounded-lg border transition-all ${
+                  formData.type === opt.value
+                    ? 'bg-rose/10 border-rose/30 text-rose-300'
+                    : 'bg-white/5 border-white/10 text-muted hover:border-white/20'
+                }`}
+              >
+                <span className="text-lg">{opt.icon}</span>
+                <span className="ml-2 text-xs font-semibold">{opt.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -182,122 +165,134 @@ function ProductFinancePanel({ formData, setFormData }: { formData: Product; set
 
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-emerald-500/10 rounded-xl">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-emerald/10 rounded-xl">
           <TrendingUp className="text-emerald-400" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory">Panel Financiero</h3>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Pricing & Logistics</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <div>
-            <label className="nebula-form-label">Precio de Venta</label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-              <input
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="nebula-form-input w-full pl-10"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="nebula-form-label">Costo</label>
-            <div className="relative">
-              <Activity className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-              <input
-                name="cost"
-                type="number"
-                value={formData.cost}
-                onChange={(e) => setFormData({ ...formData, cost: Number(e.target.value) })}
-                className="nebula-form-input w-full pl-10"
-                placeholder="0.00"
-              />
-            </div>
+      <div className="space-y-6">
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Sale Price</label>
+          <div className="relative">
+            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
+            <input
+              name="price"
+              type="number"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+              className="w-full bg-surface-3 border-white/10 rounded-lg pl-10 pr-4 py-3 text-ivory font-mono focus:ring-2 focus:ring-emerald/40 focus:border-transparent transition-all outline-none"
+              placeholder="0.00"
+            />
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="p-4 bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 rounded-lg border border-emerald-500/20">
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Cost</label>
+          <div className="relative">
+            <Activity className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
+            <input
+              name="cost"
+              type="number"
+              step="0.01"
+              value={formData.cost}
+              onChange={(e) => setFormData({ ...formData, cost: Number(e.target.value) })}
+              className="w-full bg-surface-3 border-white/10 rounded-lg pl-10 pr-4 py-3 text-ivory font-mono focus:ring-2 focus:ring-emerald/40 focus:border-transparent transition-all outline-none"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-surface-3 rounded-lg border border-white/10">
+            <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Margin</p>
+            <p className={`text-xl font-bold mt-1 ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-gold'}`}>
+              {margin}%
+            </p>
+            <p className="text-[10px] text-muted mt-1">{margin > 50 ? 'Excellent' : margin > 30 ? 'Good' : 'Review'}</p>
+          </div>
+          <div className="p-4 bg-surface-3 rounded-lg border border-white/10">
+            <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Profit</p>
+            <p className="text-xl font-bold text-ivory mt-1">${profit.toFixed(2)}</p>
+            <p className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1">
+              <TrendingUp size={10} />
+              Per unit
+            </p>
+          </div>
+        </div>
+
+        {formData.cost > 0 && (
+          <div className="p-4 bg-rose/10 rounded-lg border border-rose/30">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted">Margen de Rentabilidad</span>
-              <span className={`text-2xl font-bold ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-gold'}`}>
-                {margin}%
+              <span className="text-xs text-muted">Suggested Price (30% margin)</span>
+              <span className="text-lg font-bold text-rose-300">
+                ${(formData.cost / 0.7).toFixed(2)}
               </span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all ${margin > 50 ? 'bg-emerald-400' : margin > 30 ? 'bg-cyan-400' : 'bg-gold'}`} 
-                style={{ width: `${Math.min(100, margin)}%` }} 
-              />
-            </div>
+            <button
+              onClick={() => setFormData({ ...formData, price: Math.round(formData.cost / 0.7 * 100) / 100 })}
+              className="w-full py-2 px-3 bg-rose/20 hover:bg-rose/30 border border-rose/30 rounded-lg text-xs font-semibold text-rose-300 transition-all"
+            >
+              Apply Suggested Price
+            </button>
           </div>
-
-          <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted">Ganancia por unidad</span>
-              <span className="text-lg font-bold text-ivory">${profit.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div className={`p-4 rounded-lg border ${margin < 30 ? 'bg-red-500/10 border-red-500/30' : 'bg-white/5 border-white/10'}`}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted">Estado del margen</span>
-              <span className={`text-xs font-semibold ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-red-400'}`}>
-                {margin > 50 ? 'Excelente' : margin > 30 ? 'Bueno' : 'Revisar (bajo)'}
-              </span>
-            </div>
-            {margin < 30 && (
-              <div className="mt-2 flex items-start gap-2 text-xs text-red-400">
-                <AlertTriangle size={12} className="mt-0.5" />
-                <span>El margen es bajo. Considera aumentar el precio.</span>
-              </div>
-            )}
-          </div>
-
-          {formData.cost > 0 && (
-            <div className="p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-muted">Precio sugerido (30% margen)</span>
-                <span className="text-lg font-bold text-violet-400">
-                  ${(formData.cost / 0.7).toFixed(2)}
-                </span>
-              </div>
-              <button
-                onClick={() => setFormData({ ...formData, price: Math.round(formData.cost / 0.7 * 100) / 100 })}
-                className="w-full py-2 px-3 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 rounded-lg text-xs font-semibold text-violet-400 transition-all"
-              >
-                Aplicar precio sugerido
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ProductMediaGallery Component
-function ProductMediaGallery() {
+// EnhancedImageUpload Component
+function EnhancedImageUpload({ currentImage, onImageUpload }: { currentImage: string; onImageUpload: (url: string) => void }) {
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-cyan-500/10 rounded-xl">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-cyan/10 rounded-xl">
           <ImageIcon className="text-cyan-400" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory">Imagen del Producto</h3>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Image Upload</h3>
       </div>
 
-      <div className="space-y-4">
-        <div className="text-center py-8">
-          <ImageIcon className="text-muted mx-auto mb-2" size={24} />
-          <p className="text-sm text-muted">La imagen principal se gestiona en la sección de Identidad</p>
-        </div>
+      <div className="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center hover:border-rose/40 transition-colors">
+        {currentImage ? (
+          <>
+            <img 
+              src={currentImage} 
+              alt="Product preview" 
+              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" 
+            />
+            <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-rose-300">
+              <Upload size={32} className="mb-2" />
+              <p className="text-sm font-medium">Click to replace product image</p>
+              <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 10MB (16:9 Recommended)</p>
+            </div>
+          </>
+        ) : (
+          <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-rose-300">
+            <Upload size={32} className="mb-2" />
+            <p className="text-sm font-medium">Click to upload product image</p>
+            <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 10MB (16:9 Recommended)</p>
+          </div>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              // In a real implementation, this would upload to Cloudinary
+              // For now, we'll use a placeholder
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                onImageUpload(reader.result as string);
+              };
+              reader.readAsDataURL(file);
+            }
+          }}
+          className="absolute inset-0 opacity-0 cursor-pointer"
+        />
       </div>
     </div>
   );
@@ -307,102 +302,102 @@ function ProductMediaGallery() {
 function ProductAttributeGrid({ formData, setFormData }: { formData: Product; setFormData: (f: Product) => void }) {
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gold/10 rounded-xl">
           <Sparkles className="text-gold" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory">Atributos del Producto</h3>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Display Options</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <div>
-            <label className="nebula-form-label">Tiempo de Preparación (min)</label>
-            <div className="space-y-2">
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-                <input
-                  name="preparationTime"
-                  type="number"
-                  value={formData.preparationTime}
-                  onChange={(e) => setFormData({ ...formData, preparationTime: Number(e.target.value) })}
-                  className="nebula-form-input w-full pl-10"
-                  placeholder="5"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {PREPARATION_TIME_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    onClick={() => setFormData({ ...formData, preparationTime: preset.value })}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                      formData.preparationTime === preset.value
-                        ? 'bg-gold text-black'
-                        : 'bg-white/10 text-muted hover:bg-white/20'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <div className="space-y-4">
+        <label className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-ivory">Highlight in Menu</span>
+            <span className="text-[10px] text-muted">Adds a 'Staff Pick' badge</span>
           </div>
+          <input
+            type="checkbox"
+            checked={formData.featured}
+            onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+            className="rounded bg-surface-3 border-white/10 text-rose-400 focus:ring-rose/40 focus:ring-offset-0"
+          />
+        </label>
 
-          <div>
-            <label className="nebula-form-label">Etiquetas (separadas por coma)</label>
+        <label className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-ivory">Available</span>
+            <span className="text-[10px] text-muted">Product is visible in menu</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={formData.available}
+            onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+            className="rounded bg-surface-3 border-white/10 text-emerald-400 focus:ring-emerald/40 focus:ring-offset-0"
+          />
+        </label>
+
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Preparation Time (min)</label>
+          <div className="space-y-2">
             <div className="relative">
-              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+              <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
               <input
-                value={formData.tags.join(", ")}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(",").map(t => t.trim()).filter(t => t) })}
-                placeholder="Hot, New, Summer"
-                className="nebula-form-input w-full pl-10"
+                name="preparationTime"
+                type="number"
+                value={formData.preparationTime}
+                onChange={(e) => setFormData({ ...formData, preparationTime: Number(e.target.value) })}
+                className="w-full bg-surface-3 border-white/10 rounded-lg pl-10 pr-4 py-3 text-ivory focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
+                placeholder="5"
               />
             </div>
-            {Array.isArray(formData.tags) && formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tags.map((tag, idx) => (
-                  <span key={idx} className="nebula-form-tag">
-                    {tag}
-                    <button
-                      onClick={() => setFormData({ ...formData, tags: formData.tags.filter((_, i) => i !== idx) })}
-                      className="nebula-form-tag-remove"
-                    >
-                      <X size={10} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-1">
+              {PREPARATION_TIME_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  onClick={() => setFormData({ ...formData, preparationTime: preset.value })}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                    formData.preparationTime === preset.value
+                      ? 'bg-gold text-black'
+                      : 'bg-white/10 text-muted hover:bg-white/20'
+                    }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <button
-            onClick={() => setFormData({ ...formData, available: !formData.available })}
-            className={`w-full py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-              formData.available
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-white/5 border-white/10 text-muted'
-            }`}
-          >
-            <CheckCircle size={18} />
-            <span className="font-semibold">{formData.available ? 'Disponible' : 'No Disponible'}</span>
-          </button>
-
-          <button
-            onClick={() => setFormData({ ...formData, featured: !formData.featured })}
-            className={`w-full py-3 px-4 rounded-lg border transition-all flex items-center justify-center gap-2 ${
-              formData.featured
-                ? 'bg-gold/10 border-gold/30 text-gold'
-                : 'bg-white/5 border-white/10 text-muted'
-            }`}
-          >
-            <Star size={18} fill={formData.featured ? "currentColor" : "none"} />
-            <span className="font-semibold">{formData.featured ? 'Destacado' : 'No Destacado'}</span>
-          </button>
+        <div>
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Tags</label>
+          <div className="relative">
+            <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={16} />
+            <input
+              name="tags"
+              value={Array.isArray(formData.tags) ? formData.tags.join(", ") : ""}
+              onChange={(e) => setFormData({ ...formData, tags: e.target.value.split(", ").filter(t => t.trim()) })}
+              className="w-full bg-surface-3 border-white/10 rounded-lg pl-10 pr-4 py-3 text-ivory focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
+              placeholder="tag1, tag2, tag3"
+            />
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// HelpTipCard Component
+function HelpTipCard() {
+  return (
+    <div className="bg-rose/5 border border-rose/10 p-6 rounded-xl relative overflow-hidden group">
+      <HelpCircle className="absolute -right-4 -bottom-4 text-7xl text-rose-400 opacity-5 group-hover:scale-110 transition-transform" size={48} />
+      <h4 className="text-rose-300 text-sm font-bold mb-2 flex items-center gap-2">
+        <HelpCircle size={16} />
+        Editor Tip
+      </h4>
+      <p className="text-xs text-muted leading-relaxed">
+        Descriptions between 150-200 characters perform best for tablet-based menu displays. Avoid jargon unless specified in the brand book.
+      </p>
     </div>
   );
 }
@@ -417,14 +412,14 @@ function ProductPricePreview({ formData }: { formData: Product }) {
   return (
     <div className="nebula-form-card nebula-form-animate-scale-in">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-violet-500/10 rounded-xl">
+        <div className="p-2 bg-violet/10 rounded-xl">
           <Eye className="text-violet-400" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory">Vista Previa</h3>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Preview</h3>
       </div>
 
       <div className="space-y-3">
-        <div className="p-4 bg-gradient-to-br from-violet-500/10 to-cyan-500/10 rounded-lg border border-violet-500/20">
+        <div className="p-4 bg-gradient-to-br from-violet/10 to-cyan/10 rounded-lg border border-violet/20">
           {formData.image && (
             <img src={formData.image} alt={formData.name} className="w-full h-32 object-cover rounded-lg mb-3" />
           )}
@@ -432,29 +427,29 @@ function ProductPricePreview({ formData }: { formData: Product }) {
           <p className="text-xs text-muted mt-1 line-clamp-2">{formData.description || "Sin descripción"}</p>
           <div className="mt-3 flex items-center justify-between">
             <span className="text-2xl font-bold text-gold">${formData.price.toFixed(2)}</span>
-            <span className={`px-2 py-1 rounded text-xs font-semibold ${margin > 50 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gold/20 text-gold'}`}>
-              {margin}% margen
+            <span className={`px-2 py-1 rounded text-xs font-semibold ${margin > 50 ? 'bg-emerald/20 text-emerald-400' : 'bg-gold/20 text-gold'}`}>
+              {margin}% margin
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-            <p className="text-xs text-muted">Categoría</p>
+            <p className="text-xs text-muted">Category</p>
             <p className="text-sm font-semibold text-ivory truncate">{formData.category || "N/A"}</p>
           </div>
           <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-            <p className="text-xs text-muted">Tipo</p>
+            <p className="text-xs text-muted">Type</p>
             <p className="text-sm font-semibold text-ivory capitalize">{formData.type}</p>
           </div>
         </div>
 
         {Array.isArray(formData.tags) && formData.tags.length > 0 && (
           <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-            <p className="text-xs text-muted mb-2">Etiquetas</p>
+            <p className="text-xs text-muted mb-2">Tags</p>
             <div className="flex flex-wrap gap-1">
               {formData.tags.slice(0, 3).map((tag, idx) => (
-                <span key={idx} className="px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded text-xs">
+                <span key={idx} className="px-2 py-0.5 bg-violet/20 text-violet-300 rounded text-xs">
                   {tag}
                 </span>
               ))}
@@ -475,13 +470,8 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
   const [formData, setFormData] = useState<Product>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState({
-    identity: false,
-    finance: false,
-    media: false,
-    attributes: false,
-    preview: false,
-  });
+  const [autoSaved, setAutoSaved] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -491,9 +481,16 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
     }
   }, [product]);
 
-  const toggleSection = (section: keyof typeof collapsedSections) => {
-    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  // Auto-save simulation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.name || formData.price > 0) {
+        setAutoSaved(true);
+        setLastSaved(new Date());
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [formData]);
 
   const handleImageUpload = (imageUrl: string) => {
     setFormData((prev) => ({
@@ -503,8 +500,8 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
   };
 
   const handleSubmit = async () => {
-    if (!formData.name) return setError("Identidad del activo requerida");
-    if (formData.price <= 0) return setError("Precio de venta inválido");
+    if (!formData.name) return setError("Product name is required");
+    if (formData.price <= 0) return setError("Sale price is invalid");
     
     setLoading(true);
     setError(null);
@@ -521,134 +518,62 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
         
         <div className="nebula-form-panel">
           {/* HEADER */}
-          <div className="p-4 md:p-6 border-b border-violet-500/10 flex justify-between items-center shrink-0">
+          <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center shrink-0">
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-xl md:rounded-2xl shadow-lg">
+              <div className="p-2 md:p-3 bg-gradient-to-br from-rose-600 to-violet-600 rounded-xl md:rounded-2xl shadow-lg">
                 <Box className="text-white" size={24} />
               </div>
               <div>
+                <nav className="flex items-center gap-2 text-xs text-muted mb-1">
+                  <span>Catalog</span>
+                  <ChevronRight size={12} />
+                  <span className="text-rose-300 font-medium">Edit Product</span>
+                </nav>
                 <h2 className="text-xl md:text-2xl font-bold text-ivory">
-                  {product ? "Editar Producto" : "Nuevo Producto"}
+                  {product ? "Edit Product" : "New Product"}
                 </h2>
-                <p className="text-xs md:text-sm text-muted">
-                  Sistema Nebula de Productos
-                </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <X size={24} className="text-muted" />
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 bg-surface-3 p-3 rounded-lg border border-white/10">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Visibility</span>
+                  <span className={`text-xs font-medium ${formData.available ? 'text-emerald-400' : 'text-muted'}`}>
+                    {formData.available ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setFormData({ ...formData, available: !formData.available })}
+                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-rose/40 bg-emerald-500"
+                >
+                  <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black/50 shadow ring-0 transition duration-200 ease-in-out translate-x-5" />
+                </button>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <X size={24} className="text-muted" />
+              </button>
+            </div>
           </div>
 
-          {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
-          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-              {/* LEFT COLUMN - Identity & Finance */}
-              <div className="space-y-8">
-                {/* Identity Section */}
-                <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('identity')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Target className="text-violet-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Identidad</span>
-                    </div>
-                    {collapsedSections.identity ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.identity && (
-                    <div className="nebula-form-section-content">
-                      <ProductIdentityCard formData={formData} setFormData={setFormData} onImageUpload={handleImageUpload} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Finance Section */}
-                <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('finance')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <TrendingUp className="text-emerald-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Finanzas</span>
-                    </div>
-                    {collapsedSections.finance ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.finance && (
-                    <div className="nebula-form-section-content">
-                      <ProductFinancePanel formData={formData} setFormData={setFormData} />
-                    </div>
-                  )}
-                </div>
+          {/* MAIN CONTENT - ASYMMETRIC GRID LAYOUT */}
+          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll pb-32">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* LEFT COLUMN - Image Upload & Product Core (7 columns) */}
+              <div className="lg:col-span-7 space-y-8">
+                <EnhancedImageUpload currentImage={formData.image} onImageUpload={handleImageUpload} />
+                <ProductIdentityCard formData={formData} setFormData={setFormData} />
               </div>
 
-              {/* CENTER COLUMN - Media & Attributes */}
-              <div className="space-y-6">
-                {/* Media Section */}
-                <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('media')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ImageIcon className="text-cyan-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Imagen</span>
-                    </div>
-                    {collapsedSections.media ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.media && (
-                    <div className="nebula-form-section-content">
-                      <ProductMediaGallery />
-                    </div>
-                  )}
-                </div>
-
-                {/* Attributes Section */}
-                <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('attributes')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Sparkles className="text-gold" size={18} />
-                      <span className="text-sm font-bold text-ivory">Atributos</span>
-                    </div>
-                    {collapsedSections.attributes ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.attributes && (
-                    <div className="nebula-form-section-content">
-                      <ProductAttributeGrid formData={formData} setFormData={setFormData} />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* RIGHT COLUMN - Preview & Validation */}
-              <div className="space-y-6">
-                {/* Preview Section */}
-                <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('preview')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Eye className="text-violet-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Vista Previa</span>
-                    </div>
-                    {collapsedSections.preview ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.preview && (
-                    <div className="nebula-form-section-content">
-                      <ProductPricePreview formData={formData} />
-                    </div>
-                  )}
-                </div>
+              {/* RIGHT COLUMN - Pricing & Logistics + Display Options + Help Card (5 columns) */}
+              <div className="lg:col-span-5 space-y-8">
+                <ProductFinancePanel formData={formData} setFormData={setFormData} />
+                <ProductAttributeGrid formData={formData} setFormData={setFormData} />
+                <HelpTipCard />
+                <ProductPricePreview formData={formData} />
 
                 {/* Validation Panel */}
                 {error && (
-                  <div className="nebula-form-card border-red-500/30">
+                  <div className="nebula-form-card border-red/30">
                     <div className="flex items-center gap-3">
                       <AlertTriangle className="text-red-400" size={20} />
                       <p className="text-xs text-red-400">{error}</p>
@@ -657,10 +582,10 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
                 )}
 
                 {isValid && !error && (
-                  <div className="nebula-form-card border-emerald-500/30">
+                  <div className="nebula-form-card border-emerald/30">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="text-emerald-400" size={20} />
-                      <p className="text-xs text-emerald-400">Listo para guardar</p>
+                      <p className="text-xs text-emerald-400">Ready to save</p>
                     </div>
                   </div>
                 )}
@@ -668,31 +593,43 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
             </div>
           </div>
 
-          {/* FOOTER */}
-          <div className="p-4 md:p-6 border-t border-violet-500/10 flex gap-3 md:gap-4 shrink-0">
-            <button
-              onClick={onClose}
-              className="nebula-form-button-secondary flex-1 text-sm md:text-base"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading || !isValid}
-              className="nebula-form-button-primary flex-[2] text-sm md:text-base"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin mr-2" size={18} />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="mr-2" size={18} />
-                  {product ? 'Actualizar' : 'Guardar'}
-                </>
+          {/* FIXED FOOTER */}
+          <div className="fixed bottom-0 right-0 left-0 ml-64 h-20 bg-black/80 backdrop-blur-xl border-t border-white/10 px-12 flex items-center justify-between z-20">
+            <div className="flex items-center gap-4">
+              {autoSaved && lastSaved && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-surface-3 rounded-full border border-white/10">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest">
+                    Auto-saved {Math.floor((Date.now() - lastSaved.getTime()) / 60000)}m ago
+                  </span>
+                </div>
               )}
-            </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onClose}
+                className="px-6 py-2.5 text-muted hover:text-ivory text-sm font-bold transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading || !isValid}
+                className="bg-rose text-black px-8 py-2.5 rounded-lg text-sm font-black shadow-lg shadow-rose/20 hover:shadow-rose/40 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" size={18} />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2" size={18} />
+                    {product ? 'Save Changes' : 'Create Product'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
