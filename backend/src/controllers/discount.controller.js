@@ -202,6 +202,7 @@ export const applyDiscount = async (req, res, next) => {
 
     /* ─── Calcular monto ─── */
     const discountAmount = type === "PERCENT" ? subtotal * (value / 100) : Number(value);
+    const orderTotalBefore = order.total;
 
     /* ─── Verificar límites diarios ─── */
     const dailyLimitCheck = await checkDailyLimit(req.user.id, req.user.role, discountAmount);
@@ -275,7 +276,6 @@ export const applyDiscount = async (req, res, next) => {
     if (discountAmount > order.total) { await session.abortTransaction(); return badRequest(res, "El descuento no puede superar el total de la orden"); }
 
     /* ─── Crear registro de descuento ─── */
-    const orderTotalBefore = order.total;
 
     const [discount] = await Discount.create([{
       order: orderId,
