@@ -45,6 +45,7 @@ import { useMenuBuilder } from "../hooks/useMenuBuilder";
 import type { Menu } from "../../../types/menu";
 import type { Recipe } from "../../recipes/types/recipe";
 import type { Product } from "../../../types/product";
+import { getProductId } from "../utils/menuUtils";
 import "../../../styles/nebula-theme.css";
 
 export default function MenusPage() {
@@ -171,7 +172,7 @@ export default function MenusPage() {
     if (!menuBuilder.selectedMenu) return new Set<string>();
     const ids = new Set<string>();
     menuBuilder.selectedMenu.categories?.forEach(cat => {
-      cat.products.forEach(p => ids.add(p.product));
+      cat.products.forEach(p => ids.add(getProductId(p.product)));
     });
     return ids;
   }, [menuBuilder.selectedMenu]);
@@ -319,7 +320,10 @@ export default function MenusPage() {
                     onSelect={handleSelectMenu}
                     onEdit={() => { setSelectedMenu(menu); setIsModalOpen(true); }}
                     onDelete={handleDelete}
-                    recipesCount={recipes.filter(r => r.product._id === menu._id).length}
+                    recipesCount={(() => {
+                      const menuProductIds = new Set(menu.categories?.flatMap(c => c.products.map(p => getProductId(p.product))) || []);
+                      return recipes.filter(r => r.product && menuProductIds.has(r.product._id)).length;
+                    })()}
                   />
                 ))
               )}

@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronUp, Plus, GripVertical, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
 import type { MenuCategory, MenuProduct } from "../../../types/menu";
+import { getProductId, getProductDisplayName } from "../utils/menuUtils";
 
 interface Props {
   category: MenuCategory;
@@ -87,7 +88,7 @@ export default function CategorySection({
           ) : (
             category.products.map((product: MenuProduct) => (
               <div
-                key={product.product}
+                key={getProductId(product.product)}
                 className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group"
               >
                 <div className="cursor-grab text-muted/30 hover:text-muted/60">
@@ -96,7 +97,7 @@ export default function CategorySection({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-bold text-ivory/90 truncate">
-                      Producto #{product.product?.slice(0, 8) || 'N/A'}
+                      {getProductDisplayName(product.product)}
                     </p>
                     {product.available ? (
                       <CheckCircle size={10} className="text-emerald-400" />
@@ -120,7 +121,7 @@ export default function CategorySection({
                     ${product.price?.toFixed(2) || "0.00"}
                   </span>
                   <button
-                    onClick={() => onRemoveProduct(product.product)}
+                    onClick={() => onRemoveProduct(getProductId(product.product))}
                     className="p-1.5 rounded-lg bg-red/5 border border-red/10 text-red/40 hover:text-red hover:bg-red/20 transition-all opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 size={10} />

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import type { Menu, MenuProduct, MenuCategory } from "../../../types/menu";
 import type { Product } from "../../../types/product";
+import { getProductId } from "../utils/menuUtils";
 
 interface MenuBuilderState {
   selectedMenu: Menu | null;
@@ -82,7 +83,7 @@ export function useMenuBuilder() {
         if (cat.name === categoryName) {
           return {
             ...cat,
-            products: cat.products.filter(p => p.product !== productId),
+            products: cat.products.filter(p => getProductId(p.product) !== productId),
           };
         }
         return cat;

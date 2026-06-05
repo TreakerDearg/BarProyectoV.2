@@ -29,6 +29,7 @@ import "../../../styles/nebula-forms-theme.css";
 
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
+import { getProductId } from "../utils/menuUtils";
 
 type MenuType = "drink" | "food" | "mixed";
 
@@ -261,7 +262,7 @@ function MenuProductSelector({
       <div className={`grid gap-2 ${viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"} max-h-64 overflow-y-auto nebula-forms-scroll`}>
         {Array.isArray(filteredProducts) && filteredProducts.map((product) => {
           const isSelected = product._id ? selectedProductIds.has(product._id) : false;
-          const menuProduct = currentCategory?.products?.find(p => p.product === product._id);
+          const menuProduct = currentCategory?.products?.find(p => getProductId(p.product) === product._id);
           
           return (
             <div
@@ -442,10 +443,10 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
   };
 
   const toggleProduct = (id: string) => {
-    const exists = currentCategory.products.find(p => p.product === id);
+    const exists = currentCategory.products.find(p => getProductId(p.product) === id);
     let updated;
     if (exists) {
-      updated = currentCategory.products.filter(p => p.product !== id);
+      updated = currentCategory.products.filter(p => getProductId(p.product) !== id);
     } else {
       updated = [
         ...currentCategory.products,
@@ -463,7 +464,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
   const toggleFeatured = (id: string) => {
     updateProducts(
       currentCategory.products.map(p =>
-        p.product === id ? { ...p, featured: !p.featured } : p
+        getProductId(p.product) === id ? { ...p, featured: !p.featured } : p
       )
     );
   };
@@ -624,7 +625,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
                     </div>
                     <div className="space-y-2 max-h-48 overflow-y-auto nebula-forms-scroll">
                       {Array.isArray(currentCategory?.products) && currentCategory.products.map((menuProduct, idx) => {
-                        const product = products.find(p => p._id === menuProduct.product);
+                        const product = products.find(p => p._id === getProductId(menuProduct.product));
                         if (!product) return null;
                         
                         return (
@@ -657,7 +658,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
                                 <ArrowDown size={14} className="text-muted" />
                               </button>
                               <button
-                                onClick={() => toggleProduct(menuProduct.product)}
+                                onClick={() => toggleProduct(getProductId(menuProduct.product))}
                                 className="p-1 hover:bg-red-500/10 rounded transition-colors"
                               >
                                 <X size={14} className="text-red-400" />
