@@ -96,7 +96,7 @@ export default function CategorySection({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-xs font-bold text-ivory/90 truncate">
-                      Producto #{product.product.slice(0, 8)}
+                      Producto #{product.product?.slice(0, 8) || 'N/A'}
                     </p>
                     {product.available ? (
                       <CheckCircle size={10} className="text-emerald-400" />

@@ -136,7 +136,7 @@ export default function EmployeesPage() {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleImport = async () => {
     setError("Importación deshabilitada - solo exportación para auditoría");
   };
 

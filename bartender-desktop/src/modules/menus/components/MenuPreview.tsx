@@ -98,7 +98,7 @@ export default function MenuPreview({ menu }: Props) {
                       className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/5"
                     >
                       <span className="text-[10px] text-muted truncate flex-1">
-                        Producto #{product.product.slice(0, 8)}
+                        Producto #{product.product?.slice(0, 8) || 'N/A'}
                       </span>
                       <span className="text-[10px] font-semibold text-gold">
                         ${product.price?.toFixed(2) || "0.00"}

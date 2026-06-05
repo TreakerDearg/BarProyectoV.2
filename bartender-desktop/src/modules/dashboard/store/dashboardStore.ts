@@ -49,7 +49,7 @@ type DashboardState = {
 const MAX_ACTIVITIES = 8;
 const MAX_ALERTS = 5;
 
-export const useDashboardStore = create<DashboardState>((set, get) => ({
+export const useDashboardStore = create<DashboardState>((set) => ({
   data: null,
   loading: false,
   error: null,
@@ -117,14 +117,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const list = Array.isArray(reservations) ? reservations : [];
     const items: LiveActivityItem[] = list.map(
       (
-        res: {
-          name?: string;
-          customerName?: string;
-          partySize?: number;
-          guests?: number;
-          startTime?: string;
-        },
-        i
+        res: any,
+        i: number
       ) => ({
         id: `res-${i}-${res.startTime}`,
         title: "Reserva",

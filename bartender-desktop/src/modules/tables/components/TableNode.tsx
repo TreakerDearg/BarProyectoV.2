@@ -19,7 +19,7 @@ interface TableNodeProps {
   viewType?: "grid" | "spatial";
   isEditMode?: boolean;
   onDragEnd?: (id: string, x: number, y: number) => void;
-  containerRef?: React.RefObject<HTMLDivElement>;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function TableNode({ 

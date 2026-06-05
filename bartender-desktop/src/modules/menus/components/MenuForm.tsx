@@ -260,13 +260,13 @@ function MenuProductSelector({
 
       <div className={`grid gap-2 ${viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"} max-h-64 overflow-y-auto nebula-forms-scroll`}>
         {Array.isArray(filteredProducts) && filteredProducts.map((product) => {
-          const isSelected = selectedProductIds.has(product._id);
+          const isSelected = product._id ? selectedProductIds.has(product._id) : false;
           const menuProduct = currentCategory?.products?.find(p => p.product === product._id);
           
           return (
             <div
               key={product._id}
-              onClick={() => onToggleProduct(product._id)}
+              onClick={() => product._id && onToggleProduct(product._id)}
               className={`p-3 rounded-lg border cursor-pointer transition-all ${
                 isSelected
                   ? 'bg-violet-500/10 border-violet-500/30'
@@ -289,7 +289,7 @@ function MenuProductSelector({
                 {isSelected && (
                   <div className="flex flex-col gap-1">
                     <button
-                      onClick={(e) => { e.stopPropagation(); onToggleFeatured(product._id); }}
+                      onClick={(e) => { e.stopPropagation(); product._id && onToggleFeatured(product._id); }}
                       className={`p-1 rounded transition-all ${menuProduct?.featured ? 'text-gold' : 'text-muted hover:text-gold'}`}
                     >
                       <Star size={14} fill={menuProduct?.featured ? "currentColor" : "none"} />
@@ -512,7 +512,7 @@ export default function MenuForm({ menu, onSave, onClose }: Props) {
     setLoading(false);
   };
 
-  const isValid = form.name.trim() && form.categories[0].products.length > 0;
+  const isValid = Boolean(form.name.trim() && form.categories[0].products.length > 0);
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-6">

@@ -18,7 +18,8 @@ import {
   Target,
   ChevronRight,
   HelpCircle,
-  Upload
+  Upload,
+  Zap
 } from "lucide-react";
 
 import "../../../styles/nebula-forms-theme.css";
@@ -245,7 +246,7 @@ function ProductFinancePanel({ formData, setFormData }: { formData: Product; set
 }
 
 // EnhancedImageUpload Component
-function EnhancedImageUpload({ currentImage, onImageUpload }: { currentImage: string; onImageUpload: (url: string) => void }) {
+function EnhancedImageUpload({ currentImage, onImageUpload }: { currentImage: string | undefined; onImageUpload: (url: string) => void }) {
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-6">

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Plus,
-  Search,
   Package,
   AlertTriangle,
   Activity,
@@ -45,6 +44,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showExportImport, setShowExportImport] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   const {
     isOpen: tutorialOpen,
@@ -73,14 +73,13 @@ export default function InventoryPage() {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleImport = async () => {
     setError("Importación deshabilitada - solo exportación para auditoría");
   };
 
   const { mode, setMode, view, toggleView } = useInventoryUiStore();
 
   const [search, setSearch] = useState("");
-  const [filter] = useState<"all" | "bar" | "kitchen" | "general">("all");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
 
   // Filter groups for AdvancedSearchFilter
@@ -148,7 +147,7 @@ export default function InventoryPage() {
     },
     (data) => {
       console.log("[Socket] Stock cambiado:", data);
-      setItems(prev => prev.map(i => i._id === data.itemId ? { ...i, stock: data.stock } : i));
+      setItems(prev => prev.map(i => i._id === data.itemId ? { ...i, stock: data.stock ?? 0 } : i));
     }
   );
 
@@ -202,6 +201,18 @@ export default function InventoryPage() {
 
     return { total, critical, totalValue, lowStock };
   }, [items]);
+
+  const handleExpandToggle = (id: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   const handleSave = async (item: InventoryItem) => {
     try {
@@ -348,15 +359,24 @@ export default function InventoryPage() {
           </div>
         ) : (
           <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-            {filteredItems.map((item) => (
-              <InventoryCard
-                key={item._id}
-                item={item}
-                onEdit={() => { setSelected(item); setOpen(true); }}
-                onDelete={() => handleDelete(item._id)}
-                simplified={mode === 'simple'}
-              />
-            ))}
+            {filteredItems.map((item) => {
+              const averageCost = items.reduce((sum, i) => sum + Number(i.cost), 0) / items.length || 0;
+              const stockTrend: 'up' | 'down' | 'stable' = 'stable';
+              return (
+                <InventoryCard
+                  key={item._id}
+                  item={item}
+                  onEdit={() => { setSelected(item); setOpen(true); }}
+                  onDelete={() => handleDelete(item._id)}
+                  simplified={mode === 'simple'}
+                  expanded={expandedCards.has(item._id!)}
+                  onExpandToggle={handleExpandToggle}
+                  averageCost={averageCost}
+                  lastRestock={item.updatedAt}
+                  stockTrend={stockTrend}
+                />
+              );
+            })}
           </div>
         )}
       </div>

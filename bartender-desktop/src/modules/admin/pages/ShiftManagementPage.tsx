@@ -279,10 +279,6 @@ export default function ShiftManagementPage() {
     }
   };
 
-  const handleOpenTemplateAssignModal = (shift: ShiftSchedule) => {
-    setTemplateAssignShift(shift);
-  };
-
   const handleToggleTemplateAssignment = async (shift: ShiftSchedule, userId: string) => {
     try {
       const currentIds = (shift.assignedEmployees || []).map((e: any) => 
@@ -317,29 +313,6 @@ export default function ShiftManagementPage() {
     }
   };
 
-  const handleRemoveTemplateEmployee = async (shift: ShiftSchedule, userId: string) => {
-    try {
-      const currentIds = (shift.assignedEmployees || []).map((e: any) => 
-        typeof e === "string" ? e : e._id
-      );
-
-      const updatedIds = currentIds.filter(id => id !== userId);
-
-      const updatedShift = await updateShiftSchedule(shift._id, {
-        assignedEmployees: updatedIds
-      });
-
-      setShifts(prevShifts => 
-        prevShifts.map(s => s._id === shift._id ? { ...s, assignedEmployees: updatedShift.assignedEmployees || [] } : s)
-      );
-
-      await fetchData();
-    } catch (error) {
-      console.error("Error removing template employee:", error);
-      alert("Error al remover el empleado de la plantilla");
-    }
-  };
-
   // Get assignments count for shift
   const getAssignmentShiftId = (assignment: ShiftAssignment) => {
     return typeof assignment.shiftId === "string"
@@ -349,10 +322,6 @@ export default function ShiftManagementPage() {
 
   const getAssignmentsCount = (shiftId: string) => {
     return assignments.filter(a => getAssignmentShiftId(a) === shiftId).length;
-  };
-
-  const getShiftAssignmentsList = (shiftId: string) => {
-    return assignments.filter(a => getAssignmentShiftId(a) === shiftId);
   };
 
   return (
@@ -451,10 +420,9 @@ export default function ShiftManagementPage() {
                 <p className="text-white/30 text-sm">No hay turnos configurados</p>
               </div>
             ) : (
-              shifts.map((shift, index) => {
+              shifts.map((shift) => {
                 const config = shiftTypes.find(s => s.key === shift.shiftType) || shiftTypes[0];
                 const assignmentsCount = getAssignmentsCount(shift._id);
-                const shiftAssignments = getShiftAssignmentsList(shift._id);
                 
                 return (
                   <div

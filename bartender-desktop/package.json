@@ -74,6 +74,9 @@
       "target": "nsis",
       "sign": false
     },
+    "build": {
+      "type": "module"
+    },
     "nsis": {
       "oneClick": false,
       "perMachine": false,

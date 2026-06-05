@@ -90,9 +90,9 @@ export default function DiscountReasonPieChart({ data, loading }: Props) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number, name: DiscountReason) => [
-                `$${value.toFixed(2)}`,
-                REASON_LABELS[name] || name,
+              formatter={(value: any, name: any) => [
+                `$${Number(value).toFixed(2)}`,
+                REASON_LABELS[name as DiscountReason] || name,
               ]}
               contentStyle={{
                 backgroundColor: "rgba(0, 0, 0, 0.8)",

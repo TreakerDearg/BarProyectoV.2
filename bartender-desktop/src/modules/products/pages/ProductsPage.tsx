@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Plus, HelpCircle, LayoutGrid, List, Search, Target, Zap, Activity, TrendingUp, Package, RefreshCcw, X } from "lucide-react";
+import { Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity, TrendingUp, Package, RefreshCcw, X } from "lucide-react";
 
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
@@ -17,7 +17,6 @@ import {
 import { useProductSocketEvents } from "../../../hooks/useSocket";
 import { useProductTutorial } from "../hooks/useProductTutorial";
 import { useProductUiStore } from "../store/productUiStore";
-import { useNotifications } from "../../../components/shared/NotificationCenter";
 
 import type { Product } from "../../../types/product";
 import "../../../styles/nebula-theme.css";
@@ -32,6 +31,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [showExportImport, setShowExportImport] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
     try {
@@ -55,7 +55,7 @@ export default function ProductsPage() {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleImport = async () => {
     // Import disabled for now - only export for auditing
     setError("Importación deshabilitada - solo exportación para auditoría");
   };
@@ -102,7 +102,18 @@ export default function ProductsPage() {
   } = useProductTutorial();
 
   const { mode, setMode, view, toggleView } = useProductUiStore();
-  const { addNotification } = useNotifications();
+
+  const handleExpandToggle = (id: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   /* =========================
      FETCH PRODUCTS
@@ -385,6 +396,8 @@ export default function ProductsPage() {
                 }}
                 onDelete={() => handleDelete(product._id!)}
                 simplified={mode === 'simple'}
+                expanded={expandedCards.has(product._id!)}
+                onExpandToggle={handleExpandToggle}
               />
             ))}
           </div>

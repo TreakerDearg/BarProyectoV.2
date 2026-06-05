@@ -45,7 +45,7 @@ export default function MiniFloorPlan({
           setAllTables(data);
           // Set first available zone as active if there are tables
           const zones = Array.from(new Set(data.map((t) => t.location || "indoor")));
-          if (zones.length > 0 && !zones.includes(activeZone)) {
+          if (zones.length > 0 && !zones.includes(activeZone as any)) {
             setActiveZone(zones[0]);
           }
         }

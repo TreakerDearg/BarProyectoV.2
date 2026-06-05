@@ -60,6 +60,7 @@ export default function RecipesPage() {
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "drink" | "food">("all");
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   /* =========================
      FETCH
@@ -129,6 +130,18 @@ export default function RecipesPage() {
       return matchSearch && matchType;
     });
   }, [recipes, search, filter]);
+
+  const handleExpandToggle = (id: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   /* =========================
      HISTORY HANDLER
@@ -278,6 +291,10 @@ export default function RecipesPage() {
                   recipe={r}
                   onDelete={handleDelete}
                   onOpen={(recipe) => setSelectedRecipe(recipe)}
+                  expanded={expandedCards.has(r._id!)}
+                  onExpandToggle={handleExpandToggle}
+                  estimatedTime={5}
+                  difficulty="medium"
                 />
               ))}
             </div>

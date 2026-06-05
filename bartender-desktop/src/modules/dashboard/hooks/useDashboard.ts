@@ -88,10 +88,10 @@ export function useDashboard(view: string = "all", range: string = "7") {
     const trackingSocket = socketService.getSocket();
     trackingSocket?.on("connect", onConnect);
     trackingSocket?.on("disconnect", onDisconnect);
-    main.on("connect", onConnect);
-    main.on("disconnect", onDisconnect);
+    main?.on("connect", onConnect);
+    main?.on("disconnect", onDisconnect);
 
-    if (socketService.isConnected() || main.connected) {
+    if (socketService.isConnected() || main?.connected) {
       setSocketConnected(true);
     }
 
@@ -187,10 +187,10 @@ export function useDashboard(view: string = "all", range: string = "7") {
     socketService.on("discount:applied", onDiscountApplied);
     socketService.on("alert:create", onAlert);
 
-    main.on("order:created", onOrderEvent);
-    main.on("order:updated", onOrderEvent);
-    main.on("order:deleted", onOrderEvent);
-    main.on("pricing:multiplier_updated", onPricingUpdate);
+    main?.on("order:created", onOrderEvent);
+    main?.on("order:updated", onOrderEvent);
+    main?.on("order:deleted", onOrderEvent);
+    main?.on("pricing:multiplier_updated", onPricingUpdate);
 
     intervalRef.current = setInterval(() => load({ silent: true }), POLL_MS);
 
@@ -201,8 +201,8 @@ export function useDashboard(view: string = "all", range: string = "7") {
 
       trackingSocket?.off("connect", onConnect);
       trackingSocket?.off("disconnect", onDisconnect);
-      main.off("connect", onConnect);
-      main.off("disconnect", onDisconnect);
+      main?.off("connect", onConnect);
+      main?.off("disconnect", onDisconnect);
 
       socketService.off("kpi:update", onKpiUpdate);
       socketService.off("metrics:update", onMetricsUpdate);
@@ -210,10 +210,10 @@ export function useDashboard(view: string = "all", range: string = "7") {
       socketService.off("discount:applied", onDiscountApplied);
       socketService.off("alert:create", onAlert);
 
-      main.off("order:created", onOrderEvent);
-      main.off("order:updated", onOrderEvent);
-      main.off("order:deleted", onOrderEvent);
-      main.off("pricing:multiplier_updated", onPricingUpdate);
+      main?.off("order:created", onOrderEvent);
+      main?.off("order:updated", onOrderEvent);
+      main?.off("order:deleted", onOrderEvent);
+      main?.off("pricing:multiplier_updated", onPricingUpdate);
 
       socketsReadyRef.current = false;
     };

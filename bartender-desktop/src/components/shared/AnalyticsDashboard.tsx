@@ -256,8 +256,8 @@ export default function AnalyticsDashboard({
                 {metric.icon}
               </div>
               {metric.change !== undefined && (
-                <div className={`flex items-center gap-1 text-xs font-semibold ${getChangeColor(metric.changeType)}`}>
-                  {getChangeIcon(metric.changeType)}
+                <div className={`flex items-center gap-1 text-xs font-semibold ${getChangeColor(metric.changeType || 'neutral')}`}>
+                  {getChangeIcon(metric.changeType || 'neutral')}
                   <span>{Math.abs(metric.change)}%</span>
                 </div>
               )}

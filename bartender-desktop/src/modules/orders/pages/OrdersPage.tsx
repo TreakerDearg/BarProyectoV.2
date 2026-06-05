@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo, type ReactNode } from "react";
 import {
   Plus,
   RefreshCcw,
-  Search,
   ChefHat,
   Zap,
   Flame,
@@ -278,7 +277,7 @@ export default function OrdersPage() {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleImport = async () => {
     setError("Importación deshabilitada - solo exportación para auditoría");
   };
 

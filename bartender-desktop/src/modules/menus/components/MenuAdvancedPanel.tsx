@@ -7,7 +7,7 @@ import {
   Utensils,
   Martini,
 } from "lucide-react";
-import type { Menu } from "../../types/menu";
+import type { Menu } from "../../../types/menu";
 
 interface Props {
   menus: Menu[];
@@ -24,9 +24,9 @@ export default function MenuAdvancedPanel({ menus }: Props) {
 
     // Calculate total products across all menus
     const totalProducts = menus.reduce(
-      (sum, menu) =>
+      (sum: number, menu) =>
         sum +
-        (menu.categories?.reduce((acc, cat) => acc + (cat.products?.length || 0), 0) || 0),
+        (menu.categories?.reduce((acc: number, cat: any) => acc + (cat.products?.length || 0), 0) || 0),
       0
     );
 
@@ -39,11 +39,11 @@ export default function MenuAdvancedPanel({ menus }: Props) {
     const inactiveMenus = menus.length - activeMenus;
 
     // Find menu with most products
-    const menuWithMostProducts = menus.reduce((max, menu) => {
+    const menuWithMostProducts = menus.reduce((max: Menu, menu: Menu) => {
       const productCount =
-        menu.categories?.reduce((acc, cat) => acc + (cat.products?.length || 0), 0) || 0;
+        menu.categories?.reduce((acc: number, cat: any) => acc + (cat.products?.length || 0), 0) || 0;
       const maxCount =
-        max.categories?.reduce((acc, cat) => acc + (cat.products?.length || 0), 0) || 0;
+        max.categories?.reduce((acc: number, cat: any) => acc + (cat.products?.length || 0), 0) || 0;
       return productCount > maxCount ? menu : max;
     }, menus[0]);
 
@@ -98,7 +98,7 @@ export default function MenuAdvancedPanel({ menus }: Props) {
           <h3 className="text-lg font-bold text-ivory">Distribución por Tipo</h3>
         </div>
         <div className="space-y-3">
-          {Object.entries(analytics.typeDistribution).map(([type, count]) => (
+          {Object.entries(analytics.typeDistribution).map(([type, count]: [string, number]) => (
             <div key={type} className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
@@ -143,7 +143,7 @@ export default function MenuAdvancedPanel({ menus }: Props) {
             <div className="text-right">
               <p className="text-2xl font-black text-emerald-400">
                 {analytics.menuWithMostProducts.categories?.reduce(
-                  (acc, cat) => acc + (cat.products?.length || 0),
+                  (acc: number, cat: any) => acc + (cat.products?.length || 0),
                   0
                 )}
               </p>
