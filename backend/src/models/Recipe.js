@@ -97,6 +97,13 @@ const recipeSchema = new mongoose.Schema(
       index: true,
     },
 
+    drinkStyle: {
+      type: String,
+      enum: ["author", "classic"],
+      default: "classic",
+      index: true,
+    },
+
     ingredients: {
       type: [recipeIngredientSchema],
       validate: {
@@ -199,6 +206,19 @@ async function calculateCost(doc) {
 ============================== */
 recipeSchema.pre("save", async function () {
   await calculateCost(this);
+
+  // Sync drinkStyle with product for drinks
+  if (this.type === "drink") {
+    const Product = mongoose.model("Product");
+    const product = await Product.findById(this.product);
+    if (product && product.drinkStyle) {
+      this.drinkStyle = product.drinkStyle;
+    } else if (!this.drinkStyle) {
+      this.drinkStyle = "classic";
+    }
+  } else {
+    this.drinkStyle = undefined;
+  }
 });
 
 /* ==============================

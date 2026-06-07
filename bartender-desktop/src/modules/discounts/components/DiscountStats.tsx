@@ -88,7 +88,7 @@ export default function NebulaDiscountStats({ data, loading }: Props) {
           {loading ? (
             <div className="h-8 w-20 bg-white/10 animate-pulse rounded-lg" />
           ) : (
-            `${data.averagePercent.toFixed(1)}%`
+            `${(data.averagePercent ?? 0).toFixed(1)}%`
           )}
         </div>
       </div>

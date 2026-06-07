@@ -110,6 +110,17 @@ export default function RecipeCard({
             <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mt-1">
               {recipe.category || "GENERAL"}
             </p>
+            {isDrink && recipe.drinkStyle && (
+              <div className="mt-1">
+                <span className={`text-[8px] px-2 py-0.5 rounded font-semibold ${
+                  recipe.drinkStyle === 'author' 
+                    ? 'bg-violet-500/20 text-violet-400' 
+                    : 'bg-emerald-500/20 text-emerald-400'
+                }`}>
+                  {recipe.drinkStyle === 'author' ? 'AUTOR' : 'CLÁSICO'}
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2 mt-1">
               <Clock size={10} className="text-muted" />
               <span className="text-[8px] text-muted">~{estimatedTime} min</span>

@@ -51,6 +51,13 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
+    drinkStyle: {
+      type: String,
+      enum: ["author", "classic"],
+      default: "classic",
+      index: true,
+    },
+
     subcategory: {
       type: String,
       default: "",
@@ -176,6 +183,12 @@ productSchema.pre("save", function () {
   if (this.subcategory)
     this.subcategory = this.subcategory.trim().toLowerCase();
 
+  // drinkStyle solo aplica a bebidas
+  if (this.type === "food") {
+    this.drinkStyle = undefined;
+  } else if (this.type === "drink" && !this.drinkStyle) {
+    this.drinkStyle = "classic";
+  }
 
   if (this.type === "drink") {
     this.stockImpact = true;

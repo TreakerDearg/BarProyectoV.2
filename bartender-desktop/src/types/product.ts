@@ -7,6 +7,7 @@ export interface Product {
   category: string;
   subcategory?: string;
   type: "drink" | "food";
+  drinkStyle?: "author" | "classic";
   image?: string;
   available: boolean;
   featured: boolean;

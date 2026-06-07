@@ -160,7 +160,7 @@ export default function Dashboard() {
 
       {/* Analytics Dashboard Integration */}
       {activeTab === "analytics" && mode === "advanced" && (
-        <AnalyticsDashboardView />
+        <AnalyticsDashboardView data={data} onRangeChange={setRange} />
       )}
 
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">

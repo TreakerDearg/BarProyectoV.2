@@ -4,8 +4,6 @@ import OrderDetails from "../components/OrderDetails";
 import DiscountKeypad from "../components/DiscountKeypad";
 import DiscountReasonForm from "../components/DiscountReasonForm";
 import DiscountStats from "../components/DiscountStats";
-import DiscountTrendChart from "../components/DiscountTrendChart";
-import DiscountReasonPieChart from "../components/DiscountReasonPieChart";
 
 import { useDiscount } from "../hooks/useDiscount";
 import { discountService } from "../services/discountService";
@@ -14,7 +12,7 @@ import TourGuide from "../components/TourGuide";
 import type { TourStep } from "../components/TourGuide";
 
 import type { Order, SelectedItem } from "../types/discounts";
-import { Sparkles, Save, Loader2, Info, CheckCircle, ChevronDown, ChevronUp, Zap, X, RefreshCw, TrendingDown, AlertTriangle } from "lucide-react";
+import { Sparkles, Save, Loader2, Info, CheckCircle, Zap, X, RefreshCw, TrendingDown, AlertTriangle } from "lucide-react";
 
 export default function NebulaDiscountPage() {
   const [mode, setMode] = useState<"simple" | "advanced">(() => {
@@ -56,13 +54,6 @@ export default function NebulaDiscountPage() {
   
   // Estados mejorados para UX
   const [pasoActual, setPasoActual] = useState<1 | 2 | 3>(1);
-  const [seccionesColapsadas, setSeccionesColapsadas] = useState({
-    ordenes: false,
-    detalles: false,
-    descuento: false,
-    razon: false,
-    estadisticas: true
-  });
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<"todas" | "en-curso" | "completadas">("todas");
 
@@ -146,10 +137,6 @@ export default function NebulaDiscountPage() {
   /* =========================
      FUNCIONES AUXILIARES
   ========================= */
-  const toggleSeccion = (seccion: keyof typeof seccionesColapsadas) => {
-    setSeccionesColapsadas(prev => ({ ...prev, [seccion]: !prev[seccion] }));
-  };
-
   const aplicarDescuentoRapido = useCallback(async (porcentaje: number) => {
     if (!selectedOrder) return;
     
@@ -470,159 +457,124 @@ export default function NebulaDiscountPage() {
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL - LAYOUT RESPONSIVE NEBULA */}
-      <div className="nebula-discounts-grid-ops">
+      {/* CONTENIDO PRINCIPAL - LAYOUT 3 COLUMNAS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         {/* =========================
-            IZQUIERDA: LISTA DE ÓRDENES
+            COLUMNA IZQUIERDA: LISTA DE ÓRDENES (3 columnas)
         ========================= */}
-        <div className="min-h-0">
-          <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col" data-tour="orders-list">
-            {/* ENCABEZADO COLAPSABLE */}
+        <div className="lg:col-span-3 min-h-0">
+          <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col h-full" data-tour="orders-list">
+            {/* ENCABEZADO */}
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-[#00E5FF]/10 rounded-xl">
                   <Sparkles size={18} className="text-[#00E5FF]" />
                 </div>
-                <h3 className="text-sm font-bold text-white">Órdenes Activas</h3>
+                <h3 className="text-sm font-bold text-white">Órdenes</h3>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded-full">
-                  {ordenesFiltradas.length}
-                </span>
-                <button
-                  onClick={() => toggleSeccion('ordenes')}
-                  className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
-                >
-                  {seccionesColapsadas.ordenes ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-                </button>
-              </div>
+              <span className="text-xs font-semibold text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded-full">
+                {ordenesFiltradas.length}
+              </span>
             </div>
 
             {/* BÚSQUEDA Y FILTRO */}
-            {!seccionesColapsadas.ordenes && (
-              <>
-                <div className="mb-3 space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Buscar por mesa o producto..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm outline-none focus:border-[#00E5FF] transition-colors text-white"
-                  />
-                  <div className="flex gap-2">
-                    {["todas", "en-curso", "completadas"].map((estado) => (
-                      <button
-                        key={estado}
-                        onClick={() => setFiltroEstado(estado as any)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          filtroEstado === estado
-                            ? "bg-[#00E5FF] text-black"
-                            : "bg-white/5 text-white/50 hover:bg-white/10"
-                        }`}
-                      >
-                        {estado === "todas" ? "Todas" : estado === "en-curso" ? "En curso" : "Completadas"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div className="mb-3 space-y-2">
+              <input
+                type="text"
+                placeholder="Buscar por mesa..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm outline-none focus:border-[#00E5FF] transition-colors text-white"
+              />
+              <div className="flex gap-2">
+                {["todas", "en-curso", "completadas"].map((estado) => (
+                  <button
+                    key={estado}
+                    onClick={() => setFiltroEstado(estado as any)}
+                    className={`flex-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all ${
+                      filtroEstado === estado
+                        ? "bg-[#00E5FF] text-black"
+                        : "bg-white/5 text-white/50 hover:bg-white/10"
+                    }`}
+                  >
+                    {estado === "todas" ? "Todas" : estado === "en-curso" ? "Curso" : "Comp"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                <OrderList
-                  orders={ordenesFiltradas}
-                  selectedOrderId={selectedOrder?._id}
-                  loading={loadingOrders}
-                  onSelectOrder={(orden) => {
-                    setSelectedOrder(orden);
-                    setPasoActual(1);
-                  }}
-                />
-              </>
-            )}
+            <OrderList
+              orders={ordenesFiltradas}
+              selectedOrderId={selectedOrder?._id}
+              loading={loadingOrders}
+              onSelectOrder={(orden) => {
+                setSelectedOrder(orden);
+                setPasoActual(1);
+              }}
+            />
           </div>
         </div>
 
         {/* =========================
-            CENTRO: DETALLES DE ORDEN (SE EXPANDE EN MÓVIL)
+            COLUMNA CENTRO: DETALLES Y CALCULADORA (6 columnas)
         ========================= */}
-        <div className="min-h-0">
-          <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col min-h-[350px] xl:h-[600px]" data-tour="order-details">
-            {/* ENCABEZADO COLAPSABLE */}
-            <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-[#9D4EDD]/10 rounded-xl">
-                  <Sparkles size={18} className="text-[#9D4EDD]" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Detalles de Orden</h3>
-                  {selectedOrder && (
-                    <p className="text-xs text-white/50">
-                      Mesa {typeof selectedOrder.table === "object" ? selectedOrder.table?.number : selectedOrder.table}
-                    </p>
-                  )}
+        <div className="lg:col-span-6 min-h-0">
+          <div className="flex flex-col gap-4 h-full">
+            {/* DETALLES DE ORDEN */}
+            <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col min-h-[300px]" data-tour="order-details">
+              <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-[#9D4EDD]/10 rounded-xl">
+                    <Sparkles size={18} className="text-[#9D4EDD]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Detalles</h3>
+                    {selectedOrder && (
+                      <p className="text-xs text-white/50">
+                        Mesa {typeof selectedOrder.table === "object" ? selectedOrder.table?.number : selectedOrder.table}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-              {selectedOrder && (
-                <button
-                  onClick={() => toggleSeccion('detalles')}
-                  className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
-                >
-                  {seccionesColapsadas.detalles ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-                </button>
+
+              {selectedOrder ? (
+                <OrderDetails
+                  order={selectedOrder}
+                  items={items}
+                  setItems={(itemsActualizados) => {
+                    setItems(itemsActualizados);
+                    const tieneSeleccion = itemsActualizados.some(i => i.selected);
+                    if (tieneSeleccion && pasoActual === 1) {
+                      setPasoActual(2);
+                    }
+                  }}
+                />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                  <div className="p-4 bg-white/5 rounded-full mb-3">
+                    <Info size={32} className="text-white/30" />
+                  </div>
+                  <h3 className="text-sm font-bold text-ivory mb-2">
+                    Selecciona una orden
+                  </h3>
+                  <p className="text-muted text-xs">
+                    Elige una orden activa de la lista
+                  </p>
+                </div>
               )}
             </div>
 
-            {!seccionesColapsadas.detalles && (
-              <>
-                {selectedOrder ? (
-                  <OrderDetails
-                    order={selectedOrder}
-                    items={items}
-                    setItems={(itemsActualizados) => {
-                      setItems(itemsActualizados);
-                      const tieneSeleccion = itemsActualizados.some(i => i.selected);
-                      if (tieneSeleccion && pasoActual === 1) {
-                        setPasoActual(2);
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-                    <div className="p-4 bg-white/5 rounded-full mb-3">
-                      <Info size={32} className="text-white/30" />
-                    </div>
-                    <h3 className="text-sm font-bold text-ivory mb-2">
-                      Selecciona una orden
-                    </h3>
-                    <p className="text-muted text-xs">
-                      Elige una orden activa de la lista para comenzar
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* =========================
-            DERECHA: PANEL DE DESCUENTOS NEBULA (SE EXPANDE EN MÓVIL CUANDO ES NECESARIO)
-        ========================= */}
-        <div className="min-h-0">
-          <div className="nebula-discounts-panel nebula-discounts-callout-critical p-3 md:p-4 flex flex-col space-y-3">
             {/* TECLADO DE DESCUENTOS */}
-            {!seccionesColapsadas.descuento && (
-              <>
-                <div className="flex items-center justify-between">
+            {selectedOrder && (
+              <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-keypad">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-[#00FF95]/10 rounded-xl">
                       <Sparkles size={18} className="text-[#00FF95]" />
                     </div>
-                    <h3 className="text-sm font-bold text-white">Calcular Descuento</h3>
+                    <h3 className="text-sm font-bold text-white">Calcular</h3>
                   </div>
-                  <button
-                    onClick={() => toggleSeccion('descuento')}
-                    className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
-                  >
-                    <ChevronUp size={18} />
-                  </button>
                 </div>
 
                 <DiscountKeypad
@@ -636,180 +588,138 @@ export default function NebulaDiscountPage() {
                   appendNumber={discount.appendNumber}
                   removeLast={discount.removeLast}
                   presets={discountPresets}
-                  data-tour="discount-keypad"
                 />
+              </div>
+            )}
+          </div>
+        </div>
 
-                {/* TARJETA DE RESUMEN */}
-                <div className="p-4 rounded-xl border space-y-3" style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  borderColor: 'rgba(255, 255, 255, 0.08)'
-                }} data-tour="discount-summary">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Resumen del descuento
-                  </h4>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-white/50">Subtotal</span>
-                      <span className="font-bold text-white">${discount.subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-white/50">Descuento</span>
-                      <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-[#00E5FF]' : 'text-[#9D4EDD]'}`}>
-                        -${discount.discountAmount.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="h-px bg-white/10 my-2" />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold text-white">Total a pagar</span>
-                      <span className="text-xl font-bold text-[#00E5FF]">${discount.finalTotal.toFixed(2)}</span>
-                    </div>
+        {/* =========================
+            COLUMNA DERECHA: RESUMEN, RAZÓN Y ESTADÍSTICAS (3 columnas)
+        ========================= */}
+        <div className="lg:col-span-3 min-h-0">
+          <div className="flex flex-col gap-4 h-full">
+            {/* RESUMEN DEL DESCUENTO */}
+            {selectedOrder && (
+              <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-summary">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-[#00E5FF]/10 rounded-xl">
+                    <Sparkles size={18} className="text-[#00E5FF]" />
                   </div>
+                  <h3 className="text-sm font-bold text-white">Resumen</h3>
                 </div>
 
-                {/* FORMULARIO DE RAZÓN */}
-                <div data-tour="discount-reason">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-[#FFD166]/10 rounded-xl">
-                        <Sparkles size={18} className="text-[#FFD166]" />
-                      </div>
-                      <h3 className="text-sm font-bold text-white">Motivo</h3>
-                    </div>
-                    <button
-                      onClick={() => toggleSeccion('razon')}
-                      className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
-                    >
-                      {seccionesColapsadas.razon ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-                    </button>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/50">Subtotal</span>
+                    <span className="font-bold text-white">${discount.subtotal.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-white/50">Descuento</span>
+                    <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-[#00E5FF]' : 'text-[#9D4EDD]'}`}>
+                      -${discount.discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="h-px bg-white/10 my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-bold text-white">Total</span>
+                    <span className="text-xl font-bold text-[#00E5FF]">${discount.finalTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                  {!seccionesColapsadas.razon && (
-                    <DiscountReasonForm
-                      reason={discount.reason}
-                      setReason={(razon) => {
-                        discount.setReason(razon);
-                        if (pasoActual === 2) setPasoActual(3);
-                      }}
-                      note={discount.note}
-                      setNote={discount.setNote}
-                    />
+            {/* FORMULARIO DE RAZÓN */}
+            {selectedOrder && (
+              <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-reason">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-[#FFD166]/10 rounded-xl">
+                    <Sparkles size={18} className="text-[#FFD166]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-white">Motivo</h3>
+                </div>
+
+                <DiscountReasonForm
+                  reason={discount.reason}
+                  setReason={(razon) => {
+                    discount.setReason(razon);
+                    if (pasoActual === 2) setPasoActual(3);
+                  }}
+                  note={discount.note}
+                  setNote={discount.setNote}
+                />
+              </div>
+            )}
+
+            {/* ERRORES */}
+            {!discount.isValid && discount.valueInput && (
+              <div className="p-3 rounded-xl border space-y-2" style={{
+                background: 'rgba(255, 77, 109, 0.1)',
+                borderColor: 'rgba(255, 77, 109, 0.2)'
+              }}>
+                <p className="text-xs font-bold text-[#FF4D6D] uppercase tracking-wider">
+                  Corrige:
+                </p>
+                {discount.errors.map((error, i) => (
+                  <p key={i} className="text-xs text-[#FF4D6D] flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+                    {error}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {/* BOTONES DE ACCIÓN */}
+            {selectedOrder && (
+              <div className="space-y-2">
+                <button
+                  onClick={handleAplicarDescuento}
+                  disabled={!discount.isValid || loadingApply}
+                  className="w-full py-3 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  data-tour="apply-btn"
+                >
+                  {loadingApply ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Aplicando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      Aplicar
+                    </>
                   )}
-                </div>
+                </button>
 
-                {/* VISUALIZACIÓN DE ERRORES */}
-                {!discount.isValid && discount.valueInput && (
-                  <div className="p-3 rounded-xl border space-y-2" style={{
-                    background: 'rgba(255, 77, 109, 0.1)',
-                    borderColor: 'rgba(255, 77, 109, 0.2)'
-                  }}>
-                    <p className="text-xs font-bold text-[#FF4D6D] uppercase tracking-wider">
-                      Por favor corrige:
-                    </p>
-                    {discount.errors.map((error, i) => (
-                      <p key={i} className="text-xs text-[#FF4D6D] flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
-                        {error}
-                      </p>
-                    ))}
+                <button
+                  onClick={reiniciarFormulario}
+                  className="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 border border-white/10"
+                >
+                  <X size={16} />
+                  Cancelar
+                </button>
+              </div>
+            )}
+
+            {/* ESTADÍSTICAS (Solo modo avanzado) */}
+            {mode === "advanced" && (
+              <div className="nebula-discounts-panel p-3 md:p-4" data-tour="stats-section">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-[#00FF95]/10 rounded-xl">
+                    <Sparkles size={18} className="text-[#00FF95]" />
                   </div>
-                )}
-
-                {/* BOTONES DE ACCIÓN */}
-                <div className="space-y-2 pt-3">
-                  <button
-                    onClick={handleAplicarDescuento}
-                    disabled={!discount.isValid || loadingApply}
-                    className="w-full py-3 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    data-tour="apply-btn"
-                  >
-                    {loadingApply ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        Aplicando...
-                      </>
-                    ) : (
-                      <>
-                        <Save size={18} />
-                        Aplicar Descuento
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={reiniciarFormulario}
-                    className="w-full py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all flex items-center justify-center gap-2 border border-white/10"
-                  >
-                    <X size={16} />
-                    Cancelar
-                  </button>
+                  <h3 className="text-sm font-bold text-white">Estadísticas</h3>
                 </div>
-              </>
-            )}
 
-            {seccionesColapsadas.descuento && (
-              <button
-                onClick={() => toggleSeccion('descuento')}
-                className="w-full py-3 bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 text-[#00E5FF] rounded-xl font-semibold transition-all flex items-center justify-center gap-2 border border-[#00E5FF]/20"
-              >
-                <Sparkles size={18} />
-                Mostrar Panel de Descuento
-              </button>
+                <DiscountStats
+                  data={stats}
+                  loading={loadingStats}
+                />
+              </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* =========================
-          SECCIÓN DE ESTADÍSTICAS NEBULA (COLAPSABLE)
-      ========================= */}
-      {mode === "advanced" && (
-      <div className="nebula-discounts-panel nebula-discounts-callout-success p-3 md:p-4" data-tour="stats-section">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#00FF95]/10 rounded-xl">
-              <Sparkles size={18} className="text-[#00FF95]" />
-            </div>
-            <h3 className="text-sm font-bold text-white">Estadísticas del Día</h3>
-          </div>
-          <button
-            onClick={() => toggleSeccion('estadisticas')}
-            className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white"
-          >
-            {seccionesColapsadas.estadisticas ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-          </button>
-        </div>
-
-        {!seccionesColapsadas.estadisticas && (
-          <div className="space-y-4">
-            <DiscountStats
-              data={stats}
-              loading={loadingStats}
-            />
-            
-            {/* New Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                <DiscountTrendChart
-                  data={stats.byEmployee?.slice(0, 7).map((e: any) => ({
-                    date: e.name || 'N/A',
-                    amount: e.amount || 0,
-                    count: e.count || 0,
-                  })) || []}
-                  loading={loadingStats}
-                />
-              </div>
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
-                <DiscountReasonPieChart
-                  data={stats.byReason || {}}
-                  loading={loadingStats}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      )}
 
       <TourGuide
         steps={tourSteps}

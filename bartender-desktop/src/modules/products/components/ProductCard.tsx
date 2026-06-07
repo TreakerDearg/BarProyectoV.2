@@ -93,6 +93,17 @@ export default function ProductCard({
                 {product.category || 'GENERAL'} · {product.type?.toUpperCase()}
               </p>
             )}
+            {isDrink && product.drinkStyle && (
+              <div className="mt-1">
+                <span className={`text-[8px] px-2 py-0.5 rounded font-semibold ${
+                  product.drinkStyle === 'author' 
+                    ? 'bg-violet-500/20 text-violet-400' 
+                    : 'bg-emerald-500/20 text-emerald-400'
+                }`}>
+                  {product.drinkStyle === 'author' ? 'AUTOR' : 'CLÁSICO'}
+                </span>
+              </div>
+            )}
             {Array.isArray(product.tags) && product.tags.length > 0 && (
               <div className="flex items-center gap-1 mt-1 flex-wrap">
                 {product.tags.slice(0, 2).map((tag, idx) => (

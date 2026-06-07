@@ -14,23 +14,24 @@ import {
   HelpCircle,
   List,
   Grid3x3,
-  Eye
+  Eye,
+  Settings
 } from "lucide-react";
 
 import MenuCard from "../components/MenuCard";
-import MenuForm from "../components/MenuForm";
 import MenuTutorial from "../components/tutorial/MenuTutorial";
 import MenuAdvancedPanel from "../components/MenuAdvancedPanel";
 import MenuBuilderCard from "../components/MenuBuilderCard";
 import CategorySection from "../components/CategorySection";
-import ProductSelector from "../components/ProductSelector";
 import MenuAvailabilitySummary from "../components/MenuAvailabilitySummary";
 import MenuPreview from "../components/MenuPreview";
+import MenuIdentityEditor from "../components/MenuIdentityEditor";
+import MenuConfigPanel from "../components/MenuConfigPanel";
+import ProductFilterSelector from "../components/ProductFilterSelector";
+import MenuRealtimePreview from "../components/MenuRealtimePreview";
 
 import {
   getMenus,
-  createMenu,
-  updateMenu,
   deleteMenu,
 } from "../../../services/menuService";
 
@@ -52,12 +53,11 @@ export default function MenusPage() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [builderMode, setBuilderMode] = useState(false);
+  const [builderPanel, setBuilderPanel] = useState<"identity" | "config" | "categories" | "products" | "preview">("categories");
 
   const menuBuilder = useMenuBuilder();
 
@@ -139,17 +139,6 @@ export default function MenusPage() {
     return { total, active, products, avgProducts };
   }, [menus]);
 
-  const handleSave = async (menu: any) => {
-    try {
-      if (menu._id) await updateMenu(menu._id, menu);
-      else await createMenu(menu);
-      await fetchMenus();
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Save error", err);
-    }
-  };
-
   const handleDelete = async (id: string) => {
     if (!confirm("¿Desvincular este menú de la red?")) return;
     try {
@@ -164,7 +153,6 @@ export default function MenusPage() {
   };
 
   const handleSelectMenu = (menu: Menu) => {
-    setSelectedMenu(menu);
     menuBuilder.selectMenu(menu);
   };
 
@@ -270,7 +258,7 @@ export default function MenusPage() {
           </button>
 
           <button
-            onClick={() => { setSelectedMenu(null); setIsModalOpen(true); }}
+            onClick={() => { menuBuilder.selectMenu(null); setBuilderMode(true); }}
             className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
           >
             <Plus size={18} />
@@ -318,7 +306,7 @@ export default function MenusPage() {
                     menu={menu}
                     selected={menuBuilder.selectedMenu?._id === menu._id}
                     onSelect={handleSelectMenu}
-                    onEdit={() => { setSelectedMenu(menu); setIsModalOpen(true); }}
+                    onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
                     onDelete={handleDelete}
                     recipesCount={(() => {
                       const menuProductIds = new Set(menu.categories?.flatMap(c => c.products.map(p => getProductId(p.product))) || []);
@@ -334,36 +322,89 @@ export default function MenusPage() {
           <div className="col-span-5 overflow-y-auto pr-2 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-ivory uppercase tracking-widest">
-                    {menuBuilder.selectedMenu.name}
-                  </h3>
-                  <button
-                    onClick={() => menuBuilder.createCategory('Nueva Categoría')}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose/10 border border-rose/30 text-rose-300 text-[10px] font-black uppercase tracking-widest hover:bg-rose/20 transition-all"
-                  >
-                    <Plus size={12} />
-                    Nueva Categoría
-                  </button>
+                {/* Panel Selector Tabs */}
+                <div className="flex gap-2 p-1 bg-surface-3 rounded-xl">
+                  {[
+                    { id: "identity" as const, label: "Identidad", icon: <Target size={14} /> },
+                    { id: "config" as const, label: "Config", icon: <Settings size={14} /> },
+                    { id: "categories" as const, label: "Categorías", icon: <Layers size={14} /> },
+                    { id: "products" as const, label: "Productos", icon: <Zap size={14} /> },
+                    { id: "preview" as const, label: "Vista", icon: <Eye size={14} /> },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setBuilderPanel(tab.id)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-semibold transition-all ${
+                        builderPanel === tab.id
+                          ? "bg-violet-500/20 text-violet-300"
+                          : "text-muted hover:text-ivory hover:bg-white/5"
+                      }`}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
                 </div>
 
-                {menuBuilder.selectedMenu.categories?.map((category) => (
-                  <CategorySection
-                    key={category.name}
-                    category={category}
-                    isExpanded={menuBuilder.expandedCategories.has(category.name)}
-                    onToggle={() => menuBuilder.toggleCategoryExpansion(category.name)}
-                    onAddProduct={() => menuBuilder.selectCategory(category.name)}
-                    onRemoveProduct={(productId) => handleRemoveProduct(category.name, productId)}
+                {/* Panel Content */}
+                {builderPanel === "identity" && (
+                  <MenuIdentityEditor
+                    menu={menuBuilder.selectedMenu}
+                    onUpdate={(updates) => {
+                      menuBuilder.updateMenu(updates);
+                      fetchMenus();
+                    }}
                   />
-                ))}
+                )}
 
-                {menuBuilder.selectedCategory && (
-                  <ProductSelector
+                {builderPanel === "config" && (
+                  <MenuConfigPanel
+                    menu={menuBuilder.selectedMenu}
+                    onUpdate={(updates) => {
+                      menuBuilder.updateMenu(updates);
+                      fetchMenus();
+                    }}
+                  />
+                )}
+
+                {builderPanel === "categories" && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-ivory uppercase tracking-widest">
+                        Categorías
+                      </h3>
+                      <button
+                        onClick={() => menuBuilder.createCategory('Nueva Categoría')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose/10 border border-rose/30 text-rose-300 text-[10px] font-black uppercase tracking-widest hover:bg-rose/20 transition-all"
+                      >
+                        <Plus size={12} />
+                        Nueva Categoría
+                      </button>
+                    </div>
+
+                    {menuBuilder.selectedMenu.categories?.map((category) => (
+                      <CategorySection
+                        key={category.name}
+                        category={category}
+                        isExpanded={menuBuilder.expandedCategories.has(category.name)}
+                        onToggle={() => menuBuilder.toggleCategoryExpansion(category.name)}
+                        onAddProduct={() => menuBuilder.selectCategory(category.name)}
+                        onRemoveProduct={(productId) => handleRemoveProduct(category.name, productId)}
+                      />
+                    ))}
+                  </>
+                )}
+
+                {builderPanel === "products" && (
+                  <ProductFilterSelector
                     products={products}
                     onAddProduct={handleAddProduct}
                     addedProductIds={addedProductIds}
                   />
+                )}
+
+                {builderPanel === "preview" && (
+                  <MenuRealtimePreview menu={menuBuilder.selectedMenu} />
                 )}
               </div>
             ) : (
@@ -409,7 +450,7 @@ export default function MenusPage() {
                   <MenuCard
                     key={menuId}
                     menu={menu}
-                    onEdit={() => { setSelectedMenu(menu); setIsModalOpen(true); }}
+                    onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
                     onDelete={() => handleDelete(menuId)}
                     simplified={mode === 'simple'}
                   />
@@ -418,15 +459,6 @@ export default function MenusPage() {
             </div>
           )}
         </div>
-      )}
-
-      {/* FORM MODAL */}
-      {isModalOpen && (
-        <MenuForm
-          menu={selectedMenu}
-          onSave={handleSave}
-          onClose={() => { setIsModalOpen(false); setSelectedMenu(null); }}
-        />
       )}
     </div>
   );

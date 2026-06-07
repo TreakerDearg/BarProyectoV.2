@@ -136,11 +136,12 @@ const checkAvailability = (recipe, inventoryMap) => {
 ========================================================= */
 export const getMenus = async (req, res, next) => {
   try {
-    const { type, active } = req.query;
+    const { type, active, drinkStyle } = req.query;
 
     const filter = {};
     if (type) filter.type = type;
     if (active !== undefined) filter.active = active === "true";
+    if (drinkStyle) filter.drinkStyle = drinkStyle;
 
     const menus = await populateMenu(
       Menu.find(filter).sort({ createdAt: -1 })

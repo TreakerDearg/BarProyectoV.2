@@ -92,32 +92,32 @@ export default function NebulaDynamicPricingPage() {
         </div>
       </div>
 
-      <div className="discounts-view-grid relative z-10">
-        {/* ================= MULTIPLIER CONTROL ================= */}
-        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <div className={`absolute inset-0 bg-gradient-to-br from-transparent via-${themeBg}/20 to-transparent opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl`} />
-          <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-royale h-full flex flex-col justify-between">
-            
-            <div className="flex justify-between items-start mb-8">
-              <h2 className="text-sm font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
-                <Zap size={18} className="text-gold" />
-                Multiplicador Base
-              </h2>
-              <div className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase border flex items-center gap-2 ${themeBorder} ${themeColor} ${themeBg}/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]`}>
-                {isSurge ? <Flame size={14} className="animate-pulse" /> : isHighDemand ? <TrendingUp size={14} /> : isLowDemand ? <TrendingDown size={14} /> : <Target size={14} />}
-                {isSurge ? 'SURGE PRICING' : isHighDemand ? 'ALTA DEMANDA' : isLowDemand ? 'BAJA DEMANDA' : 'ESTABLE'}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">
+        {/* =========================
+            COLUMNA IZQUIERDA: CONTROL DE MULTIPLICADOR (3 columnas)
+        ========================= */}
+        <div className="lg:col-span-3">
+          <div className="nebula-discounts-panel p-6 rounded-3xl h-full flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 bg-${themeBg}/10 rounded-xl`}>
+                  <Zap size={18} className={themeColor} />
+                </div>
+                <h3 className="text-sm font-bold text-white">Multiplicador</h3>
+              </div>
+              <div className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border ${themeBorder} ${themeColor} ${themeBg}/10`}>
+                {isSurge ? 'SURGE' : isHighDemand ? 'ALTA' : isLowDemand ? 'BAJA' : 'ESTABLE'}
               </div>
             </div>
             
-            <div className="flex flex-col items-center justify-center py-10 relative">
-              {isSurge && <div className="absolute inset-0 bg-rose-500/5 rounded-full blur-3xl animate-pulse" />}
-              <div className={`text-[6rem] font-black leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 relative z-10 drop-shadow-2xl`}>
-                {multiplier.toFixed(2)}<span className={`text-3xl ml-2 ${themeColor}`}>x</span>
+            <div className="flex flex-col items-center justify-center py-8 relative">
+              <div className={`text-5xl font-black leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 relative z-10`}>
+                {multiplier.toFixed(2)}<span className={`text-2xl ml-1 ${themeColor}`}>x</span>
               </div>
-              <p className="text-xs text-white/40 font-bold tracking-widest uppercase mt-6 relative z-10">Impacto directo en catálogo completo</p>
+              <p className="text-[10px] text-white/40 font-bold tracking-widest uppercase mt-4">Impacto global</p>
             </div>
 
-            <div className="mt-auto px-4 relative z-10">
+            <div className="mt-auto">
               <input 
                 type="range" 
                 min="0.5" 
@@ -125,87 +125,111 @@ export default function NebulaDynamicPricingPage() {
                 step="0.05" 
                 value={multiplier} 
                 onChange={(e) => handleMultiplierChange(parseFloat(e.target.value))}
-                className="w-full appearance-none bg-[#12121a] h-3 rounded-full outline-none cursor-pointer" 
+                className="w-full appearance-none bg-surface-3 h-2 rounded-full outline-none cursor-pointer" 
                 style={{
                   background: `linear-gradient(to right, ${
                     isSurge ? '#f43f5e' : isHighDemand ? '#f97316' : isLowDemand ? '#60a5fa' : '#a3e635'
                   } ${(multiplier - 0.5) / 2.5 * 100}%, rgba(255,255,255,0.05) ${(multiplier - 0.5) / 2.5 * 100}%)`,
-                  boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)'
                 }}
               />
-              <div className="flex justify-between text-[10px] font-black text-white/30 mt-4 uppercase tracking-widest">
-                <span>0.5x<br/>Liq.</span>
-                <span className="text-center">1.0x<br/>Base</span>
-                <span className="text-right">3.0x<br/>Surge</span>
+              <div className="flex justify-between text-[9px] font-black text-white/30 mt-3 uppercase tracking-widest">
+                <span>0.5x</span>
+                <span>1.0x</span>
+                <span>3.0x</span>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* ================= METRICS ================= */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          {/* INGRESO PROYECTADO */}
-          <div className="bg-[#0a0a0f]/80 border border-white/5 rounded-3xl p-8 flex flex-col justify-between group hover:border-lime/30 transition-all relative overflow-hidden">
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-lime/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="flex justify-between items-start relative z-10">
-              <h2 className="text-[10px] font-black text-white/50 tracking-[0.2em] uppercase">Proyección de Ingresos</h2>
-              <div className="p-3 bg-lime/10 rounded-xl group-hover:scale-110 group-hover:bg-lime/20 transition-all">
-                <TrendingUp size={18} className="text-lime" />
+        {/* =========================
+            COLUMNA CENTRO: MÉTRICAS (6 columnas)
+        ========================= */}
+        <div className="lg:col-span-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* INGRESO PROYECTADO */}
+            <div className="nebula-discounts-panel p-5 rounded-3xl">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-[10px] font-black text-white/50 uppercase tracking-widest">Ingresos</h3>
+                <div className="p-2 bg-lime/10 rounded-lg">
+                  <TrendingUp size={16} className="text-lime" />
+                </div>
               </div>
+              <p className="text-3xl font-black text-ivory tracking-tighter">+$12,450</p>
+              <p className="text-[9px] text-lime font-black uppercase mt-2 bg-lime/10 border border-lime/20 w-fit px-2 py-1 rounded">+14.2% vs ayer</p>
             </div>
-            <div className="relative z-10 mt-6">
-              <p className="text-4xl font-black text-ivory tracking-tighter" style={{ fontFamily: 'var(--font-display)' }}>+$12,450</p>
-              <p className="text-[9px] text-lime font-black tracking-widest uppercase mt-3 bg-lime/10 border border-lime/20 w-fit px-3 py-1 rounded-md shadow-inner">+14.2% respecto a ayer</p>
+
+            {/* SATURACION */}
+            <div className="nebula-discounts-panel p-5 rounded-3xl">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-[10px] font-black text-white/50 uppercase tracking-widest">Saturación</h3>
+                <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <AlertTriangle size={16} className="text-orange-500" />
+                </div>
+              </div>
+              <p className="text-3xl font-black text-ivory tracking-tighter">84<span className="text-xl text-white/30 ml-1">%</span></p>
+              <p className="text-[9px] text-orange-500 font-black uppercase mt-2 bg-orange-500/10 border border-orange-500/20 w-fit px-2 py-1 rounded">Tráfico alto</p>
+            </div>
+
+            {/* IMPACTO VISUAL */}
+            <div className="col-span-2 nebula-discounts-panel p-5 rounded-3xl">
+              <h3 className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-4">Estado del Mercado</h3>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="h-3 bg-surface-3 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${themeBg}`}
+                      style={{ width: `${((multiplier - 0.5) / 2.5) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] font-black text-white/30 mt-2 uppercase">
+                    <span>Liquidez</span>
+                    <span>Demanda</span>
+                    <span>Surge</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* SATURACION */}
-          <div className="bg-[#0a0a0f]/80 border border-white/5 rounded-3xl p-8 flex flex-col justify-between group hover:border-orange-500/30 transition-all relative overflow-hidden">
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="flex justify-between items-start relative z-10">
-              <h2 className="text-[10px] font-black text-white/50 tracking-[0.2em] uppercase">Nivel de Saturación</h2>
-              <div className="p-3 bg-orange-500/10 rounded-xl group-hover:scale-110 group-hover:bg-orange-500/20 transition-all">
-                <AlertTriangle size={18} className="text-orange-500" />
+        {/* =========================
+            COLUMNA DERECHA: PRODUCTOS Y CONFIGURACIÓN (3 columnas)
+        ========================= */}
+        <div className="lg:col-span-3">
+          <div className="nebula-discounts-panel p-5 rounded-3xl h-full">
+            <div className="flex items-center gap-2 mb-4">
+              <div className={`p-2 bg-${themeBg}/10 rounded-lg`}>
+                <Target size={16} className={themeColor} />
               </div>
+              <h3 className="text-sm font-bold text-white">Impacto</h3>
             </div>
-            <div className="relative z-10 mt-6">
-              <p className="text-4xl font-black text-ivory tracking-tighter" style={{ fontFamily: 'var(--font-display)' }}>84<span className="text-2xl text-white/30 ml-1">%</span></p>
-              <p className="text-[9px] text-orange-500 font-black tracking-widest uppercase mt-3 bg-orange-500/10 border border-orange-500/20 w-fit px-3 py-1 rounded-md shadow-inner">Tráfico Elevado</p>
-            </div>
-          </div>
 
-          {/* TABLA DE PRODUCTOS REALES */}
-          <div className="col-span-2 bg-[#0a0a0f]/90 border border-white/5 rounded-3xl p-8 shadow-royale">
-            <h2 className="text-[11px] font-black text-white/50 tracking-[0.2em] uppercase mb-6 flex items-center gap-2">
-              <ChevronRight size={14} className={themeColor} /> Muestra de Impacto en Catálogo Real
-            </h2>
-            
-            <div className="space-y-2">
-              <div className="grid grid-cols-12 text-[10px] font-black text-white/40 uppercase tracking-widest px-5 py-3 bg-white/5 rounded-xl border border-white/5">
-                <span className="col-span-6">Producto</span>
-                <span className="col-span-3 text-center">Precio Base</span>
-                <span className="col-span-3 text-right">Aplicado ({multiplier}x)</span>
-              </div>
-              
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {topProducts.length === 0 ? (
-                 <p className="text-xs text-white/40 p-4 text-center">No hay productos en el inventario.</p>
+                <p className="text-xs text-white/40 p-4 text-center">Sin productos</p>
               ) : (
                 topProducts.map((prod) => (
-                  <div key={prod._id} className="grid grid-cols-12 text-sm items-center px-5 py-3.5 bg-[#12121a] border border-white/5 rounded-xl hover:border-white/10 transition-colors">
-                    <span className="col-span-6 text-ivory font-bold truncate pr-4 flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${themeBg} shadow-[0_0_8px_currentColor] opacity-50`} />
-                      {prod.name}
-                    </span>
-                    <span className="col-span-3 text-center text-white/50 font-medium">${prod.price.toFixed(2)}</span>
-                    <span className={`col-span-3 text-right font-black ${themeColor} drop-shadow-md`}>
-                      ${(prod.price * multiplier).toFixed(2)}
-                    </span>
+                  <div key={prod._id} className="p-3 bg-surface-3 border border-white/5 rounded-xl">
+                    <p className="text-xs font-bold text-ivory truncate mb-2">{prod.name}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-white/50">${prod.price.toFixed(2)}</span>
+                      <span className={`text-sm font-black ${themeColor}`}>
+                        ${(prod.price * multiplier).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
             </div>
+
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="p-3 bg-white/5 rounded-xl">
+                <p className="text-[10px] text-muted font-black uppercase tracking-widest">Productos afectados</p>
+                <p className="text-2xl font-bold text-white">{products.length}</p>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
       <DiscountsSuiteTutorial isOpen={tutorialOpen} onClose={() => setTutorialOpen(false)} />
       </div>

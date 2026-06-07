@@ -34,6 +34,7 @@ const EMPTY_FORM: Product = {
   category: "",
   subcategory: "",
   type: "drink",
+  drinkStyle: "classic",
   image: "",
   available: true,
   featured: false,
@@ -44,6 +45,11 @@ const EMPTY_FORM: Product = {
 const TYPE_OPTIONS = [
   { value: "drink", label: "Mixología / Bebida", icon: <Zap size={20} /> },
   { value: "food", label: "Gastronomía / Plato", icon: <Box size={20} /> },
+];
+
+const DRINK_STYLE_OPTIONS = [
+  { value: "classic", label: "Clásico", description: "Recetas tradicionales establecidas" },
+  { value: "author", label: "Autor", description: "Creaciones originales del bar" },
 ];
 
 const PREPARATION_TIME_PRESETS = [
@@ -147,6 +153,31 @@ function ProductIdentityCard({ formData, setFormData }: { formData: Product; set
             ))}
           </div>
         </div>
+
+        {formData.type === "drink" && (
+          <div>
+            <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">Drink Style</label>
+            <div className="flex gap-2">
+              {DRINK_STYLE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setFormData({ ...formData, drinkStyle: opt.value as any })}
+                  className={`flex-1 p-3 rounded-lg border transition-all ${
+                    formData.drinkStyle === opt.value
+                      ? 'bg-violet/10 border-violet/30 text-violet-300'
+                      : 'bg-white/5 border-white/10 text-muted hover:border-white/20'
+                  }`}
+                  title={opt.description}
+                >
+                  <span className="text-xs font-semibold">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted mt-2 ml-1">
+              {formData.drinkStyle === "author" ? "Creaciones originales del bar" : "Recetas tradicionales establecidas"}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,16 +1,9 @@
 import type { DashboardStats } from "../services/dashboardService";
 import type { DashboardMode } from "../store/dashboardUiStore";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useState } from "react";
 import CollapsibleSection from "../components/CollapsibleSection";
-import { Trophy, ArrowUpRight, Sparkles } from "lucide-react";
+import { Trophy, ArrowUpRight, Sparkles, Info } from "lucide-react";
 
 interface Props {
   data: DashboardStats;
@@ -42,6 +35,18 @@ export default function AnalyticsVersus({
     if (match && onRangeChange) onRangeChange(match.range);
   };
 
+  // Transform radar data to bar chart format for better readability
+  const comparisonData = radarData.map((item) => ({
+    attribute: item.subject || "Atributo",
+    autor: item.A || 0,
+    clasico: item.B || 0,
+  }));
+
+  // Calculate insights
+  const authorAvg = radarData.reduce((sum, item) => sum + (item.A || 0), 0) / (radarData.length || 1);
+  const classicAvg = radarData.reduce((sum, item) => sum + (item.B || 0), 0) / (radarData.length || 1);
+  const authorWins = radarData.filter((item) => (item.A || 0) > (item.B || 0)).length;
+
   const rankingTable = (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse text-sm">
@@ -50,8 +55,9 @@ export default function AnalyticsVersus({
             <th className="p-4 pl-6">#</th>
             <th className="p-4">Producto</th>
             <th className="p-4 text-center">Tipo</th>
-            <th className="p-4 text-right">Vendidos</th>
-            <th className="p-4 text-right">Ganancia</th>
+            <th className="p-4 text-right">Unidades</th>
+            <th className="p-4 text-right">Ingresos</th>
+            <th className="p-4 text-right">Margen</th>
             <th className="p-4 text-center pr-6">Rendimiento</th>
           </tr>
         </thead>
@@ -76,26 +82,32 @@ export default function AnalyticsVersus({
               <td className="p-4 text-center">
                 <span
                   className={`text-[10px] font-semibold px-2 py-1 rounded-lg border ${
-                    item.category === "AUTHOR"
+                    item.type === "Autor"
                       ? "border-gold/30 text-gold bg-gold/5"
                       : "border-emerald-400/30 text-emerald-400 bg-emerald-400/5"
                   }`}
                 >
-                  {item.category === "AUTHOR" ? "Autor" : "Clásico"}
+                  {item.type === "Autor" ? "Autor" : "Clásico"}
                 </span>
               </td>
               <td className="p-4 text-right text-muted">
                 {item.sold.toLocaleString("es-MX")}
               </td>
-              <td className="p-4 text-right text-lime font-medium">
-                {item.profit}
+              <td className="p-4 text-right text-gold font-medium">
+                ${item.profit}
+              </td>
+              <td className="p-4 text-right text-emerald-400 font-medium">
+                —
               </td>
               <td className="p-4 pr-6">
-                <div className="w-32 h-1.5 bg-surface-3/50 rounded-full overflow-hidden ml-auto">
-                  <div
-                    className={`h-full ${item.category === "AUTHOR" ? "bg-gold" : "bg-emerald-400"}`}
-                    style={{ width: `${item.perf}%` }}
-                  />
+                <div className="flex items-center gap-2 ml-auto">
+                  <div className="w-24 h-1.5 bg-surface-3/50 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${item.category === "AUTHOR" ? "bg-gold" : "bg-emerald-400"}`}
+                      style={{ width: `${item.perf}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted w-8 text-right">{item.perf}%</span>
                 </div>
               </td>
             </tr>
@@ -140,11 +152,26 @@ export default function AnalyticsVersus({
         </div>
       </div>
 
+      {/* Educational Context */}
+      <div className="nebula-panel p-5 bg-violet-500/5 border-violet-400/20">
+        <div className="flex items-start gap-3">
+          <Info size={18} className="text-violet-300 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-violet-200 mb-1">¿Qué significa esta comparativa?</p>
+            <p className="text-xs text-muted leading-relaxed">
+              Comparamos el rendimiento de los <strong className="text-gold">cócteles de autor</strong> (creaciones exclusivas del bar) 
+              contra los <strong className="text-emerald-400">cócteles clásicos</strong> (recetas internacionales reconocidas). 
+              Esto nos ayuda a entender qué tipo de bebidas generan más ingresos y cuáles prefieren nuestros clientes.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="nebula-panel p-6 md:p-8" data-tutorial="analytics-radar">
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <div>
-            <h3 className="text-base font-bold text-ivory">Matriz de atributos</h3>
-            <p className="text-xs text-muted">Rendimiento por categoría</p>
+            <h3 className="text-base font-bold text-ivory">Comparativa por atributo</h3>
+            <p className="text-xs text-muted">Rendimiento: Autor vs Clásico (0-100 puntos)</p>
           </div>
           <div className="flex gap-4 text-[10px] font-semibold uppercase">
             <span className="flex items-center gap-1.5 text-gold">
@@ -159,37 +186,37 @@ export default function AnalyticsVersus({
         </div>
         <div className={isSimple ? "h-[280px]" : "h-[360px]"}>
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-              <PolarGrid stroke="rgba(255,255,255,0.06)" />
-              <PolarAngleAxis
-                dataKey="subject"
-                tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }}
+            <BarChart data={comparisonData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis type="number" domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }} />
+              <YAxis dataKey="attribute" type="category" tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }} width={80} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#0c0a12",
+                  border: "1px solid rgba(139,92,246,0.25)",
+                  borderRadius: "12px",
+                }}
+                formatter={(value: number) => `${value} pts`}
               />
-              <PolarRadiusAxis
-                angle={30}
-                domain={[0, 150]}
-                tick={false}
-                axisLine={false}
-              />
-              <Radar
-                name="Autor"
-                dataKey="A"
-                stroke="#a78bfa"
-                strokeWidth={2}
-                fill="#8b5cf6"
-                fillOpacity={0.2}
-              />
-              <Radar
-                name="Clásico"
-                dataKey="B"
-                stroke="#34D399"
-                strokeWidth={2}
-                fill="#34D399"
-                fillOpacity={0.08}
-              />
-            </RadarChart>
+              <Bar dataKey="autor" fill="#D4A340" name="Autor" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="clasico" fill="#34D399" name="Clásico" radius={[0, 4, 4, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
+        {radarData.length > 0 && (
+          <div className="mt-4 p-4 rounded-xl bg-violet-500/10 border border-violet-400/20">
+            <div className="flex items-start gap-2">
+              <Info size={16} className="text-violet-300 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-violet-200 mb-1">Resumen del análisis</p>
+                <p className="text-xs text-muted">
+                  Los cócteles de autor tienen un promedio de {authorAvg.toFixed(0)} puntos vs {classicAvg.toFixed(0)} de los clásicos.
+                  {authorWins > radarData.length / 2 && " Destacan en " + authorWins + " de " + radarData.length + " atributos evaluados."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {isSimple ? (

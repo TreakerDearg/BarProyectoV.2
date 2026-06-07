@@ -43,6 +43,8 @@ export interface Menu {
 
   type?: "drink" | "food" | "mixed";
 
+  drinkStyle?: "author" | "classic" | "mixed";
+
   categories: MenuCategory[];
 
   /* STATUS */

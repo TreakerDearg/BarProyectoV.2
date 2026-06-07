@@ -234,101 +234,146 @@ export default function NebulaPromotionsPage() {
         </div>
       </div>
 
-      <div className="nebula-discounts-view-grid relative z-10">
-        {/* ================= NEW PROMO FORM ================= */}
-        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 via-violet-500/30 to-violet-500/0 opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl" />
-          <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 shadow-royale">
-            
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
-                <Plus size={16} className="text-violet-400" />
-                Forjar Nueva Promoción
-              </h2>
-              <button
-                onClick={() => setPromoFormCollapsed(!promoFormCollapsed)}
-                className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-              >
-                {promoFormCollapsed ? <Plus size={16} /> : <Minus size={16} />}
-              </button>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">
+        {/* =========================
+            COLUMNA IZQUIERDA: LISTA DE PROMOCIONES (3 columnas)
+        ========================= */}
+        <div className="lg:col-span-3">
+          <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-cyan/10 rounded-xl">
+                  <Tag size={18} className="text-cyan-400" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Activas</h3>
+              </div>
+              <span className="text-xs font-semibold text-cyan bg-cyan/10 px-2 py-1 rounded-full">
+                {promotions.length}
+              </span>
             </div>
 
-            {!promoFormCollapsed && (
-              <div className="space-y-5">
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              {promotions.length === 0 ? (
+                <div className="p-6 text-center border border-dashed border-white/10 rounded-2xl">
+                  <Tag size={24} className="text-white/20 mb-2" />
+                  <p className="text-xs text-white/40 font-bold uppercase tracking-widest">Sin campañas</p>
+                </div>
+              ) : (
+                promotions.map((promo) => (
+                  <div key={promo._id} className="p-3 rounded-xl border border-cyan/20 bg-cyan/5 hover:border-cyan/40 transition-all cursor-pointer">
+                    <p className="text-ivory font-bold text-sm tracking-tight uppercase truncate">
+                      {promo.name}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="px-2 py-0.5 bg-cyan/20 border border-cyan/30 text-cyan rounded text-[9px] font-black">
+                        {promo.type === "PERCENT" ? `-${promo.value}%` : promo.type === "FLAT" ? `-$${promo.value}` : promo.type}
+                      </span>
+                      <span className="text-[9px] text-white/50 font-black uppercase">
+                        {promo.schedule.startTime} - {promo.schedule.endTime}
+                      </span>
+                    </div>
+                    <button 
+                      onClick={() => handleDelete(promo._id)}
+                      className="w-full mt-2 py-1.5 bg-red/10 border border-red/20 text-red rounded-lg text-[10px] font-black uppercase hover:bg-red hover:text-white transition-all"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* =========================
+            COLUMNA CENTRO: FORMULARIO DE CREACIÓN (6 columnas)
+        ========================= */}
+        <div className="lg:col-span-6">
+          <div className="nebula-discounts-panel p-4 rounded-3xl">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-violet/10 rounded-xl">
+                  <Plus size={18} className="text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Nueva Promoción</h3>
+              </div>
+            </div>
+
+            <div className="space-y-4">
               {/* BASIC INFO */}
-              <div className="grid grid-cols-12 gap-4" data-tour="promo-type-value">
-                <div className="col-span-12 md:col-span-6 space-y-2 group/input">
-                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1 group-hover/input:text-violet-400 transition-colors" data-tour="promo-name">Nombre de Campaña</label>
+              <div className="grid grid-cols-12 gap-3" data-tour="promo-type-value">
+                <div className="col-span-12 space-y-1.5">
+                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1" data-tour="promo-name">Nombre</label>
                   <input
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="Ej. Happy Hour Golden"
-                    className="w-full bg-[#12121a] border border-white/10 rounded-xl px-4 h-12 text-sm font-medium text-ivory focus:border-violet-400 focus:ring-1 focus:ring-violet-400/50 hover:border-white/20 transition-all outline-none"
+                    className="w-full bg-surface-3 border border-white/10 rounded-xl px-4 h-10 text-sm font-medium text-ivory focus:border-violet-400 outline-none transition-all"
                   />
                 </div>
                 
-                <div className="col-span-6 md:col-span-3 space-y-2 group/input">
-                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1 group-hover/input:text-violet-400 transition-colors">Tipo</label>
+                <div className="col-span-6 space-y-1.5">
+                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1">Tipo</label>
                   <select 
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full bg-[#12121a] border border-white/10 rounded-xl px-4 h-12 text-sm font-medium text-ivory focus:border-violet-400 focus:ring-1 focus:ring-violet-400/50 hover:border-white/20 transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full bg-surface-3 border border-white/10 rounded-xl px-4 h-10 text-sm font-medium text-ivory focus:border-violet-400 outline-none appearance-none cursor-pointer"
                   >
                     <option value="PERCENT">Descuento (%)</option>
                     <option value="FLAT">Monto Fijo ($)</option>
-                    <option value="2X1">Promoción 2x1</option>
+                    <option value="2X1">2x1</option>
                   </select>
                 </div>
 
-                <div className="col-span-6 md:col-span-3 space-y-2 group/input">
-                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1 group-hover/input:text-violet-400 transition-colors">Valor</label>
+                <div className="col-span-6 space-y-1.5">
+                  <label className="text-[10px] font-black text-white/50 uppercase tracking-widest ml-1">Valor</label>
                   <input
                     type="number"
                     value={form.value}
                     onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
-                    className="w-full bg-[#12121a] border border-white/10 rounded-xl px-4 h-12 text-sm font-medium text-ivory focus:border-violet-400 focus:ring-1 focus:ring-violet-400/50 hover:border-white/20 transition-all outline-none"
+                    className="w-full bg-surface-3 border border-white/10 rounded-xl px-4 h-10 text-sm font-medium text-ivory focus:border-violet-400 outline-none"
                   />
                 </div>
               </div>
 
               {/* SCHEDULE */}
-              <div className="grid grid-cols-12 gap-4 p-4 rounded-2xl border border-violet-500/10 bg-violet-500/5" data-tour="promo-schedule">
-                <div className="col-span-12 md:col-span-4 space-y-2">
+              <div className="grid grid-cols-12 gap-3 p-3 rounded-xl border border-violet/20 bg-violet/5" data-tour="promo-schedule">
+                <div className="col-span-12 md:col-span-5 space-y-1.5">
                   <label className="text-[10px] font-black text-violet-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <Clock size={12} /> Rango Horario
+                    <Clock size={12} /> Horario
                   </label>
                   <div className="flex items-center gap-2">
                     <input 
                       type="time" 
                       value={form.startTime}
                       onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                      className="w-full bg-[#12121a] border border-white/10 rounded-xl px-3 h-10 text-sm text-ivory outline-none focus:border-violet-400" 
+                      className="w-full bg-surface-3 border border-white/10 rounded-lg px-3 h-9 text-sm text-ivory outline-none focus:border-violet-400" 
                     />
                     <span className="text-white/30 font-black">-</span>
                     <input 
                       type="time" 
                       value={form.endTime}
                       onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                      className="w-full bg-[#12121a] border border-white/10 rounded-xl px-3 h-10 text-sm text-ivory outline-none focus:border-violet-400" 
+                      className="w-full bg-surface-3 border border-white/10 rounded-lg px-3 h-9 text-sm text-ivory outline-none focus:border-violet-400" 
                     />
                   </div>
                 </div>
 
-                <div className="col-span-12 md:col-span-8 space-y-2" data-tour="promo-days">
+                <div className="col-span-12 md:col-span-7 space-y-1.5" data-tour="promo-days">
                   <label className="text-[10px] font-black text-violet-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                    <Calendar size={12} /> Días de Aplicación
+                    <Calendar size={12} /> Días
                   </label>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-1.5 flex-wrap">
                     {ALL_DAYS.map((d) => {
                       const active = form.days.includes(d);
                       return (
                         <button
                           key={d}
                           onClick={() => toggleDay(d)}
-                          className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all duration-300 border flex-1
+                          className={`px-2 py-1.5 rounded-lg text-[9px] font-black tracking-widest uppercase transition-all border flex-1
                             ${active 
-                              ? 'bg-violet-500 text-white border-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.4)]' 
-                              : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20 hover:text-white'}`}
+                              ? 'bg-violet-500 text-white border-violet-400' 
+                              : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
                         >
                           {d.substring(0, 3)}
                         </button>
@@ -339,23 +384,23 @@ export default function NebulaPromotionsPage() {
               </div>
 
               {/* PRODUCT SELECTOR */}
-              <div className="space-y-3" data-tour="promo-products">
+              <div className="space-y-2" data-tour="promo-products">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-black text-white/50 uppercase tracking-widest flex items-center gap-2">
-                    <PackageSearch size={14} className="text-violet-400" /> Productos Vinculados ({form.applicableProducts.length})
+                    <PackageSearch size={12} className="text-violet-400" /> Productos ({form.applicableProducts.length})
                   </label>
-                  <div className="relative w-56">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
+                  <div className="relative w-48">
+                    <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />
                     <input
-                      placeholder="Buscar producto..."
+                      placeholder="Buscar..."
                       value={searchProd}
                       onChange={e => setSearchProd(e.target.value)}
-                      className="w-full h-8 bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 text-xs text-white outline-none focus:border-violet-400"
+                      className="w-full h-8 bg-white/5 border border-white/10 rounded-lg pl-8 pr-3 text-xs text-white outline-none focus:border-violet-400"
                     />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {filteredProducts.map(prod => {
                     const prodId = prod._id || '';
                     const isSelected = form.applicableProducts.includes(prodId);
@@ -363,17 +408,17 @@ export default function NebulaPromotionsPage() {
                       <div
                         key={prodId}
                         onClick={() => toggleProduct(prodId)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer transition-all ${
                           isSelected 
-                            ? 'bg-violet-500/10 border-violet-500/50 shadow-inner' 
+                            ? 'bg-violet-500/10 border-violet-500/50' 
                             : 'bg-white/5 border-white/5 hover:bg-white/10'
                         }`}
                       >
                         <div className="truncate">
-                          <p className={`text-xs font-bold truncate ${isSelected ? 'text-violet-400' : 'text-ivory'}`}>{prod.name}</p>
-                          <p className="text-[9px] text-muted font-black tracking-widest uppercase">{prod.category}</p>
+                          <p className={`text-[10px] font-bold truncate ${isSelected ? 'text-violet-400' : 'text-ivory'}`}>{prod.name}</p>
+                          <p className="text-[8px] text-muted font-black uppercase">{prod.category}</p>
                         </div>
-                        {isSelected && <div className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)]" />}
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />}
                       </div>
                     );
                   })}
@@ -383,86 +428,83 @@ export default function NebulaPromotionsPage() {
               <button 
                 onClick={handleCreate}
                 disabled={creating}
-                className="w-full h-12 bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-black text-sm uppercase tracking-[0.3em] rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:-translate-y-1 transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center gap-3 mt-2"
+                className="w-full h-11 bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-black text-sm uppercase tracking-widest rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 data-tour="promo-create-btn"
               >
-                {creating ? <Loader2 size={20} className="animate-spin" /> : "Desplegar Promoción"}
-              </button>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ================= ACTIVE PROMOTIONS ================= */}
-        <section className="relative group p-[1px] rounded-3xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan/0 via-cyan/20 to-cyan/0 opacity-30 group-hover:opacity-100 transition-opacity duration-1000 blur-xl rounded-3xl" />
-          <div className="relative bg-[#0a0a0f]/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 shadow-royale h-full" data-tour="promo-list">
-            
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-black text-ivory tracking-[0.2em] uppercase flex items-center gap-3">
-                <Tag size={16} className="text-cyan-400" />
-                Campañas en Ejecución
-              </h2>
-              <button
-                onClick={() => setPromoListCollapsed(!promoListCollapsed)}
-                className="p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-              >
-                {promoListCollapsed ? <Plus size={16} /> : <Minus size={16} />}
+                {creating ? <Loader2 size={18} className="animate-spin" /> : "Crear Promoción"}
               </button>
             </div>
-            
-            {!promoListCollapsed && (
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                {promotions.length === 0 ? (
-                  <div className="p-8 text-center border border-dashed border-white/10 rounded-2xl flex flex-col items-center">
-                    <Tag size={24} className="text-white/20 mb-3" />
-                    <p className="text-xs text-white/40 font-bold uppercase tracking-widest">No hay campañas activas</p>
-                  </div>
-                ) : (
-                  promotions.map((promo) => (
-                    <div key={promo._id} className="p-4 rounded-2xl border border-cyan/20 bg-cyan/5 group/card relative hover:border-cyan/40 transition-all shadow-inner overflow-hidden">
-                      {/* Background decoration */}
-                      <div className="absolute -right-4 -top-4 w-20 h-20 bg-cyan/10 rounded-full blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                      
-                      <div className="flex justify-between items-start relative z-10">
-                        <div>
-                          <p className="text-ivory font-black text-lg tracking-tight uppercase" style={{ fontFamily: 'var(--font-display)' }}>
-                            {promo.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="px-2 py-1 bg-cyan/20 border border-cyan/30 text-cyan rounded-md text-[10px] font-black tracking-widest shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-                              {promo.type === "PERCENT" ? `-${promo.value}%` : promo.type === "FLAT" ? `-$${promo.value}` : promo.type}
-                            </span>
-                            <span className="text-[10px] text-white/50 font-bold tracking-widest uppercase flex items-center gap-1">
-                              <Clock size={10} /> {promo.schedule.startTime} - {promo.schedule.endTime}
-                            </span>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => handleDelete(promo._id)}
-                          className="w-9 h-9 rounded-xl bg-red/10 border border-red/20 text-red flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all hover:bg-red hover:text-white shadow-lg"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                      
-                      <div className="mt-3 pt-3 border-t border-white/5 relative z-10">
-                        <p className="text-[8px] text-white/40 font-black tracking-widest uppercase mb-2">Días Activos</p>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {promo.schedule.daysOfWeek.map(d => (
-                            <span key={d} className="text-[9px] bg-[#12121a] text-white/60 px-2 py-1 rounded border border-white/10 font-black uppercase tracking-wider">
-                              {d.substring(0, 3)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                  )}
-                </div>
-              )}
           </div>
-        </section>
+        </div>
+
+        {/* =========================
+            COLUMNA DERECHA: CONFIGURACIÓN (3 columnas)
+        ========================= */}
+        <div className="lg:col-span-3">
+          <div className="flex flex-col gap-4">
+            {/* MASTER SWITCH */}
+            <div className="nebula-discounts-panel p-4 rounded-3xl" data-tour="master-switch">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 bg-lime/10 rounded-xl">
+                  <Power size={18} className="text-lime" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Motor</h3>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-muted font-black uppercase tracking-widest">Estado</p>
+                  <p className={`text-sm font-black uppercase tracking-wider ${autoEnabled ? 'text-lime' : 'text-red'}`}>
+                    {autoEnabled ? 'EN LÍNEA' : 'SUSPENDIDO'}
+                  </p>
+                </div>
+                <button 
+                  onClick={toggleAutoPromotions}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg ${
+                    autoEnabled 
+                      ? 'bg-lime/20 border border-lime/40 text-lime hover:bg-lime/30' 
+                      : 'bg-red/20 border border-red/40 text-red hover:bg-red/30'
+                  }`}
+                >
+                  <Power size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* STATS */}
+            <div className="nebula-discounts-panel p-4 rounded-3xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 bg-violet/10 rounded-xl">
+                  <Sparkles size={18} className="text-violet-400" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Resumen</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="p-3 bg-white/5 rounded-xl">
+                  <p className="text-[10px] text-muted font-black uppercase tracking-widest">Activas</p>
+                  <p className="text-2xl font-bold text-white">{promotions.length}</p>
+                </div>
+                <div className="p-3 bg-white/5 rounded-xl">
+                  <p className="text-[10px] text-muted font-black uppercase tracking-widest">Productos</p>
+                  <p className="text-2xl font-bold text-white">{products.length}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* INFO */}
+            <div className="nebula-discounts-panel p-4 rounded-3xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 bg-cyan/10 rounded-xl">
+                  <Info size={18} className="text-cyan-400" />
+                </div>
+                <h3 className="text-sm font-bold text-white">Info</h3>
+              </div>
+              <div className="text-[10px] text-muted space-y-2">
+                <p>Las promociones se aplican automáticamente según el horario configurado.</p>
+                <p>Selecciona al menos un producto para cada promoción.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <TourGuide
         steps={tourSteps}

@@ -139,6 +139,33 @@ export function useMenuBuilder() {
     });
   }, []);
 
+  const updateMenu = useCallback((updates: Partial<Menu>) => {
+    setState(prev => {
+      if (!prev.selectedMenu) return prev;
+
+      const updatedMenu = {
+        ...prev.selectedMenu,
+        ...updates,
+      };
+
+      return { ...prev, selectedMenu: updatedMenu };
+    });
+  }, []);
+
+  const deleteCategory = useCallback((categoryName: string) => {
+    setState(prev => {
+      if (!prev.selectedMenu) return prev;
+
+      const updatedCategories = (prev.selectedMenu.categories || []).filter(cat => cat.name !== categoryName);
+      const updatedMenu = {
+        ...prev.selectedMenu,
+        categories: updatedCategories,
+      };
+
+      return { ...prev, selectedMenu: updatedMenu };
+    });
+  }, []);
+
   return {
     selectedMenu: state.selectedMenu,
     selectedCategory: state.selectedCategory,
@@ -152,5 +179,7 @@ export function useMenuBuilder() {
     removeProductFromCategory,
     reorderProducts,
     createCategory,
+    updateMenu,
+    deleteCategory,
   };
 }

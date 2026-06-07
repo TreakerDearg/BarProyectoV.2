@@ -25,6 +25,8 @@ export interface Recipe {
 
   type: "drink" | "food";
 
+  drinkStyle?: "author" | "classic";
+
   method?: string;
 
   steps?: RecipeStep[];

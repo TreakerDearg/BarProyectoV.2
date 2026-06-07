@@ -17,7 +17,7 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 ========================================================= */
 export const getProducts = async (req, res, next) => {
   try {
-    const { type, category, available, isActiveForPOS, search, tags, featured } = req.query;
+    const { type, category, available, isActiveForPOS, search, tags, featured, drinkStyle } = req.query;
 
     const filter = {};
     if (type)           filter.type           = type;
@@ -27,6 +27,7 @@ export const getProducts = async (req, res, next) => {
     if (available !== undefined) filter.available = available === "true";
     if (tags)  filter.tags  = { $in: tags.split(",").map((t) => t.trim()) };
     if (search) filter.$text = { $search: search };
+    if (drinkStyle) filter.drinkStyle = drinkStyle;
 
     const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
 
@@ -126,6 +127,7 @@ export const updateProduct = async (req, res, next) => {
       "type", "available", "isActiveForPOS", "image", "imagePublicId",
       "gallery", "galleryPublicIds", "featured",
       "tags", "preparationTime", "hasRecipe", "isAlcohol", "stockImpact",
+      "drinkStyle",
     ];
 
     const updates = Object.fromEntries(

@@ -20,12 +20,13 @@ const populateRecipe = (q) =>
 ========================================================= */
 export const getRecipes = async (req, res, next) => {
   try {
-    const { type, category, search, isActive } = req.query;
+    const { type, category, search, isActive, drinkStyle } = req.query;
 
     const filter = {};
     if (type)     filter.type     = type;
     if (category) filter.category = category;
     if (isActive !== undefined) filter.isActive = isActive === "true";
+    if (drinkStyle) filter.drinkStyle = drinkStyle;
     if (search)   filter.$or = [
       { method:   { $regex: search, $options: "i" } },
       { category: { $regex: search, $options: "i" } },
@@ -140,7 +141,7 @@ export const updateRecipe = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const ALLOWED = ["ingredients", "type", "method", "steps", "category", "image", "isActive"];
+    const ALLOWED = ["ingredients", "type", "method", "steps", "category", "image", "isActive", "drinkStyle"];
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );

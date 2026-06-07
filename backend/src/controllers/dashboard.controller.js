@@ -334,6 +334,7 @@ const calculateProductMetrics = (orders) => {
           name: product.name || item.name, 
           type: product.type, 
           category: product.category || "CLASSIC",
+          drinkStyle: product.drinkStyle || "classic",
           qty: 0, revenue: 0, cost: product.cost || 0
         };
       }
@@ -347,13 +348,18 @@ const calculateProductMetrics = (orders) => {
 const calculateVersusStats = (sortedProducts, days) => {
   const topDrinks = sortedProducts.filter(p => p.type === "drink").slice(0, 5);
   
-  // Calculate head-to-head comparison
+  // Separate by drinkStyle for VS comparison
+  const authorDrinks = sortedProducts.filter(p => p.type === "drink" && p.drinkStyle === "author").slice(0, 5);
+  const classicDrinks = sortedProducts.filter(p => p.type === "drink" && p.drinkStyle === "classic").slice(0, 5);
+  
+  // Calculate head-to-head comparison between author and classic
   const headToHead = topDrinks.map((p, idx) => {
     const profit = p.revenue - (p.cost * p.qty);
     const margin = p.revenue > 0 ? (profit / p.revenue) * 100 : 0;
     return {
       rank: idx + 1,
       name: p.name,
+      type: p.drinkStyle === "author" ? "Autor" : "Clásico",
       category: p.category.toUpperCase(),
       sold: p.qty,
       revenue: p.revenue,
@@ -363,14 +369,14 @@ const calculateVersusStats = (sortedProducts, days) => {
     };
   });
 
-  // Generate radar data based on actual product metrics
-  const radarData = generateRadarData(topDrinks);
+  // Generate radar data comparing author vs classic
+  const radarData = generateRadarData(authorDrinks, classicDrinks);
 
   return { headToHead, radarData };
 };
 
-const generateRadarData = (topDrinks) => {
-  if (topDrinks.length < 2) {
+const generateRadarData = (authorDrinks, classicDrinks) => {
+  if (authorDrinks.length < 1 || classicDrinks.length < 1) {
     // Return default data if not enough drinks
     return [
       { subject: 'POPULARITY', A: 100, B: 80, fullMark: 150 },
@@ -382,52 +388,61 @@ const generateRadarData = (topDrinks) => {
     ];
   }
 
-  const drinkA = topDrinks[0];
-  const drinkB = topDrinks[1] || topDrinks[0];
+  // Calculate aggregate metrics for author drinks
+  const authorTotalQty = authorDrinks.reduce((acc, d) => acc + d.qty, 0);
+  const authorTotalRevenue = authorDrinks.reduce((acc, d) => acc + d.revenue, 0);
+  const authorAvgMargin = authorDrinks.reduce((acc, d) => {
+    const profit = d.revenue - (d.cost * d.qty);
+    return acc + (d.revenue > 0 ? (profit / d.revenue) * 100 : 0);
+  }, 0) / authorDrinks.length;
 
-  // Calculate metrics based on actual data
-  const maxQty = Math.max(drinkA.qty, drinkB.qty);
-  const maxRevenue = Math.max(drinkA.revenue, drinkB.revenue);
-  const maxMargin = Math.max(
-    drinkA.revenue > 0 ? (drinkA.revenue - drinkA.cost * drinkA.qty) / drinkA.revenue * 100 : 0,
-    drinkB.revenue > 0 ? (drinkB.revenue - drinkB.cost * drinkB.qty) / drinkB.revenue * 100 : 0
-  );
+  // Calculate aggregate metrics for classic drinks
+  const classicTotalQty = classicDrinks.reduce((acc, d) => acc + d.qty, 0);
+  const classicTotalRevenue = classicDrinks.reduce((acc, d) => acc + d.revenue, 0);
+  const classicAvgMargin = classicDrinks.reduce((acc, d) => {
+    const profit = d.revenue - (d.cost * d.qty);
+    return acc + (d.revenue > 0 ? (profit / d.revenue) * 100 : 0);
+  }, 0) / classicDrinks.length;
+
+  const maxQty = Math.max(authorTotalQty, classicTotalQty);
+  const maxRevenue = Math.max(authorTotalRevenue, classicTotalRevenue);
+  const maxMargin = Math.max(authorAvgMargin, classicAvgMargin);
 
   return [
     {
       subject: 'POPULARITY',
-      A: Math.round((drinkA.qty / maxQty) * 150),
-      B: Math.round((drinkB.qty / maxQty) * 150),
+      A: Math.round((authorTotalQty / maxQty) * 150),
+      B: Math.round((classicTotalQty / maxQty) * 150),
       fullMark: 150
     },
     {
       subject: 'REVENUE',
-      A: Math.round((drinkA.revenue / maxRevenue) * 150),
-      B: Math.round((drinkB.revenue / maxRevenue) * 150),
+      A: Math.round((authorTotalRevenue / maxRevenue) * 150),
+      B: Math.round((classicTotalRevenue / maxRevenue) * 150),
       fullMark: 150
     },
     {
       subject: 'MARGIN',
-      A: Math.round(((drinkA.revenue - drinkA.cost * drinkA.qty) / drinkA.revenue * 100) / maxMargin * 150),
-      B: Math.round(((drinkB.revenue - drinkB.cost * drinkB.qty) / drinkB.revenue * 100) / maxMargin * 150),
+      A: Math.round((authorAvgMargin / maxMargin) * 150),
+      B: Math.round((classicAvgMargin / maxMargin) * 150),
       fullMark: 150
     },
     {
-      subject: 'CATEGORY',
-      A: drinkA.category === 'CLASSIC' ? 120 : drinkA.category === 'SIGNATURE' ? 140 : 100,
-      B: drinkB.category === 'CLASSIC' ? 120 : drinkB.category === 'SIGNATURE' ? 140 : 100,
+      subject: 'VARIETY',
+      A: Math.min(150, authorDrinks.length * 30),
+      B: Math.min(150, classicDrinks.length * 30),
       fullMark: 150
     },
     {
       subject: 'PERFORMANCE',
-      A: Math.round((drinkA.qty / (topDrinks[0]?.qty || 1)) * 150),
-      B: Math.round((drinkB.qty / (topDrinks[0]?.qty || 1)) * 150),
+      A: Math.round((authorTotalQty / (authorDrinks[0]?.qty || 1)) * 150),
+      B: Math.round((classicTotalQty / (classicDrinks[0]?.qty || 1)) * 150),
       fullMark: 150
     },
     {
       subject: 'CONSISTENCY',
-      A: Math.min(150, Math.round(drinkA.qty / 10 * 30)),
-      B: Math.min(150, Math.round(drinkB.qty / 10 * 30)),
+      A: Math.min(150, Math.round(authorTotalQty / 10 * 30)),
+      B: Math.min(150, Math.round(classicTotalQty / 10 * 30)),
       fullMark: 150
     },
   ];

@@ -125,6 +125,13 @@ const menuSchema = new mongoose.Schema(
       index: true,
     },
 
+    drinkStyle: {
+      type: String,
+      enum: ["author", "classic", "mixed"],
+      default: "mixed",
+      index: true,
+    },
+
     /* ========================
        STRUCTURE
     ======================== */
@@ -177,7 +184,7 @@ const generateSlug = (name) =>
 /* ==============================
    NORMALIZATION HOOK 
 ============================== */
-menuSchema.pre("save", function () {
+menuSchema.pre("save", async function () {
   // slug automático
   if (!this.slug) {
     this.slug = generateSlug(this.name);
@@ -211,6 +218,34 @@ menuSchema.pre("save", function () {
   this.categories = this.categories.filter(
     (c) => c.products.length > 0
   );
+
+  // Calcular drinkStyle basado en productos (solo para menus de bebidas o mixtos)
+  if (this.type === "drink" || this.type === "mixed") {
+    const Product = mongoose.model("Product");
+    const productIds = this.categories?.flatMap(cat => 
+      cat.products.map(p => p.product)
+    ) || [];
+
+    if (productIds.length > 0) {
+      const products = await Product.find({ _id: { $in: productIds }, type: "drink" });
+      const authorCount = products.filter(p => p.drinkStyle === "author").length;
+      const classicCount = products.filter(p => p.drinkStyle === "classic").length;
+
+      if (authorCount > 0 && classicCount > 0) {
+        this.drinkStyle = "mixed";
+      } else if (authorCount > 0) {
+        this.drinkStyle = "author";
+      } else if (classicCount > 0) {
+        this.drinkStyle = "classic";
+      } else {
+        this.drinkStyle = "mixed";
+      }
+    } else {
+      this.drinkStyle = "mixed";
+    }
+  } else {
+    this.drinkStyle = undefined;
+  }
 });
 
 /* ==============================

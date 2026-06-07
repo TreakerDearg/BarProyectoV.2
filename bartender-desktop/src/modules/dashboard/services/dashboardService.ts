@@ -62,6 +62,7 @@ export interface DashboardStats {
     headToHead: {
       rank: number;
       name: string;
+      type: string;
       category: string;
       sold: number;
       profit: string;

@@ -90,6 +90,29 @@ function RecipeProductSelector({ form, setForm, products }: { form: Recipe; setF
           </div>
         </div>
 
+        {form.type === 'drink' && (
+          <div>
+            <label className="nebula-form-label">Estilo de Bebida</label>
+            <div className="nebula-form-toggle">
+              <button
+                onClick={() => setForm({ ...form, drinkStyle: 'classic' as any })}
+                className={form.drinkStyle === 'classic' ? 'active' : ''}
+              >
+                <span className="ml-1">Clásico</span>
+              </button>
+              <button
+                onClick={() => setForm({ ...form, drinkStyle: 'author' as any })}
+                className={form.drinkStyle === 'author' ? 'active' : ''}
+              >
+                <span className="ml-1">Autor</span>
+              </button>
+            </div>
+            <p className="text-[10px] text-muted mt-2">
+              {form.drinkStyle === 'author' ? 'Creaciones originales del bar' : 'Recetas tradicionales establecidas'}
+            </p>
+          </div>
+        )}
+
         {form.product?._id && (
           <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
             <div className="flex items-center gap-2">

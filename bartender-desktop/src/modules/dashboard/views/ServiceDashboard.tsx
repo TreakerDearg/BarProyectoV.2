@@ -36,19 +36,66 @@ export default function ServiceDashboard({
   const isSimple = mode === "simple";
   const liveActivities = useDashboardStore((s) => s.liveActivities);
 
+  // Calculate executive summary
+  const getOperationStatus = () => {
+    const kitchenLoad = data.kitchenLoad || 0;
+    const barLoad = data.barLoad || 0;
+
+    if (kitchenLoad > 80 || barLoad > 80) {
+      return { status: "Pico de demanda", color: "text-red", bg: "bg-red/10", border: "border-red/20" };
+    } else if (kitchenLoad > 50 || barLoad > 50) {
+      return { status: "Operación activa", color: "text-gold", bg: "bg-gold/10", border: "border-gold/20" };
+    } else {
+      return { status: "Operación normal", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" };
+    }
+  };
+
+  const operationStatus = getOperationStatus();
+
   return (
     <div
       className={`grid gap-6 animate-fade-in-up-fusion ${
         isSimple ? "grid-cols-1" : "grid-cols-12"
       }`}
     >
+      {/* Executive Summary - Only in advanced mode */}
+      {!isSimple && (
+        <div className="col-span-12 nebula-panel p-6 bg-violet-500/5 border-violet-400/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
+                <Activity size={24} className={operationStatus.color} />
+              </div>
+              <div>
+                <p className="text-xs text-muted uppercase tracking-wider mb-1">Estado actual</p>
+                <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-8">
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Órdenes activas</p>
+                <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Tiempo promedio</p>
+                <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Reservas hoy</p>
+                <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
         <div className="nebula-panel p-6 md:p-8" data-tutorial="revenue-chart">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-bold text-ivory">Ingresos</h3>
+              <h3 className="text-lg font-bold text-ivory">Ingresos diarios - Últimos 7 días</h3>
               <p className="text-xs text-muted mt-0.5">
-                Evolución de ventas en el periodo seleccionado
+                Evolución de ventas con tendencia
               </p>
             </div>
             <span className="text-[10px] font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center gap-1.5">
@@ -59,6 +106,24 @@ export default function ServiceDashboard({
           <div className={isSimple ? "h-[260px]" : "h-[320px]"}>
             <RevenueStreamChart data={data.salesData} />
           </div>
+          {data.salesData && data.salesData.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted">Total del periodo:</span>
+                <span className="text-lg font-bold text-gold">
+                  ${data.salesData.reduce((sum, item) => sum + (item.total || 0), 0).toLocaleString("es-MX")}
+                </span>
+              </div>
+              {data.trends?.salesPct && (
+                <div className="flex items-center justify-between text-xs mt-2">
+                  <span className="text-muted">vs periodo anterior:</span>
+                  <span className={`font-semibold ${data.trends.salesPct > 0 ? "text-emerald-400" : "text-red"}`}>
+                    {data.trends.salesPct > 0 ? "+" : ""}{data.trends.salesPct}%
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {isSimple ? (
@@ -82,7 +147,7 @@ export default function ServiceDashboard({
                     <Flame size={22} />
                   </div>
                   <h3 className="text-base font-bold text-ivory">
-                    Bebidas más vendidas
+                    Top 5 Bebidas
                   </h3>
                 </div>
                 <TopPerformanceBars
@@ -97,7 +162,7 @@ export default function ServiceDashboard({
                     <Target size={22} />
                   </div>
                   <h3 className="text-base font-bold text-ivory">
-                    Comida más vendida
+                    Top 5 Comidas
                   </h3>
                 </div>
                 <TopPerformanceBars

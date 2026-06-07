@@ -42,7 +42,7 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
     >
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-ivory">Ventas por hora</h3>
+          <h3 className="text-base font-bold text-ivory">Ventas por hora - Hoy</h3>
           <p className="text-xs text-muted">Ventas frente a descuentos aplicados</p>
         </div>
         <div className="flex gap-4 text-[10px] font-semibold uppercase text-muted">
@@ -85,6 +85,10 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
                 border: "1px solid rgba(139,92,246,0.25)",
                 borderRadius: "12px",
               }}
+              formatter={(value: number, name: string) => [
+                `$${value.toLocaleString("es-MX")}`,
+                name === "sales" ? "Ventas" : "Descuentos"
+              ]}
             />
             <Area
               type="monotone"
@@ -104,18 +108,36 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      {hourlyData.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted">Total del día:</span>
+            <span className="text-lg font-bold text-gold">
+              ${hourlyData.reduce((sum, item) => sum + (item.sales || 0), 0).toLocaleString("es-MX")}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs mt-2">
+            <span className="text-muted">Pico de ventas:</span>
+            <span className="text-emerald-400 font-semibold">
+              {hourlyData.reduce((max, item) => (item.sales || 0) > (max.sales || 0) ? item : max, hourlyData[0])?.time || "—"}
+            </span>
+          </div>
+        </div>
+      )}
       {!isSimple && totalSpins > 0 && (
-        <p className="text-xs text-muted mt-4">
-          Ruleta: {totalSpins} giros · {acceptedPct}% aceptados
-        </p>
+        <div className="mt-3 p-3 rounded-lg bg-violet-500/10 border border-violet-400/20">
+          <p className="text-xs text-muted">
+            <span className="text-violet-300 font-semibold">Gamificación:</span> {totalSpins} clientes giraron la ruleta · {acceptedPct}% aceptaron el descuento
+          </p>
+        </div>
       )}
     </div>
   );
 
   const distributionBlock = (
     <div className="nebula-panel p-6 md:p-8 flex flex-col">
-      <h3 className="text-base font-bold text-ivory mb-1">Por categoría</h3>
-      <p className="text-xs text-muted mb-6">Distribución de ingresos</p>
+      <h3 className="text-base font-bold text-ivory mb-1">Distribución de ingresos</h3>
+      <p className="text-xs text-muted mb-6">Por categoría con valores monetarios</p>
       <div className="space-y-5 flex-1">
         {(data?.revenueByCategory || []).slice(0, 4).map((item, idx) => {
           const totalRev =
@@ -129,6 +151,7 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
               key={idx}
               label={item.name}
               value={pct}
+              revenue={item.value}
               color={idx % 2 === 0 ? "violet" : "emerald"}
             />
           );
@@ -143,10 +166,13 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
       <div className="mt-6 pt-6 border-t border-white/5">
         <div className="flex items-center gap-2 text-violet-300">
           <LayoutPanelLeft size={18} />
-          <p className="text-xs font-semibold text-muted">Principal</p>
+          <p className="text-xs font-semibold text-muted">Categoría principal</p>
         </div>
         <p className="text-xl font-bold text-ivory mt-2">
           {data?.revenueByCategory?.[0]?.name || "—"}
+        </p>
+        <p className="text-xs text-muted mt-1">
+          {data?.revenueByCategory?.[0]?.value ? `$${data.revenueByCategory[0].value.toLocaleString("es-MX")} (${Math.round((data.revenueByCategory[0].value / (data.revenueByCategory.reduce((acc, curr) => acc + curr.value, 0) || 1)) * 100)}%)` : ""}
         </p>
       </div>
     </div>
@@ -160,18 +186,25 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
             <th className="p-4 pl-6">Bebida</th>
             <th className="p-4 text-center">Unidades</th>
             <th className="p-4 text-right">Ingresos</th>
+            <th className="p-4 text-right">Precio promedio</th>
           </tr>
         </thead>
         <tbody>
-          {data?.topDrinks?.map((item, idx) => (
-            <tr key={idx} className="border-b border-white/5">
-              <td className="p-4 pl-6 font-medium text-ivory">{item.name}</td>
-              <td className="p-4 text-center text-muted">{item.qty}</td>
-              <td className="p-4 text-right text-gold">
-                ${item.revenue.toLocaleString("es-MX")}
-              </td>
-            </tr>
-          ))}
+          {data?.topDrinks?.map((item, idx) => {
+            const avgPrice = item.qty > 0 ? item.revenue / item.qty : 0;
+            return (
+              <tr key={idx} className="border-b border-white/5">
+                <td className="p-4 pl-6 font-medium text-ivory">{item.name}</td>
+                <td className="p-4 text-center text-muted">{item.qty}</td>
+                <td className="p-4 text-right text-gold">
+                  ${item.revenue.toLocaleString("es-MX")}
+                </td>
+                <td className="p-4 text-right text-muted">
+                  ${avgPrice.toFixed(2)}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -244,10 +277,12 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
 function DistributionRow({
   label,
   value,
+  revenue,
   color,
 }: {
   label: string;
   value: number;
+  revenue?: number;
   color: "violet" | "emerald" | "gold";
 }) {
   const bar =
@@ -267,7 +302,12 @@ function DistributionRow({
     <div>
       <div className="flex justify-between text-xs font-medium mb-2">
         <span className="text-muted">{label}</span>
-        <span className={text}>{value}%</span>
+        <div className="flex items-center gap-2">
+          {revenue !== undefined && (
+            <span className="text-muted">${revenue.toLocaleString("es-MX")}</span>
+          )}
+          <span className={text}>{value}%</span>
+        </div>
       </div>
       <div className="w-full h-1.5 bg-surface-3/50 rounded-full overflow-hidden">
         <div className={`h-full ${bar}`} style={{ width: `${value}%` }} />
