@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Type, Image as ImageIcon, Save, X, Globe, Clock, Tag, Plus, XCircle } from "lucide-react";
+import { Type, Image as ImageIcon, Globe, Clock, Tag, Plus, XCircle, X } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
   menu: Menu;
   onUpdate: (updates: Partial<Menu>) => void;
-  onSave?: () => void;
-  onCancel?: () => void;
 }
 
-export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }: Props) {
+export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   const [name, setName] = useState(menu.name || "");
   const [description, setDescription] = useState(menu.description || "");
   const [type, setType] = useState(menu.type || "mixed");
@@ -22,6 +20,21 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
   const [metaDescription, setMetaDescription] = useState(menu.metaDescription || "");
   const [keywordInput, setKeywordInput] = useState("");
   const [keywords, setKeywords] = useState<string[]>(menu.keywords || []);
+
+  const removeKeyword = (keyword: string) => {
+    const newKeywords = keywords.filter(k => k !== keyword);
+    setKeywords(newKeywords);
+    onUpdate({ keywords: newKeywords });
+  };
+
+  const addKeyword = () => {
+    if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
+      const newKeywords = [...keywords, keywordInput.trim()];
+      setKeywords(newKeywords);
+      setKeywordInput("");
+      onUpdate({ keywords: newKeywords });
+    }
+  };
   
   // Availability
   const [availableHours, setAvailableHours] = useState(
@@ -34,61 +47,24 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
   // Gallery
   const [gallery, setGallery] = useState(menu.gallery || []);
 
-  const handleSave = () => {
-    onUpdate({
-      name,
-      description,
-      type,
-      image,
-      metaTitle,
-      metaDescription,
-      keywords,
-      availableHours,
-      availableDays,
-      gallery
-    });
-    onSave?.();
-  };
-
-  const handleCancel = () => {
-    setName(menu.name || "");
-    setDescription(menu.description || "");
-    setType(menu.type || "mixed");
-    setImage(menu.image || "");
-    setMetaTitle(menu.metaTitle || "");
-    setMetaDescription(menu.metaDescription || "");
-    setKeywords(menu.keywords || []);
-    setAvailableHours(menu.availableHours || { start: "09:00", end: "23:00" });
-    setAvailableDays(menu.availableDays || []);
-    setGallery(menu.gallery || []);
-    onCancel?.();
-  };
-
-  const addKeyword = () => {
-    if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
-      setKeywords([...keywords, keywordInput.trim()]);
-      setKeywordInput("");
-    }
-  };
-
-  const removeKeyword = (keyword: string) => {
-    setKeywords(keywords.filter(k => k !== keyword));
-  };
-
   const toggleDay = (day: string) => {
-    setAvailableDays(prev =>
-      prev.includes(day)
-        ? prev.filter(d => d !== day)
-        : [...prev, day]
-    );
+    const newDays = availableDays.includes(day)
+      ? availableDays.filter(d => d !== day)
+      : [...availableDays, day];
+    setAvailableDays(newDays);
+    onUpdate({ availableDays: newDays });
   };
 
   const addGalleryImage = (url: string) => {
-    setGallery([...gallery, { url, publicId: "", order: gallery.length }]);
+    const newGallery = [...gallery, { url, publicId: "", order: gallery.length }];
+    setGallery(newGallery);
+    onUpdate({ gallery: newGallery });
   };
 
   const removeGalleryImage = (index: number) => {
-    setGallery(gallery.filter((_, i) => i !== index));
+    const newGallery = gallery.filter((_, i) => i !== index);
+    setGallery(newGallery);
+    onUpdate({ gallery: newGallery });
   };
 
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -119,7 +95,10 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            onUpdate({ name: e.target.value });
+          }}
           className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-violet/40 focus:border-transparent transition-all outline-none"
           placeholder="Ej: Carta de Cocteles Principal"
         />
@@ -132,7 +111,10 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
         </label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            onUpdate({ description: e.target.value });
+          }}
           className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-violet/40 focus:border-transparent transition-all outline-none resize-none h-24"
           placeholder="Descripción breve de la carta..."
         />
@@ -151,7 +133,10 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
           ].map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setType(opt.value as any)}
+              onClick={() => {
+                setType(opt.value as any);
+                onUpdate({ type: opt.value as any });
+              }}
               className={`flex-1 p-3 rounded-lg border transition-all ${
                 type === opt.value
                   ? "bg-violet/10 border-violet/30 text-violet-300"
@@ -198,6 +183,7 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
                 const reader = new FileReader();
                 reader.onloadend = () => {
                   setImage(reader.result as string);
+                  onUpdate({ image: reader.result as string });
                 };
                 reader.readAsDataURL(file);
               }
@@ -219,7 +205,10 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
           <input
             type="text"
             value={metaTitle}
-            onChange={(e) => setMetaTitle(e.target.value)}
+            onChange={(e) => {
+              setMetaTitle(e.target.value);
+              onUpdate({ metaTitle: e.target.value });
+            }}
             className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none"
             placeholder="Título para SEO (opcional)"
           />
@@ -229,7 +218,10 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
           <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Meta Description</label>
           <textarea
             value={metaDescription}
-            onChange={(e) => setMetaDescription(e.target.value)}
+            onChange={(e) => {
+              setMetaDescription(e.target.value);
+              onUpdate({ metaDescription: e.target.value });
+            }}
             className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none resize-none h-16"
             placeholder="Descripción para SEO (opcional)"
           />
@@ -359,28 +351,6 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
           </div>
         ) : (
           <p className="text-xs text-muted text-center py-4">No hay imágenes en la galería</p>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-white/5">
-        {onCancel && (
-          <button
-            onClick={handleCancel}
-            className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-          >
-            <X size={16} className="text-muted" />
-            <span className="text-xs font-bold uppercase tracking-widest text-muted">Cancelar</span>
-          </button>
-        )}
-        {onSave && (
-          <button
-            onClick={handleSave}
-            className="flex-1 h-12 rounded-xl bg-violet/10 border border-violet/30 flex items-center justify-center gap-2 hover:bg-violet/20 transition-all"
-          >
-            <Save size={16} className="text-violet-300" />
-            <span className="text-xs font-bold uppercase tracking-widest text-violet-300">Guardar</span>
-          </button>
         )}
       </div>
     </div>

@@ -18,7 +18,8 @@ import {
   Settings,
   Filter,
   X,
-  Trash2
+  Trash2,
+  Save
 } from "lucide-react";
 
 import MenuCard from "../components/MenuCard";
@@ -38,6 +39,7 @@ import {
   getMenus,
   deleteMenu,
   createMenu,
+  updateMenu,
 } from "../../../services/menuService";
 
 import { getRecipes } from "../../recipes/services/recipeService";
@@ -64,6 +66,8 @@ export default function MenusPage() {
   const [builderMode, setBuilderMode] = useState(false);
   const [builderPanel, setBuilderPanel] = useState<"identity" | "config" | "categories" | "products" | "preview">("categories");
   const [showTemplates, setShowTemplates] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Advanced filters
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -74,7 +78,7 @@ export default function MenusPage() {
 
   // Bulk actions
   const [selectedMenus, setSelectedMenus] = useState<Set<string>>(new Set());
-  const [bulkActionOpen, setBulkActionOpen] = useState(false);
+  const [] = useState(false);
 
   const menuBuilder = useMenuBuilder();
 
@@ -193,18 +197,31 @@ export default function MenusPage() {
         description: "",
         type: "mixed",
         active: true,
-        categories: [
-          {
-            name: "General",
-            products: []
-          }
-        ]
-      });
+        categories: [],
+      }, { allowEmptyCategories: true });
       await fetchMenus();
       menuBuilder.selectMenu(newMenu);
       setBuilderMode(true);
     } catch (err) {
       console.error("Error creating menu", err);
+      alert("Error al crear el menú");
+    }
+  };
+
+  const handleSaveMenu = async () => {
+    if (!menuBuilder.selectedMenu?._id) return;
+    
+    try {
+      setSaving(true);
+      await updateMenu(menuBuilder.selectedMenu._id, menuBuilder.selectedMenu, { allowEmptyCategories: true });
+      setSaveSuccess(true);
+      fetchMenus();
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error saving menu", err);
+      alert("Error al guardar el menú");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -502,6 +519,10 @@ export default function MenusPage() {
               setBuilderMode(true);
               fetchMenus();
             }}
+            onCreateEmpty={() => {
+              setShowTemplates(false);
+              handleCreateNewMenu();
+            }}
             onCancel={() => setShowTemplates(false)}
           />
         </div>
@@ -654,8 +675,31 @@ export default function MenusPage() {
           <div className="lg:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
               <div className="space-y-4">
+                {saveSuccess && (
+                  <div className="p-3 bg-emerald/10 border border-emerald/30 rounded-xl flex items-center gap-2">
+                    <CheckCircle size={16} className="text-emerald-400" />
+                    <span className="text-xs font-semibold text-emerald-300">Menú guardado exitosamente</span>
+                  </div>
+                )}
                 <MenuAvailabilitySummary menu={menuBuilder.selectedMenu} />
                 <MenuPreview menu={menuBuilder.selectedMenu} />
+                <button
+                  onClick={handleSaveMenu}
+                  disabled={saving}
+                  className="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      Guardar Menú
+                    </>
+                  )}
+                </button>
               </div>
             ) : (
               <div className="nebula-discounts-panel p-4 rounded-3xl h-full flex flex-col items-center justify-center text-center">

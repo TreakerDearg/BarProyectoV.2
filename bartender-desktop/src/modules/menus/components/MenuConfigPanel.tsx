@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, ToggleLeft, ToggleRight, Globe, Save, X, Star, Clock, DollarSign } from "lucide-react";
+import { Settings, ToggleLeft, ToggleRight, Globe, Star, Clock, DollarSign } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
   menu: Menu;
   onUpdate: (updates: Partial<Menu>) => void;
-  onSave?: () => void;
-  onCancel?: () => void;
 }
 
-export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Props) {
+export default function MenuConfigPanel({ menu, onUpdate }: Props) {
   const [active, setActive] = useState(menu.active ?? true);
   const [isPublic, setIsPublic] = useState(menu.isPublic ?? false);
   const [featured, setFeatured] = useState(menu.featured ?? false);
@@ -35,42 +33,12 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
   const [minPrice, setMinPrice] = useState(menu.minPrice?.toString() || "");
   const [maxPrice, setMaxPrice] = useState(menu.maxPrice?.toString() || "");
 
-  const handleSave = () => {
-    onUpdate({
-      active,
-      isPublic,
-      featured,
-      color,
-      slug,
-      availableHours,
-      availableDays,
-      promotedUntil: promotedUntil || undefined,
-      minPrice: minPrice ? parseFloat(minPrice) : undefined,
-      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined
-    });
-    onSave?.();
-  };
-
-  const handleCancel = () => {
-    setActive(menu.active ?? true);
-    setIsPublic(menu.isPublic ?? false);
-    setFeatured(menu.featured ?? false);
-    setColor(menu.color || "#8B5CF6");
-    setSlug(menu.slug || "");
-    setAvailableHours(menu.availableHours || { start: "09:00", end: "23:00" });
-    setAvailableDays(menu.availableDays || []);
-    setPromotedUntil(menu.promotedUntil || "");
-    setMinPrice(menu.minPrice?.toString() || "");
-    setMaxPrice(menu.maxPrice?.toString() || "");
-    onCancel?.();
-  };
-
   const toggleDay = (day: string) => {
-    setAvailableDays(prev =>
-      prev.includes(day)
-        ? prev.filter(d => d !== day)
-        : [...prev, day]
-    );
+    const newDays = availableDays.includes(day)
+      ? availableDays.filter(d => d !== day)
+      : [...availableDays, day];
+    setAvailableDays(newDays);
+    onUpdate({ availableDays: newDays });
   };
 
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -111,7 +79,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           </div>
         </div>
         <button
-          onClick={() => setActive(!active)}
+          onClick={() => {
+            setActive(!active);
+            onUpdate({ active: !active });
+          }}
           className={`relative w-14 h-8 rounded-full transition-colors ${
             active ? 'bg-emerald-500/20' : 'bg-red/20'
           }`}
@@ -138,7 +109,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           </div>
         </div>
         <button
-          onClick={() => setFeatured(!featured)}
+          onClick={() => {
+            setFeatured(!featured);
+            onUpdate({ featured: !featured });
+          }}
           className={`relative w-14 h-8 rounded-full transition-colors ${
             featured ? 'bg-gold/20' : 'bg-surface-2'
           }`}
@@ -160,13 +134,19 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           <input
             type="color"
             value={color}
-            onChange={(e) => setColor(e.target.value)}
+            onChange={(e) => {
+              setColor(e.target.value);
+              onUpdate({ color: e.target.value });
+            }}
             className="w-16 h-12 rounded-lg border border-white/10 cursor-pointer bg-surface-3"
           />
           <input
             type="text"
             value={color}
-            onChange={(e) => setColor(e.target.value)}
+            onChange={(e) => {
+              setColor(e.target.value);
+              onUpdate({ color: e.target.value });
+            }}
             className="flex-1 bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory font-mono focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none"
             placeholder="#8B5CF6"
           />
@@ -175,7 +155,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           {["#8B5CF6", "#06B6D4", "#F59E0B", "#10B981", "#EF4444"].map((preset) => (
             <button
               key={preset}
-              onClick={() => setColor(preset)}
+              onClick={() => {
+                setColor(preset);
+                onUpdate({ color: preset });
+              }}
               className={`w-8 h-8 rounded-lg border-2 transition-all ${
                 color === preset ? 'border-white scale-110' : 'border-transparent hover:border-white/30'
               }`}
@@ -195,7 +178,11 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           <input
             type="text"
             value={slug}
-            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+            onChange={(e) => {
+              const newSlug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+              setSlug(newSlug);
+              onUpdate({ slug: newSlug });
+            }}
             className="w-full bg-surface-3 border-white/10 rounded-lg pl-16 pr-4 py-3 text-ivory font-mono focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none"
             placeholder="carta-cocteles"
           />
@@ -219,7 +206,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           </div>
         </div>
         <button
-          onClick={() => setIsPublic(!isPublic)}
+          onClick={() => {
+            setIsPublic(!isPublic);
+            onUpdate({ isPublic: !isPublic });
+          }}
           className={`relative w-14 h-8 rounded-full transition-colors ${
             isPublic ? 'bg-violet-500/20' : 'bg-surface-2'
           }`}
@@ -245,7 +235,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
             <input
               type="time"
               value={availableHours.start}
-              onChange={(e) => setAvailableHours({ ...availableHours, start: e.target.value })}
+              onChange={(e) => {
+                setAvailableHours({ ...availableHours, start: e.target.value });
+                onUpdate({ availableHours: { ...availableHours, start: e.target.value } });
+              }}
               className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
             />
           </div>
@@ -254,7 +247,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
             <input
               type="time"
               value={availableHours.end}
-              onChange={(e) => setAvailableHours({ ...availableHours, end: e.target.value })}
+              onChange={(e) => {
+                setAvailableHours({ ...availableHours, end: e.target.value });
+                onUpdate({ availableHours: { ...availableHours, end: e.target.value } });
+              }}
               className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
             />
           </div>
@@ -292,7 +288,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           <input
             type="date"
             value={promotedUntil}
-            onChange={(e) => setPromotedUntil(e.target.value)}
+            onChange={(e) => {
+              setPromotedUntil(e.target.value);
+              onUpdate({ promotedUntil: e.target.value || undefined });
+            }}
             className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
           />
           <p className="text-[10px] text-muted mt-1">Formato: YYYY-MM-DD (dejar vacío para promoción permanente)</p>
@@ -312,7 +311,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
             <input
               type="number"
               value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
+              onChange={(e) => {
+                setMinPrice(e.target.value);
+                onUpdate({ minPrice: e.target.value ? parseFloat(e.target.value) : undefined });
+              }}
               className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-emerald/40 focus:border-transparent transition-all outline-none"
               placeholder="0.00"
               step="0.01"
@@ -323,7 +325,10 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
             <input
               type="number"
               value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
+              onChange={(e) => {
+                setMaxPrice(e.target.value);
+                onUpdate({ maxPrice: e.target.value ? parseFloat(e.target.value) : undefined });
+              }}
               className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-emerald/40 focus:border-transparent transition-all outline-none"
               placeholder="0.00"
               step="0.01"
@@ -331,28 +336,6 @@ export default function MenuConfigPanel({ menu, onUpdate, onSave, onCancel }: Pr
           </div>
         </div>
         <p className="text-[10px] text-muted">Calculado automáticamente basado en productos (opcional sobrescribir)</p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-white/5">
-        {onCancel && (
-          <button
-            onClick={handleCancel}
-            className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-          >
-            <X size={16} className="text-muted" />
-            <span className="text-xs font-bold uppercase tracking-widest text-muted">Cancelar</span>
-          </button>
-        )}
-        {onSave && (
-          <button
-            onClick={handleSave}
-            className="flex-1 h-12 rounded-xl bg-cyan/10 border border-cyan/30 flex items-center justify-center gap-2 hover:bg-cyan/20 transition-all"
-          >
-            <Save size={16} className="text-cyan-300" />
-            <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">Guardar</span>
-          </button>
-        )}
       </div>
     </div>
   );
