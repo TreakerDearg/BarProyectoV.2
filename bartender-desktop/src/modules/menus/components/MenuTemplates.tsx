@@ -144,6 +144,9 @@ export default function MenuTemplates({ onMenuCreated, onCancel }: Props) {
                 </div>
               ))}
             </div>
+            <div className="mt-3 pt-3 border-t border-white/10">
+              <p className="text-[9px] text-cyan/70 italic">Las categorías se crearán vacías para que las personalices</p>
+            </div>
           </button>
         ))}
       </div>

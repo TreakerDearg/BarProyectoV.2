@@ -46,9 +46,10 @@ export const createMenu = async (menu: any): Promise<Menu> => {
 ========================= */
 export const updateMenu = async (
   id: string,
-  menu: any
+  menu: any,
+  options?: { allowEmptyCategories?: boolean }
 ): Promise<Menu> => {
-  const payload = buildPayload(menu);
+  const payload = buildPayload(menu, options?.allowEmptyCategories);
 
   const res = await api.put(`/menus/${id}`, payload);
   return unwrap<Menu>(res);
@@ -61,7 +62,7 @@ export const deleteMenu = async (id: string): Promise<void> => {
   await api.delete(`/menus/${id}`);
 };
 
-function buildPayload(menu: any) {
+function buildPayload(menu: any, allowEmptyCategories = false) {
   if (!menu) throw new Error("Datos inválidos");
 
   if (!menu.name?.trim()) {
@@ -77,11 +78,11 @@ function buildPayload(menu: any) {
       throw new Error(`Categoría #${index + 1} sin nombre`);
     }
 
-    if (!Array.isArray(cat.products) || cat.products.length === 0) {
+    if (!allowEmptyCategories && (!Array.isArray(cat.products) || cat.products.length === 0)) {
       throw new Error(`La categoría "${cat.name}" está vacía`);
     }
 
-    const products = Array.isArray(cat.products) ? cat.products.map((p: any, i: number) => {
+    const products = Array.isArray(cat.products) && cat.products.length > 0 ? cat.products.map((p: any, i: number) => {
       if (!p.product) {
         throw new Error(`Producto inválido en ${cat.name}`);
       }
