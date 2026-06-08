@@ -1,23 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "nebula_menu_tutorial_v1";
+const STORAGE_KEY = "nebula_menu_tutorial_v2";
 
 interface TutorialPrefs {
   completed: boolean;
   dismissedAuto: boolean;
+  currentStep: number;
 }
 
 function readPrefs(): TutorialPrefs {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { completed: false, dismissedAuto: false };
+    if (!raw) return { completed: false, dismissedAuto: false, currentStep: 0 };
     const parsed = JSON.parse(raw) as TutorialPrefs;
     return {
       completed: Boolean(parsed.completed),
       dismissedAuto: Boolean(parsed.dismissedAuto),
+      currentStep: parsed.currentStep || 0,
     };
   } catch {
-    return { completed: false, dismissedAuto: false };
+    return { completed: false, dismissedAuto: false, currentStep: 0 };
   }
 }
 
@@ -50,23 +52,30 @@ export function useMenuTutorial() {
     const next: TutorialPrefs = {
       completed: markCompleted || prefs.completed,
       dismissedAuto: true,
+      currentStep: prefs.currentStep,
     };
     setPrefs(next);
     writePrefs(next);
-  }, [prefs.completed]);
+  }, [prefs.completed, prefs.currentStep]);
 
   const completeTutorial = useCallback(() => {
-    const next: TutorialPrefs = { completed: true, dismissedAuto: true };
+    const next: TutorialPrefs = { completed: true, dismissedAuto: true, currentStep: 0 };
     setPrefs(next);
     writePrefs(next);
     setIsOpen(false);
   }, []);
 
   const resetTutorial = useCallback(() => {
-    const next: TutorialPrefs = { completed: false, dismissedAuto: false };
+    const next: TutorialPrefs = { completed: false, dismissedAuto: false, currentStep: 0 };
     setPrefs(next);
     writePrefs(next);
   }, []);
+
+  const setCurrentStep = useCallback((step: number) => {
+    const next: TutorialPrefs = { ...prefs, currentStep: step };
+    setPrefs(next);
+    writePrefs(next);
+  }, [prefs]);
 
   return {
     isOpen,
@@ -75,5 +84,7 @@ export function useMenuTutorial() {
     completeTutorial,
     resetTutorial,
     hasCompleted: prefs.completed,
+    currentStep: prefs.currentStep,
+    setCurrentStep,
   };
 }

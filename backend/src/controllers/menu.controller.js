@@ -35,6 +35,7 @@ const normalizeMenuPayload = (body) => {
     type = "mixed",
     active = true,
     categories,
+    allowEmptyCategories = false,
   } = body;
 
   // 🔥 FORMATO AVANZADO (ya estructurado de la nueva MenuForm)
@@ -44,7 +45,8 @@ const normalizeMenuPayload = (body) => {
       description,
       type,
       active,
-      categories
+      categories,
+      allowEmptyCategories,
     };
   }
 
@@ -64,10 +66,11 @@ const normalizeMenuPayload = (body) => {
           })),
         },
       ],
+      allowEmptyCategories: false,
     };
   }
 
-  return body;
+  return { ...body, allowEmptyCategories: body.allowEmptyCategories || false };
 };
 
 /* =========================================================
@@ -82,34 +85,45 @@ const validateMenu = async (data) => {
     return "categories debe ser un array";
   }
 
+  // Si allowEmptyCategories es true, permitir categorías vacías
+  const allowEmpty = data.allowEmptyCategories === true;
+
+  // Si no se permiten categorías vacías y no hay categorías, error
+  if (!allowEmpty && data.categories.length === 0) {
+    return "Debe tener al menos una categoría";
+  }
+
   for (const cat of data.categories) {
     if (!cat.products || !Array.isArray(cat.products)) {
       return "Cada categoría debe tener productos";
     }
 
-    for (const p of cat.products) {
-      if (!isValidId(p.product)) {
-        return "Producto inválido";
-      }
-
-      // Validación cruzada: verificar que el producto exista
-      const product = await Product.findById(p.product);
-      if (!product) {
-        return `Producto con ID ${p.product} no encontrado`;
-      }
-
-      // Validación cruzada: si el producto tiene receta, verificar que exista
-      if (product.hasRecipe) {
-        const recipe = await Recipe.findOne({ product: p.product });
-        if (!recipe) {
-          return `El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`;
+    // Si la categoría tiene productos, validarlos
+    if (cat.products.length > 0) {
+      for (const p of cat.products) {
+        if (!isValidId(p.product)) {
+          return "Producto inválido";
         }
 
-        // Validación cruzada: verificar que los ingredientes existan en el inventario
-        for (const ing of recipe.ingredients) {
-          const inventoryItem = await InventoryItem.findById(ing.inventoryItem);
-          if (!inventoryItem) {
-            return `Ingrediente ${ing.inventoryItem} no encontrado en el inventario para la receta de ${product.name}`;
+        // Validación cruzada: verificar que el producto exista
+        const product = await Product.findById(p.product);
+        if (!product) {
+          return `Producto con ID ${p.product} no encontrado`;
+        }
+
+        // Validación cruzada: si el producto tiene receta, verificar que exista
+        if (product.hasRecipe) {
+          const recipe = await Recipe.findOne({ product: p.product });
+          if (!recipe) {
+            return `El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`;
+          }
+
+          // Validación cruzada: verificar que los ingredientes existan en el inventario
+          for (const ing of recipe.ingredients) {
+            const inventoryItem = await InventoryItem.findById(ing.inventoryItem);
+            if (!inventoryItem) {
+              return `Ingrediente ${ing.inventoryItem} no encontrado en el inventario para la receta de ${product.name}`;
+            }
           }
         }
       }

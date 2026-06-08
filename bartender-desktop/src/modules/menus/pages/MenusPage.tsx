@@ -78,7 +78,6 @@ export default function MenusPage() {
 
   // Bulk actions
   const [selectedMenus, setSelectedMenus] = useState<Set<string>>(new Set());
-  const [] = useState(false);
 
   const menuBuilder = useMenuBuilder();
 
@@ -213,7 +212,12 @@ export default function MenusPage() {
     
     try {
       setSaving(true);
-      await updateMenu(menuBuilder.selectedMenu._id, menuBuilder.selectedMenu, { allowEmptyCategories: true });
+      // Ensure categories is always an array
+      const menuToSave = {
+        ...menuBuilder.selectedMenu,
+        categories: menuBuilder.selectedMenu.categories || [],
+      };
+      await updateMenu(menuBuilder.selectedMenu._id, menuToSave, { allowEmptyCategories: true });
       setSaveSuccess(true);
       fetchMenus();
       setTimeout(() => setSaveSuccess(false), 3000);
