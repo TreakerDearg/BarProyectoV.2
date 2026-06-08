@@ -72,7 +72,8 @@ function buildPayload(menu: any, allowEmptyCategories = false) {
     throw new Error("Nombre requerido");
   }
 
-  if (!Array.isArray(menu.categories) || menu.categories.length === 0) {
+  // Si allowEmptyCategories es false, requerir al menos una categoría
+  if (!allowEmptyCategories && (!Array.isArray(menu.categories) || menu.categories.length === 0)) {
     throw new Error("Debe tener al menos una categoría");
   }
 

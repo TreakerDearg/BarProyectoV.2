@@ -11,25 +11,31 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { menuTutorialSteps } from "./menuTutorialSteps";
+import { menuBuilderTutorialSteps, type MenuBuilderTutorialStep } from "./menuBuilderTutorialSteps";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  mode?: "general" | "builder";
+  initialStep?: number;
 }
 
 export default function MenuTutorial({
   isOpen,
   onClose,
   onComplete,
+  mode = "general",
+  initialStep = 0,
 }: Props) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(initialStep);
+
+  const steps = mode === "builder" ? menuBuilderTutorialSteps : menuTutorialSteps;
+  const step = steps[currentStep] as MenuBuilderTutorialStep;
+  const Icon = step.icon;
+  const isLast = currentStep === steps.length - 1;
 
   if (!isOpen) return null;
-
-  const step = menuTutorialSteps[currentStep];
-  const Icon = step.icon;
-  const isLast = currentStep === menuTutorialSteps.length - 1;
 
   const handleNext = () => {
     if (isLast) {
@@ -59,10 +65,10 @@ export default function MenuTutorial({
             </div>
             <div>
               <h2 className="text-lg font-bold text-ivory">
-                Tutorial · Cartas Estratégicas
+                Tutorial · {mode === "builder" ? "Modo Constructor" : "Cartas Estratégicas"}
               </h2>
               <p className="text-xs text-muted mt-0.5">
-                Guía para usar el sistema de menús
+                {mode === "builder" ? "Guía paso a paso del constructor" : "Guía para usar el sistema de menús"}
               </p>
             </div>
           </div>
@@ -80,7 +86,7 @@ export default function MenuTutorial({
           <div
             className="h-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-500"
             style={{
-              width: `${((currentStep + 1) / menuTutorialSteps.length) * 100}%`,
+              width: `${((currentStep + 1) / steps.length) * 100}%`,
             }}
           />
         </div>
@@ -92,7 +98,7 @@ export default function MenuTutorial({
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-violet-300/90 px-2 py-0.5 rounded-full bg-violet-500/15 border border-violet-400/20">
-                Paso {currentStep + 1} de {menuTutorialSteps.length}
+                Paso {currentStep + 1} de {steps.length}
               </span>
               <h3 className="text-xl font-bold text-ivory mt-2 mb-3">
                 {step.title}
@@ -153,7 +159,7 @@ export default function MenuTutorial({
           </button>
 
           <div className="flex items-center gap-1.5">
-            {menuTutorialSteps.map((_, i) => (
+            {steps.map((_, i) => (
               <button
                 key={i}
                 type="button"

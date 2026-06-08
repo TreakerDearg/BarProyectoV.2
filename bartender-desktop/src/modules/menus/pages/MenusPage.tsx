@@ -47,7 +47,6 @@ import { getProducts } from "../../products/services/productService";
 
 import { useMenuSocketEvents } from "../../../hooks/useSocket";
 import { useMenuTutorial } from "../hooks/useMenuTutorial";
-import { useMenuUiStore } from "../store/menuUiStore";
 import { useMenuBuilder } from "../hooks/useMenuBuilder";
 
 import type { Menu } from "../../../types/menu";
@@ -68,6 +67,8 @@ export default function MenusPage() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [mode, setMode] = useState<'simple' | 'advanced'>('simple');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
   // Advanced filters
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -86,9 +87,16 @@ export default function MenusPage() {
     openTutorial,
     closeTutorial,
     completeTutorial,
-  } = useMenuTutorial();
+  } = useMenuTutorial("general");
 
-  const { mode, setMode, view, toggleView } = useMenuUiStore();
+  const {
+    isOpen: builderTutorialOpen,
+    openTutorial: openBuilderTutorial,
+    closeTutorial: closeBuilderTutorial,
+    completeTutorial: completeBuilderTutorial,
+    currentStep: builderTutorialStep,
+    setCurrentStep: setBuilderTutorialStep,
+  } = useMenuTutorial("builder");
 
   const fetchMenus = useCallback(async () => {
     try {
@@ -201,6 +209,11 @@ export default function MenusPage() {
       await fetchMenus();
       menuBuilder.selectMenu(newMenu);
       setBuilderMode(true);
+      // Open builder tutorial if not completed
+      const builderPrefs = JSON.parse(localStorage.getItem("nebula_menu_builder_tutorial_v1") || "{}");
+      if (!builderPrefs.completed) {
+        openBuilderTutorial(0);
+      }
     } catch (err) {
       console.error("Error creating menu", err);
       alert("Error al crear el menú");
@@ -274,6 +287,10 @@ export default function MenusPage() {
     setSearch("");
   };
 
+  const toggleView = () => {
+    setView(prev => prev === 'grid' ? 'list' : 'grid');
+  };
+
   const hasActiveFilters = filterType !== "all" || filterActive !== "all" || filterPublic !== "all" || filterFeatured || search.trim();
 
   const handleSelectMenu = (menu: Menu) => {
@@ -304,6 +321,13 @@ export default function MenusPage() {
         isOpen={tutorialOpen}
         onClose={() => closeTutorial()}
         onComplete={completeTutorial}
+      />
+      <MenuTutorial
+        isOpen={builderTutorialOpen}
+        onClose={() => closeBuilderTutorial()}
+        onComplete={completeBuilderTutorial}
+        mode="builder"
+        initialStep={builderTutorialStep}
       />
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
@@ -582,7 +606,7 @@ export default function MenusPage() {
             {menuBuilder.selectedMenu ? (
               <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
                 {/* Panel Selector Tabs */}
-                <div className="flex gap-2 p-1 bg-surface-3 rounded-xl mb-4">
+                <div className="flex items-center gap-2 p-1 bg-surface-3 rounded-xl mb-4">
                   {[
                     { id: "identity" as const, label: "Identidad", icon: <Target size={14} /> },
                     { id: "config" as const, label: "Config", icon: <Settings size={14} /> },
@@ -592,7 +616,20 @@ export default function MenusPage() {
                   ].map((tab) => (
                     <button
                       key={tab.id}
-                      onClick={() => setBuilderPanel(tab.id)}
+                      onClick={() => {
+                        setBuilderPanel(tab.id);
+                        // Auto-navigate tutorial when switching panels
+                        const panelStepMap: Record<string, number> = {
+                          identity: 2,
+                          config: 6,
+                          categories: 10,
+                          products: 10,
+                          preview: 12,
+                        };
+                        if (builderTutorialOpen) {
+                          setBuilderTutorialStep(panelStepMap[tab.id] || 0);
+                        }
+                      }}
                       className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-semibold transition-all ${
                         builderPanel === tab.id
                           ? "bg-violet-500/20 text-violet-300"
@@ -603,6 +640,13 @@ export default function MenusPage() {
                       <span>{tab.label}</span>
                     </button>
                   ))}
+                  <button
+                    onClick={() => openBuilderTutorial(0)}
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-semibold transition-all text-muted hover:text-ivory hover:bg-white/5"
+                    title="Tutorial del constructor"
+                  >
+                    <HelpCircle size={14} />
+                  </button>
                 </div>
 
                 {/* Panel Content */}
@@ -744,7 +788,15 @@ export default function MenusPage() {
                     )}
                     <MenuCard
                       menu={menu}
-                      onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
+                      onEdit={() => { 
+                        menuBuilder.selectMenu(menu); 
+                        setBuilderMode(true);
+                        // Open builder tutorial if not completed
+                        const builderPrefs = JSON.parse(localStorage.getItem("nebula_menu_builder_tutorial_v1") || "{}");
+                        if (!builderPrefs.completed) {
+                          openBuilderTutorial(0);
+                        }
+                      }}
                       onDelete={() => handleDelete(menuId)}
                       simplified={mode === 'simple'}
                     />
