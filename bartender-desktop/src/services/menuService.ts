@@ -34,8 +34,11 @@ export const getMenuById = async (id: string): Promise<Menu> => {
 /* =========================
    CREATE
 ========================= */
-export const createMenu = async (menu: any): Promise<Menu> => {
-  const payload = buildPayload(menu);
+export const createMenu = async (
+  menu: any,
+  options?: { allowEmptyCategories?: boolean }
+): Promise<Menu> => {
+  const payload = buildPayload(menu, options?.allowEmptyCategories);
 
   const res = await api.post("/menus", payload);
   return unwrap<Menu>(res);

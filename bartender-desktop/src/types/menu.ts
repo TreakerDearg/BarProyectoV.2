@@ -25,6 +25,8 @@ export interface MenuProduct {
 export interface MenuCategory {
   name: string;
   description?: string;
+  image?: string;
+  imagePublicId?: string;
 
   order?: number;
 
@@ -50,14 +52,104 @@ export interface Menu {
   /* STATUS */
   active: boolean;
   isPublic?: boolean;
+  featured?: boolean;
 
   /* UI */
   image?: string;
+  imagePublicId?: string;
   color?: string;
+
+  /* SEO */
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+
+  /* AVAILABILITY */
+  availableHours?: {
+    start: string;
+    end: string;
+  };
+  availableDays?: string[];
+
+  /* PROMOTION */
+  promotedUntil?: string;
+
+  /* PRICING */
+  minPrice?: number;
+  maxPrice?: number;
+
+  /* GALLERY */
+  gallery?: Array<{
+    url: string;
+    publicId: string;
+    order: number;
+  }>;
+
+  /* TAGS */
+  tags?: string[];
 
   /* FUTURE */
   schedule?: object;
 
   createdAt?: string;
   updatedAt?: string;
+}
+
+/* =========================
+   MENU PUBLIC (SIMPLIFICADO)
+========================= */
+export interface MenuPublic {
+  _id: string;
+  name: string;
+  description?: string;
+  slug: string;
+  type?: "drink" | "food" | "mixed";
+  image?: string;
+  color?: string;
+  featured?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string[];
+  categories: MenuCategory[];
+}
+
+/* =========================
+   MENU CARD PUBLIC (PARA LISTAS)
+========================= */
+export interface MenuCardPublic {
+  _id: string;
+  name: string;
+  description?: string;
+  slug: string;
+  type?: "drink" | "food" | "mixed";
+  image?: string;
+  featured?: boolean;
+  isPublic?: boolean;
+  totalProducts?: number;
+  totalCategories?: number;
+}
+
+/* =========================
+   MENU FILTER
+========================= */
+export interface MenuFilter {
+  type?: "drink" | "food" | "mixed";
+  featured?: boolean;
+  tags?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  hideUnavailable?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+/* =========================
+   MENU ANALYTICS
+========================= */
+export interface MenuAnalytics {
+  menuId: string;
+  views: number;
+  clicks: number;
+  conversions: number;
+  lastViewed?: string;
 }

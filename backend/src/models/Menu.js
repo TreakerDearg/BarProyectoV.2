@@ -171,6 +171,10 @@ const menuSchema = new mongoose.Schema(
    INDEXES
 ============================== */
 menuSchema.index({ active: 1, type: 1 });
+menuSchema.index({ isPublic: 1, active: 1 });
+menuSchema.index({ featured: 1, active: 1 });
+menuSchema.index({ tags: 1 });
+menuSchema.index({ slug: 1 });
 
 /* ==============================
    HELPERS
@@ -188,6 +192,11 @@ menuSchema.pre("save", async function () {
   // slug automático
   if (!this.slug) {
     this.slug = generateSlug(this.name);
+  }
+
+  // metaTitle por defecto
+  if (!this.metaTitle && this.name) {
+    this.metaTitle = this.name;
   }
 
   // ordenar categorías
@@ -218,6 +227,23 @@ menuSchema.pre("save", async function () {
   this.categories = this.categories.filter(
     (c) => c.products.length > 0
   );
+
+  // Calcular precios min/max
+  if (this.categories && this.categories.length > 0) {
+    const allPrices = this.categories.flatMap(cat =>
+      cat.products
+        .filter(p => p.price !== null && p.price !== undefined)
+        .map(p => p.price)
+    );
+
+    if (allPrices.length > 0) {
+      this.minPrice = Math.min(...allPrices);
+      this.maxPrice = Math.max(...allPrices);
+    } else {
+      this.minPrice = 0;
+      this.maxPrice = 0;
+    }
+  }
 
   // Calcular drinkStyle basado en productos (solo para menus de bebidas o mixtos)
   if (this.type === "drink" || this.type === "mixed") {

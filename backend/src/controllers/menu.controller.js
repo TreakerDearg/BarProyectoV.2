@@ -136,18 +136,36 @@ const checkAvailability = (recipe, inventoryMap) => {
 ========================================================= */
 export const getMenus = async (req, res, next) => {
   try {
-    const { type, active, drinkStyle } = req.query;
+    const { type, active, drinkStyle, featured, tags, page = 1, limit = 20 } = req.query;
 
     const filter = {};
     if (type) filter.type = type;
     if (active !== undefined) filter.active = active === "true";
     if (drinkStyle) filter.drinkStyle = drinkStyle;
+    if (featured !== undefined) filter.featured = featured === "true";
+    if (tags) filter.tags = { $in: Array.isArray(tags) ? tags : [tags] };
 
-    const menus = await populateMenu(
-      Menu.find(filter).sort({ createdAt: -1 })
-    ).lean();
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    return ok(res, menus);
+    const [menus, total] = await Promise.all([
+      populateMenu(
+        Menu.find(filter)
+          .sort({ featured: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+      ).lean(),
+      Menu.countDocuments(filter)
+    ]);
+
+    return ok(res, {
+      data: menus,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     throw error;
   }
@@ -280,16 +298,28 @@ export const deleteMenu = async (req, res, next) => {
 };
 
 /* =========================================================
-   PUBLIC MENU (OPTIMIZADO PRO)
+   GET PUBLIC MENU (OPTIMIZADO PRO)
 ========================================================= */
 export const getPublicMenu = async (req, res, next) => {
   try {
-    const { type, hideUnavailable = "false" } = req.query;
+    const { type, hideUnavailable = "false", featured, tags, page = 1, limit = 20 } = req.query;
 
     const filter = { active: true, isPublic: true };
     if (type) filter.type = type;
+    if (featured !== undefined) filter.featured = featured === "true";
+    if (tags) filter.tags = { $in: Array.isArray(tags) ? tags : [tags] };
 
-    const menus = await populateMenu(Menu.find(filter));
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [menus, total] = await Promise.all([
+      populateMenu(
+        Menu.find(filter)
+          .sort({ featured: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+      ),
+      Menu.countDocuments(filter)
+    ]);
 
     const productIds = menus.flatMap((m) =>
       m.categories.flatMap((c) =>
@@ -352,7 +382,15 @@ export const getPublicMenu = async (req, res, next) => {
       return m;
     });
 
-    return ok(res, result);
+    return ok(res, {
+      data: result,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     throw error;
   }
@@ -376,6 +414,99 @@ export const getMenuById = async (req, res, next) => {
     }
 
     return ok(res, menu);
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* =========================================================
+   GET MENU BY SLUG (PUBLIC)
+========================================================= */
+export const getMenuBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return badRequest(res, "Slug es requerido");
+    }
+
+    const menu = await populateMenu(
+      Menu.findOne({ slug, active: true, isPublic: true })
+    ).lean();
+
+    if (!menu) {
+      return notFound(res, "Menú no encontrado");
+    }
+
+    return ok(res, menu);
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* =========================================================
+   GET FEATURED MENUS
+========================================================= */
+export const getFeaturedMenus = async (req, res, next) => {
+  try {
+    const { limit = 6 } = req.query;
+
+    const menus = await populateMenu(
+      Menu.find({ active: true, isPublic: true, featured: true })
+        .sort({ featured: -1, createdAt: -1 })
+        .limit(parseInt(limit))
+    ).lean();
+
+    return ok(res, menus);
+  } catch (error) {
+    throw error;
+  }
+};
+
+/* =========================================================
+   SEARCH MENUS
+========================================================= */
+export const searchMenus = async (req, res, next) => {
+  try {
+    const { q, type, page = 1, limit = 20 } = req.query;
+
+    if (!q) {
+      return badRequest(res, "Query es requerido");
+    }
+
+    const filter = {
+      active: true,
+      isPublic: true,
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $regex: q, $options: 'i' } },
+      ]
+    };
+
+    if (type) filter.type = type;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [menus, total] = await Promise.all([
+      populateMenu(
+        Menu.find(filter)
+          .sort({ featured: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+      ).lean(),
+      Menu.countDocuments(filter)
+    ]);
+
+    return ok(res, {
+      data: menus,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
   } catch (error) {
     throw error;
   }

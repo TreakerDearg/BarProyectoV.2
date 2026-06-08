@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  getMenus, getMenuById, getPublicMenu,
+  getMenus, getMenuById, getPublicMenu, getMenuBySlug, getFeaturedMenus, searchMenus,
   createMenu, updateMenu, deleteMenu
 } from "../controllers/menu.controller.js";
 import { validate } from "../middlewares/validate.js";
@@ -15,6 +15,9 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
    PUBLIC
 ========================================================= */
 router.get("/public", getPublicMenu);
+router.get("/public/featured", getFeaturedMenus);
+router.get("/public/search", searchMenus);
+router.get("/public/slug/:slug", getMenuBySlug);
 
 /* =========================================================
    ADMIN

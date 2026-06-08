@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText } from "lucide-react";
+import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -24,6 +24,21 @@ export default function MenuBuilderCard({
 }: Props) {
   const totalProducts = menu.categories?.reduce((sum, cat) => sum + cat.products.length, 0) || 0;
   const totalCategories = menu.categories?.length || 0;
+  const isPublic = menu.isPublic;
+  const featured = menu.featured;
+
+  // Get type icon
+  const getTypeIcon = () => {
+    switch (menu.type) {
+      case 'drink':
+        return <Martini size={10} className="text-cyan-400" />;
+      case 'food':
+        return <Utensils size={10} className="text-gold" />;
+      case 'mixed':
+      default:
+        return <Layers size={10} className="text-violet-400" />;
+    }
+  };
 
   return (
     <div
@@ -41,19 +56,38 @@ export default function MenuBuilderCard({
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            {menu.active && (
-              <div className="p-1 rounded-full bg-emerald/10">
-                <CheckCircle size={10} className="text-emerald-400" />
+          <div className="flex items-center gap-2 mb-1">
+            {menu.image && (
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0">
+                <img src={menu.image} alt={menu.name} className="w-full h-full object-cover" />
               </div>
             )}
-            <h3 className="text-sm font-black text-ivory tracking-tight uppercase truncate">
-              {menu.name}
-            </h3>
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <h3 className="text-sm font-black text-ivory tracking-tight uppercase truncate">
+                {menu.name}
+              </h3>
+              <div className="flex items-center gap-1">
+                {menu.active && (
+                  <CheckCircle size={10} className="text-emerald-400 flex-shrink-0" />
+                )}
+                {isPublic && (
+                  <Eye size={10} className="text-cyan-400 flex-shrink-0" />
+                )}
+                {featured && (
+                  <Star size={10} className="text-gold-400 flex-shrink-0" />
+                )}
+              </div>
+            </div>
           </div>
-          {menu.description && (
-            <p className="text-[10px] text-muted/70 mt-1 line-clamp-2">{menu.description}</p>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[8px] font-semibold uppercase tracking-wider">
+              {getTypeIcon()}
+              <span>{menu.type || 'mixed'}</span>
+            </div>
+            {menu.description && (
+              <p className="text-[10px] text-muted/70 line-clamp-1">{menu.description}</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -80,24 +114,24 @@ export default function MenuBuilderCard({
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 pt-2 border-t border-white/5">
+      <div className="flex items-center gap-3 pt-2 border-t border-white/5 flex-wrap">
         <div className="flex items-center gap-1.5">
           <Layers size={10} className="text-rose-400" />
           <span className="text-[10px] font-semibold text-muted">
-            {totalCategories} categorías
+            {totalCategories} cat
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <FileText size={10} className="text-violet-400" />
           <span className="text-[10px] font-semibold text-muted">
-            {totalProducts} productos
+            {totalProducts} prod
           </span>
         </div>
         {recipesCount > 0 && (
           <div className="flex items-center gap-1.5">
             <FileText size={10} className="text-emerald-400" />
             <span className="text-[10px] font-semibold text-muted">
-              {recipesCount} recetas
+              {recipesCount} rec
             </span>
           </div>
         )}
