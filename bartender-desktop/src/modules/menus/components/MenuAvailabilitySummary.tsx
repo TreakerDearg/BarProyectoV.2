@@ -49,7 +49,7 @@ export default function MenuAvailabilitySummary({ menu }: Props) {
             </span>
           </div>
           <p className={`text-2xl font-black text-${statusColor}-400`}>
-            {availabilityPercentage.toFixed(0)}%
+            {(availabilityPercentage ?? 0).toFixed(0)}%
           </p>
           <p className="text-[10px] text-muted mt-1">
             {availableProducts} de {totalProducts} productos
@@ -64,7 +64,7 @@ export default function MenuAvailabilitySummary({ menu }: Props) {
             </span>
           </div>
           <p className="text-2xl font-black text-violet-400">
-            {recipePercentage.toFixed(0)}%
+            {(recipePercentage ?? 0).toFixed(0)}%
           </p>
           <p className="text-[10px] text-muted mt-1">
             {productsWithRecipe} de {totalProducts} productos

@@ -3,7 +3,6 @@ import { pricingService } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
 import { Activity, TrendingUp, TrendingDown, Target, Zap, ChevronRight, AlertTriangle, Flame } from "lucide-react";
-import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
 import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaDynamicPricingPage() {
@@ -60,11 +59,6 @@ export default function NebulaDynamicPricingPage() {
   return (
     <div className="discounts-root">
       <div className="discounts-shell discounts-page-frame relative overflow-hidden animate-fade-in">
-      <DiscountsSuiteHeader
-        title="Precios por Demanda"
-        subtitle="Control algorítmico de multiplicadores"
-        onOpenTutorial={() => setTutorialOpen(true)}
-      />
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[150px] -z-10 pointer-events-none transition-colors duration-1000 ${themeBg} opacity-10`} />
 
@@ -225,7 +219,7 @@ export default function NebulaDynamicPricingPage() {
             <div className="mt-4 pt-4 border-t border-white/10">
               <div className="p-3 bg-white/5 rounded-xl">
                 <p className="text-[10px] text-muted font-black uppercase tracking-widest">Productos afectados</p>
-                <p className="text-2xl font-bold text-white">{products.length}</p>
+                <p className="text-2xl font-bold text-white">{topProducts.length}</p>
               </div>
             </div>
           </div>

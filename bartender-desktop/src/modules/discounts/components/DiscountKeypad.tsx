@@ -51,7 +51,7 @@ export default function NebulaDiscountKeypad({
           className={`
             p-3 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-2 border
             ${type === "PERCENT"
-              ? "bg-[#00E5FF] text-black border-[#00E5FF]"
+              ? "bg-cyan text-black border-cyan"
               : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10"}
           `}
         >
@@ -64,7 +64,7 @@ export default function NebulaDiscountKeypad({
           className={`
             p-3 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-2 border
             ${type === "FLAT"
-              ? "bg-[#00E5FF] text-black border-[#00E5FF]"
+              ? "bg-cyan text-black border-cyan"
               : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10"}
           `}
         >
@@ -82,7 +82,7 @@ export default function NebulaDiscountKeypad({
           </p>
           <button 
             onClick={() => appendNumber("0")}
-            className="text-xs text-[#00E5FF] hover:text-[#00E5FF]/80 font-medium flex items-center gap-1"
+            className="text-xs text-cyan hover:text-cyan/80 font-medium flex items-center gap-1"
           >
             <RotateCcw size={12} />
             Reiniciar
@@ -121,10 +121,10 @@ export default function NebulaDiscountKeypad({
           )}
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-4xl font-bold text-[#00E5FF]">
+          <span className="text-4xl font-bold text-cyan">
             {valueInput || "0"}
           </span>
-          <span className="text-2xl font-bold text-[#00E5FF]">
+          <span className="text-2xl font-bold text-cyan">
             {type === "PERCENT" ? "%" : "$"}
           </span>
         </div>
@@ -144,7 +144,7 @@ export default function NebulaDiscountKeypad({
         background: 'rgba(255, 209, 102, 0.1)',
         borderColor: 'rgba(255, 209, 102, 0.2)'
       }}>
-        <p className="text-[10px] text-[#FFD166] font-medium">
+        <p className="text-[10px] text-gold font-medium">
           💡 {type === "PERCENT" 
             ? "El porcentaje se aplicará sobre el total de los items seleccionados" 
             : "Este monto se restará directamente del total"}
@@ -163,7 +163,7 @@ export default function NebulaDiscountKeypad({
         ))}
         <button
           onClick={removeLast}
-          className="h-16 bg-[#FF4D6D]/20 hover:bg-[#FF4D6D]/30 text-[#FF4D6D] rounded-xl flex items-center justify-center transition-all active:scale-95 border border-[#FF4D6D]/30 touch-manipulation"
+          className="h-16 bg-rose/20 hover:bg-rose/30 text-rose rounded-xl flex items-center justify-center transition-all active:scale-95 border border-rose/30 touch-manipulation"
         >
           <Delete size={20} />
         </button>

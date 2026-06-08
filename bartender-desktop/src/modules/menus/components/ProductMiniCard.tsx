@@ -35,7 +35,7 @@ export default function ProductMiniCard({ product, onAdd, isAdded = false }: Pro
           <p className="text-xs font-bold text-ivory/90 truncate">{product.name}</p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-[10px] font-semibold text-gold">
-              ${product.price?.toFixed(2) || "0.00"}
+              $${(product.price ?? 0).toFixed(2)}
             </span>
             {product.available ? (
               <CheckCircle size={10} className="text-emerald-400" />

@@ -3,7 +3,6 @@ import { pricingService, type Promotion } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
 import { Plus, Minus, Trash2, Calendar, Clock, Tag, Loader2, Sparkles, Power, PackageSearch, Search } from "lucide-react";
-import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
 import TourGuide from "../components/TourGuide";
 import type { TourStep } from "../components/TourGuide";
 
@@ -182,11 +181,6 @@ export default function NebulaPromotionsPage() {
   return (
     <div className="nebula-discounts-root">
       <div className="nebula-discounts-shell nebula-discounts-page-frame relative overflow-hidden">
-      <DiscountsSuiteHeader
-        title="Promociones Programadas"
-        subtitle="Promociones programadas por horario y producto"
-        onOpenTutorial={() => setTourOpen(true)}
-      />
       {/* ATMOSPHERIC GLOW */}
       <div className="nebula-discounts-aurora" />
 

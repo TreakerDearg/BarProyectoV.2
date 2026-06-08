@@ -29,10 +29,12 @@ import MenuIdentityEditor from "../components/MenuIdentityEditor";
 import MenuConfigPanel from "../components/MenuConfigPanel";
 import ProductFilterSelector from "../components/ProductFilterSelector";
 import MenuRealtimePreview from "../components/MenuRealtimePreview";
+import MenuTemplates from "../components/MenuTemplates";
 
 import {
   getMenus,
   deleteMenu,
+  createMenu,
 } from "../../../services/menuService";
 
 import { getRecipes } from "../../recipes/services/recipeService";
@@ -58,6 +60,7 @@ export default function MenusPage() {
   const [search, setSearch] = useState("");
   const [builderMode, setBuilderMode] = useState(false);
   const [builderPanel, setBuilderPanel] = useState<"identity" | "config" | "categories" | "products" | "preview">("categories");
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const menuBuilder = useMenuBuilder();
 
@@ -134,10 +137,32 @@ export default function MenusPage() {
     const total = menus.length;
     const active = menus.filter((m) => m.active).length;
     const products = menus.reduce((acc, m) => acc + (m.categories?.reduce((a, c) => a + (c.products?.length || 0), 0) || 0), 0);
-    const avgProducts = total > 0 ? (products / total).toFixed(1) : 0;
+    const avgProducts = total > 0 ? (products / total).toFixed(1) : "0";
 
     return { total, active, products, avgProducts };
   }, [menus]);
+
+  const handleCreateNewMenu = async () => {
+    try {
+      const newMenu = await createMenu({
+        name: "Nueva Carta",
+        description: "",
+        type: "mixed",
+        active: true,
+        categories: [
+          {
+            name: "General",
+            products: []
+          }
+        ]
+      });
+      await fetchMenus();
+      menuBuilder.selectMenu(newMenu);
+      setBuilderMode(true);
+    } catch (err) {
+      console.error("Error creating menu", err);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Desvincular este menú de la red?")) return;
@@ -258,7 +283,7 @@ export default function MenusPage() {
           </button>
 
           <button
-            onClick={() => { menuBuilder.selectMenu(null); setBuilderMode(true); }}
+            onClick={() => setShowTemplates(true)}
             className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
           >
             <Plus size={18} />
@@ -284,46 +309,72 @@ export default function MenusPage() {
         <MenuAdvancedPanel menus={menus} />
       )}
 
+      {/* TEMPLATES MODAL */}
+      {showTemplates && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <MenuTemplates
+            onMenuCreated={(menu) => {
+              setShowTemplates(false);
+              menuBuilder.selectMenu(menu);
+              setBuilderMode(true);
+              fetchMenus();
+            }}
+            onCancel={() => setShowTemplates(false)}
+          />
+        </div>
+      )}
+
       {/* MAIN GRID - BUILDER MODE */}
       {builderMode ? (
-        <div className="flex-1 overflow-hidden min-h-0 grid grid-cols-12 gap-4">
-          {/* LEFT PANEL - MENU LIST */}
-          <div className="col-span-3 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="space-y-2">
-              {loading ? (
-                <div className="flex items-center justify-center py-10">
-                  <div className="w-8 h-8 rounded-xl border-2 border-rose-400/30 border-t-rose-300 animate-spin" />
+        <div className="flex-1 overflow-hidden min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+          {/* LEFT PANEL - MENU LIST (3 columnas) */}
+          <div className="lg:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+                <div className="p-2 bg-rose/10 rounded-xl">
+                  <Layers size={18} className="text-rose-400" />
                 </div>
-              ) : filteredMenus.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <LayoutDashboard size={32} className="text-rose-300/40 mb-2" />
-                  <p className="text-muted text-xs">No se encontraron cartas</p>
-                </div>
-              ) : (
-                filteredMenus.map((menu) => (
-                  <MenuBuilderCard
-                    key={menu._id}
-                    menu={menu}
-                    selected={menuBuilder.selectedMenu?._id === menu._id}
-                    onSelect={handleSelectMenu}
-                    onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
-                    onDelete={handleDelete}
-                    recipesCount={(() => {
-                      const menuProductIds = new Set(menu.categories?.flatMap(c => c.products.map(p => getProductId(p.product))) || []);
-                      return recipes.filter(r => r.product && menuProductIds.has(r.product._id)).length;
-                    })()}
-                  />
-                ))
-              )}
+                <h3 className="text-sm font-bold text-white">Cartas</h3>
+                <span className="text-xs font-semibold text-rose bg-rose/10 px-2 py-1 rounded-full ml-auto">
+                  {filteredMenus.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {loading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="w-8 h-8 rounded-xl border-2 border-rose-400/30 border-t-rose-300 animate-spin" />
+                  </div>
+                ) : filteredMenus.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <LayoutDashboard size={32} className="text-rose-300/40 mb-2" />
+                    <p className="text-muted text-xs">No se encontraron cartas</p>
+                  </div>
+                ) : (
+                  filteredMenus.map((menu) => (
+                    <MenuBuilderCard
+                      key={menu._id}
+                      menu={menu}
+                      selected={menuBuilder.selectedMenu?._id === menu._id}
+                      onSelect={handleSelectMenu}
+                      onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
+                      onDelete={handleDelete}
+                      recipesCount={(() => {
+                        const menuProductIds = new Set(menu.categories?.flatMap(c => c.products.map(p => getProductId(p.product))) || []);
+                        return recipes.filter(r => r.product && menuProductIds.has(r.product._id)).length;
+                      })()}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          {/* MIDDLE PANEL - MENU BUILDER */}
-          <div className="col-span-5 overflow-y-auto pr-2 custom-scrollbar">
+          {/* MIDDLE PANEL - MENU BUILDER (6 columnas) */}
+          <div className="lg:col-span-6 overflow-y-auto pr-2 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
-              <div className="space-y-4">
+              <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
                 {/* Panel Selector Tabs */}
-                <div className="flex gap-2 p-1 bg-surface-3 rounded-xl">
+                <div className="flex gap-2 p-1 bg-surface-3 rounded-xl mb-4">
                   {[
                     { id: "identity" as const, label: "Identidad", icon: <Target size={14} /> },
                     { id: "config" as const, label: "Config", icon: <Settings size={14} /> },
@@ -369,7 +420,7 @@ export default function MenusPage() {
 
                 {builderPanel === "categories" && (
                   <>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-black text-ivory uppercase tracking-widest">
                         Categorías
                       </h3>
@@ -390,6 +441,7 @@ export default function MenusPage() {
                         onToggle={() => menuBuilder.toggleCategoryExpansion(category.name)}
                         onAddProduct={() => menuBuilder.selectCategory(category.name)}
                         onRemoveProduct={(productId) => handleRemoveProduct(category.name, productId)}
+                        onDeleteCategory={() => menuBuilder.deleteCategory(category.name)}
                       />
                     ))}
                   </>
@@ -408,22 +460,22 @@ export default function MenusPage() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center py-10">
+              <div className="nebula-discounts-panel p-4 rounded-3xl h-full flex flex-col items-center justify-center text-center">
                 <LayoutDashboard size={48} className="text-rose-300/40 mb-4" />
                 <p className="text-muted text-sm">Selecciona una carta para editar</p>
               </div>
             )}
           </div>
 
-          {/* RIGHT PANEL - PREVIEW & SUMMARY */}
-          <div className="col-span-4 overflow-y-auto pr-2 custom-scrollbar">
+          {/* RIGHT PANEL - PREVIEW & SUMMARY (3 columnas) */}
+          <div className="lg:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
               <div className="space-y-4">
                 <MenuAvailabilitySummary menu={menuBuilder.selectedMenu} />
                 <MenuPreview menu={menuBuilder.selectedMenu} />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center py-10">
+              <div className="nebula-discounts-panel p-4 rounded-3xl h-full flex flex-col items-center justify-center text-center">
                 <Eye size={48} className="text-rose-300/40 mb-4" />
                 <p className="text-muted text-sm">Selecciona una carta para ver el resumen</p>
               </div>

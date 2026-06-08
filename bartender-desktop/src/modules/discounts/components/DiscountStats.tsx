@@ -18,8 +18,8 @@ export default function NebulaDiscountStats({ data, loading }: Props) {
         border: '1px solid rgba(255, 255, 255, 0.08)'
       }}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 255, 149, 0.15)', border: '1px solid rgba(0, 255, 149, 0.3)' }}>
-            <TrendingUp size={24} className="text-[#00FF95]" />
+          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+            <TrendingUp size={24} className="text-emerald" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
@@ -45,8 +45,8 @@ export default function NebulaDiscountStats({ data, loading }: Props) {
         border: '1px solid rgba(255, 255, 255, 0.08)'
       }}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(255, 209, 102, 0.15)', border: '1px solid rgba(255, 209, 102, 0.3)' }}>
-            <Activity size={24} className="text-[#FFD166]" />
+          <div className="p-2.5 rounded-lg bg-gold/10 border border-gold/30">
+            <Activity size={24} className="text-gold" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">
@@ -72,8 +72,8 @@ export default function NebulaDiscountStats({ data, loading }: Props) {
         border: '1px solid rgba(255, 255, 255, 0.08)'
       }}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(0, 229, 255, 0.15)', border: '1px solid rgba(0, 229, 255, 0.3)' }}>
-            <PiggyBank size={24} className="text-[#00E5FF]" />
+          <div className="p-2.5 rounded-lg" style={{ background: 'rgba(6, 182, 212, 0.15)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+            <PiggyBank size={24} className="text-cyan" />
           </div>
           <div className="flex-1">
             <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-0.5">

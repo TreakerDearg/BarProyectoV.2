@@ -102,7 +102,7 @@ export default function MenuPreview({ menu }: Props) {
                         {getProductDisplayName(product.product)}
                       </span>
                       <span className="text-[10px] font-semibold text-gold">
-                        ${product.price?.toFixed(2) || "0.00"}
+                        $${(product.price ?? 0).toFixed(2) || "0.00"}
                       </span>
                     </div>
                   ))}

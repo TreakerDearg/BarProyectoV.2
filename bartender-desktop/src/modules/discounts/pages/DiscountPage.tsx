@@ -7,7 +7,6 @@ import DiscountStats from "../components/DiscountStats";
 
 import { useDiscount } from "../hooks/useDiscount";
 import { discountService } from "../services/discountService";
-import DiscountsSuiteHeader from "../components/DiscountsSuiteHeader";
 import TourGuide from "../components/TourGuide";
 import type { TourStep } from "../components/TourGuide";
 
@@ -274,23 +273,16 @@ export default function NebulaDiscountPage() {
   return (
     <div className="nebula-discounts-root">
       <div className="nebula-discounts-shell nebula-discounts-page-frame">
-      <div>
-        <DiscountsSuiteHeader
-          title="Sistema Nebula de Descuentos"
-          subtitle="Operación asistida para caja y salón"
-          onOpenTutorial={() => setTourOpen(true)}
-        />
-      </div>
       <div className="nebula-discounts-aurora" />
       <div className="nebula-discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-[#00E5FF]">Flujo de descuentos en vivo</p>
+        <p className="text-xs font-bold tracking-wider uppercase text-cyan">Flujo de descuentos en vivo</p>
         <p className="text-xs text-white/50">Selecciona pedido, calcula y aplica</p>
       </div>
       {/* ENCABEZADO AMIGABLE NEBULA */}
       <div className="nebula-discounts-panel p-3 md:p-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl shadow-lg" style={{ background: 'linear-gradient(135deg, #00E5FF, #9D4EDD)' }}>
+            <div className="p-3 rounded-2xl shadow-lg bg-gradient-to-br from-cyan to-violet">
               <Sparkles className="text-black" size={24} />
             </div>
             <div>
@@ -308,20 +300,20 @@ export default function NebulaDiscountPage() {
             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10" data-tour="mode-toggle">
               <button
                 onClick={() => setMode("simple")}
-                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "simple" ? "bg-[#00E5FF] text-black" : "text-white/50 hover:text-white"}`}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "simple" ? "bg-cyan text-black" : "text-white/50 hover:text-white"}`}
               >
                 Simple
               </button>
               <button
                 onClick={() => setMode("advanced")}
-                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "advanced" ? "bg-[#00E5FF] text-black" : "text-white/50 hover:text-white"}`}
+                className={`px-3 py-1.5 text-xs rounded-lg font-semibold ${mode === "advanced" ? "bg-cyan text-black" : "text-white/50 hover:text-white"}`}
               >
                 Avanzado
               </button>
             </div>
             <button
               onClick={() => aplicarDescuentoRapido(10)}
-              className="px-3 py-2 bg-[#00E5FF]/10 hover:bg-[#00E5FF]/20 text-[#00E5FF] rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-[#00E5FF]/20"
+              className="px-3 py-2 bg-cyan/10 hover:bg-cyan/20 text-cyan rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-cyan/20"
               disabled={!selectedOrder}
             >
               <Zap size={14} />
@@ -329,7 +321,7 @@ export default function NebulaDiscountPage() {
             </button>
             <button
               onClick={() => aplicarDescuentoRapido(15)}
-              className="px-3 py-2 bg-[#9D4EDD]/10 hover:bg-[#9D4EDD]/20 text-[#9D4EDD] rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-[#9D4EDD]/20"
+              className="px-3 py-2 bg-violet/10 hover:bg-violet/20 text-violet rounded-xl text-xs font-semibold transition-all flex items-center gap-2 border border-violet/20"
               disabled={!selectedOrder}
             >
               <Zap size={14} />
@@ -352,13 +344,13 @@ export default function NebulaDiscountPage() {
           }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <TrendingDown size={16} className="text-[#FFD166]" />
+                <TrendingDown size={16} className="text-gold" />
                 <span className="text-xs font-bold text-white uppercase tracking-wider">Límite Diario Restante</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/50">Monto:</span>
-                <span className={`text-sm font-bold ${dailyLimit.remainingAmount < 100 ? 'text-[#FF4D6D]' : dailyLimit.remainingAmount < 300 ? 'text-[#FFD166]' : 'text-[#00FF95]'}`}>
-                  ${dailyLimit.remainingAmount.toFixed(2)}
+                <span className={`text-sm font-bold ${(dailyLimit?.remainingAmount ?? 0) < 100 ? 'text-rose' : (dailyLimit?.remainingAmount ?? 0) < 300 ? 'text-gold' : 'text-emerald'}`}>
+                  ${(dailyLimit?.remainingAmount ?? 0).toFixed(2)}
                 </span>
                 <span className="text-xs text-white/50">/ ${dailyLimit.maxAmount}</span>
               </div>
@@ -366,21 +358,21 @@ export default function NebulaDiscountPage() {
             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  dailyLimit.remainingAmount < 100
-                    ? 'bg-[#FF4D6D]'
-                    : dailyLimit.remainingAmount < 300
-                    ? 'bg-[#FFD166]'
-                    : 'bg-[#00FF95]'
+                  (dailyLimit?.remainingAmount ?? 0) < 100
+                    ? 'bg-rose'
+                    : (dailyLimit?.remainingAmount ?? 0) < 300
+                    ? 'bg-gold'
+                    : 'bg-emerald'
                 }`}
-                style={{ width: `${(dailyLimit.remainingAmount / dailyLimit.maxAmount) * 100}%` }}
+                style={{ width: `${((dailyLimit?.remainingAmount ?? 0) / (dailyLimit?.maxAmount ?? 1)) * 100}%` }}
               />
             </div>
             <div className="flex items-center justify-between mt-2">
               <span className="text-[10px] text-white/40">
-                {dailyLimit.remainingCount} descuentos restantes de {dailyLimit.maxCount}
+                {dailyLimit?.remainingCount ?? 0} descuentos restantes de {dailyLimit?.maxCount ?? 0}
               </span>
-              {dailyLimit.remainingAmount < 100 && (
-                <div className="flex items-center gap-1 text-[10px] text-[#FF4D6D]">
+              {(dailyLimit?.remainingAmount ?? 0) < 100 && (
+                <div className="flex items-center gap-1 text-[10px] text-rose">
                   <AlertTriangle size={12} />
                   <span className="font-bold">Límite crítico</span>
                 </div>
@@ -397,7 +389,7 @@ export default function NebulaDiscountPage() {
                 onClick={() => selectedOrder && setPasoActual(1)}
                 className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 1 
-                    ? "bg-[#00E5FF] text-black shadow-lg" 
+                    ? "bg-cyan text-black shadow-lg" 
                     : "bg-white/5 text-white/50"
                 }`}
               >
@@ -407,13 +399,13 @@ export default function NebulaDiscountPage() {
                 <span className="text-xs font-semibold hidden sm:block">Seleccionar</span>
               </div>
               
-              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 2 ? "bg-[#00E5FF]" : "bg-white/10"}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 2 ? "bg-cyan" : "bg-white/10"}`} />
               
               <div 
                 onClick={() => items.some(i => i.selected) && setPasoActual(2)}
                 className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 2 
-                    ? "bg-[#00E5FF] text-black shadow-lg" 
+                    ? "bg-cyan text-black shadow-lg" 
                     : "bg-white/5 text-white/50"
                 } ${!items.some(i => i.selected) && "opacity-50 cursor-not-allowed"}`}
               >
@@ -423,12 +415,12 @@ export default function NebulaDiscountPage() {
                 <span className="text-xs font-semibold hidden sm:block">Calcular</span>
               </div>
               
-              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 3 ? "bg-[#00E5FF]" : "bg-white/10"}`} />
+              <div className={`flex-1 h-1 rounded-full transition-all ${pasoActual >= 3 ? "bg-cyan" : "bg-white/10"}`} />
               
               <div 
                 className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all cursor-pointer ${
                   pasoActual >= 3 
-                    ? "bg-[#00E5FF] text-black shadow-lg" 
+                    ? "bg-cyan text-black shadow-lg" 
                     : "bg-white/5 text-white/50"
                 } ${!discount.isValid && "opacity-50 cursor-not-allowed"}`}
               >
@@ -467,12 +459,12 @@ export default function NebulaDiscountPage() {
             {/* ENCABEZADO */}
             <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-[#00E5FF]/10 rounded-xl">
-                  <Sparkles size={18} className="text-[#00E5FF]" />
+                <div className="p-2 bg-cyan/10 rounded-xl">
+                  <Sparkles size={18} className="text-cyan" />
                 </div>
                 <h3 className="text-sm font-bold text-white">Órdenes</h3>
               </div>
-              <span className="text-xs font-semibold text-[#00E5FF] bg-[#00E5FF]/10 px-2 py-1 rounded-full">
+              <span className="text-xs font-semibold text-cyan bg-cyan/10 px-2 py-1 rounded-full">
                 {ordenesFiltradas.length}
               </span>
             </div>
@@ -484,7 +476,7 @@ export default function NebulaDiscountPage() {
                 placeholder="Buscar por mesa..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm outline-none focus:border-[#00E5FF] transition-colors text-white"
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm outline-none focus:border-cyan transition-colors text-white"
               />
               <div className="flex gap-2">
                 {["todas", "en-curso", "completadas"].map((estado) => (
@@ -493,7 +485,7 @@ export default function NebulaDiscountPage() {
                     onClick={() => setFiltroEstado(estado as any)}
                     className={`flex-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all ${
                       filtroEstado === estado
-                        ? "bg-[#00E5FF] text-black"
+                        ? "bg-cyan text-black"
                         : "bg-white/5 text-white/50 hover:bg-white/10"
                     }`}
                   >
@@ -524,8 +516,8 @@ export default function NebulaDiscountPage() {
             <div className="nebula-discounts-panel p-3 md:p-4 flex flex-col min-h-[300px]" data-tour="order-details">
               <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-[#9D4EDD]/10 rounded-xl">
-                    <Sparkles size={18} className="text-[#9D4EDD]" />
+                  <div className="p-2 bg-violet/10 rounded-xl">
+                    <Sparkles size={18} className="text-violet" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white">Detalles</h3>
@@ -570,8 +562,8 @@ export default function NebulaDiscountPage() {
               <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-keypad">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-[#00FF95]/10 rounded-xl">
-                      <Sparkles size={18} className="text-[#00FF95]" />
+                    <div className="p-2 bg-emerald/10 rounded-xl">
+                      <Sparkles size={18} className="text-emerald" />
                     </div>
                     <h3 className="text-sm font-bold text-white">Calcular</h3>
                   </div>
@@ -603,8 +595,8 @@ export default function NebulaDiscountPage() {
             {selectedOrder && (
               <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-summary">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-[#00E5FF]/10 rounded-xl">
-                    <Sparkles size={18} className="text-[#00E5FF]" />
+                  <div className="p-2 bg-cyan/10 rounded-xl">
+                    <Sparkles size={18} className="text-cyan" />
                   </div>
                   <h3 className="text-sm font-bold text-white">Resumen</h3>
                 </div>
@@ -616,14 +608,14 @@ export default function NebulaDiscountPage() {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-white/50">Descuento</span>
-                    <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-[#00E5FF]' : 'text-[#9D4EDD]'}`}>
+                    <span className={`font-bold ${discount.type === 'PERCENT' ? 'text-cyan' : 'text-violet'}`}>
                       -${discount.discountAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="h-px bg-white/10 my-2" />
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-white">Total</span>
-                    <span className="text-xl font-bold text-[#00E5FF]">${discount.finalTotal.toFixed(2)}</span>
+                    <span className="text-xl font-bold text-cyan">${discount.finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -633,8 +625,8 @@ export default function NebulaDiscountPage() {
             {selectedOrder && (
               <div className="nebula-discounts-panel p-3 md:p-4" data-tour="discount-reason">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-[#FFD166]/10 rounded-xl">
-                    <Sparkles size={18} className="text-[#FFD166]" />
+                  <div className="p-2 bg-gold/10 rounded-xl">
+                    <Sparkles size={18} className="text-gold" />
                   </div>
                   <h3 className="text-sm font-bold text-white">Motivo</h3>
                 </div>
@@ -657,12 +649,12 @@ export default function NebulaDiscountPage() {
                 background: 'rgba(255, 77, 109, 0.1)',
                 borderColor: 'rgba(255, 77, 109, 0.2)'
               }}>
-                <p className="text-xs font-bold text-[#FF4D6D] uppercase tracking-wider">
+                <p className="text-xs font-bold text-rose uppercase tracking-wider">
                   Corrige:
                 </p>
                 {discount.errors.map((error, i) => (
-                  <p key={i} className="text-xs text-[#FF4D6D] flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF4D6D]" />
+                  <p key={i} className="text-xs text-rose flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose" />
                     {error}
                   </p>
                 ))}
@@ -675,7 +667,7 @@ export default function NebulaDiscountPage() {
                 <button
                   onClick={handleAplicarDescuento}
                   disabled={!discount.isValid || loadingApply}
-                  className="w-full py-3 bg-[#00E5FF] hover:bg-[#00E5FF]/90 text-black rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-cyan hover:bg-cyan/90 text-black rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   data-tour="apply-btn"
                 >
                   {loadingApply ? (
@@ -705,8 +697,8 @@ export default function NebulaDiscountPage() {
             {mode === "advanced" && (
               <div className="nebula-discounts-panel p-3 md:p-4" data-tour="stats-section">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-[#00FF95]/10 rounded-xl">
-                    <Sparkles size={18} className="text-[#00FF95]" />
+                  <div className="p-2 bg-emerald/10 rounded-xl">
+                    <Sparkles size={18} className="text-emerald" />
                   </div>
                   <h3 className="text-sm font-bold text-white">Estadísticas</h3>
                 </div>

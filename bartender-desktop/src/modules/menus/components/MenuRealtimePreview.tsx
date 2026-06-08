@@ -93,7 +93,7 @@ export default function MenuRealtimePreview({ menu }: Props) {
                         Producto ID: {product.product}
                       </p>
                       {product.price && (
-                        <p className="text-[10px] text-gold">${product.price.toFixed(2)}</p>
+                        <p className="text-[10px] text-gold">${(product.price ?? 0).toFixed(2)}</p>
                       )}
                     </div>
                     {product.available === false && (

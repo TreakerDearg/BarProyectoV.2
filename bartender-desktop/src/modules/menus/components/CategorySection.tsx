@@ -118,7 +118,7 @@ export default function CategorySection({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-gold">
-                    ${product.price?.toFixed(2) || "0.00"}
+                    $${(product.price ?? 0).toFixed(2) || "0.00"}
                   </span>
                   <button
                     onClick={() => onRemoveProduct(getProductId(product.product))}

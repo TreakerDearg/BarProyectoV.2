@@ -176,7 +176,7 @@ export default function ProductFilterSelector({ products, onAddProduct, addedPro
                   <p className="text-[10px] text-muted truncate">{product.category}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-xs font-bold text-gold">${product.price.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-gold">${(product.price ?? 0).toFixed(2)}</span>
                   {product.type === "drink" && product.drinkStyle && (
                     <span className={`text-[8px] px-1.5 py-0.5 rounded font-semibold ${
                       product.drinkStyle === "author"

@@ -47,7 +47,7 @@ export default function NebulaDiscountReasonForm({
               className={`
                 p-3 rounded-xl text-left transition-all border flex items-start gap-3
                 ${reason === r.val
-                  ? "bg-[#00E5FF] text-black border-[#00E5FF]"
+                  ? "bg-cyan text-black border-cyan"
                   : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"}
               `}
             >
@@ -76,7 +76,7 @@ export default function NebulaDiscountReasonForm({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Agrega detalles extras si es necesario..."
-          className="w-full min-h-[80px] bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-[#00E5FF] transition-all resize-none placeholder:text-white/30"
+          className="w-full min-h-[80px] bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan transition-all resize-none placeholder:text-white/30"
           style={{ height: '3rem' }}
         />
         <p className="text-[10px] text-white/30">
@@ -88,8 +88,8 @@ export default function NebulaDiscountReasonForm({
         background: 'rgba(0, 229, 255, 0.1)',
         borderColor: 'rgba(0, 229, 255, 0.2)'
       }}>
-        <Info size={16} className="text-[#00E5FF] flex-shrink-0 mt-0.5" />
-        <p className="text-[10px] text-[#00E5FF]/80 leading-relaxed">
+        <Info size={16} className="text-cyan flex-shrink-0 mt-0.5" />
+        <p className="text-[10px] text-cyan/80 leading-relaxed">
           Esta información ayuda a mejorar nuestro servicio. Tu nombre y la razón quedarán registrados para fines de auditoría.
         </p>
       </div>
