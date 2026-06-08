@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Type, Image as ImageIcon, Save, X } from "lucide-react";
+import { Type, Image as ImageIcon, Save, X, Globe, Clock, Tag, Plus, XCircle } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -16,9 +16,37 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
   const [description, setDescription] = useState(menu.description || "");
   const [type, setType] = useState(menu.type || "mixed");
   const [image, setImage] = useState(menu.image || "");
+  
+  // SEO fields
+  const [metaTitle, setMetaTitle] = useState(menu.metaTitle || "");
+  const [metaDescription, setMetaDescription] = useState(menu.metaDescription || "");
+  const [keywordInput, setKeywordInput] = useState("");
+  const [keywords, setKeywords] = useState<string[]>(menu.keywords || []);
+  
+  // Availability
+  const [availableHours, setAvailableHours] = useState(
+    menu.availableHours || { start: "09:00", end: "23:00" }
+  );
+  const [availableDays, setAvailableDays] = useState<string[]>(
+    menu.availableDays || []
+  );
+  
+  // Gallery
+  const [gallery, setGallery] = useState(menu.gallery || []);
 
   const handleSave = () => {
-    onUpdate({ name, description, type, image });
+    onUpdate({
+      name,
+      description,
+      type,
+      image,
+      metaTitle,
+      metaDescription,
+      keywords,
+      availableHours,
+      availableDays,
+      gallery
+    });
     onSave?.();
   };
 
@@ -27,7 +55,51 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
     setDescription(menu.description || "");
     setType(menu.type || "mixed");
     setImage(menu.image || "");
+    setMetaTitle(menu.metaTitle || "");
+    setMetaDescription(menu.metaDescription || "");
+    setKeywords(menu.keywords || []);
+    setAvailableHours(menu.availableHours || { start: "09:00", end: "23:00" });
+    setAvailableDays(menu.availableDays || []);
+    setGallery(menu.gallery || []);
     onCancel?.();
+  };
+
+  const addKeyword = () => {
+    if (keywordInput.trim() && !keywords.includes(keywordInput.trim())) {
+      setKeywords([...keywords, keywordInput.trim()]);
+      setKeywordInput("");
+    }
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setKeywords(keywords.filter(k => k !== keyword));
+  };
+
+  const toggleDay = (day: string) => {
+    setAvailableDays(prev =>
+      prev.includes(day)
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
+    );
+  };
+
+  const addGalleryImage = (url: string) => {
+    setGallery([...gallery, { url, publicId: "", order: gallery.length }]);
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGallery(gallery.filter((_, i) => i !== index));
+  };
+
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const dayLabels = {
+    monday: "Lun",
+    tuesday: "Mar",
+    wednesday: "Mié",
+    thursday: "Jue",
+    friday: "Vie",
+    saturday: "Sáb",
+    sunday: "Dom"
   };
 
   return (
@@ -133,6 +205,161 @@ export default function MenuIdentityEditor({ menu, onUpdate, onSave, onCancel }:
             className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </div>
+      </div>
+
+      {/* SEO Section */}
+      <div className="space-y-4 pt-4 border-t border-white/5">
+        <div className="flex items-center gap-2">
+          <Globe size={16} className="text-cyan-400" />
+          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">SEO</h4>
+        </div>
+        
+        <div>
+          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Meta Title</label>
+          <input
+            type="text"
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none"
+            placeholder="Título para SEO (opcional)"
+          />
+        </div>
+        
+        <div>
+          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Meta Description</label>
+          <textarea
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none resize-none h-16"
+            placeholder="Descripción para SEO (opcional)"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Keywords</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={keywordInput}
+              onChange={(e) => setKeywordInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+              className="flex-1 bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-cyan/40 focus:border-transparent transition-all outline-none"
+              placeholder="Agregar keyword..."
+            />
+            <button
+              onClick={addKeyword}
+              className="px-3 py-2 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan-300 hover:bg-cyan/20 transition-colors"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {keywords.map((keyword, idx) => (
+              <span
+                key={idx}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan-300 text-xs"
+              >
+                {keyword}
+                <button
+                  onClick={() => removeKeyword(keyword)}
+                  className="hover:text-cyan-100"
+                >
+                  <XCircle size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Availability Section */}
+      <div className="space-y-4 pt-4 border-t border-white/5">
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-gold" />
+          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Disponibilidad</h4>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Hora Inicio</label>
+            <input
+              type="time"
+              value={availableHours.start}
+              onChange={(e) => setAvailableHours({ ...availableHours, start: e.target.value })}
+              className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Hora Fin</label>
+            <input
+              type="time"
+              value={availableHours.end}
+              onChange={(e) => setAvailableHours({ ...availableHours, end: e.target.value })}
+              className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Días Disponibles</label>
+          <div className="flex gap-2">
+            {days.map((day) => (
+              <button
+                key={day}
+                onClick={() => toggleDay(day)}
+                className={`flex-1 py-2 rounded-lg border transition-all text-xs font-semibold ${
+                  availableDays.includes(day)
+                    ? 'bg-gold/10 border-gold/30 text-gold-300'
+                    : 'bg-white/5 border-white/10 text-muted hover:border-white/20'
+                }`}
+              >
+                {dayLabels[day as keyof typeof dayLabels]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Gallery Section */}
+      <div className="space-y-4 pt-4 border-t border-white/5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ImageIcon size={16} className="text-violet-400" />
+            <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Galería</h4>
+          </div>
+          <button
+            onClick={() => {
+              const url = prompt("URL de la imagen:");
+              if (url) addGalleryImage(url);
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet/10 border border-violet/30 text-violet-300 text-xs hover:bg-violet/20 transition-colors"
+          >
+            <Plus size={12} />
+            Agregar
+          </button>
+        </div>
+        
+        {gallery.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {gallery.map((img, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={img.url}
+                  alt={`Gallery ${idx}`}
+                  className="w-full aspect-square object-cover rounded-lg"
+                />
+                <button
+                  onClick={() => removeGalleryImage(idx)}
+                  className="absolute top-1 right-1 p-1 rounded-full bg-red/10 border border-red/30 text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted text-center py-4">No hay imágenes en la galería</p>
+        )}
       </div>
 
       {/* Actions */}

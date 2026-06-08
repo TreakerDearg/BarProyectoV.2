@@ -15,7 +15,10 @@ import {
   List,
   Grid3x3,
   Eye,
-  Settings
+  Settings,
+  Filter,
+  X,
+  Trash2
 } from "lucide-react";
 
 import MenuCard from "../components/MenuCard";
@@ -61,6 +64,17 @@ export default function MenusPage() {
   const [builderMode, setBuilderMode] = useState(false);
   const [builderPanel, setBuilderPanel] = useState<"identity" | "config" | "categories" | "products" | "preview">("categories");
   const [showTemplates, setShowTemplates] = useState(false);
+
+  // Advanced filters
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filterType, setFilterType] = useState<"all" | "drink" | "food" | "mixed">("all");
+  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
+  const [filterPublic, setFilterPublic] = useState<"all" | "public" | "private">("all");
+  const [filterFeatured, setFilterFeatured] = useState(false);
+
+  // Bulk actions
+  const [selectedMenus, setSelectedMenus] = useState<Set<string>>(new Set());
+  const [bulkActionOpen, setBulkActionOpen] = useState(false);
 
   const menuBuilder = useMenuBuilder();
 
@@ -125,13 +139,43 @@ export default function MenusPage() {
   );
 
   const filteredMenus = useMemo(() => {
-    if (!search.trim()) return menus;
-    const lower = search.toLowerCase();
-    return menus.filter((m) => 
-      m?.name?.toLowerCase().includes(lower) ||
-      m.categories?.some(c => c.name.toLowerCase().includes(lower))
-    );
-  }, [menus, search]);
+    let result = menus;
+
+    // Search filter
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      result = result.filter((m) =>
+        m?.name?.toLowerCase().includes(lower) ||
+        m.categories?.some(c => c.name.toLowerCase().includes(lower))
+      );
+    }
+
+    // Type filter
+    if (filterType !== "all") {
+      result = result.filter(m => m.type === filterType);
+    }
+
+    // Active filter
+    if (filterActive === "active") {
+      result = result.filter(m => m.active);
+    } else if (filterActive === "inactive") {
+      result = result.filter(m => !m.active);
+    }
+
+    // Public filter
+    if (filterPublic === "public") {
+      result = result.filter(m => m.isPublic);
+    } else if (filterPublic === "private") {
+      result = result.filter(m => !m.isPublic);
+    }
+
+    // Featured filter
+    if (filterFeatured) {
+      result = result.filter(m => m.featured);
+    }
+
+    return result;
+  }, [menus, search, filterType, filterActive, filterPublic, filterFeatured]);
 
   const stats = useMemo(() => {
     const total = menus.length;
@@ -176,6 +220,40 @@ export default function MenusPage() {
       console.error("Delete error", err);
     }
   };
+
+  const handleBulkDelete = async () => {
+    if (selectedMenus.size === 0) return;
+    if (!confirm(`¿Eliminar ${selectedMenus.size} menús seleccionados?`)) return;
+    try {
+      await Promise.all(Array.from(selectedMenus).map(id => deleteMenu(id)));
+      setSelectedMenus(new Set());
+      await fetchMenus();
+    } catch (err) {
+      console.error("Bulk delete error", err);
+    }
+  };
+
+  const toggleMenuSelection = (menuId: string) => {
+    setSelectedMenus(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(menuId)) {
+        newSet.delete(menuId);
+      } else {
+        newSet.add(menuId);
+      }
+      return newSet;
+    });
+  };
+
+  const clearFilters = () => {
+    setFilterType("all");
+    setFilterActive("all");
+    setFilterPublic("all");
+    setFilterFeatured(false);
+    setSearch("");
+  };
+
+  const hasActiveFilters = filterType !== "all" || filterActive !== "all" || filterPublic !== "all" || filterFeatured || search.trim();
 
   const handleSelectMenu = (menu: Menu) => {
     menuBuilder.selectMenu(menu);
@@ -243,6 +321,19 @@ export default function MenusPage() {
           </div>
 
           <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
+              filtersOpen || hasActiveFilters
+                ? 'bg-gold/10 border-gold/30 text-gold'
+                : 'border-white/10 text-muted hover:text-violet-200 hover:border-violet-400/30'
+            }`}
+          >
+            <Filter size={16} />
+            <span>Filtros</span>
+            {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-gold" />}
+          </button>
+
+          <button
             onClick={() => openTutorial()}
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
             title="Tutorial de cartas"
@@ -291,6 +382,98 @@ export default function MenusPage() {
           </button>
         </div>
       </header>
+
+      {/* FILTERS PANEL */}
+      {filtersOpen && (
+        <div className="p-4 bg-surface-3 border border-white/10 rounded-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">Filtros Avanzados</h3>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red/10 border border-red/30 text-red-300 text-xs font-semibold hover:bg-red/20 transition-all"
+              >
+                <X size={12} />
+                Limpiar
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Tipo</label>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as any)}
+                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+              >
+                <option value="all">Todos</option>
+                <option value="drink">Bebidas</option>
+                <option value="food">Comida</option>
+                <option value="mixed">Mixto</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Estado</label>
+              <select
+                value={filterActive}
+                onChange={(e) => setFilterActive(e.target.value as any)}
+                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+              >
+                <option value="all">Todos</option>
+                <option value="active">Activos</option>
+                <option value="inactive">Inactivos</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Visibilidad</label>
+              <select
+                value={filterPublic}
+                onChange={(e) => setFilterPublic(e.target.value as any)}
+                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+              >
+                <option value="all">Todos</option>
+                <option value="public">Públicos</option>
+                <option value="private">Privados</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filterFeatured}
+                  onChange={(e) => setFilterFeatured(e.target.checked)}
+                  className="w-4 h-4 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50"
+                />
+                <span className="text-xs font-semibold text-muted">Solo destacados</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BULK ACTIONS BAR */}
+      {selectedMenus.size > 0 && (
+        <div className="p-4 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-between">
+          <p className="text-xs font-semibold text-gold-300">
+            {selectedMenus.size} menú{selectedMenus.size !== 1 ? 's' : ''} seleccionado{selectedMenus.size !== 1 ? 's' : ''}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedMenus(new Set())}
+              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-muted text-xs font-semibold hover:text-ivory transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red/10 border border-red/30 text-red-300 text-xs font-semibold hover:bg-red/20 transition-colors"
+            >
+              <Trash2 size={14} />
+              Eliminar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* KPI DASHBOARD */}
       <div className={`grid gap-4 ${mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-4'}`}>
@@ -498,14 +681,26 @@ export default function MenusPage() {
             <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
               {filteredMenus.map((menu) => {
                 const menuId = menu._id || '';
+                const isSelected = selectedMenus.has(menuId);
                 return (
-                  <MenuCard
-                    key={menuId}
-                    menu={menu}
-                    onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
-                    onDelete={() => handleDelete(menuId)}
-                    simplified={mode === 'simple'}
-                  />
+                  <div key={menuId} className="relative">
+                    {selectedMenus.size > 0 && (
+                      <div className="absolute top-3 left-3 z-20">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleMenuSelection(menuId)}
+                          className="w-5 h-5 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50 cursor-pointer"
+                        />
+                      </div>
+                    )}
+                    <MenuCard
+                      menu={menu}
+                      onEdit={() => { menuBuilder.selectMenu(menu); setBuilderMode(true); }}
+                      onDelete={() => handleDelete(menuId)}
+                      simplified={mode === 'simple'}
+                    />
+                  </div>
                 );
               })}
             </div>

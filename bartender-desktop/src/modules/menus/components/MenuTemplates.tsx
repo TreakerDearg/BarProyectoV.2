@@ -68,13 +68,14 @@ export default function MenuTemplates({ onMenuCreated, onCancel }: Props) {
         type: template.type,
         active: true,
         categories: template.categories,
-      });
+      }, { allowEmptyCategories: true });
       setCreated(true);
       setTimeout(() => {
         onMenuCreated(newMenu);
       }, 500);
     } catch (err) {
       console.error("Error creating menu from template", err);
+      alert("Error al crear la carta: " + (err as Error).message);
     } finally {
       setCreating(false);
     }

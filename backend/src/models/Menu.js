@@ -223,10 +223,12 @@ menuSchema.pre("save", async function () {
       .filter(Boolean);
   });
 
-  // eliminar categorías vacías
-  this.categories = this.categories.filter(
-    (c) => c.products.length > 0
-  );
+  // eliminar categorías vacías (solo si allowEmptyCategories es false)
+  if (!this.allowEmptyCategories) {
+    this.categories = this.categories.filter(
+      (c) => c.products.length > 0
+    );
+  }
 
   // Calcular precios min/max
   if (this.categories && this.categories.length > 0) {

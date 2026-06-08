@@ -116,6 +116,8 @@ function buildPayload(menu: any, allowEmptyCategories = false) {
 
     isPublic: menu.isPublic ?? true,
 
+    allowEmptyCategories,
+
     categories,
   };
 }

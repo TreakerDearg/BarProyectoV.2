@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, DollarSign, Clock, Target, RefreshCw } from "lucide-react";
+import { TrendingUp, DollarSign, Clock, Target } from "lucide-react";
 import VersusChart from "../../../components/shared/VersusChart";
 import type { DashboardStats } from "../services/dashboardService";
 
