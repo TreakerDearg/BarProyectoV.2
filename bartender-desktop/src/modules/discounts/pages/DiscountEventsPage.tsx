@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { pricingService, type PricingEvent } from "../services/pricingService";
 import { formatDistanceToNow } from "date-fns";

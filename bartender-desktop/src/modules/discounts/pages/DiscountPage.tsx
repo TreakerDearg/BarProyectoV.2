@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import OrderList from "../components/OrderList";
 import OrderDetails from "../components/OrderDetails";

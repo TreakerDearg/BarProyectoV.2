@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { pricingService } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
