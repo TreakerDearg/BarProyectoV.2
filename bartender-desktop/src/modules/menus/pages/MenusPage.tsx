@@ -238,6 +238,7 @@ export default function MenusPage() {
         menuToSave = {
           ...menuToSave,
           image: uploadResult.url,
+          imagePublicId: uploadResult.publicId,
         };
       }
 
@@ -250,8 +251,7 @@ export default function MenusPage() {
       );
       setSaveSuccess(true);
       fetchMenus();
-      // Clear imageFile after successful save
-      menuBuilder.updateMenu({ imageFile: undefined });
+      // Don't clear imageFile - keep it for persistence across view changes
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error("Error saving menu", err);
@@ -625,13 +625,13 @@ export default function MenusPage() {
             {menuBuilder.selectedMenu ? (
               <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
                 {/* Panel Selector Tabs */}
-                <div className="flex items-center gap-2 p-1 bg-surface-3 rounded-xl mb-4">
+                <div className="flex items-center gap-2 p-1.5 bg-surface-3 rounded-2xl mb-6 border border-white/5">
                   {[
-                    { id: "identity" as const, label: "Identidad", icon: <Target size={14} /> },
-                    { id: "config" as const, label: "Config", icon: <Settings size={14} /> },
-                    { id: "categories" as const, label: "Categorías", icon: <Layers size={14} /> },
-                    { id: "products" as const, label: "Productos", icon: <Zap size={14} /> },
-                    { id: "preview" as const, label: "Vista", icon: <Eye size={14} /> },
+                    { id: "identity" as const, label: "Identidad", icon: <Target size={14} />, color: "violet" },
+                    { id: "config" as const, label: "Configuración", icon: <Settings size={14} />, color: "cyan" },
+                    { id: "categories" as const, label: "Categorías", icon: <Layers size={14} />, color: "gold" },
+                    { id: "products" as const, label: "Productos", icon: <Zap size={14} />, color: "rose" },
+                    { id: "preview" as const, label: "Vista Previa", icon: <Eye size={14} />, color: "emerald" },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -649,9 +649,9 @@ export default function MenusPage() {
                           setBuilderTutorialStep(panelStepMap[tab.id] || 0);
                         }
                       }}
-                      className={`flex-1 flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-semibold transition-all ${
+                      className={`flex-1 flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                         builderPanel === tab.id
-                          ? "bg-violet-500/20 text-violet-300"
+                          ? `bg-${tab.color}/20 text-${tab.color}-300 border border-${tab.color}/30 shadow-lg shadow-${tab.color}/10`
                           : "text-muted hover:text-ivory hover:bg-white/5"
                       }`}
                     >
@@ -661,7 +661,7 @@ export default function MenusPage() {
                   ))}
                   <button
                     onClick={() => openBuilderTutorial(0)}
-                    className="flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-semibold transition-all text-muted hover:text-ivory hover:bg-white/5"
+                    className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-muted hover:text-ivory hover:bg-white/5"
                     title="Tutorial del constructor"
                   >
                     <HelpCircle size={14} />

@@ -99,6 +99,12 @@ export default function MenuBuilderCard({
                 {featured && (
                   <Star size={10} className="text-gold-400 flex-shrink-0" />
                 )}
+                {menu.gallery && menu.gallery.length > 0 && (
+                  <div className="flex items-center gap-0.5 bg-violet/10 px-1.5 py-0.5 rounded-full">
+                    <ImageIcon size={8} className="text-violet-400" />
+                    <span className="text-[8px] font-semibold text-violet-300">{menu.gallery.length}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

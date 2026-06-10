@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle } from "lucide-react";
+import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle, Upload } from "lucide-react";
 import type { Menu } from "../../../types/menu";
-import { validateImageFile } from "../../../services/uploadService";
+import { validateImageFile, uploadMultipleImages } from "../../../services/uploadService";
 
 interface Props {
   menu: Menu;
@@ -17,6 +17,8 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
   
   // SEO fields
   const [metaTitle, setMetaTitle] = useState(menu.metaTitle || "");
@@ -58,10 +60,47 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
     onUpdate({ availableDays: newDays });
   };
 
-  const addGalleryImage = (url: string) => {
-    const newGallery = [...gallery, { url, publicId: "", order: gallery.length }];
-    setGallery(newGallery);
-    onUpdate({ gallery: newGallery });
+  const addGalleryImage = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    try {
+      setGalleryUploading(true);
+      setGalleryUploadError(null);
+
+      // Validate files
+      const validFiles = Array.from(files).filter(file => {
+        const validation = validateImageFile(file);
+        if (!validation.isValid) {
+          console.error(`Invalid file ${file.name}:`, validation.error);
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length === 0) {
+        setGalleryUploadError("No hay archivos válidos para subir");
+        return;
+      }
+
+      // Upload files to Cloudinary
+      const uploadResults = await uploadMultipleImages(validFiles);
+
+      // Add to gallery with proper order
+      const newGalleryItems = uploadResults.map((result, index) => ({
+        url: result.url,
+        publicId: result.publicId,
+        order: gallery.length + index,
+      }));
+
+      const newGallery = [...gallery, ...newGalleryItems];
+      setGallery(newGallery);
+      onUpdate({ gallery: newGallery });
+    } catch (error: any) {
+      console.error("Error uploading gallery images:", error);
+      setGalleryUploadError(error.message || "Error al subir imágenes");
+    } finally {
+      setGalleryUploading(false);
+    }
   };
 
   const removeGalleryImage = (index: number) => {
@@ -230,10 +269,12 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       </div>
 
       {/* SEO Section */}
-      <div className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex items-center gap-2">
-          <Globe size={16} className="text-cyan-400" />
-          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">SEO</h4>
+      <div className="space-y-4 pt-6 border-t border-white/10">
+        <div className="flex items-center gap-3 pb-2">
+          <div className="p-2 bg-cyan/10 rounded-lg">
+            <Globe size={16} className="text-cyan-400" />
+          </div>
+          <h4 className="text-sm font-bold text-ivory uppercase tracking-widest">SEO & Metadatos</h4>
         </div>
         
         <div>
@@ -301,10 +342,12 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       </div>
 
       {/* Availability Section */}
-      <div className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex items-center gap-2">
-          <Clock size={16} className="text-gold" />
-          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Disponibilidad</h4>
+      <div className="space-y-4 pt-6 border-t border-white/10">
+        <div className="flex items-center gap-3 pb-2">
+          <div className="p-2 bg-gold/10 rounded-lg">
+            <Clock size={16} className="text-gold" />
+          </div>
+          <h4 className="text-sm font-bold text-ivory uppercase tracking-widest">Disponibilidad</h4>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -349,23 +392,45 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       </div>
 
       {/* Gallery Section */}
-      <div className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ImageIcon size={16} className="text-violet-400" />
-            <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Galería</h4>
+      <div className="space-y-4 pt-6 border-t border-white/10">
+        <div className="flex items-center justify-between pb-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-violet/10 rounded-lg">
+              <ImageIcon size={16} className="text-violet-400" />
+            </div>
+            <h4 className="text-sm font-bold text-ivory uppercase tracking-widest">Galería de Imágenes</h4>
+            <span className="text-xs text-muted font-semibold bg-surface-3 px-2 py-1 rounded-full">
+              {gallery.length} imagen{gallery.length !== 1 ? 'es' : ''}
+            </span>
           </div>
-          <button
-            onClick={() => {
-              const url = prompt("URL de la imagen:");
-              if (url) addGalleryImage(url);
-            }}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet/10 border border-violet/30 text-violet-300 text-xs hover:bg-violet/20 transition-colors"
-          >
-            <Plus size={12} />
-            Agregar
-          </button>
+          <label className="flex items-center gap-1 px-3 py-2 rounded-lg bg-violet/10 border border-violet/30 text-violet-300 text-xs hover:bg-violet/20 transition-colors cursor-pointer">
+            {galleryUploading ? (
+              <>
+                <div className="w-3 h-3 border-2 border-violet-300/30 border-t-violet-300 rounded-full animate-spin" />
+                Subiendo...
+              </>
+            ) : (
+              <>
+                <Upload size={12} />
+                Agregar
+              </>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => addGalleryImage(e.target.files)}
+              disabled={galleryUploading}
+              className="hidden"
+            />
+          </label>
         </div>
+        {galleryUploadError && (
+          <div className="flex items-center gap-2 text-red-400 text-xs">
+            <AlertCircle size={12} />
+            <span>{galleryUploadError}</span>
+          </div>
+        )}
         
         {gallery.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">

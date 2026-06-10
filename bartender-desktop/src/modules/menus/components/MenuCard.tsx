@@ -43,6 +43,7 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   // Image loading states
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   // Calculate products with recipes
   const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
@@ -59,6 +60,24 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
       case 'mixed':
       default:
         return <Layers size={12} className="text-violet-400" />;
+    }
+  };
+
+  // Get current image (main or gallery)
+  const currentImage = menu.gallery && menu.gallery.length > 0
+    ? menu.gallery[galleryIndex]?.url || menu.image
+    : menu.image;
+
+  // Navigate gallery
+  const nextGalleryImage = () => {
+    if (menu.gallery && menu.gallery.length > 0) {
+      setGalleryIndex((prev) => (prev + 1) % menu.gallery.length);
+    }
+  };
+
+  const prevGalleryImage = () => {
+    if (menu.gallery && menu.gallery.length > 0) {
+      setGalleryIndex((prev) => (prev - 1 + menu.gallery.length) % menu.gallery.length);
     }
   };
 
@@ -90,7 +109,7 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-4">
-          {menu.image && !imageError ? (
+          {currentImage && !imageError ? (
             <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative group/image shadow-lg">
               {imageLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
@@ -98,7 +117,7 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
                 </div>
               )}
               <img
-                src={menu.image}
+                src={currentImage}
                 alt={menu.name}
                 className="w-full h-full object-cover transition-all duration-500 group-hover/image:scale-110 group-hover/image:rotate-1"
                 onLoad={() => setImageLoading(false)}
@@ -108,6 +127,27 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+              {menu.gallery && menu.gallery.length > 1 && (
+                <div className="absolute bottom-1 right-1 flex gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prevGalleryImage(); }}
+                    className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight size={10} className="rotate-180" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); nextGalleryImage(); }}
+                    className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                  >
+                    <ChevronRight size={10} />
+                  </button>
+                </div>
+              )}
+              {menu.gallery && menu.gallery.length > 0 && (
+                <div className="absolute top-1 left-1 bg-black/50 text-white text-[8px] px-1.5 py-0.5 rounded-full">
+                  {galleryIndex + 1}/{menu.gallery.length}
+                </div>
+              )}
             </div>
           ) : (
             <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center shadow-lg group/image hover:from-violet/10 hover:to-surface-3 transition-all duration-300">

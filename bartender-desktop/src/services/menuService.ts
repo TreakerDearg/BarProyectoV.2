@@ -120,5 +120,27 @@ function buildPayload(menu: any, allowEmptyCategories = false) {
     allowEmptyCategories,
 
     categories,
+
+    // Cloudinary image fields
+    image: menu.image || "",
+    imagePublicId: menu.imagePublicId || "",
+
+    // SEO fields
+    metaTitle: menu.metaTitle || "",
+    metaDescription: menu.metaDescription || "",
+    keywords: menu.keywords || [],
+
+    // Availability fields
+    availableHours: menu.availableHours || null,
+    availableDays: menu.availableDays || [],
+
+    // Featured flag
+    featured: menu.featured || false,
+
+    // Gallery
+    gallery: menu.gallery || [],
+
+    // Tags
+    tags: menu.tags || [],
   };
 }
