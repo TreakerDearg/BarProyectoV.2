@@ -5,6 +5,7 @@ import {
   getRecipesWithVariants
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import { uploadSingle } from "../middlewares/upload.js";
 
 const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
@@ -29,8 +30,8 @@ router.get("/:id", getRecipe);
    ADMIN CRUD
 ========================================================= */
 // Nota: schema de receta en Zod puede ser complejo, se valida manualmente en controller por ahora
-router.post("/", ...adminOnly, createRecipe);
-router.patch("/:id", ...adminOnly, updateRecipe);
+router.post("/", ...adminOnly, uploadSingle('image'), createRecipe);
+router.patch("/:id", ...adminOnly, uploadSingle('image'), updateRecipe);
 router.delete("/:id", ...adminOnly, deleteRecipe);
 
 export default router;

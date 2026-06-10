@@ -3,6 +3,7 @@ import Recipe        from "../models/Recipe.js";
 import InventoryItem from "../models/InventoryItem.js";
 import Product       from "../models/Product.js";
 import { logger }    from "../config/logger.js";
+import { deleteImage } from "../config/cloudinary.js";
 import {
   ok, created, badRequest, notFound, conflict,
 } from "../utils/response.js";
@@ -103,9 +104,19 @@ export const createRecipe = async (req, res, next) => {
       instruction: typeof s === "string" ? s : s.instruction || "",
     }));
 
+    // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
+    let imageUrl = image || "";
+    let imagePublicId = "";
+
+    if (req.file) {
+      imageUrl = req.file.secure_url || req.file.path;
+      imagePublicId = req.file.public_id;
+      logger.info(`[Recipe] Imagen subida a Cloudinary: ${imagePublicId}`);
+    }
+
     const recipe = await Recipe.create({
       product, ingredients: cleanIngredients, type, method,
-      steps: cleanSteps, category, image,
+      steps: cleanSteps, category, image: imageUrl, imagePublicId,
     });
 
     if (!productDoc.hasRecipe) {
@@ -141,10 +152,28 @@ export const updateRecipe = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const ALLOWED = ["ingredients", "type", "method", "steps", "category", "image", "isActive", "drinkStyle"];
+    const ALLOWED = ["ingredients", "type", "method", "steps", "category", "image", "imagePublicId", "isActive", "drinkStyle"];
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
+
+    // Manejar actualización de imagen (ya subida por multer-storage-cloudinary)
+    if (req.file) {
+      try {
+        const existingRecipe = await Recipe.findById(id);
+        if (existingRecipe?.imagePublicId) {
+          await deleteImage(existingRecipe.imagePublicId);
+          logger.info(`[Recipe] Imagen anterior eliminada: ${existingRecipe.imagePublicId}`);
+        }
+
+        updates.image = req.file.secure_url || req.file.path;
+        updates.imagePublicId = req.file.public_id;
+        logger.info(`[Recipe] Nueva imagen subida a Cloudinary: ${req.file.public_id}`);
+      } catch (uploadError) {
+        logger.error("[Recipe] Error actualizando imagen:", uploadError);
+        // Continuar sin actualizar imagen si falla
+      }
+    }
 
     const updated = await Recipe.findByIdAndUpdate(id, updates, {
       new: true, runValidators: true,
@@ -183,6 +212,18 @@ export const deleteRecipe = async (req, res, next) => {
     if (!recipe) return notFound(res, "Receta no encontrada");
 
     const productId = recipe.product?.toString();
+
+    // Eliminar imagen de Cloudinary si existe
+    if (recipe.imagePublicId) {
+      try {
+        await deleteImage(recipe.imagePublicId);
+        logger.info(`[Recipe] Imagen eliminada: ${recipe.imagePublicId}`);
+      } catch (deleteError) {
+        logger.error(`[Recipe] Error eliminando imagen: ${deleteError.message}`);
+        // Continuar aunque falle la eliminación de la imagen
+      }
+    }
+
     const deleted = await recipe.deleteOne();
     if (!deleted) return notFound(res, "Receta no encontrada");
 

@@ -16,9 +16,12 @@ import {
   Utensils,
   Layers,
   Star,
-  Eye
+  Eye,
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
 
+import { useState } from "react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -36,6 +39,10 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   const mainCategory = menu.categories?.[0]?.name || "Gral";
   const isActive = menu.active;
   const isPublic = menu.isPublic;
+
+  // Image loading states
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   // Calculate products with recipes
   const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
@@ -83,10 +90,28 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-start relative z-10">
         <div className="flex items-center gap-4">
-          {menu.image && (
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative group/image">
-              <img src={menu.image} alt={menu.name} className="w-full h-full object-cover transition-transform duration-500 group-hover/image:scale-110" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity" />
+          {menu.image && !imageError ? (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative group/image shadow-lg">
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
+                  <Loader2 size={20} className="text-violet-400/50 animate-spin" />
+                </div>
+              )}
+              <img
+                src={menu.image}
+                alt={menu.name}
+                className="w-full h-full object-cover transition-all duration-500 group-hover/image:scale-110 group-hover/image:rotate-1"
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageLoading(false);
+                  setImageError(true);
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center shadow-lg group/image hover:from-violet/10 hover:to-surface-3 transition-all duration-300">
+              <ImageIcon size={24} className="text-muted/40 group-hover/image:text-violet-400/60 transition-colors" />
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -102,6 +127,9 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
               {isPublic && (
                 <Eye size={12} className="text-cyan-400 flex-shrink-0" aria-label="Menú público" />
               )}
+              {menu.featured && (
+                <Star size={12} className="text-gold-400 flex-shrink-0" aria-label="Menú destacado" />
+              )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[8px] font-semibold uppercase tracking-wider ${getTypeBadgeColor()}`}>
@@ -115,7 +143,9 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
             {!simplified && (
               <div className="flex items-center gap-2 mt-1.5">
                 <Clock size={10} className="text-muted" />
-                <span className="text-[8px] text-muted">Actualizado recientemente</span>
+                <span className="text-[8px] text-muted">
+                  {menu.updatedAt ? `Actualizado ${new Date(menu.updatedAt).toLocaleDateString()}` : 'Actualizado recientemente'}
+                </span>
               </div>
             )}
           </div>

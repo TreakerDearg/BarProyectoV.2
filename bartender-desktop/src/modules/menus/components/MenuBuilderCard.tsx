@@ -1,6 +1,7 @@
 "use client";
 
-import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye } from "lucide-react";
+import { useState } from "react";
+import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye, Image as ImageIcon, Loader2 } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -26,6 +27,10 @@ export default function MenuBuilderCard({
   const totalCategories = menu.categories?.length || 0;
   const isPublic = menu.isPublic;
   const featured = menu.featured;
+
+  // Image loading states
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   // Get type icon
   const getTypeIcon = () => {
@@ -57,9 +62,27 @@ export default function MenuBuilderCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            {menu.image && (
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0">
-                <img src={menu.image} alt={menu.name} className="w-full h-full object-cover" />
+            {menu.image && !imageError ? (
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
+                    <Loader2 size={14} className="text-rose-400/50 animate-spin" />
+                  </div>
+                )}
+                <img
+                  src={menu.image}
+                  alt={menu.name}
+                  className="w-full h-full object-cover"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => {
+                    setImageLoading(false);
+                    setImageError(true);
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center">
+                <ImageIcon size={16} className="text-muted/40" />
               </div>
             )}
             <div className="flex items-center gap-2 flex-1 min-w-0">

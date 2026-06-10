@@ -161,6 +161,78 @@ const menuSchema = new mongoose.Schema(
       type: Object,
       default: null, // horario futuro
     },
+
+    /* ========================
+       SEO & METADATA
+    ======================== */
+    metaTitle: {
+      type: String,
+      default: "",
+    },
+
+    metaDescription: {
+      type: String,
+      default: "",
+    },
+
+    keywords: {
+      type: [String],
+      default: [],
+      index: true,
+    },
+
+    tags: {
+      type: [String],
+      default: [],
+      index: true,
+    },
+
+    /* ========================
+       AVAILABILITY
+    ======================== */
+    availableHours: {
+      type: Object,
+      default: null, // { start: "09:00", end: "23:00" }
+    },
+
+    availableDays: {
+      type: [String],
+      default: [], // ["monday", "tuesday", ...]
+    },
+
+    /* ========================
+       PRICING (CALCULATED)
+    ======================== */
+    minPrice: {
+      type: Number,
+      default: 0,
+    },
+
+    maxPrice: {
+      type: Number,
+      default: 0,
+    },
+
+    /* ========================
+       FEATURED
+    ======================== */
+    featured: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    /* ========================
+       GALLERY
+    ======================== */
+    gallery: {
+      type: [{
+        url: String,
+        publicId: String,
+        order: { type: Number, default: 0 },
+      }],
+      default: [],
+    },
   },
   {
     timestamps: true,

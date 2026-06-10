@@ -4,14 +4,38 @@ export interface Menu {
   slug: string;
   description: string;
   image: string;
+  imagePublicId?: string;
   color: string;
   type: "drink" | "food" | "mixed";
   categories: MenuCategory[];
   active: boolean;
   isPublic: boolean;
+  featured?: boolean;
   schedule: any;
   createdAt: string;
   updatedAt: string;
+  // SEO fields
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  // Availability fields
+  availableHours?: { start: string; end: string };
+  availableDays?: string[];
+  // Gallery
+  gallery?: GalleryImage[];
+  // Price range (calculated)
+  minPrice?: number;
+  maxPrice?: number;
+  // Drink style (for drink/mixed menus)
+  drinkStyle?: "author" | "classic" | "mixed";
+  // Tags
+  tags?: string[];
+}
+
+export interface GalleryImage {
+  url: string;
+  publicId: string;
+  order: number;
 }
 
 export interface MenuCategory {

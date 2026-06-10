@@ -28,16 +28,66 @@ export const getMenuById = async (id: string): Promise<any> => {
 };
 
 export const createMenu = async (
-  menu: Partial<any>
+  menu: Partial<any>,
+  options?: { allowEmptyCategories?: boolean; imageFile?: File }
 ): Promise<any> => {
-  return safeRequest<any>(api.post("/menus", menu));
+  // If image file is provided, use FormData
+  if (options?.imageFile) {
+    const formData = new FormData();
+    
+    // Add menu data as JSON string
+    formData.append('data', JSON.stringify({
+      ...menu,
+      allowEmptyCategories: options.allowEmptyCategories
+    }));
+    
+    // Add image file
+    formData.append('image', options.imageFile);
+    
+    return safeRequest<any>(api.post("/menus", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }));
+  }
+  
+  // Otherwise, send as JSON
+  return safeRequest<any>(api.post("/menus", {
+    ...menu,
+    allowEmptyCategories: options?.allowEmptyCategories
+  }));
 };
 
 export const updateMenu = async (
   id: string,
-  menu: Partial<any>
+  menu: Partial<any>,
+  options?: { allowEmptyCategories?: boolean; imageFile?: File }
 ): Promise<any> => {
-  return safeRequest<any>(api.put(`/menus/${id}`, menu));
+  // If image file is provided, use FormData
+  if (options?.imageFile) {
+    const formData = new FormData();
+    
+    // Add menu data as JSON string
+    formData.append('data', JSON.stringify({
+      ...menu,
+      allowEmptyCategories: options.allowEmptyCategories
+    }));
+    
+    // Add image file
+    formData.append('image', options.imageFile);
+    
+    return safeRequest<any>(api.put(`/menus/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }));
+  }
+  
+  // Otherwise, send as JSON
+  return safeRequest<any>(api.put(`/menus/${id}`, {
+    ...menu,
+    allowEmptyCategories: options?.allowEmptyCategories
+  }));
 };
 
 export const deleteMenu = async (id: string): Promise<void> => {

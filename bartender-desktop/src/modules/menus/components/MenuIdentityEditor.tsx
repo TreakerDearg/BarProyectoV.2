@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Type, Image as ImageIcon, Globe, Clock, Tag, Plus, XCircle, X } from "lucide-react";
+import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle } from "lucide-react";
 import type { Menu } from "../../../types/menu";
+import { validateImageFile } from "../../../services/uploadService";
 
 interface Props {
   menu: Menu;
-  onUpdate: (updates: Partial<Menu>) => void;
+  onUpdate: (updates: Partial<Menu & { imageFile?: File }>) => void;
 }
 
 export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   const [name, setName] = useState(menu.name || "");
   const [description, setDescription] = useState(menu.description || "");
   const [type, setType] = useState(menu.type || "mixed");
-  const [image, setImage] = useState(menu.image || "");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   // SEO fields
   const [metaTitle, setMetaTitle] = useState(menu.metaTitle || "");
@@ -155,10 +158,10 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           Imagen de Portada
         </label>
         <div className="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center hover:border-violet/40 transition-colors">
-          {image ? (
+          {(imagePreview || menu.image) ? (
             <>
               <img
-                src={image}
+                src={imagePreview || menu.image}
                 alt="Menu preview"
                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
               />
@@ -171,7 +174,7 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
             <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-violet-300">
               <ImageIcon size={32} className="mb-2" />
               <p className="text-sm font-medium">Click to upload image</p>
-              <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 10MB</p>
+              <p className="text-[10px] mt-1 opacity-60">PNG, JPG, WebP up to 5MB</p>
             </div>
           )}
           <input
@@ -180,17 +183,50 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
+                // Validate file
+                const validation = validateImageFile(file);
+                if (!validation.isValid) {
+                  setUploadError(validation.error || "Error de validación");
+                  return;
+                }
+
+                setUploadError(null);
+                setImageFile(file);
+                
+                // Create preview
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                  setImage(reader.result as string);
-                  onUpdate({ image: reader.result as string });
+                  setImagePreview(reader.result as string);
                 };
                 reader.readAsDataURL(file);
+                
+                // Notify parent about the new image file
+                onUpdate({ imageFile: file });
               }
             }}
             className="absolute inset-0 opacity-0 cursor-pointer"
           />
         </div>
+        {uploadError && (
+          <div className="mt-2 flex items-center gap-2 text-red-400 text-xs">
+            <AlertCircle size={12} />
+            <span>{uploadError}</span>
+          </div>
+        )}
+        {imageFile && (
+          <div className="mt-2 flex items-center gap-2 text-violet-400 text-xs">
+            <span>Imagen seleccionada: {imageFile.name}</span>
+            <button
+              onClick={() => {
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+              className="text-red-400 hover:text-red-300"
+            >
+              <XCircle size={12} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* SEO Section */}

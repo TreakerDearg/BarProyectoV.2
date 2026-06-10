@@ -41,6 +41,7 @@ import {
   createMenu,
   updateMenu,
 } from "../../../services/menuService";
+import { uploadImage } from "../../../services/uploadService";
 
 import { getRecipes } from "../../recipes/services/recipeService";
 import { getProducts } from "../../products/services/productService";
@@ -226,13 +227,31 @@ export default function MenusPage() {
     try {
       setSaving(true);
       // Ensure categories is always an array
-      const menuToSave = {
+      let menuToSave = {
         ...menuBuilder.selectedMenu,
         categories: menuBuilder.selectedMenu.categories || [],
       };
-      await updateMenu(menuBuilder.selectedMenu._id, menuToSave, { allowEmptyCategories: true });
+
+      // Upload image file if present
+      if (menuBuilder.imageFile) {
+        const uploadResult = await uploadImage(menuBuilder.imageFile);
+        menuToSave = {
+          ...menuToSave,
+          image: uploadResult.url,
+        };
+      }
+
+      await updateMenu(
+        menuBuilder.selectedMenu._id, 
+        menuToSave, 
+        { 
+          allowEmptyCategories: true,
+        }
+      );
       setSaveSuccess(true);
       fetchMenus();
+      // Clear imageFile after successful save
+      menuBuilder.updateMenu({ imageFile: undefined });
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error("Error saving menu", err);

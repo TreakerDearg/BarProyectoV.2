@@ -10,6 +10,7 @@ interface MenuBuilderState {
   selectedCategory: string | null;
   draggedProduct: Product | null;
   expandedCategories: Set<string>;
+  imageFile: File | null;
 }
 
 export function useMenuBuilder() {
@@ -18,10 +19,11 @@ export function useMenuBuilder() {
     selectedCategory: null,
     draggedProduct: null,
     expandedCategories: new Set<string>(),
+    imageFile: null,
   });
 
   const selectMenu = useCallback((menu: Menu | null) => {
-    setState(prev => ({ ...prev, selectedMenu: menu, selectedCategory: null }));
+    setState(prev => ({ ...prev, selectedMenu: menu, selectedCategory: null, imageFile: null }));
   }, []);
 
   const selectCategory = useCallback((categoryName: string) => {
@@ -139,16 +141,23 @@ export function useMenuBuilder() {
     });
   }, []);
 
-  const updateMenu = useCallback((updates: Partial<Menu>) => {
+  const updateMenu = useCallback((updates: Partial<Menu & { imageFile?: File }>) => {
     setState(prev => {
       if (!prev.selectedMenu) return prev;
 
+      // Extract imageFile if present
+      const { imageFile, ...menuUpdates } = updates;
+
       const updatedMenu = {
         ...prev.selectedMenu,
-        ...updates,
+        ...menuUpdates,
       };
 
-      return { ...prev, selectedMenu: updatedMenu };
+      return { 
+        ...prev, 
+        selectedMenu: updatedMenu,
+        imageFile: imageFile || prev.imageFile,
+      };
     });
   }, []);
 
@@ -171,6 +180,7 @@ export function useMenuBuilder() {
     selectedCategory: state.selectedCategory,
     draggedProduct: state.draggedProduct,
     expandedCategories: state.expandedCategories,
+    imageFile: state.imageFile,
     selectMenu,
     selectCategory,
     setDraggedProduct,

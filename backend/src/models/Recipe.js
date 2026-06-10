@@ -125,7 +125,16 @@ const recipeSchema = new mongoose.Schema(
       index: true,
     },
 
-    image: { type: String, default: "" },
+    image: {
+      type: String,
+      default: "",
+    },
+
+    imagePublicId: {
+      type: String,
+      default: "",
+      index: true,
+    },
 
     specifications: {
       glass: { type: String, default: "STANDARD_GLASS" },
