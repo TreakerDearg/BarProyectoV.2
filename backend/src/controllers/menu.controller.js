@@ -189,19 +189,29 @@ export const createMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
-    // Validación de consistencia de imagen (image ↔ imagePublicId)
-    if (req.body.image && !req.body.imagePublicId) {
-      return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
-    }
-    if (req.body.imagePublicId && !req.body.image) {
-      return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-    }
-
-    // Procesar imagen si se proporciona (URL y publicId desde frontend después de subir a Cloudinary)
-    if (req.body.image) {
+    // Procesar imagen: puede venir de multer (req.file) o del frontend (req.body)
+    if (req.file) {
+      // Imagen subida directamente via multer
+      normalized.image = req.file.secure_url || req.file.path;
+      normalized.imagePublicId = req.file.public_id;
+      logger.info(`[Menu] Imagen subida via multer: ${normalized.imagePublicId}`);
+    } else if (req.body.image) {
+      // Imagen enviada desde frontend (ya subida a Cloudinary)
       normalized.image = req.body.image;
-      normalized.imagePublicId = req.body.imagePublicId || "";
-      logger.info(`[Menu] Imagen establecida desde Cloudinary: ${normalized.imagePublicId}`);
+      // Validación de consistencia: si la imagen cambia, se requiere publicId
+      if (req.body.imagePublicId !== undefined) {
+        normalized.imagePublicId = req.body.imagePublicId;
+      } else {
+        // Si no se envía publicId, verificar si es una imagen existente
+        const existingMenu = await Menu.findOne({ name: normalized.name });
+        if (existingMenu && existingMenu.image === req.body.image) {
+          normalized.imagePublicId = existingMenu.imagePublicId;
+        } else {
+          // Nuevo menú con imagen sin publicId - permitir para compatibilidad
+          normalized.imagePublicId = "";
+        }
+      }
+      logger.info(`[Menu] Imagen desde frontend: ${normalized.imagePublicId || 'sin publicId'}`);
     }
 
     const menu = await Menu.create(normalized);
@@ -235,33 +245,55 @@ export const updateMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
-    // Validación de consistencia de imagen (image ↔ imagePublicId)
-    if (req.body.image !== undefined) {
-      if (req.body.image && !req.body.imagePublicId) {
-        return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
-      }
-      if (req.body.imagePublicId && !req.body.image) {
-        return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-      }
-    }
-
-    // Manejar actualización de imagen (URL y publicId desde frontend después de subir a Cloudinary)
-    if (req.body.image !== undefined) {
+    // Procesar imagen: puede venir de multer (req.file) o del frontend (req.body)
+    if (req.file) {
+      // Imagen subida directamente via multer
       try {
         const existingMenu = await Menu.findById(req.params.id);
         
+        // Eliminar imagen anterior si existe
+        if (existingMenu?.imagePublicId) {
+          await deleteImage(existingMenu.imagePublicId);
+          logger.info(`[Menu] Imagen anterior eliminada: ${existingMenu.imagePublicId}`);
+        }
+        
+        normalized.image = req.file.secure_url || req.file.path;
+        normalized.imagePublicId = req.file.public_id;
+        logger.info(`[Menu] Imagen subida via multer: ${normalized.imagePublicId}`);
+      } catch (uploadError) {
+        logger.error("[Menu] Error actualizando imagen via multer:", uploadError);
+      }
+    } else if (req.body.image !== undefined) {
+      // Imagen enviada desde frontend (ya subida a Cloudinary)
+      try {
+        const existingMenu = await Menu.findById(req.params.id);
+        
+        // Solo requerir imagePublicId si la imagen está cambiando a una nueva URL
+        if (req.body.image && req.body.image !== existingMenu?.image && !req.body.imagePublicId) {
+          return badRequest(res, "Se requiere imagePublicId cuando se cambia la imagen");
+        }
+        
+        // Si se envía imagePublicId pero no image, es un error
+        if (req.body.imagePublicId && !req.body.image) {
+          return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+        }
+        
         // Si la imagen cambió y existe una imagen anterior, eliminarla de Cloudinary
-        if (existingMenu?.imagePublicId && req.body.imagePublicId !== existingMenu.imagePublicId) {
+        if (existingMenu?.imagePublicId && req.body.imagePublicId && req.body.imagePublicId !== existingMenu.imagePublicId) {
           await deleteImage(existingMenu.imagePublicId);
           logger.info(`[Menu] Imagen anterior eliminada: ${existingMenu.imagePublicId}`);
         }
 
         normalized.image = req.body.image;
-        normalized.imagePublicId = req.body.imagePublicId || "";
-        logger.info(`[Menu] Imagen actualizada desde Cloudinary: ${normalized.imagePublicId}`);
+        if (req.body.imagePublicId !== undefined) {
+          normalized.imagePublicId = req.body.imagePublicId;
+        } else if (existingMenu?.image === req.body.image) {
+          // Mantener el publicId existente si la imagen no cambió
+          normalized.imagePublicId = existingMenu.imagePublicId;
+        }
+        logger.info(`[Menu] Imagen actualizada desde frontend: ${normalized.imagePublicId || 'sin publicId'}`);
       } catch (uploadError) {
         logger.error("[Menu] Error actualizando imagen:", uploadError);
-        // Continuar sin actualizar imagen si falla, pero loggear el error detalladamente
         logger.error("[Menu] Detalles del error:", {
           message: uploadError.message,
           stack: uploadError.stack,

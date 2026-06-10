@@ -1,7 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express    from "express";
 import mongoose   from "mongoose";
 import cors       from "cors";
-import dotenv     from "dotenv";
 import http       from "http";
 import { Server } from "socket.io";
 
@@ -25,8 +27,6 @@ import {
   MiddlewareBuilder
 } from "./middlewares/index.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-
-dotenv.config();
 
 /* =========================================================
    APP INIT

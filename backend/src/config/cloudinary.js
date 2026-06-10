@@ -10,10 +10,18 @@ cloudinary.config({
 });
 
 // Verificar configuración al inicio
-if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+const cloudinaryConfigured = !!process.env.CLOUDINARY_CLOUD_NAME && !!process.env.CLOUDINARY_API_KEY && !!process.env.CLOUDINARY_API_SECRET;
+
+if (!cloudinaryConfigured) {
   logger.warn('[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.');
 } else {
   logger.info('[Cloudinary] Configuración cargada correctamente');
+  console.log({
+    cloudinaryConfigured: true,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKeyConfigured: !!process.env.CLOUDINARY_API_KEY,
+    apiSecretConfigured: !!process.env.CLOUDINARY_API_SECRET,
+  });
 }
 
 export const uploadImage = async (file, folder = 'general') => {
