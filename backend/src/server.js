@@ -49,6 +49,7 @@ const allowedOrigins = new Set(
     "http://127.0.0.1:5173",
     "https://bar-proyecto-v-2-kns78t85g-treakerdeargs-projects.vercel.app",
     "https://barproyectov-2.onrender.com",
+    "https://bar-proyecto-v-2.vercel.app",
     process.env.CLIENT_URL,
     process.env.DESKTOP_URL,
     ...extraOrigins,

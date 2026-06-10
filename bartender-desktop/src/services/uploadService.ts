@@ -20,6 +20,12 @@ export interface UploadError {
  */
 export const uploadImage = async (file: File): Promise<UploadResult> => {
   try {
+    console.log('[UploadService] Uploading single image:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
     const formData = new FormData();
     formData.append('image', file);
 
@@ -29,6 +35,8 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
       },
     });
 
+    console.log('[UploadService] Upload successful:', response.data);
+
     return {
       url: response.data.url,
       publicId: response.data.publicId,
@@ -37,6 +45,8 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
       size: response.data.size,
     };
   } catch (error: any) {
+    console.error('[UploadService] Upload error:', error);
+    console.error('[UploadService] Error response:', error?.response?.data);
     const errorMessage = error?.response?.data?.error || error?.message || 'Error al subir la imagen';
     throw new Error(errorMessage);
   }
@@ -49,6 +59,11 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
  */
 export const uploadMultipleImages = async (files: File[]): Promise<UploadResult[]> => {
   try {
+    console.log('[UploadService] Uploading multiple images:', {
+      count: files.length,
+      files: files.map(f => ({ name: f.name, size: f.size, type: f.type })),
+    });
+
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('images', file);
@@ -60,8 +75,12 @@ export const uploadMultipleImages = async (files: File[]): Promise<UploadResult[
       },
     });
 
+    console.log('[UploadService] Multiple upload successful:', response.data);
+
     return response.data.files;
   } catch (error: any) {
+    console.error('[UploadService] Multiple upload error:', error);
+    console.error('[UploadService] Error response:', error?.response?.data);
     const errorMessage = error?.response?.data?.error || error?.message || 'Error al subir las imágenes';
     throw new Error(errorMessage);
   }

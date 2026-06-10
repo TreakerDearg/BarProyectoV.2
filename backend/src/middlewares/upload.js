@@ -21,10 +21,18 @@ const storage = new CloudinaryStorage({
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   
+  console.log('[Upload Middleware] File filter check:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size,
+  });
+  
   if (allowedTypes.includes(file.mimetype)) {
+    console.log('[Upload Middleware] File type accepted');
     cb(null, true);
   } else {
-    cb(new Error('Tipo de archivo no permitido. Solo se aceptan imágenes (jpg, jpeg, png, webp)'), false);
+    console.error('[Upload Middleware] File type rejected:', file.mimetype);
+    cb(new Error(`Tipo de archivo no permitido: ${file.mimetype}. Solo se aceptan imágenes (jpg, jpeg, png, webp)`), false);
   }
 };
 
