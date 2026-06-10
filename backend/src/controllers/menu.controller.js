@@ -111,19 +111,11 @@ const validateMenu = async (data) => {
           return `Producto con ID ${p.product} no encontrado`;
         }
 
-        // Validación cruzada: si el producto tiene receta, verificar que exista
+        // Validación cruzada opcional: si el producto tiene receta, verificar que exista (warning, no error)
         if (product.hasRecipe) {
           const recipe = await Recipe.findOne({ product: p.product });
           if (!recipe) {
-            return `El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`;
-          }
-
-          // Validación cruzada: verificar que los ingredientes existan en el inventario
-          for (const ing of recipe.ingredients) {
-            const inventoryItem = await InventoryItem.findById(ing.inventoryItem);
-            if (!inventoryItem) {
-              return `Ingrediente ${ing.inventoryItem} no encontrado en el inventario para la receta de ${product.name}`;
-            }
+            logger.warn(`[Menu] El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`);
           }
         }
       }
@@ -197,15 +189,12 @@ export const createMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
-    // Validación de datos de imagen
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (req.body.image && !req.body.imagePublicId) {
       return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
     }
     if (req.body.imagePublicId && !req.body.image) {
       return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-    }
-    if (req.body.image && !req.body.image.includes('cloudinary.com')) {
-      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
     }
 
     // Procesar imagen si se proporciona (URL y publicId desde frontend después de subir a Cloudinary)
@@ -246,16 +235,13 @@ export const updateMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
-    // Validación de datos de imagen
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (req.body.image !== undefined) {
       if (req.body.image && !req.body.imagePublicId) {
         return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
       }
       if (req.body.imagePublicId && !req.body.image) {
         return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-      }
-      if (req.body.image && !req.body.image.includes('cloudinary.com')) {
-        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
       }
     }
 

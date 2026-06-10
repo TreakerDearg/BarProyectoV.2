@@ -112,6 +112,15 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
+    gallery: {
+      type: [{
+        url: String,
+        publicId: String,
+        order: { type: Number, default: 0 },
+      }],
+      default: [],
+    },
+
     /* ==============================
        TAG SYSTEM (POS FILTERS)
     ============================== */

@@ -90,7 +90,6 @@ const menuSchema = new mongoose.Schema(
 
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
     },
 
@@ -155,6 +154,14 @@ const menuSchema = new mongoose.Schema(
     },
 
     /* ========================
+       CONFIG
+    ======================== */
+    allowEmptyCategories: {
+      type: Boolean,
+      default: false,
+    },
+
+    /* ========================
        FUTURE (READY)
     ======================== */
     schedule: {
@@ -184,7 +191,6 @@ const menuSchema = new mongoose.Schema(
     tags: {
       type: [String],
       default: [],
-      index: true,
     },
 
     /* ========================

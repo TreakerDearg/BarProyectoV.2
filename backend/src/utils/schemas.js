@@ -154,13 +154,37 @@ export const createReservationSchema = z.object({
 });
 
 /* ─────────────────── MENUS ─────────────────── */
-export const createMenuSchema = z.object({
-  name:        z.string().min(2).trim(),
+const menuProductSchema = z.object({
+  product: z.string().min(1, "Product ID is required"),
+  price: z.number().min(0).optional().nullable(),
+  available: z.boolean().optional().default(true),
+  featured: z.boolean().optional().default(false),
+  order: z.number().min(0).optional().default(0),
+});
+
+const menuCategorySchema = z.object({
+  name: z.string().min(1).trim(),
   description: z.string().optional().default(""),
-  type:        z.string().optional().default("general"),
-  active:      z.boolean().optional().default(true),
-  isPublic:    z.boolean().optional().default(false),
-  categories:  z.array(z.any()).optional().default([]),
+  image: z.string().optional().default(""),
+  imagePublicId: z.string().optional().default(""),
+  products: z.array(menuProductSchema).optional().default([]),
+  order: z.number().min(0).optional().default(0),
+});
+
+export const createMenuSchema = z.object({
+  name: z.string().min(2).trim(),
+  description: z.string().optional().default(""),
+  type: z.enum(["drink", "food", "mixed"]).optional().default("mixed"),
+  active: z.boolean().optional().default(true),
+  isPublic: z.boolean().optional().default(true),
+  allowEmptyCategories: z.boolean().optional().default(false),
+  categories: z.array(menuCategorySchema).optional().default([]),
+  image: z.string().optional().default(""),
+  imagePublicId: z.string().optional().default(""),
+  color: z.string().optional().default("#f59e0b"),
+  drinkStyle: z.enum(["author", "classic", "mixed"]).optional().default("mixed"),
+  featured: z.boolean().optional().default(false),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 /* ─────────────────── DISCOUNTS ─────────────────── */

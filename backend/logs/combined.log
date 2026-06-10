@@ -27726,3 +27726,174 @@
 {"level":"info","message":"❤️ Health check: /health","timestamp":"2026-05-28 18:02:16"}
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-05-28 18:02:18"}
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-05-28 18:02:18"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:34:19"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:34:22"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:34:23"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:34:23"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:40:57"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:40:58"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:40:59"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:40:59"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:41:20"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:41:21"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:41:22"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:41:22"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:41:46"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:41:47"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:41:48"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:41:48"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:42:02"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:42:03"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:42:04"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:42:04"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:42:21"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:42:23"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:42:24"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:42:24"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:43:02"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:43:03"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:43:04"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:43:04"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:43:22"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:43:24"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:43:25"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:43:25"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:43:46"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:43:48"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:43:49"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:43:49"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:44:15"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:44:16"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:44:17"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:44:17"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:44:42"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:44:43"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:44:44"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:44:44"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:47:03"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:47:05"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:47:06"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:47:06"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:47:39"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:47:41"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:47:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:47:43"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:48:10"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:48:12"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-06-10 19:48:21"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:48:40"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:48:41"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:48:42"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:48:42"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:49:45"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:49:46"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:49:47"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:49:47"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-06-10 19:53:16"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-06-10 19:53:18"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-06-10 19:53:19"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-06-10 19:53:19"}

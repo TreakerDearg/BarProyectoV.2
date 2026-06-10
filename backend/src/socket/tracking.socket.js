@@ -15,7 +15,7 @@ export const setupTrackingEvents = (io) => {
     // Aquí puedes validar el token JWT si es necesario
     // Por ahora, permitimos la conexión para desarrollo
     if (!token) {
-      logger.warn("[Tracking Socket] Conexión sin token de autenticación");
+      logger.info("[Tracking Socket] Conexión sin token de autenticación (modo desarrollo)");
     }
     
     next();

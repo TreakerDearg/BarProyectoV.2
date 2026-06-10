@@ -67,15 +67,12 @@ export const createInventoryItem = async (req, res, next) => {
       return badRequest(res, "name y category son obligatorios");
     }
 
-    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (image && !imagePublicId) {
       return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
     }
     if (imagePublicId && !image) {
       return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-    }
-    if (image && !image.includes('cloudinary.com')) {
-      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
     }
 
     // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
@@ -134,16 +131,13 @@ export const updateInventoryItem = async (req, res, next) => {
 
     if (updates.category) updates.category = updates.category.toLowerCase();
 
-    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (updates.image !== undefined) {
       if (updates.image && !updates.imagePublicId) {
         return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
       }
       if (updates.imagePublicId && !updates.image) {
         return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-      }
-      if (updates.image && !updates.image.includes('cloudinary.com')) {
-        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
       }
     }
 

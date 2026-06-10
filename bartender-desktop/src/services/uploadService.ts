@@ -36,6 +36,11 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
     });
 
     console.log('[UploadService] Upload successful:', response.data);
+    console.log('[UploadService] Full response:', response);
+
+    if (!response.data) {
+      throw new Error('No data received from server');
+    }
 
     return {
       url: response.data.url,
@@ -47,7 +52,7 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
   } catch (error: any) {
     console.error('[UploadService] Upload error:', error);
     console.error('[UploadService] Error response:', error?.response?.data);
-    const errorMessage = error?.response?.data?.error || error?.message || 'Error al subir la imagen';
+    const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Error al subir la imagen';
     throw new Error(errorMessage);
   }
 };
@@ -76,12 +81,21 @@ export const uploadMultipleImages = async (files: File[]): Promise<UploadResult[
     });
 
     console.log('[UploadService] Multiple upload successful:', response.data);
+    console.log('[UploadService] Full response:', response);
+
+    if (!response.data) {
+      throw new Error('No data received from server');
+    }
+
+    if (!response.data.files) {
+      throw new Error('No files array in response data');
+    }
 
     return response.data.files;
   } catch (error: any) {
     console.error('[UploadService] Multiple upload error:', error);
     console.error('[UploadService] Error response:', error?.response?.data);
-    const errorMessage = error?.response?.data?.error || error?.message || 'Error al subir las imágenes';
+    const errorMessage = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Error al subir las imágenes';
     throw new Error(errorMessage);
   }
 };

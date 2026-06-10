@@ -256,23 +256,41 @@ recipeSchema.pre("findOneAndUpdate", async function () {
 });
 
 /* ==============================
-   POST SYNC WITH PRODUCT
+   POST SYNC WITH PRODUCT (WITH CYCLE PREVENTION)
 ============================== */
-recipeSchema.post("save", async function (doc) {
-  const Product = mongoose.model("Product");
-  await Product.findByIdAndUpdate(doc.product, {
-    hasRecipe: true,
-    cost: doc.totalCost
-  });
-});
+let isUpdatingProduct = false;
 
-recipeSchema.post("findOneAndUpdate", async function (doc) {
-  if (doc) {
+recipeSchema.post("save", async function (doc) {
+  // Prevenir ciclos de actualización
+  if (isUpdatingProduct) return;
+
+  try {
+    isUpdatingProduct = true;
     const Product = mongoose.model("Product");
     await Product.findByIdAndUpdate(doc.product, {
       hasRecipe: true,
       cost: doc.totalCost
     });
+  } finally {
+    isUpdatingProduct = false;
+  }
+});
+
+recipeSchema.post("findOneAndUpdate", async function (doc) {
+  if (!doc) return;
+
+  // Prevenir ciclos de actualización
+  if (isUpdatingProduct) return;
+
+  try {
+    isUpdatingProduct = true;
+    const Product = mongoose.model("Product");
+    await Product.findByIdAndUpdate(doc.product, {
+      hasRecipe: true,
+      cost: doc.totalCost
+    });
+  } finally {
+    isUpdatingProduct = false;
   }
 });
 

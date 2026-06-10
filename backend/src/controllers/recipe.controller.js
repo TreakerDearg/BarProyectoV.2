@@ -70,15 +70,12 @@ export const createRecipe = async (req, res, next) => {
       return badRequest(res, "Debes agregar al menos un ingrediente");
     }
 
-    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (image && !imagePublicId) {
       return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
     }
     if (imagePublicId && !image) {
       return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-    }
-    if (image && !image.includes('cloudinary.com')) {
-      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
     }
 
     const productDoc = await Product.findById(product);
@@ -171,16 +168,13 @@ export const updateRecipe = async (req, res, next) => {
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
 
-    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    // Validación de consistencia de imagen (image ↔ imagePublicId)
     if (updates.image !== undefined) {
       if (updates.image && !updates.imagePublicId) {
         return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
       }
       if (updates.imagePublicId && !updates.image) {
         return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
-      }
-      if (updates.image && !updates.image.includes('cloudinary.com')) {
-        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
       }
     }
 
