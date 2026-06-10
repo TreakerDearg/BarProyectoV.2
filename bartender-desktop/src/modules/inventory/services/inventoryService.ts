@@ -2,6 +2,37 @@ import api from "../../../services/api";
 import type { InventoryItem } from "../types/inventory";
 
 /* =========================
+   IMAGE VALIDATION
+========================= */
+export function validateImageData(item: any): { valid: boolean; error?: string } {
+  // If image URL is provided, publicId must also be provided
+  if (item.image && !item.imagePublicId) {
+    return {
+      valid: false,
+      error: 'Se requiere imagePublicId cuando se proporciona una imagen'
+    };
+  }
+
+  // If publicId is provided, image URL must also be provided
+  if (item.imagePublicId && !item.image) {
+    return {
+      valid: false,
+      error: 'Se requiere image URL cuando se proporciona imagePublicId'
+    };
+  }
+
+  // Validate Cloudinary URL format (basic check)
+  if (item.image && !item.image.includes('cloudinary.com')) {
+    return {
+      valid: false,
+      error: 'La URL de la imagen debe ser de Cloudinary'
+    };
+  }
+
+  return { valid: true };
+}
+
+/* =========================
    NORMALIZER (SAFE + CLEAN)
 ========================= */
 const normalizeItem = (item: InventoryItem) => {
@@ -45,6 +76,12 @@ export const getInventory = async (): Promise<InventoryItem[]> => {
 export const createInventoryItem = async (
   item: InventoryItem
 ): Promise<InventoryItem> => {
+  // Validate image data before sending
+  const imageValidation = validateImageData(item);
+  if (!imageValidation.valid) {
+    throw new Error(imageValidation.error);
+  }
+
   const payload = normalizeItem(item);
 
   // VALIDACIÓN FRONT GUARD (evita 500 innecesarios)
@@ -64,6 +101,12 @@ export const updateInventoryItem = async (
   id: string,
   item: InventoryItem
 ): Promise<InventoryItem> => {
+  // Validate image data before sending
+  const imageValidation = validateImageData(item);
+  if (!imageValidation.valid) {
+    throw new Error(imageValidation.error);
+  }
+
   const payload = normalizeItem(item);
 
   const { data } = await api.patch(`/inventory/${id}`, payload);

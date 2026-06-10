@@ -60,7 +60,7 @@ export const createRecipe = async (req, res, next) => {
   try {
     const {
       product, ingredients = [], type, method = "",
-      steps = [], category = "general", image = "",
+      steps = [], category = "general", image = "", imagePublicId = "",
     } = req.body;
 
     if (!product || !type) {
@@ -68,6 +68,17 @@ export const createRecipe = async (req, res, next) => {
     }
     if (!ingredients.length) {
       return badRequest(res, "Debes agregar al menos un ingrediente");
+    }
+
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (image && !imagePublicId) {
+      return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+    }
+    if (imagePublicId && !image) {
+      return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+    }
+    if (image && !image.includes('cloudinary.com')) {
+      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
     }
 
     const productDoc = await Product.findById(product);
@@ -106,17 +117,17 @@ export const createRecipe = async (req, res, next) => {
 
     // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
     let imageUrl = image || "";
-    let imagePublicId = "";
+    let imagePublicIdFinal = imagePublicId || "";
 
     if (req.file) {
       imageUrl = req.file.secure_url || req.file.path;
-      imagePublicId = req.file.public_id;
-      logger.info(`[Recipe] Imagen subida a Cloudinary: ${imagePublicId}`);
+      imagePublicIdFinal = req.file.public_id;
+      logger.info(`[Recipe] Imagen subida a Cloudinary: ${imagePublicIdFinal}`);
     }
 
     const recipe = await Recipe.create({
       product, ingredients: cleanIngredients, type, method,
-      steps: cleanSteps, category, image: imageUrl, imagePublicId,
+      steps: cleanSteps, category, image: imageUrl, imagePublicId: imagePublicIdFinal,
     });
 
     if (!productDoc.hasRecipe) {
@@ -141,7 +152,10 @@ export const createRecipe = async (req, res, next) => {
     emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
 
     return created(res, populated, "Receta creada correctamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Recipe] Error creando receta:", error);
+    throw error;
+  }
 };
 
 /* =========================================================
@@ -157,6 +171,19 @@ export const updateRecipe = async (req, res, next) => {
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
 
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (updates.image !== undefined) {
+      if (updates.image && !updates.imagePublicId) {
+        return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+      }
+      if (updates.imagePublicId && !updates.image) {
+        return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+      }
+      if (updates.image && !updates.image.includes('cloudinary.com')) {
+        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+      }
+    }
+
     // Manejar actualización de imagen (ya subida por multer-storage-cloudinary)
     if (req.file) {
       try {
@@ -171,6 +198,10 @@ export const updateRecipe = async (req, res, next) => {
         logger.info(`[Recipe] Nueva imagen subida a Cloudinary: ${req.file.public_id}`);
       } catch (uploadError) {
         logger.error("[Recipe] Error actualizando imagen:", uploadError);
+        logger.error("[Recipe] Detalles del error:", {
+          message: uploadError.message,
+          stack: uploadError.stack,
+        });
         // Continuar sin actualizar imagen si falla
       }
     }
@@ -197,7 +228,10 @@ export const updateRecipe = async (req, res, next) => {
     emitRecipeEvent(RECIPE_EVENTS.UPDATED, populated);
 
     return ok(res, populated, "Receta actualizada correctamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Recipe] Error actualizando receta:", error);
+    throw error;
+  }
 };
 
 /* =========================================================

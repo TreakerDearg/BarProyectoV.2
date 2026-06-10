@@ -112,3 +112,20 @@ export const validateImageFile = (file: File): { isValid: boolean; error?: strin
 
   return { isValid: true };
 };
+
+/**
+ * Delete an image from Cloudinary
+ * @param publicId - The Cloudinary public ID of the image to delete
+ * @returns Promise that resolves when deletion is complete
+ */
+export const deleteImage = async (publicId: string): Promise<void> => {
+  try {
+    console.log('[UploadService] Deleting image:', publicId);
+    await api.delete(`/upload/${publicId}`);
+    console.log('[UploadService] Image deleted successfully');
+  } catch (error: any) {
+    console.error('[UploadService] Delete image error:', error);
+    // Don't throw error - allow operation to continue even if deletion fails
+    console.warn('[UploadService] Failed to delete image, continuing anyway');
+  }
+};

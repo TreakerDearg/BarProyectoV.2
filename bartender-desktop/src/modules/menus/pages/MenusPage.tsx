@@ -41,7 +41,7 @@ import {
   createMenu,
   updateMenu,
 } from "../../../services/menuService";
-import { uploadImage } from "../../../services/uploadService";
+import { uploadImage, deleteImage } from "../../../services/uploadService";
 
 import { getRecipes } from "../../recipes/services/recipeService";
 import { getProducts } from "../../products/services/productService";
@@ -224,6 +224,8 @@ export default function MenusPage() {
   const handleSaveMenu = async () => {
     if (!menuBuilder.selectedMenu?._id) return;
     
+    let uploadedImagePublicId: string | null = null;
+    
     try {
       setSaving(true);
       // Ensure categories is always an array
@@ -235,6 +237,7 @@ export default function MenusPage() {
       // Upload image file if present
       if (menuBuilder.imageFile) {
         const uploadResult = await uploadImage(menuBuilder.imageFile);
+        uploadedImagePublicId = uploadResult.publicId;
         menuToSave = {
           ...menuToSave,
           image: uploadResult.url,
@@ -253,9 +256,21 @@ export default function MenusPage() {
       fetchMenus();
       // Don't clear imageFile - keep it for persistence across view changes
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving menu", err);
-      alert("Error al guardar el menú");
+      
+      // Rollback: delete uploaded image if menu save failed
+      if (uploadedImagePublicId) {
+        try {
+          console.log('[Menu] Rolling back: deleting uploaded image', uploadedImagePublicId);
+          await deleteImage(uploadedImagePublicId);
+          console.log('[Menu] Rollback successful: image deleted');
+        } catch (rollbackError) {
+          console.error('[Menu] Rollback failed: could not delete image', rollbackError);
+        }
+      }
+      
+      alert(err?.message || "Error al guardar el menú");
     } finally {
       setSaving(false);
     }

@@ -63,7 +63,12 @@ api.interceptors.request.use(
       config.headers = {} as any;
     }
     config.headers['Accept'] = 'application/json, text/plain, */*';
-    config.headers['Content-Type'] = 'application/json';
+    
+    // Only set Content-Type for non-multipart requests (FormData sets its own boundary)
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+    
     config.headers['X-Platform'] = 'desktop';
     config.headers['X-Client-Version'] = '1.0.0';
 
@@ -72,8 +77,8 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    //  CLEAN PAYLOAD
-    if (config.data) {
+    //  CLEAN PAYLOAD (only for JSON requests, not FormData)
+    if (config.data && !(config.data instanceof FormData)) {
       config.data = normalizePayload(config.data);
     }
 

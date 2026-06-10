@@ -60,7 +60,7 @@ export const getProduct = async (req, res, next) => {
 ========================================================= */
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, price, type, category } = req.body;
+    const { name, price, type, category, image, imagePublicId, gallery, galleryPublicIds } = req.body;
 
     if (!name || price === undefined || !type || !category) {
       return badRequest(res, "name, price, type y category son obligatorios");
@@ -69,34 +69,57 @@ export const createProduct = async (req, res, next) => {
     const exists = await Product.findOne({ name: name.trim().toLowerCase() });
     if (exists) return conflict(res, "El producto ya existe");
 
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (image && !imagePublicId) {
+      return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+    }
+    if (imagePublicId && !image) {
+      return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+    }
+    if (image && !image.includes('cloudinary.com')) {
+      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+    }
+
+    // Validación de datos de galería (si se envían desde frontend sin multer)
+    if (gallery && Array.isArray(gallery) && galleryPublicIds && Array.isArray(galleryPublicIds)) {
+      if (gallery.length !== galleryPublicIds.length) {
+        return badRequest(res, "El número de imágenes de la galería debe coincidir con el número de publicIds");
+      }
+      for (const imageUrl of gallery) {
+        if (imageUrl && !imageUrl.includes('cloudinary.com')) {
+          return badRequest(res, "Las URLs de la galería deben ser de Cloudinary");
+        }
+      }
+    }
+
     // Procesar imagen principal si se proporciona (ya subida por multer-storage-cloudinary)
-    let imageUrl = null;
-    let imagePublicId = null;
+    let imageUrl = image || null;
+    let imagePublicIdFinal = imagePublicId || null;
 
     if (req.files && req.files.image) {
       const imageFile = Array.isArray(req.files.image) ? req.files.image[0] : req.files.image;
       imageUrl = imageFile.secure_url || imageFile.path;
-      imagePublicId = imageFile.public_id;
-      logger.info(`[Product] Imagen principal subida a Cloudinary: ${imagePublicId}`);
+      imagePublicIdFinal = imageFile.public_id;
+      logger.info(`[Product] Imagen principal subida a Cloudinary: ${imagePublicIdFinal}`);
     }
 
     // Procesar galería de imágenes si se proporciona (ya subida por multer-storage-cloudinary)
-    let galleryImages = [];
-    let galleryPublicIds = [];
+    let galleryImages = gallery || [];
+    let galleryPublicIdsFinal = galleryPublicIds || [];
 
     if (req.files && req.files.gallery) {
       const galleryFiles = Array.isArray(req.files.gallery) ? req.files.gallery : [req.files.gallery];
       galleryImages = galleryFiles.map(f => f.secure_url || f.path);
-      galleryPublicIds = galleryFiles.map(f => f.public_id);
+      galleryPublicIdsFinal = galleryFiles.map(f => f.public_id);
       logger.info(`[Product] Galería de ${galleryFiles.length} imágenes subida a Cloudinary`);
     }
 
     const product = await Product.create({
       ...req.body,
       image: imageUrl,
-      imagePublicId: imagePublicId,
+      imagePublicId: imagePublicIdFinal,
       gallery: galleryImages,
-      galleryPublicIds: galleryPublicIds,
+      galleryPublicIds: galleryPublicIdsFinal,
     });
     
     // 🔥 Verificamos si ya existe una receta para marcar hasRecipe
@@ -112,7 +135,10 @@ export const createProduct = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.CREATED, product);
 
     return created(res, product, "Producto creado correctamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Product] Error creando producto:", error);
+    throw error;
+  }
 };
 
 /* =========================================================
@@ -138,6 +164,31 @@ export const updateProduct = async (req, res, next) => {
       return badRequest(res, "No hay campos válidos para actualizar");
     }
 
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (updates.image !== undefined) {
+      if (updates.image && !updates.imagePublicId) {
+        return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+      }
+      if (updates.imagePublicId && !updates.image) {
+        return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+      }
+      if (updates.image && !updates.image.includes('cloudinary.com')) {
+        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+      }
+    }
+
+    // Validación de datos de galería (si se envían desde frontend sin multer)
+    if (updates.gallery && Array.isArray(updates.gallery) && updates.galleryPublicIds && Array.isArray(updates.galleryPublicIds)) {
+      if (updates.gallery.length !== updates.galleryPublicIds.length) {
+        return badRequest(res, "El número de imágenes de la galería debe coincidir con el número de publicIds");
+      }
+      for (const imageUrl of updates.gallery) {
+        if (imageUrl && !imageUrl.includes('cloudinary.com')) {
+          return badRequest(res, "Las URLs de la galería deben ser de Cloudinary");
+        }
+      }
+    }
+
     // Manejar actualización de imagen principal (ya subida por multer-storage-cloudinary)
     if (req.files && req.files.image) {
       try {
@@ -153,6 +204,10 @@ export const updateProduct = async (req, res, next) => {
         logger.info(`[Product] Nueva imagen principal subida a Cloudinary: ${imageFile.public_id}`);
       } catch (uploadError) {
         logger.error("[Product] Error actualizando imagen principal:", uploadError);
+        logger.error("[Product] Detalles del error:", {
+          message: uploadError.message,
+          stack: uploadError.stack,
+        });
         // Continuar sin actualizar imagen si falla
       }
     }
@@ -179,6 +234,10 @@ export const updateProduct = async (req, res, next) => {
         logger.info(`[Product] Galería de ${galleryFiles.length} imágenes actualizada en Cloudinary`);
       } catch (uploadError) {
         logger.error("[Product] Error actualizando galería:", uploadError);
+        logger.error("[Product] Detalles del error:", {
+          message: uploadError.message,
+          stack: uploadError.stack,
+        });
         // Continuar sin actualizar galería si falla
       }
     }
@@ -194,7 +253,10 @@ export const updateProduct = async (req, res, next) => {
     emitProductEvent(PRODUCT_EVENTS.UPDATED, updated);
 
     return ok(res, updated, "Producto actualizado");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Product] Error actualizando producto:", error);
+    throw error;
+  }
 };
 
 /* =========================================================

@@ -62,19 +62,30 @@ export const getInventoryItem = async (req, res, next) => {
 ========================================================= */
 export const createInventoryItem = async (req, res, next) => {
   try {
-    const { name, category } = req.body;
+    const { name, category, image, imagePublicId } = req.body;
     if (!name || !category) {
       return badRequest(res, "name y category son obligatorios");
     }
 
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (image && !imagePublicId) {
+      return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+    }
+    if (imagePublicId && !image) {
+      return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+    }
+    if (image && !image.includes('cloudinary.com')) {
+      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+    }
+
     // Procesar imagen si se proporciona (ya subida por multer-storage-cloudinary)
-    let imageUrl = null;
-    let imagePublicId = null;
+    let imageUrl = image || null;
+    let imagePublicIdFinal = imagePublicId || null;
 
     if (req.file) {
       imageUrl = req.file.secure_url || req.file.path;
-      imagePublicId = req.file.public_id;
-      logger.info(`[Inventory] Imagen subida a Cloudinary: ${imagePublicId}`);
+      imagePublicIdFinal = req.file.public_id;
+      logger.info(`[Inventory] Imagen subida a Cloudinary: ${imagePublicIdFinal}`);
     }
 
     const item = await InventoryItem.create({
@@ -82,7 +93,7 @@ export const createInventoryItem = async (req, res, next) => {
       name:     req.body.name.trim(),
       category: req.body.category.trim().toLowerCase(),
       image:    imageUrl,
-      imagePublicId: imagePublicId,
+      imagePublicId: imagePublicIdFinal,
     });
 
     // Emit socket event for inventory creation
@@ -97,7 +108,10 @@ export const createInventoryItem = async (req, res, next) => {
 
     logger.info(`[Inventory] Creado: ${item.name}`);
     return created(res, item, "Item creado correctamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Inventory] Error creando item:", error);
+    throw error;
+  }
 };
 
 /* =========================================================
@@ -120,6 +134,19 @@ export const updateInventoryItem = async (req, res, next) => {
 
     if (updates.category) updates.category = updates.category.toLowerCase();
 
+    // Validación de datos de imagen (si se envían desde frontend sin multer)
+    if (updates.image !== undefined) {
+      if (updates.image && !updates.imagePublicId) {
+        return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+      }
+      if (updates.imagePublicId && !updates.image) {
+        return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+      }
+      if (updates.image && !updates.image.includes('cloudinary.com')) {
+        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+      }
+    }
+
     // Manejar actualización de imagen (ya subida por multer-storage-cloudinary)
     if (req.file) {
       try {
@@ -136,6 +163,10 @@ export const updateInventoryItem = async (req, res, next) => {
         logger.info(`[Inventory] Nueva imagen subida a Cloudinary: ${req.file.public_id}`);
       } catch (uploadError) {
         logger.error("[Inventory] Error actualizando imagen:", uploadError);
+        logger.error("[Inventory] Detalles del error:", {
+          message: uploadError.message,
+          stack: uploadError.stack,
+        });
         // Continuar sin actualizar imagen si falla
       }
     }
@@ -158,7 +189,10 @@ export const updateInventoryItem = async (req, res, next) => {
 
     logger.info(`[Inventory] Actualizado: ${updated.name}`);
     return ok(res, updated, "Item actualizado correctamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    logger.error("[Inventory] Error actualizando item:", error);
+    throw error;
+  }
 };
 
 /* =========================================================

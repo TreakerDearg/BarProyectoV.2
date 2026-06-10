@@ -11,6 +11,54 @@ const extractError = (error: any): string => {
 };
 
 /* =========================
+   IMAGE VALIDATION
+========================= */
+export function validateImageData(product: any): { valid: boolean; error?: string } {
+  // Validate main image
+  if (product.image && !product.imagePublicId) {
+    return {
+      valid: false,
+      error: 'Se requiere imagePublicId cuando se proporciona una imagen principal'
+    };
+  }
+  if (product.imagePublicId && !product.image) {
+    return {
+      valid: false,
+      error: 'Se requiere image URL cuando se proporciona imagePublicId'
+    };
+  }
+  if (product.image && !product.image.includes('cloudinary.com')) {
+    return {
+      valid: false,
+      error: 'La URL de la imagen debe ser de Cloudinary'
+    };
+  }
+
+  // Validate gallery images
+  if (product.gallery && Array.isArray(product.gallery)) {
+    if (product.galleryPublicIds && Array.isArray(product.galleryPublicIds)) {
+      if (product.gallery.length !== product.galleryPublicIds.length) {
+        return {
+          valid: false,
+          error: 'El número de imágenes de la galería debe coincidir con el número de publicIds'
+        };
+      }
+    }
+    
+    for (const imageUrl of product.gallery) {
+      if (imageUrl && !imageUrl.includes('cloudinary.com')) {
+        return {
+          valid: false,
+          error: 'Las URLs de la galería deben ser de Cloudinary'
+        };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+/* =========================
    NORMALIZER
 ========================= */
 const normalizeProduct = (product: Product) => ({
@@ -51,6 +99,12 @@ export const createProduct = async (
   product: Product
 ): Promise<Product> => {
   try {
+    // Validate image data before sending
+    const imageValidation = validateImageData(product);
+    if (!imageValidation.valid) {
+      throw new Error(imageValidation.error);
+    }
+
     const payload = normalizeProduct(product);
     const { data } = await api.post("/products", payload);
     return data;
@@ -67,6 +121,12 @@ export const updateProduct = async (
   product: Product
 ): Promise<Product> => {
   try {
+    // Validate image data before sending
+    const imageValidation = validateImageData(product);
+    if (!imageValidation.valid) {
+      throw new Error(imageValidation.error);
+    }
+
     const payload = normalizeProduct(product);
     const { data } = await api.put(`/products/${id}`, payload);
     return data;

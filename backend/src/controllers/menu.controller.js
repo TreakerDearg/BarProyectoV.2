@@ -197,6 +197,17 @@ export const createMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
+    // Validación de datos de imagen
+    if (req.body.image && !req.body.imagePublicId) {
+      return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+    }
+    if (req.body.imagePublicId && !req.body.image) {
+      return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+    }
+    if (req.body.image && !req.body.image.includes('cloudinary.com')) {
+      return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+    }
+
     // Procesar imagen si se proporciona (URL y publicId desde frontend después de subir a Cloudinary)
     if (req.body.image) {
       normalized.image = req.body.image;
@@ -216,6 +227,7 @@ export const createMenu = async (req, res, next) => {
 
     return created(res, populated, "Menú creado correctamente");
   } catch (error) {
+    logger.error("[Menu] Error creando menú:", error);
     throw error;
   }
 };
@@ -234,6 +246,19 @@ export const updateMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
+    // Validación de datos de imagen
+    if (req.body.image !== undefined) {
+      if (req.body.image && !req.body.imagePublicId) {
+        return badRequest(res, "Se requiere imagePublicId cuando se proporciona una imagen");
+      }
+      if (req.body.imagePublicId && !req.body.image) {
+        return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
+      }
+      if (req.body.image && !req.body.image.includes('cloudinary.com')) {
+        return badRequest(res, "La URL de la imagen debe ser de Cloudinary");
+      }
+    }
+
     // Manejar actualización de imagen (URL y publicId desde frontend después de subir a Cloudinary)
     if (req.body.image !== undefined) {
       try {
@@ -250,7 +275,11 @@ export const updateMenu = async (req, res, next) => {
         logger.info(`[Menu] Imagen actualizada desde Cloudinary: ${normalized.imagePublicId}`);
       } catch (uploadError) {
         logger.error("[Menu] Error actualizando imagen:", uploadError);
-        // Continuar sin actualizar imagen si falla
+        // Continuar sin actualizar imagen si falla, pero loggear el error detalladamente
+        logger.error("[Menu] Detalles del error:", {
+          message: uploadError.message,
+          stack: uploadError.stack,
+        });
       }
     }
 
@@ -269,6 +298,7 @@ export const updateMenu = async (req, res, next) => {
 
     return ok(res, updated, "Menú actualizado correctamente");
   } catch (error) {
+    logger.error("[Menu] Error actualizando menú:", error);
     throw error;
   }
 };

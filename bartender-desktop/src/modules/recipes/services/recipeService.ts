@@ -2,6 +2,37 @@ import api from "../../../services/api";
 import type { Recipe } from "../types/recipe";
 
 /* =========================
+   IMAGE VALIDATION
+========================= */
+export function validateImageData(recipe: any): { valid: boolean; error?: string } {
+  // If image URL is provided, publicId must also be provided
+  if (recipe.image && !recipe.imagePublicId) {
+    return {
+      valid: false,
+      error: 'Se requiere imagePublicId cuando se proporciona una imagen'
+    };
+  }
+
+  // If publicId is provided, image URL must also be provided
+  if (recipe.imagePublicId && !recipe.image) {
+    return {
+      valid: false,
+      error: 'Se requiere image URL cuando se proporciona imagePublicId'
+    };
+  }
+
+  // Validate Cloudinary URL format (basic check)
+  if (recipe.image && !recipe.image.includes('cloudinary.com')) {
+    return {
+      valid: false,
+      error: 'La URL de la imagen debe ser de Cloudinary'
+    };
+  }
+
+  return { valid: true };
+}
+
+/* =========================
    NORMALIZER (FULL SAFE)
 ========================= */
 const normalizeRecipe = (r: Recipe) => ({
@@ -59,6 +90,12 @@ export const getRecipe = async (id: string): Promise<Recipe> => {
 ========================= */
 export const createRecipe = async (recipe: Recipe) => {
   try {
+    // Validate image data before sending
+    const imageValidation = validateImageData(recipe);
+    if (!imageValidation.valid) {
+      throw new Error(imageValidation.error);
+    }
+
     const payload = normalizeRecipe(recipe);
 
     const { data } = await api.post("/recipes", payload);
@@ -74,6 +111,12 @@ export const createRecipe = async (recipe: Recipe) => {
 ========================= */
 export const updateRecipe = async (id: string, recipe: Recipe) => {
   try {
+    // Validate image data before sending
+    const imageValidation = validateImageData(recipe);
+    if (!imageValidation.valid) {
+      throw new Error(imageValidation.error);
+    }
+
     const payload = normalizeRecipe(recipe);
 
     const { data } = await api.patch(`/recipes/${id}`, payload);

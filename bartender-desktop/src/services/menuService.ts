@@ -1,5 +1,6 @@
 import api from "./api";
 import type { Menu } from "../types/menu";
+import { deleteImage as deleteImageFromCloudinary } from "./uploadService";
 
 /* =========================
    RESPONSE NORMALIZER 
@@ -11,6 +12,37 @@ function unwrap<T>(res: any): T {
   if (res.data?.data) return res.data.data;
 
   return res.data;
+}
+
+/* =========================
+   IMAGE VALIDATION
+========================= */
+export function validateImageData(menu: any): { valid: boolean; error?: string } {
+  // If image URL is provided, publicId must also be provided
+  if (menu.image && !menu.imagePublicId) {
+    return {
+      valid: false,
+      error: 'Se requiere imagePublicId cuando se proporciona una imagen'
+    };
+  }
+
+  // If publicId is provided, image URL must also be provided
+  if (menu.imagePublicId && !menu.image) {
+    return {
+      valid: false,
+      error: 'Se requiere image URL cuando se proporciona imagePublicId'
+    };
+  }
+
+  // Validate Cloudinary URL format (basic check)
+  if (menu.image && !menu.image.includes('cloudinary.com')) {
+    return {
+      valid: false,
+      error: 'La URL de la imagen debe ser de Cloudinary'
+    };
+  }
+
+  return { valid: true };
 }
 
 /* =========================
@@ -38,6 +70,12 @@ export const createMenu = async (
   menu: any,
   options?: { allowEmptyCategories?: boolean }
 ): Promise<Menu> => {
+  // Validate image data before sending
+  const imageValidation = validateImageData(menu);
+  if (!imageValidation.valid) {
+    throw new Error(imageValidation.error);
+  }
+
   const payload = buildPayload(menu, options?.allowEmptyCategories);
 
   const res = await api.post("/menus", payload);
@@ -52,6 +90,12 @@ export const updateMenu = async (
   menu: any,
   options?: { allowEmptyCategories?: boolean }
 ): Promise<Menu> => {
+  // Validate image data before sending
+  const imageValidation = validateImageData(menu);
+  if (!imageValidation.valid) {
+    throw new Error(imageValidation.error);
+  }
+
   const payload = buildPayload(menu, options?.allowEmptyCategories);
 
   const res = await api.put(`/menus/${id}`, payload);
