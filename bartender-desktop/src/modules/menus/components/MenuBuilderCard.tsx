@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye, Image as ImageIcon, Loader2, AlertTriangle, Clock, TrendingUp } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -27,6 +27,20 @@ export default function MenuBuilderCard({
   const totalCategories = menu.categories?.length || 0;
   const isPublic = menu.isPublic;
   const featured = menu.featured;
+
+  // Calculate completion progress
+  const hasName = !!menu.name;
+  const hasImage = !!menu.image;
+  const hasCategories = totalCategories > 0;
+  const hasProducts = totalProducts > 0;
+  const completionScore = [hasName, hasImage, hasCategories, hasProducts].filter(Boolean).length;
+  const completionPercent = (completionScore / 4) * 100;
+
+  // Calculate products with recipes
+  const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
+    return acc + (cat.products?.filter(p => p.hasRecipe).length || 0);
+  }, 0) || 0;
+  const recipeCompletion = totalProducts > 0 ? (productsWithRecipes / totalProducts) * 100 : 0;
 
   // Image loading states
   const [imageLoading, setImageLoading] = useState(true);
@@ -79,6 +93,9 @@ export default function MenuBuilderCard({
                     setImageError(true);
                   }}
                 />
+                {menu.imagePublicId && (
+                  <div className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-surface-3" title="Sincronizado con Cloudinary" />
+                )}
               </div>
             ) : (
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center">
@@ -165,6 +182,75 @@ export default function MenuBuilderCard({
           </div>
         )}
       </div>
+
+      {/* Completion Progress */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <TrendingUp size={10} className="text-gold" />
+            <span className="text-[8px] font-semibold text-muted uppercase tracking-wider">
+              Completitud
+            </span>
+          </div>
+          <span className="text-[8px] font-bold text-ivory">
+            {completionPercent}%
+          </span>
+        </div>
+        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-500 ${
+              completionPercent === 100 ? 'bg-emerald-500' : 'bg-gold'
+            }`}
+            style={{ width: `${completionPercent}%` }}
+          />
+        </div>
+        {completionPercent < 100 && (
+          <div className="flex items-center gap-1 text-[8px] text-muted/70">
+            <AlertTriangle size={8} className={completionPercent >= 50 ? 'text-amber-400' : 'text-red-400'} />
+            <span>
+              {!hasName && 'Falta nombre · '}
+              {!hasImage && 'Falta imagen · '}
+              {!hasCategories && 'Falta categorías · '}
+              {!hasProducts && 'Falta productos'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Recipe Completion */}
+      {totalProducts > 0 && (
+        <div className="space-y-2 pt-2 border-t border-white/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <FileText size={10} className="text-violet-400" />
+              <span className="text-[8px] font-semibold text-muted uppercase tracking-wider">
+                Recetas
+              </span>
+            </div>
+            <span className="text-[8px] font-bold text-ivory">
+              {productsWithRecipes}/{totalProducts}
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${
+                recipeCompletion === 100 ? 'bg-emerald-500' : 'bg-violet-500'
+              }`}
+              style={{ width: `${recipeCompletion}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Last Updated */}
+      {menu.updatedAt && (
+        <div className="flex items-center gap-1.5 pt-2 border-t border-white/5">
+          <Clock size={8} className="text-muted/50" />
+          <span className="text-[8px] text-muted/50 font-semibold">
+            Actualizado {new Date(menu.updatedAt).toLocaleDateString()}
+          </span>
+        </div>
+      )}
 
       {/* Active indicator */}
       {selected && (

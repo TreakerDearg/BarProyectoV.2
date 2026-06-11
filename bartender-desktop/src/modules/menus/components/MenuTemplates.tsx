@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Martini, Utensils, Layers, Copy, Check, Plus } from "lucide-react";
+import { Martini, Utensils, Layers, Copy, Check, Plus, Coffee, Sun, Clock, Star, Edit2, Eye } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 import { createMenu } from "../../../services/menuService";
 
@@ -23,6 +23,7 @@ const TEMPLATES = [
       { name: "Cócteles de Autor", products: [] },
       { name: "Vinos", products: [] },
       { name: "Cervezas", products: [] },
+      { name: "Sin Alcohol", products: [] },
     ]
   },
   {
@@ -46,8 +47,47 @@ const TEMPLATES = [
     type: "mixed" as const,
     categories: [
       { name: "Cócteles", products: [] },
-      { name: "Comida", products: [] },
+      { name: "Tapas", products: [] },
+      { name: "Platos Fuertes", products: [] },
       { name: "Postres", products: [] },
+    ]
+  },
+  {
+    id: "brunch",
+    name: "Brunch",
+    icon: <Coffee size={20} />,
+    description: "Plantilla para cafeterías y brunch",
+    type: "food" as const,
+    categories: [
+      { name: "Cafés y Tés", products: [] },
+      { name: "Desayunos", products: [] },
+      { name: "Brunch", products: [] },
+      { name: "Postres", products: [] },
+    ]
+  },
+  {
+    id: "happy-hour",
+    name: "Happy Hour",
+    icon: <Sun size={20} />,
+    description: "Plantilla para happy hour y promociones",
+    type: "drink" as const,
+    categories: [
+      { name: "2x1 Cócteles", products: [] },
+      { name: "Promociones", products: [] },
+      { name: "Snacks", products: [] },
+      { name: "Cervezas", products: [] },
+    ]
+  },
+  {
+    id: "late-night",
+    name: "Late Night",
+    icon: <Clock size={20} />,
+    description: "Plantilla para servicio nocturno",
+    type: "mixed" as const,
+    categories: [
+      { name: "Cócteles Nocturnos", products: [] },
+      { name: "Comida Tardía", products: [] },
+      { name: "Shots", products: [] },
     ]
   },
 ];
@@ -56,6 +96,23 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('favorite_templates');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const toggleFavorite = (templateId: string) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(templateId)) {
+      newFavorites.delete(templateId);
+    } else {
+      newFavorites.add(templateId);
+    }
+    setFavorites(newFavorites);
+    localStorage.setItem('favorite_templates', JSON.stringify([...newFavorites]));
+  };
 
   const handleUseTemplate = async (templateId: string) => {
     const template = TEMPLATES.find(t => t.id === templateId);
@@ -64,7 +121,7 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
     try {
       setCreating(true);
       const newMenu = await createMenu({
-        name: template.name,
+        name: customName || template.name,
         description: template.description,
         type: template.type,
         active: true,
@@ -81,6 +138,8 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
       setCreating(false);
     }
   };
+
+  const selectedTemplateData = TEMPLATES.find(t => t.id === selectedTemplate);
 
   if (created) {
     return (
@@ -152,6 +211,38 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
         </button>
       </div>
 
+      {/* Favorites Section */}
+      {favorites.size > 0 && (
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
+            <Star size={12} className="text-gold" />
+            Favoritos
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {TEMPLATES.filter(t => favorites.has(t.id)).map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template.id)}
+                className={`p-3 rounded-xl border transition-all text-left ${
+                  selectedTemplate === template.id
+                    ? 'bg-gold/10 border-gold/40'
+                    : 'bg-white/5 border-white/10 hover:border-gold/30 hover:bg-white/10'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${selectedTemplate === template.id ? 'bg-gold/20' : 'bg-white/10'}`}>
+                    {template.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs font-bold text-ivory truncate">{template.name}</h4>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {selectedTemplate === "custom" && (
         <>
           <div className="mb-4">
@@ -169,22 +260,43 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
                     }
                   `}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`p-2 rounded-lg ${selectedTemplate === template.id ? 'bg-violet/20' : 'bg-white/10'}`}>
-                      {template.icon}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${selectedTemplate === template.id ? 'bg-violet/20' : 'bg-white/10'}`}>
+                        {template.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-ivory">{template.name}</h4>
+                        <p className="text-[10px] text-muted">{template.description}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-bold text-ivory">{template.name}</h4>
-                      <p className="text-[10px] text-muted">{template.description}</p>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(template.id);
+                      }}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        favorites.has(template.id) 
+                          ? 'text-gold hover:text-gold/80' 
+                          : 'text-muted/50 hover:text-muted'
+                      }`}
+                    >
+                      <Star size={14} fill={favorites.has(template.id) ? 'currentColor' : 'none'} />
+                    </button>
                   </div>
                   <div className="space-y-1">
-                    {template.categories.map((cat) => (
+                    {template.categories.slice(0, 4).map((cat) => (
                       <div key={cat.name} className="text-[10px] text-muted/70 flex items-center gap-2">
                         <div className="w-1 h-1 rounded-full bg-violet/40" />
                         {cat.name}
                       </div>
                     ))}
+                    {template.categories.length > 4 && (
+                      <div className="text-[10px] text-muted/50 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-violet/40" />
+                        +{template.categories.length - 4} más
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}
@@ -192,32 +304,96 @@ export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }
           </div>
 
           {selectedTemplate && selectedTemplate !== "custom" && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleUseTemplate(selectedTemplate)}
-                disabled={creating}
-                className="flex-1 py-3 bg-violet-500 hover:bg-violet-600 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {creating ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creando...
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} />
-                    Usar Plantilla
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => setSelectedTemplate("custom")}
-                disabled={creating}
-                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-            </div>
+            <>
+              {/* Customization Section */}
+              <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                <div className="flex items-center gap-2 mb-3">
+                  <Edit2 size={14} className="text-violet-400" />
+                  <p className="text-xs font-semibold text-ivory uppercase tracking-wider">Personalizar</p>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] text-muted font-semibold uppercase tracking-wider mb-1.5 block">Nombre de la carta</label>
+                    <input
+                      type="text"
+                      value={customName}
+                      onChange={(e) => setCustomName(e.target.value)}
+                      placeholder={selectedTemplateData?.name || "Nombre personalizado"}
+                      className="w-full px-3 py-2 bg-surface-3 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-violet/40 transition-all"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="flex items-center gap-2 text-[10px] text-violet-400 hover:text-violet-300 font-semibold uppercase tracking-wider transition-colors"
+                  >
+                    <Eye size={12} />
+                    {showPreview ? 'Ocultar' : 'Ver'} Preview
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview Section */}
+              {showPreview && selectedTemplateData && (
+                <div className="mb-4 p-4 bg-surface-3 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Eye size={14} className="text-cyan-400" />
+                    <p className="text-xs font-semibold text-ivory uppercase tracking-wider">Preview</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-violet/20">
+                        {selectedTemplateData.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-ivory">{customName || selectedTemplateData.name}</h4>
+                        <p className="text-[10px] text-muted">{selectedTemplateData.description}</p>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-white/10">
+                      <p className="text-[10px] text-muted font-semibold uppercase tracking-wider mb-2">Categorías ({selectedTemplateData.categories.length})</p>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedTemplateData.categories.map((cat) => (
+                          <span key={cat.name} className="text-[10px] px-2 py-1 bg-violet/10 text-violet-300 rounded font-semibold">
+                            {cat.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleUseTemplate(selectedTemplate)}
+                  disabled={creating}
+                  className="flex-1 py-3 bg-violet-500 hover:bg-violet-600 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {creating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      Crear Carta
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedTemplate("custom");
+                    setCustomName("");
+                    setShowPreview(false);
+                  }}
+                  disabled={creating}
+                  className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </>
           )}
         </>
       )}

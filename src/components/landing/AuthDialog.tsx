@@ -313,6 +313,7 @@ export function AuthDialog({
                       id="reg-email"
                       type="email"
                       required
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="mt-1 w-full rounded-xl border border-white/10 bg-bg-deep px-4 py-3 text-foreground outline-none focus:border-gold/50"

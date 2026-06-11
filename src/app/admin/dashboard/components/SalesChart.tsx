@@ -10,7 +10,7 @@ import {
 
 export function SalesChart({ data }: { data: any[] }) {
   return (
-    <div className="bg-gray-900 p-4 rounded-xl">
+    <div className="bg-gray-900 p-4 rounded-xl min-h-[350px]">
       <h3 className="mb-4">Ventas</h3>
 
       <ResponsiveContainer width="100%" height={300}>

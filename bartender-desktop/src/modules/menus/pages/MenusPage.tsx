@@ -26,14 +26,13 @@ import MenuCard from "../components/MenuCard";
 import MenuTutorial from "../components/tutorial/MenuTutorial";
 import MenuAdvancedPanel from "../components/MenuAdvancedPanel";
 import MenuBuilderCard from "../components/MenuBuilderCard";
-import CategorySection from "../components/CategorySection";
 import MenuAvailabilitySummary from "../components/MenuAvailabilitySummary";
 import MenuPreview from "../components/MenuPreview";
 import MenuIdentityEditor from "../components/MenuIdentityEditor";
 import MenuConfigPanel from "../components/MenuConfigPanel";
-import ProductFilterSelector from "../components/ProductFilterSelector";
 import MenuRealtimePreview from "../components/MenuRealtimePreview";
 import MenuTemplates from "../components/MenuTemplates";
+import ProductCategoryManager from "../components/ProductCategoryManager";
 
 import {
   getMenus,
@@ -234,8 +233,13 @@ export default function MenusPage() {
         categories: menuBuilder.selectedMenu.categories || [],
       };
 
-      // Upload image file if present
+      console.log('[Menu] Starting save process for menu:', menuBuilder.selectedMenu._id);
+      console.log('[Menu] Current imagePublicId:', menuBuilder.selectedMenu.imagePublicId);
+      console.log('[Menu] Current image URL:', menuBuilder.selectedMenu.image);
+
+      // Upload image file if present (legacy support - now images are uploaded immediately in MenuIdentityEditor)
       if (menuBuilder.imageFile) {
+        console.log('[Menu] Legacy image upload detected, uploading...');
         const uploadResult = await uploadImage(menuBuilder.imageFile);
         uploadedImagePublicId = uploadResult.publicId;
         menuToSave = {
@@ -243,8 +247,16 @@ export default function MenusPage() {
           image: uploadResult.url,
           imagePublicId: uploadResult.publicId,
         };
+        console.log('[Menu] Legacy image uploaded successfully:', uploadResult);
       }
 
+      // Validate imagePublicId is present if image is present
+      if (menuToSave.image && !menuToSave.imagePublicId) {
+        console.warn('[Menu] Image URL present but imagePublicId missing - this may cause issues');
+      }
+
+      console.log('[Menu] Sending menu to backend with imagePublicId:', menuToSave.imagePublicId);
+      
       await updateMenu(
         menuBuilder.selectedMenu._id, 
         menuToSave, 
@@ -252,12 +264,24 @@ export default function MenusPage() {
           allowEmptyCategories: true,
         }
       );
+      
+      console.log('[Menu] Menu saved successfully');
       setSaveSuccess(true);
       fetchMenus();
-      // Don't clear imageFile - keep it for persistence across view changes
+      
+      // Clear legacy imageFile after successful save
+      if (menuBuilder.imageFile) {
+        menuBuilder.updateMenu({ imageFile: undefined });
+      }
+      
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      console.error("Error saving menu", err);
+      console.error("[Menu] Error saving menu:", err);
+      console.error("[Menu] Error details:", {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status
+      });
       
       // Rollback: delete uploaded image if menu save failed
       if (uploadedImagePublicId) {
@@ -329,24 +353,6 @@ export default function MenusPage() {
 
   const handleSelectMenu = (menu: Menu) => {
     menuBuilder.selectMenu(menu);
-  };
-
-  const addedProductIds = useMemo(() => {
-    if (!menuBuilder.selectedMenu) return new Set<string>();
-    const ids = new Set<string>();
-    menuBuilder.selectedMenu.categories?.forEach(cat => {
-      cat.products.forEach(p => ids.add(getProductId(p.product)));
-    });
-    return ids;
-  }, [menuBuilder.selectedMenu]);
-
-  const handleAddProduct = (product: Product) => {
-    if (!menuBuilder.selectedCategory || !menuBuilder.selectedMenu) return;
-    menuBuilder.addProductToCategory(product, menuBuilder.selectedCategory);
-  };
-
-  const handleRemoveProduct = (categoryName: string, productId: string) => {
-    menuBuilder.removeProductFromCategory(categoryName, productId);
   };
 
   return (
@@ -645,7 +651,6 @@ export default function MenusPage() {
                     { id: "identity" as const, label: "Identidad", icon: <Target size={14} />, color: "violet" },
                     { id: "config" as const, label: "Configuración", icon: <Settings size={14} />, color: "cyan" },
                     { id: "categories" as const, label: "Categorías", icon: <Layers size={14} />, color: "gold" },
-                    { id: "products" as const, label: "Productos", icon: <Zap size={14} />, color: "rose" },
                     { id: "preview" as const, label: "Vista Previa", icon: <Eye size={14} />, color: "emerald" },
                   ].map((tab) => (
                     <button
@@ -657,7 +662,6 @@ export default function MenusPage() {
                           identity: 2,
                           config: 6,
                           categories: 10,
-                          products: 10,
                           preview: 12,
                         };
                         if (builderTutorialOpen) {
@@ -705,39 +709,19 @@ export default function MenusPage() {
                 )}
 
                 {builderPanel === "categories" && (
-                  <>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-black text-ivory uppercase tracking-widest">
-                        Categorías
-                      </h3>
-                      <button
-                        onClick={() => menuBuilder.createCategory('Nueva Categoría')}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose/10 border border-rose/30 text-rose-300 text-[10px] font-black uppercase tracking-widest hover:bg-rose/20 transition-all"
-                      >
-                        <Plus size={12} />
-                        Nueva Categoría
-                      </button>
-                    </div>
-
-                    {menuBuilder.selectedMenu.categories?.map((category) => (
-                      <CategorySection
-                        key={category.name}
-                        category={category}
-                        isExpanded={menuBuilder.expandedCategories.has(category.name)}
-                        onToggle={() => menuBuilder.toggleCategoryExpansion(category.name)}
-                        onAddProduct={() => menuBuilder.selectCategory(category.name)}
-                        onRemoveProduct={(productId) => handleRemoveProduct(category.name, productId)}
-                        onDeleteCategory={() => menuBuilder.deleteCategory(category.name)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {builderPanel === "products" && (
-                  <ProductFilterSelector
+                  <ProductCategoryManager
+                    categories={menuBuilder.selectedMenu.categories || []}
                     products={products}
-                    onAddProduct={handleAddProduct}
-                    addedProductIds={addedProductIds}
+                    onUpdateCategories={(updatedCategories) => {
+                      menuBuilder.updateMenu({ categories: updatedCategories });
+                      fetchMenus();
+                    }}
+                    onCreateCategory={(name) => {
+                      menuBuilder.createCategory(name);
+                    }}
+                    onDeleteCategory={(categoryName) => {
+                      menuBuilder.deleteCategory(categoryName);
+                    }}
                   />
                 )}
 

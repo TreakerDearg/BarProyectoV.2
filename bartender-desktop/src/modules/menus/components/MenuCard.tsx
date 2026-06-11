@@ -18,7 +18,9 @@ import {
   Star,
   Eye,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  DollarSign,
+  AlertTriangle
 } from "lucide-react";
 
 import { useState } from "react";
@@ -49,6 +51,16 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
     return acc + (cat.products?.filter(p => p.hasRecipe).length || 0);
   }, 0) || 0;
+
+  // Calculate price range
+  const priceRange = menu.minPrice && menu.maxPrice 
+    ? `$${menu.minPrice.toFixed(2)} - $${menu.maxPrice.toFixed(2)}`
+    : menu.minPrice 
+      ? `$${menu.minPrice.toFixed(2)}+`
+      : 'N/A';
+
+  // Calculate products without recipes
+  const productsWithoutRecipes = totalProducts - productsWithRecipes;
 
   // Get type icon
   const getTypeIcon = () => {
@@ -186,6 +198,12 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
                 <span className="text-[8px] text-muted">
                   {menu.updatedAt ? `Actualizado ${new Date(menu.updatedAt).toLocaleDateString()}` : 'Actualizado recientemente'}
                 </span>
+                {productsWithoutRecipes > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber/10 border border-amber/30">
+                    <AlertTriangle size={8} className="text-amber-400" />
+                    <span className="text-[8px] font-semibold text-amber-300">{productsWithoutRecipes} sin receta</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -204,7 +222,7 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
       )}
 
       {/* ================= STATS ROW - Simplified in simple mode ================= */}
-      <div className={`grid gap-3 relative z-10 ${simplified ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      <div className={`grid gap-3 relative z-10 ${simplified ? 'grid-cols-2' : 'grid-cols-4'}`}>
         <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center hover:border-white/10 transition-colors">
           <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PRODUCTOS</p>
           <div className="flex items-center gap-2">
@@ -218,6 +236,15 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
             <div className="flex items-center gap-2">
               <Target size={12} className="text-gold" />
               <span className="text-sm font-black text-ivory">{totalCategories}</span>
+            </div>
+          </div>
+        )}
+        {!simplified && (
+          <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center hover:border-white/10 transition-colors">
+            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PRECIOS</p>
+            <div className="flex items-center gap-2">
+              <DollarSign size={12} className="text-cyan-400" />
+              <span className="text-sm font-black text-ivory">{priceRange}</span>
             </div>
           </div>
         )}
@@ -261,6 +288,22 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
               {menu.categories.length > 3 && (
                 <span className="text-[8px] text-muted">+{menu.categories.length - 3} categorías</span>
               )}
+            </div>
+          )}
+          {/* Recipe completion indicator */}
+          {totalProducts > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-500 ${
+                    productsWithRecipes === totalProducts ? 'bg-emerald-500' : 'bg-violet-500'
+                  }`}
+                  style={{ width: `${(productsWithRecipes / totalProducts) * 100}%` }}
+                />
+              </div>
+              <span className="text-[8px] text-muted font-semibold">
+                {productsWithRecipes}/{totalProducts} con recetas
+              </span>
             </div>
           )}
         </div>

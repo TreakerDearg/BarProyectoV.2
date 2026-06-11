@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle, Upload } from "lucide-react";
+import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle, Upload, Loader2, CheckCircle2, Eye } from "lucide-react";
 import type { Menu } from "../../../types/menu";
-import { validateImageFile, uploadMultipleImages } from "../../../services/uploadService";
+import { validateImageFile, uploadMultipleImages, uploadImage, deleteImage } from "../../../services/uploadService";
+import IdentityPreview from "./IdentityPreview";
 
 interface Props {
   menu: Menu;
@@ -17,8 +18,11 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   // SEO fields
   const [metaTitle, setMetaTitle] = useState(menu.metaTitle || "");
@@ -58,6 +62,49 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       : [...availableDays, day];
     setAvailableDays(newDays);
     onUpdate({ availableDays: newDays });
+  };
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setImageUploading(true);
+      setImageUploadProgress(0);
+      setUploadError(null);
+
+      // Simulate progress for better UX
+      const progressInterval = setInterval(() => {
+        setImageUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
+
+      // Upload image to Cloudinary
+      const uploadResult = await uploadImage(file);
+
+      clearInterval(progressInterval);
+      setImageUploadProgress(100);
+
+      // Update menu with uploaded image data
+      onUpdate({
+        image: uploadResult.url,
+        imagePublicId: uploadResult.publicId,
+      });
+
+      // Keep preview for UI
+      setImagePreview(null);
+      setImageFile(null);
+
+      console.log('[MenuIdentityEditor] Image uploaded successfully:', uploadResult);
+    } catch (error: any) {
+      console.error('[MenuIdentityEditor] Error uploading image:', error);
+      setUploadError(error.message || "Error al subir la imagen");
+      setImageUploadProgress(0);
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const addGalleryImage = async (files: FileList | null) => {
@@ -197,7 +244,19 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           Imagen de Portada
         </label>
         <div className="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center hover:border-violet/40 transition-colors">
-          {(imagePreview || menu.image) ? (
+          {imageUploading ? (
+            <div className="relative z-10 flex flex-col items-center text-violet-300">
+              <Loader2 size={32} className="mb-2 animate-spin" />
+              <p className="text-sm font-medium">Subiendo imagen...</p>
+              <div className="w-32 h-2 bg-white/10 rounded-full mt-3 overflow-hidden">
+                <div 
+                  className="h-full bg-violet-500 transition-all duration-300" 
+                  style={{ width: `${imageUploadProgress}%` }}
+                />
+              </div>
+              <p className="text-[10px] mt-2 opacity-60">{imageUploadProgress}%</p>
+            </div>
+          ) : (imagePreview || menu.image) ? (
             <>
               <img
                 src={imagePreview || menu.image}
@@ -205,6 +264,12 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
               />
               <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-violet-300">
+                {menu.imagePublicId && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-emerald/10 border border-emerald/30 rounded-full">
+                    <CheckCircle2 size={10} className="text-emerald-400" />
+                    <span className="text-[8px] font-semibold text-emerald-300">Sincronizado</span>
+                  </div>
+                )}
                 <ImageIcon size={32} className="mb-2" />
                 <p className="text-sm font-medium">Click to replace image</p>
               </div>
@@ -219,7 +284,7 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => {
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
                 // Validate file
@@ -239,8 +304,8 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
                 };
                 reader.readAsDataURL(file);
                 
-                // Notify parent about the new image file
-                onUpdate({ imageFile: file });
+                // Upload immediately (not wait for save)
+                await handleImageUpload(file);
               }
             }}
             className="absolute inset-0 opacity-0 cursor-pointer"
@@ -252,18 +317,10 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
             <span>{uploadError}</span>
           </div>
         )}
-        {imageFile && (
-          <div className="mt-2 flex items-center gap-2 text-violet-400 text-xs">
-            <span>Imagen seleccionada: {imageFile.name}</span>
-            <button
-              onClick={() => {
-                setImageFile(null);
-                setImagePreview(null);
-              }}
-              className="text-red-400 hover:text-red-300"
-            >
-              <XCircle size={12} />
-            </button>
+        {menu.imagePublicId && !imageUploading && (
+          <div className="mt-2 flex items-center gap-2 text-emerald-400 text-xs">
+            <CheckCircle2 size={12} />
+            <span>Imagen sincronizada con Cloudinary</span>
           </div>
         )}
       </div>
@@ -452,6 +509,28 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           </div>
         ) : (
           <p className="text-xs text-muted text-center py-4">No hay imágenes en la galería</p>
+        )}
+      </div>
+
+      {/* Preview Section */}
+      <div className="space-y-4 pt-6 border-t border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-cyan/10 rounded-lg">
+              <Eye size={16} className="text-cyan-400" />
+            </div>
+            <h4 className="text-sm font-bold text-ivory uppercase tracking-widest">Vista Previa</h4>
+          </div>
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-semibold uppercase tracking-wider transition-colors"
+          >
+            {showPreview ? 'Ocultar' : 'Ver'}
+          </button>
+        </div>
+        
+        {showPreview && (
+          <IdentityPreview menu={menu} />
         )}
       </div>
     </div>
