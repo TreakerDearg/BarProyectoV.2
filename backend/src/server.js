@@ -12,6 +12,7 @@ import { logger }       from "./config/logger.js";
 import apiRoutes        from "./routes/index.js";
 import { initializeSocketEvents } from "./utils/socketEvents.js";
 import { initializeSocketNamespaces } from "./socket/index.js";
+import { initCacheService, closeCacheService } from "./services/menuCacheService.js";
 
 // Importar middlewares mejorados
 import {
@@ -80,6 +81,13 @@ app.use(
    DB CONNECTION
 ========================================================= */
 connectDB();
+
+/* =========================================================
+   CACHE SERVICE INITIALIZATION
+========================================================= */
+initCacheService().catch((error) => {
+  logger.error('[Server] Failed to initialize cache service:', error);
+});
 
 /* =========================================================
    MIDDLEWARE CONFIGURATION
@@ -278,6 +286,7 @@ const shutdown = (signal) => {
   logger.info(`[Server] Señal ${signal} recibida. Cerrando servidor...`);
   server.close(async () => {
     await mongoose.connection.close();
+    await closeCacheService();
     logger.info("[Server] Conexión cerrada correctamente.");
     process.exit(0);
   });

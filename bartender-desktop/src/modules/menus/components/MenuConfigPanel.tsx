@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, ToggleLeft, ToggleRight, Globe, Star, Clock, DollarSign } from "lucide-react";
+import { Settings, ToggleLeft, ToggleRight, Globe, Star, DollarSign } from "lucide-react";
 import type { Menu } from "../../../types/menu";
+import MenuAvailabilityEditor from "./MenuAvailabilityEditor";
 
 interface Props {
   menu: Menu;
@@ -16,14 +17,6 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
   const [color, setColor] = useState(menu.color || "#8B5CF6");
   const [slug, setSlug] = useState(menu.slug || "");
   
-  // Availability
-  const [availableHours, setAvailableHours] = useState(
-    menu.availableHours || { start: "09:00", end: "23:00" }
-  );
-  const [availableDays, setAvailableDays] = useState<string[]>(
-    menu.availableDays || []
-  );
-  
   // Promotion
   const [promotedUntil, setPromotedUntil] = useState(
     menu.promotedUntil || ""
@@ -32,25 +25,6 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
   // Pricing
   const [minPrice, setMinPrice] = useState(menu.minPrice?.toString() || "");
   const [maxPrice, setMaxPrice] = useState(menu.maxPrice?.toString() || "");
-
-  const toggleDay = (day: string) => {
-    const newDays = availableDays.includes(day)
-      ? availableDays.filter(d => d !== day)
-      : [...availableDays, day];
-    setAvailableDays(newDays);
-    onUpdate({ availableDays: newDays });
-  };
-
-  const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-  const dayLabels = {
-    monday: "Lun",
-    tuesday: "Mar",
-    wednesday: "Mié",
-    thursday: "Jue",
-    friday: "Vie",
-    saturday: "Sáb",
-    sunday: "Dom"
-  };
 
   return (
     <div className="nebula-panel p-6 space-y-6">
@@ -224,56 +198,12 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
 
       {/* Availability Section */}
       <div className="space-y-4 pt-4 border-t border-white/5">
-        <div className="flex items-center gap-2">
-          <Clock size={16} className="text-gold" />
-          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Disponibilidad</h4>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Hora Inicio</label>
-            <input
-              type="time"
-              value={availableHours.start}
-              onChange={(e) => {
-                setAvailableHours({ ...availableHours, start: e.target.value });
-                onUpdate({ availableHours: { ...availableHours, start: e.target.value } });
-              }}
-              className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1 block">Hora Fin</label>
-            <input
-              type="time"
-              value={availableHours.end}
-              onChange={(e) => {
-                setAvailableHours({ ...availableHours, end: e.target.value });
-                onUpdate({ availableHours: { ...availableHours, end: e.target.value } });
-              }}
-              className="w-full bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-gold/40 focus:border-transparent transition-all outline-none"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Días Disponibles</label>
-          <div className="flex gap-2">
-            {days.map((day) => (
-              <button
-                key={day}
-                onClick={() => toggleDay(day)}
-                className={`flex-1 py-2 rounded-lg border transition-all text-xs font-semibold ${
-                  availableDays.includes(day)
-                    ? 'bg-gold/10 border-gold/30 text-gold-300'
-                    : 'bg-white/5 border-white/10 text-muted hover:border-white/20'
-                }`}
-              >
-                {dayLabels[day as keyof typeof dayLabels]}
-              </button>
-            ))}
-          </div>
-        </div>
+        <MenuAvailabilityEditor
+          availableHours={menu.availableHours || null}
+          availableDays={menu.availableDays || []}
+          onHoursChange={(hours) => onUpdate({ availableHours: hours })}
+          onDaysChange={(days) => onUpdate({ availableDays: days })}
+        />
       </div>
 
       {/* Promotion Section */}

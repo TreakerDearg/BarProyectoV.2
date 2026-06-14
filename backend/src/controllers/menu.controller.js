@@ -12,118 +12,18 @@ import {
   notFound,
 } from "../utils/response.js";
 import { emitMenuEvent, MENU_EVENTS } from "../utils/socketEvents.js";
+import { invalidateMenuCache, invalidateMenuCacheBySlug } from "../services/menuCacheService.js";
+import {
+  populateMenu,
+  normalizeMenuPayload,
+  validateMenu,
+  calculateMenuPriceRange,
+  determineDrinkStyle,
+  generateSlug,
+  validateImageFile,
+} from "../services/menuBusinessService.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
-
-/* =========================================================
-   POPULATE (OPTIMIZADO)
-========================================================= */
-const populateMenu = (q) =>
-  q.populate({
-    path: "categories.products.product",
-    select: "name price image available",
-  });
-
-/* =========================================================
-   NORMALIZE INPUT (🔥 CLAVE)
-   Permite formato simple desde frontend
-========================================================= */
-const normalizeMenuPayload = (body) => {
-  const {
-    name,
-    description = "",
-    type = "mixed",
-    active = true,
-    categories,
-    allowEmptyCategories = false,
-  } = body;
-
-  // 🔥 FORMATO AVANZADO (ya estructurado de la nueva MenuForm)
-  if (categories && Array.isArray(categories)) {
-    return {
-      name,
-      description,
-      type,
-      active,
-      categories,
-      allowEmptyCategories,
-    };
-  }
-
-  // 🔥 FORMATO LEGACY (frontend simple)
-  if (body.products && Array.isArray(body.products)) {
-    return {
-      name,
-      description,
-      type,
-      active: body.available ?? active,
-      categories: [
-        {
-          name: body.category || "General",
-          products: body.products.map((id) => ({
-            product: id,
-            available: true,
-          })),
-        },
-      ],
-      allowEmptyCategories: false,
-    };
-  }
-
-  return { ...body, allowEmptyCategories: body.allowEmptyCategories || false };
-};
-
-/* =========================================================
-   VALIDATION
-========================================================= */
-const validateMenu = async (data) => {
-  if (!data.name || !data.name.trim()) {
-    return "El nombre es obligatorio";
-  }
-
-  if (!data.categories || !Array.isArray(data.categories)) {
-    return "categories debe ser un array";
-  }
-
-  // Si allowEmptyCategories es true, permitir categorías vacías
-  const allowEmpty = data.allowEmptyCategories === true;
-
-  // Si no se permiten categorías vacías y no hay categorías, error
-  if (!allowEmpty && data.categories.length === 0) {
-    return "Debe tener al menos una categoría";
-  }
-
-  for (const cat of data.categories) {
-    if (!cat.products || !Array.isArray(cat.products)) {
-      return "Cada categoría debe tener productos";
-    }
-
-    // Si la categoría tiene productos, validarlos
-    if (cat.products.length > 0) {
-      for (const p of cat.products) {
-        if (!isValidId(p.product)) {
-          return "Producto inválido";
-        }
-
-        // Validación cruzada: verificar que el producto exista
-        const product = await Product.findById(p.product);
-        if (!product) {
-          return `Producto con ID ${p.product} no encontrado`;
-        }
-
-        // Validación cruzada opcional: si el producto tiene receta, verificar que exista (warning, no error)
-        if (product.hasRecipe) {
-          const recipe = await Recipe.findOne({ product: p.product });
-          if (!recipe) {
-            logger.warn(`[Menu] El producto ${product.name} tiene hasRecipe=true pero no tiene receta asociada`);
-          }
-        }
-      }
-    }
-  }
-
-  return null;
-};
 
 /* =========================================================
    AVAILABILITY CHECK (OPTIMIZADO)
@@ -225,6 +125,9 @@ export const createMenu = async (req, res, next) => {
 
     emitMenuEvent(MENU_EVENTS.CREATED, populated);
 
+    // Invalidate cache for the new menu
+    await invalidateMenuCache(menu._id.toString());
+
     return created(res, populated, "Menú creado correctamente");
   } catch (error) {
     logger.error("[Menu] Error creando menú:", error);
@@ -315,6 +218,12 @@ export const updateMenu = async (req, res, next) => {
 
     emitMenuEvent(MENU_EVENTS.UPDATED, updated);
 
+    // Invalidate cache for the updated menu
+    await invalidateMenuCache(req.params.id);
+    if (updated.slug) {
+      await invalidateMenuCacheBySlug(updated.slug);
+    }
+
     return ok(res, updated, "Menú actualizado correctamente");
   } catch (error) {
     logger.error("[Menu] Error actualizando menú:", error);
@@ -348,6 +257,12 @@ export const deleteMenu = async (req, res, next) => {
     logger.info(`[Menu] Eliminado: ${deleted.name}`);
 
     emitMenuEvent(MENU_EVENTS.DELETED, { id: deleted._id });
+
+    // Invalidate cache for the deleted menu
+    await invalidateMenuCache(req.params.id);
+    if (deleted.slug) {
+      await invalidateMenuCacheBySlug(deleted.slug);
+    }
 
     return ok(res, null, "Menú eliminado correctamente");
   } catch (error) {

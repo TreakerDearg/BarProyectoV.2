@@ -2,27 +2,18 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  Plus,
-  Search,
   LayoutDashboard,
   Layers,
   CheckCircle,
-  RefreshCcw,
   Target,
   Zap,
   Activity,
-  HelpCircle,
-  List,
-  Grid3x3,
   Eye,
   Settings,
-  Filter,
-  X,
-  Trash2,
-  Save
+  Save,
+  HelpCircle
 } from "lucide-react";
 
-import MenuCard from "../components/MenuCard";
 import MenuTutorial from "../components/tutorial/MenuTutorial";
 import MenuAdvancedPanel from "../components/MenuAdvancedPanel";
 import MenuBuilderCard from "../components/MenuBuilderCard";
@@ -33,6 +24,10 @@ import MenuConfigPanel from "../components/MenuConfigPanel";
 import MenuRealtimePreview from "../components/MenuRealtimePreview";
 import MenuTemplates from "../components/MenuTemplates";
 import ProductCategoryManager from "../components/ProductCategoryManager";
+import MenusHeader from "../components/MenusHeader";
+import MenusFilters from "../components/MenusFilters";
+import MenusGrid from "../components/MenusGrid";
+import MenusBulkActions from "../components/MenusBulkActions";
 
 import {
   getMenus,
@@ -349,7 +344,7 @@ export default function MenusPage() {
     setView(prev => prev === 'grid' ? 'list' : 'grid');
   };
 
-  const hasActiveFilters = filterType !== "all" || filterActive !== "all" || filterPublic !== "all" || filterFeatured || search.trim();
+  const hasActiveFilters = Boolean(filterType !== "all" || filterActive !== "all" || filterPublic !== "all" || filterFeatured || search.trim());
 
   const handleSelectMenu = (menu: Menu) => {
     menuBuilder.selectMenu(menu);
@@ -375,189 +370,47 @@ export default function MenusPage() {
       </div>
 
       {/* HEADER SECTION */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
-            <LayoutDashboard className="text-violet-200" size={28} />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
-              Cartas Digitales
-            </h1>
-            <p className="text-xs text-muted mt-1 flex items-center gap-1.5">
-              <Target size={12} className="text-violet-400/70" />
-              Menu Architecture · Nebula v3
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-violet-300/60 group-focus-within:text-violet-200 transition-colors" />
-            </div>
-            <input 
-              type="text"
-              placeholder="Buscar cartas..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-surface-3/60 border border-violet-400/20 rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium text-ivory outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/10 transition-all w-64 backdrop-blur-sm"
-            />
-          </div>
-
-          <button
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
-              filtersOpen || hasActiveFilters
-                ? 'bg-gold/10 border-gold/30 text-gold'
-                : 'border-white/10 text-muted hover:text-violet-200 hover:border-violet-400/30'
-            }`}
-          >
-            <Filter size={16} />
-            <span>Filtros</span>
-            {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-gold" />}
-          </button>
-
-          <button
-            onClick={() => openTutorial()}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title="Tutorial de cartas"
-          >
-            <HelpCircle size={16} />
-            Tutorial
-          </button>
-
-          <ModeToggle mode={mode} onChange={setMode} />
-
-          <button
-            onClick={() => setBuilderMode(!builderMode)}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
-              builderMode
-                ? 'bg-rose/10 border-rose/30 text-rose-300'
-                : 'border-white/10 text-muted hover:text-violet-200 hover:border-violet-400/30'
-            }`}
-            title={builderMode ? 'Vista Normal' : 'Constructor de Menús'}
-          >
-            <Grid3x3 size={16} />
-            <span>{builderMode ? 'Normal' : 'Constructor'}</span>
-          </button>
-
-          <button
-            onClick={toggleView}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title={`Vista: ${view === 'grid' ? 'Cuadrícula' : 'Lista'}`}
-          >
-            {view === 'grid' ? <LayoutDashboard size={16} /> : <List size={16} />}
-          </button>
-
-          <button
-            onClick={fetchMenus}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title="Actualizar"
-          >
-            <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
-          </button>
-
-          <button
-            onClick={() => setShowTemplates(true)}
-            className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
-          >
-            <Plus size={18} />
-            <span className="text-xs font-bold tracking-wide uppercase">Nueva Carta</span>
-          </button>
-        </div>
-      </header>
+      <MenusHeader
+        search={search}
+        onSearchChange={setSearch}
+        filtersOpen={filtersOpen}
+        onFiltersToggle={() => setFiltersOpen(!filtersOpen)}
+        hasActiveFilters={hasActiveFilters}
+        mode={mode}
+        onModeChange={setMode}
+        builderMode={builderMode}
+        onBuilderModeToggle={() => setBuilderMode(!builderMode)}
+        view={view}
+        onViewToggle={toggleView}
+        loading={loading}
+        onRefresh={fetchMenus}
+        onNewMenu={() => setShowTemplates(true)}
+        onOpenTutorial={openTutorial}
+      />
 
       {/* FILTERS PANEL */}
       {filtersOpen && (
-        <div className="p-4 bg-surface-3 border border-white/10 rounded-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">Filtros Avanzados</h3>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red/10 border border-red/30 text-red-300 text-xs font-semibold hover:bg-red/20 transition-all"
-              >
-                <X size={12} />
-                Limpiar
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Tipo</label>
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
-              >
-                <option value="all">Todos</option>
-                <option value="drink">Bebidas</option>
-                <option value="food">Comida</option>
-                <option value="mixed">Mixto</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Estado</label>
-              <select
-                value={filterActive}
-                onChange={(e) => setFilterActive(e.target.value as any)}
-                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
-              >
-                <option value="all">Todos</option>
-                <option value="active">Activos</option>
-                <option value="inactive">Inactivos</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Visibilidad</label>
-              <select
-                value={filterPublic}
-                onChange={(e) => setFilterPublic(e.target.value as any)}
-                className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
-              >
-                <option value="all">Todos</option>
-                <option value="public">Públicos</option>
-                <option value="private">Privados</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filterFeatured}
-                  onChange={(e) => setFilterFeatured(e.target.checked)}
-                  className="w-4 h-4 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50"
-                />
-                <span className="text-xs font-semibold text-muted">Solo destacados</span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <MenusFilters
+          filterType={filterType}
+          onFilterTypeChange={setFilterType}
+          filterActive={filterActive}
+          onFilterActiveChange={setFilterActive}
+          filterPublic={filterPublic}
+          onFilterPublicChange={setFilterPublic}
+          filterFeatured={filterFeatured}
+          onFilterFeaturedChange={setFilterFeatured}
+          onClearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
       )}
 
       {/* BULK ACTIONS BAR */}
       {selectedMenus.size > 0 && (
-        <div className="p-4 bg-gold/10 border border-gold/30 rounded-xl flex items-center justify-between">
-          <p className="text-xs font-semibold text-gold-300">
-            {selectedMenus.size} menú{selectedMenus.size !== 1 ? 's' : ''} seleccionado{selectedMenus.size !== 1 ? 's' : ''}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSelectedMenus(new Set())}
-              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-muted text-xs font-semibold hover:text-ivory transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleBulkDelete}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red/10 border border-red/30 text-red-300 text-xs font-semibold hover:bg-red/20 transition-colors"
-            >
-              <Trash2 size={14} />
-              Eliminar
-            </button>
-          </div>
-        </div>
+        <MenusBulkActions
+          selectedCount={selectedMenus.size}
+          onCancel={() => setSelectedMenus(new Set())}
+          onDelete={handleBulkDelete}
+        />
       )}
 
       {/* KPI DASHBOARD */}
@@ -778,51 +631,24 @@ export default function MenusPage() {
       ) : (
         /* NORMAL MODE - ORIGINAL GRID */
         <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-12 h-12 rounded-xl border-2 border-violet-400/30 border-t-violet-300 animate-spin" />
-            </div>
-          ) : filteredMenus.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <LayoutDashboard size={48} className="text-violet-300/40 mb-4" />
-              <p className="text-muted text-sm">No se encontraron cartas</p>
-            </div>
-          ) : (
-            <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-              {filteredMenus.map((menu) => {
-                const menuId = menu._id || '';
-                const isSelected = selectedMenus.has(menuId);
-                return (
-                  <div key={menuId} className="relative">
-                    {selectedMenus.size > 0 && (
-                      <div className="absolute top-3 left-3 z-20">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleMenuSelection(menuId)}
-                          className="w-5 h-5 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50 cursor-pointer"
-                        />
-                      </div>
-                    )}
-                    <MenuCard
-                      menu={menu}
-                      onEdit={() => { 
-                        menuBuilder.selectMenu(menu); 
-                        setBuilderMode(true);
-                        // Open builder tutorial if not completed
-                        const builderPrefs = JSON.parse(localStorage.getItem("nebula_menu_builder_tutorial_v1") || "{}");
-                        if (!builderPrefs.completed) {
-                          openBuilderTutorial(0);
-                        }
-                      }}
-                      onDelete={() => handleDelete(menuId)}
-                      simplified={mode === 'simple'}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          <MenusGrid
+            menus={filteredMenus}
+            loading={loading}
+            view={view}
+            selectedMenus={selectedMenus}
+            onToggleSelection={toggleMenuSelection}
+            onEdit={(menu) => {
+              menuBuilder.selectMenu(menu);
+              setBuilderMode(true);
+              // Open builder tutorial if not completed
+              const builderPrefs = JSON.parse(localStorage.getItem("nebula_menu_builder_tutorial_v1") || "{}");
+              if (!builderPrefs.completed) {
+                openBuilderTutorial(0);
+              }
+            }}
+            onDelete={handleDelete}
+            simplified={mode === 'simple'}
+          />
         </div>
       )}
     </div>
@@ -848,25 +674,6 @@ function KPIBox({ label, value, icon, color }: { label: string; value: number | 
         <p className="text-xs text-muted mb-1">{label}</p>
         <p className="text-2xl font-bold text-ivory">{value}</p>
       </div>
-    </div>
-  );
-}
-
-function ModeToggle({ mode, onChange }: { mode: 'simple' | 'advanced'; onChange: (mode: 'simple' | 'advanced') => void }) {
-  return (
-    <div className="nebula-mode-toggle">
-      <button
-        onClick={() => onChange('simple')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === 'simple' ? 'active' : 'text-muted hover:text-ivory'}`}
-      >
-        Simple
-      </button>
-      <button
-        onClick={() => onChange('advanced')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === 'advanced' ? 'active' : 'text-muted hover:text-ivory'}`}
-      >
-        Avanzado
-      </button>
     </div>
   );
 }

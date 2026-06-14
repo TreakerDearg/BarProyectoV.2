@@ -19,6 +19,12 @@ export interface MenuProduct {
   }>;
 }
 
+export interface GalleryImage {
+  url: string;
+  publicId: string;
+  order: number;
+}
+
 /* =========================
    CATEGORY (NUEVO CORE)
 ========================= */
@@ -79,11 +85,7 @@ export interface Menu {
   maxPrice?: number;
 
   /* GALLERY */
-  gallery?: Array<{
-    url: string;
-    publicId: string;
-    order: number;
-  }>;
+  gallery?: GalleryImage[];
 
   /* TAGS */
   tags?: string[];

@@ -260,11 +260,15 @@ const menuSchema = new mongoose.Schema(
 /* ==============================
    INDEXES
 ============================== */
+// Composite indexes for common queries
+menuSchema.index({ active: 1, isPublic: 1, type: 1 }); // Optimized for public menu listing
 menuSchema.index({ active: 1, type: 1 });
 menuSchema.index({ isPublic: 1, active: 1 });
 menuSchema.index({ featured: 1, active: 1 });
-menuSchema.index({ tags: 1 });
-menuSchema.index({ slug: 1 });
+
+// Single-field indexes
+menuSchema.index({ tags: 1 }); // For tag-based filtering
+menuSchema.index({ slug: 1 }, { unique: true }); // Unique slug for public URLs
 
 /* ==============================
    HELPERS

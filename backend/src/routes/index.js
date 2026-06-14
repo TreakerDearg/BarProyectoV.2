@@ -26,6 +26,7 @@ import performanceRoutes from "./performance.routes.js";
 import uploadRoutes      from "./upload.routes.js";
 import auditRoutes       from "./audit.routes.js";
 import alertsRoutes      from "./alerts.routes.js";
+import menuTemplateRoutes from "./menuTemplate.routes.js";
 
 const router = Router();
 
@@ -55,5 +56,6 @@ router.use("/performance",  performanceRoutes);
 router.use("/upload",       uploadRoutes);
 router.use("/audit",        auditRoutes);
 router.use("/alerts",       alertsRoutes);
+router.use("/menu-templates", menuTemplateRoutes);
 
 export default router;

@@ -7,6 +7,16 @@ import {
   ok,
   notFound,
 } from "../utils/response.js";
+import {
+  getCachedPublicMenus,
+  cachePublicMenus,
+  getCachedMenuBySlug,
+  cacheMenuBySlug,
+  getCachedPublicMenu,
+  cachePublicMenu,
+  get,
+  set,
+} from "../services/menuCacheService.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -32,7 +42,48 @@ const checkAvailability = (recipe, inventoryMap) => {
 };
 
 /* =========================================================
-   GET PUBLIC MENUS (OPTIMIZADO)
+   BATCH AVAILABILITY CHECK (OPTIMIZADO PARA EVITAR N+1)
+========================================================= */
+const batchCheckAvailability = async (productIds) => {
+  if (!productIds || productIds.length === 0) {
+    return {};
+  }
+
+  // Batch fetch all recipes
+  const recipes = await Recipe.find({
+    product: { $in: productIds },
+  }).lean();
+
+  // Batch fetch all inventory items
+  const ingredientIds = recipes.flatMap((r) =>
+    r.ingredients.map((i) => i.inventoryItem)
+  );
+
+  const inventoryItems = await InventoryItem.find({
+    _id: { $in: ingredientIds },
+  }).lean();
+
+  // Create maps for O(1) lookups
+  const recipeMap = Object.fromEntries(
+    recipes.map((r) => [r.product.toString(), r])
+  );
+
+  const inventoryMap = Object.fromEntries(
+    inventoryItems.map((i) => [i._id.toString(), i])
+  );
+
+  // Calculate availability for all products
+  const availabilityMap = {};
+  for (const productId of productIds) {
+    const recipe = recipeMap[productId];
+    availabilityMap[productId] = recipe ? checkAvailability(recipe, inventoryMap) : true;
+  }
+
+  return availabilityMap;
+};
+
+/* =========================================================
+   GET PUBLIC MENUS (OPTIMIZADO CON CACHE)
 ========================================================= */
 export const getPublicMenus = async (req, res, next) => {
   try {
@@ -42,6 +93,17 @@ export const getPublicMenus = async (req, res, next) => {
     if (type) filter.type = type;
     if (featured !== undefined) filter.featured = featured === "true";
     if (tags) filter.tags = { $in: Array.isArray(tags) ? tags : [tags] };
+
+    // Try to get from cache first (only if not hiding unavailable)
+    let cachedResult = null;
+    if (hideUnavailable !== "true") {
+      cachedResult = await getCachedPublicMenus({ type, featured, tags, page, limit });
+    }
+
+    if (cachedResult) {
+      logger.info('[Cache] Hit for public menus list');
+      return ok(res, cachedResult);
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -67,25 +129,8 @@ export const getPublicMenus = async (req, res, next) => {
       );
 
       if (productIds.length > 0) {
-        const recipes = await Recipe.find({
-          product: { $in: productIds },
-        }).lean();
-
-        const ingredientIds = recipes.flatMap((r) =>
-          r.ingredients.map((i) => i.inventoryItem)
-        );
-
-        const inventoryItems = await InventoryItem.find({
-          _id: { $in: ingredientIds },
-        }).lean();
-
-        const recipeMap = Object.fromEntries(
-          recipes.map((r) => [r.product.toString(), r])
-        );
-
-        const inventoryMap = Object.fromEntries(
-          inventoryItems.map((i) => [i._id.toString(), i])
-        );
+        // Use batch availability check to avoid N+1 queries
+        const availabilityMap = await batchCheckAvailability(productIds);
 
         result = menus.map((menu) => {
           const m = menu.toObject();
@@ -96,7 +141,7 @@ export const getPublicMenus = async (req, res, next) => {
                 const productId = p.product?._id?.toString();
                 const available =
                   p.available &&
-                  checkAvailability(recipeMap[productId], inventoryMap);
+                  availabilityMap[productId];
                 return { ...p, available };
               })
               .filter((p) => p.available);
@@ -109,7 +154,7 @@ export const getPublicMenus = async (req, res, next) => {
       }
     }
 
-    return ok(res, {
+    const response = {
       data: result,
       pagination: {
         page: parseInt(page),
@@ -117,14 +162,21 @@ export const getPublicMenus = async (req, res, next) => {
         total,
         pages: Math.ceil(total / parseInt(limit))
       }
-    });
+    };
+
+    // Cache the result (only if not hiding unavailable)
+    if (hideUnavailable !== "true") {
+      await cachePublicMenus({ type, featured, tags, page, limit }, response);
+    }
+
+    return ok(res, response);
   } catch (error) {
     throw error;
   }
 };
 
 /* =========================================================
-   GET PUBLIC MENU BY SLUG
+   GET PUBLIC MENU BY SLUG (CON CACHE)
 ========================================================= */
 export const getPublicMenuBySlug = async (req, res, next) => {
   try {
@@ -132,6 +184,13 @@ export const getPublicMenuBySlug = async (req, res, next) => {
 
     if (!slug) {
       return notFound(res, "Slug es requerido");
+    }
+
+    // Try to get from cache first
+    const cachedMenu = await getCachedMenuBySlug(slug);
+    if (cachedMenu) {
+      logger.info(`[Cache] Hit for menu slug: ${slug}`);
+      return ok(res, cachedMenu);
     }
 
     const menu = await populateMenuPublic(
@@ -143,11 +202,15 @@ export const getPublicMenuBySlug = async (req, res, next) => {
       return notFound(res, "Menú no encontrado");
     }
 
-    // Verificar disponibilidad completa
+    // Verificar disponibilidad completa usando batch check
     const productIds = menu.categories.flatMap((c) =>
       c.products.map((p) => p.product?._id).filter(Boolean)
     );
 
+    // Use batch availability check to avoid N+1 queries
+    const availabilityMap = await batchCheckAvailability(productIds);
+
+    // Also fetch recipes for missing ingredients calculation
     const recipes = await Recipe.find({
       product: { $in: productIds },
     }).lean();
@@ -174,23 +237,32 @@ export const getPublicMenuBySlug = async (req, res, next) => {
         const productId = p.product?._id?.toString();
         const available =
           p.available &&
-          checkAvailability(recipeMap[productId], inventoryMap);
+          availabilityMap[productId];
 
         const missingIngredients = available ? [] :
           recipeMap[productId]?.ingredients
-            .filter((i) => !i.inventoryItem || i.inventoryItem.stock < i.quantity)
-            .map((i) => ({
-              name: i.inventoryItem?.name || "Desconocido",
-              required: i.quantity,
-              available: i.inventoryItem?.stock || 0,
-              unit: i.unit,
-            })) || [];
+            .filter((i) => {
+              const item = inventoryMap[i.inventoryItem?.toString()];
+              return !item || item.stock < i.quantity;
+            })
+            .map((i) => {
+              const item = inventoryMap[i.inventoryItem?.toString()];
+              return {
+                name: item?.name || "Desconocido",
+                required: i.quantity,
+                available: item?.stock || 0,
+                unit: i.unit,
+              };
+            }) || [];
 
         return { ...p, available, missingIngredients };
       });
 
       return { ...cat, products };
     });
+
+    // Cache the result
+    await cacheMenuBySlug(slug, result);
 
     return ok(res, result);
   } catch (error) {
@@ -199,11 +271,19 @@ export const getPublicMenuBySlug = async (req, res, next) => {
 };
 
 /* =========================================================
-   GET FEATURED PUBLIC MENUS
+   GET FEATURED PUBLIC MENUS (CON CACHE)
 ========================================================= */
 export const getFeaturedPublicMenus = async (req, res, next) => {
   try {
     const { limit = 6 } = req.query;
+
+    // Try to get from cache first
+    const cacheKey = `featured:${limit}`;
+    const cachedMenus = await get(`menu:featured:${cacheKey}`);
+    if (cachedMenus) {
+      logger.info('[Cache] Hit for featured menus');
+      return ok(res, cachedMenus);
+    }
 
     const menus = await populateMenuPublic(
       Menu.find({ active: true, isPublic: true, featured: true })
@@ -212,6 +292,9 @@ export const getFeaturedPublicMenus = async (req, res, next) => {
         .limit(parseInt(limit))
     ).lean();
 
+    // Cache the result
+    await set(`menu:featured:${cacheKey}`, menus);
+
     return ok(res, menus);
   } catch (error) {
     throw error;
@@ -219,7 +302,7 @@ export const getFeaturedPublicMenus = async (req, res, next) => {
 };
 
 /* =========================================================
-   SEARCH PUBLIC MENUS
+   SEARCH PUBLIC MENUS (CON CACHE)
 ========================================================= */
 export const searchPublicMenus = async (req, res, next) => {
   try {
@@ -227,6 +310,14 @@ export const searchPublicMenus = async (req, res, next) => {
 
     if (!q) {
       return notFound(res, "Query es requerido");
+    }
+
+    // Try to get from cache first
+    const cacheKey = `search:${q}:${type}:${page}:${limit}`;
+    const cachedResult = await get(`menu:${cacheKey}`);
+    if (cachedResult) {
+      logger.info(`[Cache] Hit for search: ${q}`);
+      return ok(res, cachedResult);
     }
 
     const filter = {
@@ -254,7 +345,7 @@ export const searchPublicMenus = async (req, res, next) => {
       Menu.countDocuments(filter)
     ]);
 
-    return ok(res, {
+    const response = {
       data: menus,
       pagination: {
         page: parseInt(page),
@@ -262,7 +353,12 @@ export const searchPublicMenus = async (req, res, next) => {
         total,
         pages: Math.ceil(total / parseInt(limit))
       }
-    });
+    };
+
+    // Cache the result (shorter TTL for search results)
+    await set(`menu:${cacheKey}`, response, 60000); // 1 minute
+
+    return ok(res, response);
   } catch (error) {
     throw error;
   }
