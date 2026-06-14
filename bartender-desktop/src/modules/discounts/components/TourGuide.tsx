@@ -54,11 +54,13 @@ export default function TourGuide({
       const rect = target.getBoundingClientRect();
       setTargetRect(rect);
       
-      // Scroll element into view if needed
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-        inline: "center",
+      // Scroll element into view if needed - use auto instead of smooth to prevent blocking
+      requestAnimationFrame(() => {
+        target.scrollIntoView({
+          behavior: "auto",
+          block: "center",
+          inline: "center",
+        });
       });
     } else {
       console.warn(`Tour target not found: ${step.target}`);
@@ -74,11 +76,18 @@ export default function TourGuide({
   useEffect(() => {
     updateTargetRect();
     
-    // Update on window resize
-    const handleResize = () => updateTargetRect();
+    // Update on window resize with debounce
+    let resizeTimeout: number;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => updateTargetRect(), 100);
+    };
     window.addEventListener("resize", handleResize);
     
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(resizeTimeout);
+      window.removeEventListener("resize", handleResize);
+    };
   }, [updateTargetRect]);
 
   const handleNext = () => {

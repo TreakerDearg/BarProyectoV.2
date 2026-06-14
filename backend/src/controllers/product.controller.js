@@ -17,7 +17,7 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 ========================================================= */
 export const getProducts = async (req, res, next) => {
   try {
-    const { type, category, available, isActiveForPOS, search, tags, featured, drinkStyle } = req.query;
+    const { type, category, available, isActiveForPOS, search, tags, featured, drinkStyle, dietaryRestrictions } = req.query;
 
     const filter = {};
     if (type)           filter.type           = type;
@@ -28,6 +28,7 @@ export const getProducts = async (req, res, next) => {
     if (tags)  filter.tags  = { $in: tags.split(",").map((t) => t.trim()) };
     if (search) filter.$text = { $search: search };
     if (drinkStyle) filter.drinkStyle = drinkStyle;
+    if (dietaryRestrictions) filter.dietaryRestrictions = { $in: dietaryRestrictions.split(",").map((t) => t.trim()) };
 
     const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
 

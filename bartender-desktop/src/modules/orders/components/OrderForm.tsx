@@ -55,6 +55,7 @@ export default function OrderForm({
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "food" | "drink" | "menu">("all");
+  const [activeDietaryFilter, setActiveDietaryFilter] = useState<"vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free" | null>(null);
   const [sessionId] = useState(initialSessionId || "");
 
   const [selectedTableId, setSelectedTableId] = useState(initialTableId || "");
@@ -80,19 +81,31 @@ export default function OrderForm({
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        p.name.toLowerCase().includes(searchLower) ||
+        p.description?.toLowerCase().includes(searchLower) ||
+        p.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+        p.dietaryRestrictions?.some(dr => dr.toLowerCase().includes(searchLower));
       const matchesCategory = activeCategory === "all" || p.type === activeCategory || activeCategory === "menu";
-      return matchesSearch && matchesCategory;
+      const matchesDietary = !activeDietaryFilter || p.dietaryRestrictions?.includes(activeDietaryFilter);
+      return matchesSearch && matchesCategory && matchesDietary;
     });
-  }, [products, search, activeCategory]);
+  }, [products, search, activeCategory, activeDietaryFilter]);
 
   const filteredMenus = useMemo(() => {
     return menus.filter((m) => {
-      const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase());
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        m.name.toLowerCase().includes(searchLower) ||
+        m.description?.toLowerCase().includes(searchLower) ||
+        m.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+        m.dietaryRestrictions?.some(dr => dr.toLowerCase().includes(searchLower));
       const matchesCategory = activeCategory === "all" || activeCategory === "menu";
-      return matchesSearch && matchesCategory && m.active;
+      const matchesDietary = !activeDietaryFilter || m.dietaryRestrictions?.includes(activeDietaryFilter);
+      return matchesSearch && matchesCategory && matchesDietary && m.active;
     });
-  }, [menus, search, activeCategory]);
+  }, [menus, search, activeCategory, activeDietaryFilter]);
 
   const addProduct = (product: Product) => {
     if (!product._id) return;
@@ -192,6 +205,50 @@ export default function OrderForm({
               </div>
            </div>
 
+           {/* Dietary Filter Chips */}
+           <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setActiveDietaryFilter(null)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  !activeDietaryFilter
+                    ? 'bg-emerald/10 text-emerald-400 border border-emerald/30'
+                    : 'bg-white/5 text-muted border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setActiveDietaryFilter("vegan")}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  activeDietaryFilter === "vegan"
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/30'
+                    : 'bg-white/5 text-muted border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                Vegano
+              </button>
+              <button
+                onClick={() => setActiveDietaryFilter("vegetarian")}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  activeDietaryFilter === "vegetarian"
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-white/5 text-muted border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                Vegetariano
+              </button>
+              <button
+                onClick={() => setActiveDietaryFilter("gluten-free")}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  activeDietaryFilter === "gluten-free"
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                    : 'bg-white/5 text-muted border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                Sin Gluten
+              </button>
+           </div>
+
            <div className="relative group">
               <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-gold transition-colors" />
               <input 
@@ -241,6 +298,20 @@ export default function OrderForm({
                     <div>
                        <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">{p.category}</p>
                        <h4 className="text-sm font-black text-white group-hover:text-gold transition-colors leading-tight line-clamp-2">{p.name}</h4>
+                       {p.dietaryRestrictions && p.dietaryRestrictions.length > 0 && (
+                         <div className="flex flex-wrap gap-1 mt-2">
+                           {p.dietaryRestrictions.slice(0, 2).map((dr) => (
+                             <span key={dr} className="text-[7px] font-bold px-1.5 py-0.5 rounded bg-emerald/10 text-emerald-400 border border-emerald/30 uppercase">
+                               {dr === 'vegan' ? 'VG' : dr === 'vegetarian' ? 'VEG' : dr === 'gluten-free' ? 'SG' : dr === 'dairy-free' ? 'SL' : dr === 'nut-free' ? 'SF' : 'SA'}
+                             </span>
+                           ))}
+                           {p.dietaryRestrictions.length > 2 && (
+                             <span className="text-[7px] font-bold px-1.5 py-0.5 rounded bg-white/10 text-muted border border-white/10">
+                               +{p.dietaryRestrictions.length - 2}
+                             </span>
+                           )}
+                         </div>
+                       )}
                        <p className="text-lg font-black text-grad-gold mt-2">${p.price}</p>
                     </div>
                   </button>

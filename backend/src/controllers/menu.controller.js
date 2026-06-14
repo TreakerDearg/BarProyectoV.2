@@ -142,7 +142,7 @@ const checkAvailability = (recipe, inventoryMap) => {
 ========================================================= */
 export const getMenus = async (req, res, next) => {
   try {
-    const { type, active, drinkStyle, featured, tags, page = 1, limit = 20 } = req.query;
+    const { type, active, drinkStyle, featured, tags, dietaryRestrictions, page = 1, limit = 20 } = req.query;
 
     const filter = {};
     if (type) filter.type = type;
@@ -150,6 +150,7 @@ export const getMenus = async (req, res, next) => {
     if (drinkStyle) filter.drinkStyle = drinkStyle;
     if (featured !== undefined) filter.featured = featured === "true";
     if (tags) filter.tags = { $in: Array.isArray(tags) ? tags : [tags] };
+    if (dietaryRestrictions) filter.dietaryRestrictions = { $in: Array.isArray(dietaryRestrictions) ? dietaryRestrictions : [dietaryRestrictions] };
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 

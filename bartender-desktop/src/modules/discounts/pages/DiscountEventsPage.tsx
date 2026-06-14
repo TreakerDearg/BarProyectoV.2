@@ -13,21 +13,37 @@ export default function NebulaDiscountEventsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadEvents();
-    const interval = setInterval(loadEvents, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    let isMounted = true;
+    let intervalId: number | null = null;
 
-  const loadEvents = async () => {
-    try {
-      const data = await pricingService.getPricingEvents();
-      setEvents(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadEvents = async () => {
+      if (!isMounted) return;
+      try {
+        const data = await pricingService.getPricingEvents();
+        if (isMounted) {
+          setEvents(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error(error);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadEvents();
+    intervalId = window.setInterval(loadEvents, 30000);
+
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, []);
 
   const getLevelConfig = (level: string) => {
     switch (level) {

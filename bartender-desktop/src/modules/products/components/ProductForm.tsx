@@ -39,6 +39,7 @@ const EMPTY_FORM: Product = {
   available: true,
   featured: false,
   tags: [],
+  dietaryRestrictions: [],
   preparationTime: 5,
 };
 
@@ -57,6 +58,15 @@ const PREPARATION_TIME_PRESETS = [
   { value: 5, label: "Normal (5 min)" },
   { value: 10, label: "Lento (10 min)" },
   { value: 15, label: "Muy lento (15 min)" },
+];
+
+const DIETARY_RESTRICTION_OPTIONS = [
+  { value: "vegan", label: "Vegano", color: "bg-green-500/20 text-green-400 border-green-500/30" },
+  { value: "vegetarian", label: "Vegetariano", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
+  { value: "gluten-free", label: "Sin Gluten", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
+  { value: "dairy-free", label: "Sin Lácteos", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
+  { value: "nut-free", label: "Sin Frutos Secos", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+  { value: "sugar-free", label: "Sin Azúcar", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
 ];
 
 const CATEGORY_SUGGESTIONS = [
@@ -325,6 +335,48 @@ function EnhancedImageUpload({ currentImage, onImageUpload }: { currentImage: st
           }}
           className="absolute inset-0 opacity-0 cursor-pointer"
         />
+      </div>
+    </div>
+  );
+}
+
+// DietaryRestrictionSelector Component
+function DietaryRestrictionSelector({ formData, setFormData }: { formData: Product; setFormData: (f: Product) => void }) {
+  const toggleRestriction = (restriction: "vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free") => {
+    const current = formData.dietaryRestrictions || [];
+    const updated = current.includes(restriction)
+      ? current.filter(r => r !== restriction)
+      : [...current, restriction];
+    setFormData({ ...formData, dietaryRestrictions: updated });
+  };
+
+  return (
+    <div className="nebula-form-card nebula-form-animate-slide-in">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-emerald/10 rounded-xl">
+          <Sparkles className="text-emerald-400" size={20} />
+        </div>
+        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Restricciones Dietéticas</h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        {DIETARY_RESTRICTION_OPTIONS.map((option) => {
+          const isSelected = (formData.dietaryRestrictions || []).includes(option.value as any);
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => toggleRestriction(option.value as any)}
+              className={`px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                isSelected
+                  ? option.color
+                  : 'bg-white/5 border-white/10 text-muted hover:bg-white/10'
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -599,6 +651,7 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
               {/* RIGHT COLUMN - Pricing & Logistics + Display Options + Help Card (5 columns) */}
               <div className="lg:col-span-5 space-y-8">
                 <ProductFinancePanel formData={formData} setFormData={setFormData} />
+                <DietaryRestrictionSelector formData={formData} setFormData={setFormData} />
                 <ProductAttributeGrid formData={formData} setFormData={setFormData} />
                 <HelpTipCard />
                 <ProductPricePreview formData={formData} />

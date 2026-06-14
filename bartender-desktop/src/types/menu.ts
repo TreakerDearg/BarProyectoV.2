@@ -88,6 +88,9 @@ export interface Menu {
   /* TAGS */
   tags?: string[];
 
+  /* DIETARY RESTRICTIONS */
+  dietaryRestrictions?: ("vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free")[];
+
   /* FUTURE */
   schedule?: object;
 

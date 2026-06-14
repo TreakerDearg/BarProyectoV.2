@@ -1,6 +1,6 @@
 // hooks/useDiscount.ts - Sistema Nebula de Descuentos
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import type {
     DiscountType,
     SelectedItem,
@@ -22,15 +22,20 @@ export function useDiscount({ items }: UseDiscountProps) {
      SUBTOTAL NEBULA
   ========================= */
   const subtotal = useMemo(() => {
-    return items
-      .filter((i) => i.selected)
-      .reduce((acc, item) => acc + item.price * item.quantity, 0);
+    // Optimización: calcular solo si hay items seleccionados
+    const selectedItems = items.filter((i) => i.selected);
+    if (selectedItems.length === 0) return 0;
+    
+    return selectedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   }, [items]);
 
   /* =========================
      CÁLCULO DE DESCUENTO NEBULA
   ========================= */
   const discountAmount = useMemo(() => {
+    // Optimización: calcular solo si hay subtotal
+    if (subtotal === 0) return 0;
+    
     if (type === "PERCENT") {
       return subtotal * (value / 100);
     }
@@ -69,30 +74,30 @@ export function useDiscount({ items }: UseDiscountProps) {
   /* =========================
      MANEJADORES DE TECLADO NEBULA
   ========================= */
-  const appendNumber = (num: string) => {
+  const appendNumber = useCallback((num: string) => {
     setValueInput((prev) => {
       if (num === "." && prev.includes(".")) return prev;
       if (prev === "0" && num !== ".") return num;
       return `${prev}${num}`;
     });
-  };
+  }, []);
 
-  const removeLast = () => {
+  const removeLast = useCallback(() => {
     setValueInput((prev) => {
       const next = prev.slice(0, -1);
       return next.length > 0 ? next : "0";
     });
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setValueInput("0");
     setNote("");
-  };
+  }, []);
 
   /* =========================
      CONSTRUCTOR DE PAYLOAD NEBULA
   ========================= */
-  const buildPayload = (orderId: string) => {
+  const buildPayload = useCallback((orderId: string) => {
     const selectedItems = items
       .filter((i) => i.selected)
       .map((i) => i._id);
@@ -105,7 +110,7 @@ export function useDiscount({ items }: UseDiscountProps) {
       reason,
       note,
     };
-  };
+  }, [items, type, value, reason, note]);
 
   return {
     /* estado */

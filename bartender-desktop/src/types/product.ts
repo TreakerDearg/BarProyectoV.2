@@ -12,6 +12,7 @@ export interface Product {
   available: boolean;
   featured: boolean;
   tags: string[];
+  dietaryRestrictions: ("vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free")[];
   preparationTime: number;
   dynamicPrice?: number;
   createdAt?: string;

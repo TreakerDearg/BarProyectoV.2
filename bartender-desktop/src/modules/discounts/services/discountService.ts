@@ -43,8 +43,8 @@ export const discountService = {
     }
   },
 
-  async getActiveOrders(): Promise<Order[]> {
-    const orders = await getOrders({ sessionStatus: "open" });
+  async getActiveOrders(signal?: AbortSignal): Promise<Order[]> {
+    const orders = await getOrders({ sessionStatus: "open", signal });
     return orders
       .filter((order) => Array.isArray(order.items) && order.items.length > 0)
       .map((order: any) => ({
@@ -53,18 +53,18 @@ export const discountService = {
       }));
   },
 
-  async getDiscountsByOrder(orderId: string) {
+  async getDiscountsByOrder(orderId: string, signal?: AbortSignal) {
     try {
-      const { data } = await api.get(`/discounts/order/${orderId}`);
+      const { data } = await api.get(`/discounts/order/${orderId}`, { signal });
       return Array.isArray(data) ? data : [];
     } catch (error) {
       throw new Error(extractError(error));
     }
   },
 
-  async getTodayStats() {
+  async getTodayStats(signal?: AbortSignal) {
     try {
-      const { data } = await api.get("/discounts/stats/daily");
+      const { data } = await api.get("/discounts/stats/daily", { signal });
       return {
         todayTotal: data.summary.totalAmount,
         averagePercent: data.byType.PERCENT.averageValue,
@@ -79,9 +79,9 @@ export const discountService = {
     }
   },
 
-  async getDailyLimitRemaining() {
+  async getDailyLimitRemaining(signal?: AbortSignal) {
     try {
-      const { data } = await api.get("/discounts/limits/remaining");
+      const { data } = await api.get("/discounts/limits/remaining", { signal });
       return data;
     } catch (error) {
       throw new Error(extractError(error));

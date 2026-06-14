@@ -179,10 +179,10 @@ export default function NebulaDiscountPage() {
     return coincideBusqueda && coincideEstado;
   });
 
-  const cargarOrdenes = async () => {
+  const cargarOrdenes = async (signal?: AbortSignal) => {
     try {
       setLoadingOrders(true);
-      const datos = await discountService.getActiveOrders();
+      const datos = await discountService.getActiveOrders(signal);
       setOrders(datos);
 
       setSelectedOrder((prev) => {
@@ -190,37 +190,59 @@ export default function NebulaDiscountPage() {
         return datos.find((o) => o._id === prev._id) ?? datos[0] ?? null;
       });
     } catch (err: any) {
-      setError(err.message || "Error al cargar órdenes");
+      if (err.name !== 'AbortError') {
+        setError(err.message || "Error al cargar órdenes");
+      }
     } finally {
       setLoadingOrders(false);
     }
   };
 
-  const cargarEstadisticas = async () => {
+  const cargarEstadisticas = async (signal?: AbortSignal) => {
     try {
       setLoadingStats(true);
-      const datos = await discountService.getTodayStats();
+      const datos = await discountService.getTodayStats(signal);
       setStats(datos);
-    } catch {
-      // las estadísticas no deben bloquear la pantalla
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        // las estadísticas no deben bloquear la pantalla
+        console.error("Error loading stats:", err);
+      }
     } finally {
       setLoadingStats(false);
     }
   };
 
-  const cargarLimiteDiario = async () => {
+  const cargarLimiteDiario = async (signal?: AbortSignal) => {
     try {
-      const datos = await discountService.getDailyLimitRemaining();
+      const datos = await discountService.getDailyLimitRemaining(signal);
       setDailyLimit(datos.remaining);
-    } catch {
-      // el límite diario no debe bloquear la pantalla
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        // el límite diario no debe bloquear la pantalla
+        console.error("Error loading daily limit:", err);
+      }
     }
   };
 
   useEffect(() => {
-    cargarOrdenes();
-    cargarEstadisticas();
-    cargarLimiteDiario();
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+
+    // Cargar órdenes primero (crítico)
+    cargarOrdenes(signal);
+
+    // Cargar estadísticas y límites en segundo plano (no crítico)
+    setTimeout(() => {
+      if (!signal.aborted) {
+        cargarEstadisticas(signal);
+        cargarLimiteDiario(signal);
+      }
+    }, 100);
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   /* =========================
@@ -506,6 +528,18 @@ export default function NebulaDiscountPage() {
                 setPasoActual(1);
               }}
             />
+
+            {/* Loading skeleton para mejor percepción de carga */}
+            {loadingOrders && ordenesFiltradas.length === 0 && (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10 animate-pulse">
+                    <div className="h-4 bg-white/10 rounded w-1/3 mb-2" />
+                    <div className="h-3 bg-white/5 rounded w-1/4" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -709,6 +743,15 @@ export default function NebulaDiscountPage() {
                   data={stats}
                   loading={loadingStats}
                 />
+
+                {/* Skeleton para estadísticas */}
+                {loadingStats && (
+                  <div className="space-y-2 mt-3">
+                    <div className="h-12 bg-white/5 rounded-lg animate-pulse" />
+                    <div className="h-12 bg-white/5 rounded-lg animate-pulse" />
+                    <div className="h-12 bg-white/5 rounded-lg animate-pulse" />
+                  </div>
+                )}
               </div>
             )}
           </div>

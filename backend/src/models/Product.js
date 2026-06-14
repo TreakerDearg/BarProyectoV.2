@@ -131,6 +131,18 @@ const productSchema = new mongoose.Schema(
     },
 
     /* ==============================
+       DIETARY RESTRICTIONS
+    ============================== */
+    dietaryRestrictions: {
+      type: [{
+        type: String,
+        enum: ["vegan", "vegetarian", "gluten-free", "dairy-free", "nut-free", "sugar-free"]
+      }],
+      default: [],
+      index: true,
+    },
+
+    /* ==============================
        MENU RELATION
     ============================== */
     menuIds: [

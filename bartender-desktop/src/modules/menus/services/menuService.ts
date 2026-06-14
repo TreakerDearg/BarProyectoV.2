@@ -20,7 +20,10 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
    MENUS (REST)
 ============================== */
 export const getMenus = async (): Promise<any[]> => {
-  return safeRequest<any[]>(api.get("/menus"));
+  const response = await safeRequest<any>(api.get("/menus"));
+  // Extract data property from paginated response
+  const menus = response?.data || response;
+  return Array.isArray(menus) ? menus : [];
 };
 
 export const getMenuById = async (id: string): Promise<any> => {

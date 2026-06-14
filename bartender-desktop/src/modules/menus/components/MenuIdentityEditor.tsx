@@ -56,6 +56,28 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   // Gallery
   const [gallery, setGallery] = useState(menu.gallery || []);
 
+  // Dietary restrictions
+  const [dietaryRestrictions, setDietaryRestrictions] = useState<("vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free")[]>(
+    (menu.dietaryRestrictions as any) || []
+  );
+
+  const DIETARY_RESTRICTION_OPTIONS = [
+    { value: "vegan", label: "Vegano", color: "bg-green-500/20 text-green-400 border-green-500/30" },
+    { value: "vegetarian", label: "Vegetariano", color: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
+    { value: "gluten-free", label: "Sin Gluten", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" },
+    { value: "dairy-free", label: "Sin Lácteos", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
+    { value: "nut-free", label: "Sin Frutos Secos", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+    { value: "sugar-free", label: "Sin Azúcar", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
+  ];
+
+  const toggleDietaryRestriction = (restriction: "vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free") => {
+    const updated = dietaryRestrictions.includes(restriction)
+      ? dietaryRestrictions.filter(r => r !== restriction)
+      : [...dietaryRestrictions, restriction];
+    setDietaryRestrictions(updated);
+    onUpdate({ dietaryRestrictions: updated as any });
+  };
+
   const toggleDay = (day: string) => {
     const newDays = availableDays.includes(day)
       ? availableDays.filter(d => d !== day)
@@ -395,6 +417,36 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
               </span>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Dietary Restrictions Section */}
+      <div className="space-y-4 pt-6 border-t border-white/10">
+        <div className="flex items-center gap-3 pb-2">
+          <div className="p-2 bg-emerald/10 rounded-lg">
+            <Type size={16} className="text-emerald-400" />
+          </div>
+          <h4 className="text-sm font-bold text-ivory uppercase tracking-widest">Restricciones Dietéticas</h4>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {DIETARY_RESTRICTION_OPTIONS.map((option) => {
+            const isSelected = dietaryRestrictions.includes(option.value as any);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => toggleDietaryRestriction(option.value as any)}
+                className={`px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                  isSelected
+                    ? option.color
+                    : 'bg-white/5 border-white/10 text-muted hover:bg-white/10'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 

@@ -18,6 +18,10 @@ export interface Menu {
   metaTitle?: string;
   metaDescription?: string;
   keywords?: string[];
+  // Tags
+  tags?: string[];
+  // Dietary restrictions
+  dietaryRestrictions?: ("vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free")[];
   // Availability fields
   availableHours?: { start: string; end: string };
   availableDays?: string[];
@@ -28,8 +32,6 @@ export interface Menu {
   maxPrice?: number;
   // Drink style (for drink/mixed menus)
   drinkStyle?: "author" | "classic" | "mixed";
-  // Tags
-  tags?: string[];
 }
 
 export interface GalleryImage {

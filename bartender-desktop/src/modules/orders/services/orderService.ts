@@ -35,9 +35,14 @@ export const getOrders = async (params?: {
   table?: string;
   sessionId?: string;
   sessionStatus?: "open" | "closed";
+  signal?: AbortSignal;
 }): Promise<Order[]> => {
   try {
-    const { data } = await api.get("/orders", { params });
+    const { signal, ...queryParams } = params || {};
+    const { data } = await api.get("/orders", { 
+      params: queryParams,
+      signal 
+    });
     return Array.isArray(data) ? data : [];
   } catch (error) {
     throw new Error(extractError(error));
