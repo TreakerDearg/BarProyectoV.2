@@ -13,13 +13,82 @@ export interface UploadError {
   error?: any;
 }
 
+// Upload queue management
+interface UploadQueueItem {
+  file: File;
+  options?: { compress?: boolean; maxWidth?: number; quality?: number };
+  resolve: (value: UploadResult) => void;
+  reject: (error: Error) => void;
+  retries: number;
+}
+
+class UploadQueue {
+  private queue: UploadQueueItem[] = [];
+  private isProcessing = false;
+  private maxConcurrent = 3;
+  private activeUploads = 0;
+
+  add(file: File, options?: any): Promise<UploadResult> {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ file, options, resolve, reject, retries: 0 });
+      this.process();
+    });
+  }
+
+  private async process() {
+    if (this.isProcessing || this.activeUploads >= this.maxConcurrent) return;
+    
+    this.isProcessing = true;
+    
+    while (this.queue.length > 0 && this.activeUploads < this.maxConcurrent) {
+      const item = this.queue.shift();
+      if (item) {
+        this.activeUploads++;
+        this.uploadWithRetry(item).finally(() => {
+          this.activeUploads--;
+          this.process();
+        });
+      }
+    }
+    
+    this.isProcessing = false;
+  }
+
+  private async uploadWithRetry(item: UploadQueueItem): Promise<void> {
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 second
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.uploadSingle(item.file, item.options);
+        item.resolve(result);
+        return;
+      } catch (error) {
+        if (attempt === maxRetries) {
+          item.reject(error as Error);
+          return;
+        }
+        
+        // Exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.log(`[UploadQueue] Retry ${attempt + 1}/${maxRetries} for ${item.file.name} in ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  private async uploadSingle(file: File, options?: any): Promise<UploadResult> {
+    // Use the existing uploadImage logic
+    return uploadImageInternal(file, options);
+  }
+}
+
+const uploadQueue = new UploadQueue();
+
 /**
- * Upload a single image to Cloudinary via the backend upload endpoint
- * @param file - The file to upload
- * @param options - Upload options
- * @returns Promise with upload result containing URL and publicId
+ * Internal upload function without queue management
  */
-export const uploadImage = async (
+const uploadImageInternal = async (
   file: File,
   options?: { compress?: boolean; maxWidth?: number; quality?: number }
 ): Promise<UploadResult> => {
@@ -37,6 +106,14 @@ export const uploadImage = async (
       throw new Error(validation.error);
     }
 
+    // Adaptive quality based on image type
+    let quality = options?.quality || 0.8;
+    if (file.type === 'image/png') {
+      quality = 0.9; // Higher quality for PNG
+    } else if (file.type === 'image/webp') {
+      quality = 0.85; // Medium-high quality for WebP
+    }
+
     // Compress image if enabled (default: true)
     let fileToUpload = file;
     if (options?.compress !== false && file.size > 500 * 1024) { // Compress if larger than 500KB
@@ -45,7 +122,7 @@ export const uploadImage = async (
         fileToUpload = await compressImage(
           file,
           options?.maxWidth || 1920,
-          options?.quality || 0.8
+          quality
         );
         console.log('[UploadService] Image compressed:', {
           originalSize: file.size,
@@ -118,7 +195,22 @@ export const uploadImage = async (
 };
 
 /**
+ * Upload a single image to Cloudinary via the backend upload endpoint
+ * Uses queue management with automatic retry
+ * @param file - The file to upload
+ * @param options - Upload options
+ * @returns Promise with upload result containing URL and publicId
+ */
+export const uploadImage = async (
+  file: File,
+  options?: { compress?: boolean; maxWidth?: number; quality?: number }
+): Promise<UploadResult> => {
+  return uploadQueue.add(file, options);
+};
+
+/**
  * Upload multiple images to Cloudinary
+ * Uses queue management for better performance
  * @param files - Array of files to upload
  * @param options - Upload options
  * @returns Promise with array of upload results
@@ -145,58 +237,11 @@ export const uploadMultipleImages = async (
       throw new Error(`Archivos inválidos: ${errors}`);
     }
 
-    // Compress images if enabled
-    let filesToUpload = files;
-    if (options?.compress !== false) {
-      console.log('[UploadService] Compressing images...');
-      try {
-        filesToUpload = await Promise.all(
-          files.map(file => 
-            file.size > 500 * 1024 
-              ? compressImage(file, options?.maxWidth || 1920, options?.quality || 0.8)
-                  .catch(err => {
-                    console.warn(`[UploadService] Compression failed for ${file.name}:`, err);
-                    return file; // Use original if compression fails
-                  })
-              : file
-          )
-        );
-        console.log('[UploadService] Images compressed');
-      } catch (compressError) {
-        console.warn('[UploadService] Batch compression failed, using original files:', compressError);
-      }
-    }
+    // Upload using queue for better performance
+    const uploadPromises = files.map(file => uploadQueue.add(file, options));
+    const results = await Promise.all(uploadPromises);
 
-    const formData = new FormData();
-    filesToUpload.forEach((file) => {
-      formData.append('images', file);
-    });
-
-    const response = await api.post('/upload/multiple', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 60000, // 60 second timeout for multiple files
-    });
-
-    console.log('[UploadService] Multiple upload successful:', response.data);
-
-    if (!response.data) {
-      throw new Error('No data received from server');
-    }
-
-    if (!response.data.files) {
-      throw new Error('No files array in response data');
-    }
-
-    // Validate response structure
-    const results = response.data.files.map((result: any, index: number) => ({
-      url: result.url,
-      publicId: result.publicId || '',
-      originalName: result.originalName || filesToUpload[index].name,
-      mimeType: result.mimeType || filesToUpload[index].type,
-      size: result.size || filesToUpload[index].size,
-    }));
+    console.log('[UploadService] Multiple upload successful:', results);
 
     return results;
   } catch (error: any) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, ToggleLeft, ToggleRight, Globe, Star, DollarSign } from "lucide-react";
+import { Settings, ToggleLeft, ToggleRight, Globe, Star, DollarSign, CheckCircle2 } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 import MenuAvailabilityEditor from "./MenuAvailabilityEditor";
 
@@ -16,6 +16,7 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
   const [featured, setFeatured] = useState(menu.featured ?? false);
   const [color, setColor] = useState(menu.color || "#8B5CF6");
   const [slug, setSlug] = useState(menu.slug || "");
+  const [saveSuccess, setSaveSuccess] = useState(false);
   
   // Promotion
   const [promotedUntil, setPromotedUntil] = useState(
@@ -26,6 +27,13 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
   const [minPrice, setMinPrice] = useState(menu.minPrice?.toString() || "");
   const [maxPrice, setMaxPrice] = useState(menu.maxPrice?.toString() || "");
 
+  const handleToggle = (key: keyof Menu, value: any) => {
+    onUpdate({ [key]: value });
+    // Show success feedback
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 1500);
+  };
+
   return (
     <div className="nebula-panel p-6 space-y-6">
       <div className="flex items-center gap-3 mb-6">
@@ -33,70 +41,126 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
           <Settings className="text-cyan-300" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Configuración</h3>
+        {saveSuccess && (
+          <div className="flex items-center gap-1 text-emerald-400 text-[10px] animate-in fade-in duration-300">
+            <CheckCircle2 size={10} />
+            <span>Guardado</span>
+          </div>
+        )}
       </div>
 
-      {/* Active Status */}
-      <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${active ? 'bg-emerald-500/10' : 'bg-red/10'}`}>
-            {active ? (
-              <ToggleRight className="text-emerald-400" size={20} />
-            ) : (
-              <ToggleLeft className="text-red-400" size={20} />
-            )}
+      {/* Visibility Settings */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 pb-2">
+          <div className="p-2 bg-emerald/10 rounded-lg">
+            <Globe size={16} className="text-emerald-400" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-ivory">Estado Activo</p>
-            <p className="text-[10px] text-muted">
-              {active ? "La carta está visible en el sistema" : "La carta está oculta"}
-            </p>
-          </div>
+          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Visibilidad</h4>
         </div>
-        <button
-          onClick={() => {
-            setActive(!active);
-            onUpdate({ active: !active });
-          }}
-          className={`relative w-14 h-8 rounded-full transition-colors ${
-            active ? 'bg-emerald-500/20' : 'bg-red/20'
-          }`}
-        >
-          <div
-            className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
-              active ? 'left-7 bg-emerald-400' : 'left-1 bg-red-400'
+
+        {/* Active Status */}
+        <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${active ? 'bg-emerald-500/10' : 'bg-red/10'}`}>
+              {active ? (
+                <ToggleRight className="text-emerald-400" size={20} />
+              ) : (
+                <ToggleLeft className="text-red-400" size={20} />
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-ivory">Estado Activo</p>
+              <p className="text-[10px] text-muted">
+                {active ? "La carta está visible en el sistema" : "La carta está oculta"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setActive(!active);
+              handleToggle('active', !active);
+            }}
+            className={`relative w-14 h-8 rounded-full transition-colors ${
+              active ? 'bg-emerald-500/20' : 'bg-red/20'
             }`}
-          />
-        </button>
+          >
+            <div
+              className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
+                active ? 'left-7 bg-emerald-400' : 'left-1 bg-red-400'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Public Status */}
+        <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${isPublic ? 'bg-cyan/10' : 'bg-surface-2'}`}>
+              <Globe className={isPublic ? 'text-cyan-400' : 'text-muted'} size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-ivory">Público</p>
+              <p className="text-[10px] text-muted">
+                {isPublic ? "Visible para todos los usuarios" : "Solo visible para administradores"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setIsPublic(!isPublic);
+              handleToggle('isPublic', !isPublic);
+            }}
+            className={`relative w-14 h-8 rounded-full transition-colors ${
+              isPublic ? 'bg-cyan/20' : 'bg-surface-2'
+            }`}
+          >
+            <div
+              className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
+                isPublic ? 'left-7 bg-cyan-400' : 'left-1 bg-muted'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
-      {/* Featured Status */}
-      <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${featured ? 'bg-gold/10' : 'bg-surface-2'}`}>
-            <Star className={featured ? 'text-gold-400' : 'text-muted'} size={20} />
+      {/* Featured Settings */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 pb-2">
+          <div className="p-2 bg-gold/10 rounded-lg">
+            <Star size={16} className="text-gold" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-ivory">Destacado</p>
-            <p className="text-[10px] text-muted">
-              {featured ? "Mostrar en sección destacada" : "No destacar"}
-            </p>
-          </div>
+          <h4 className="text-xs font-bold text-ivory uppercase tracking-widest">Destacados</h4>
         </div>
-        <button
-          onClick={() => {
-            setFeatured(!featured);
-            onUpdate({ featured: !featured });
-          }}
-          className={`relative w-14 h-8 rounded-full transition-colors ${
-            featured ? 'bg-gold/20' : 'bg-surface-2'
-          }`}
-        >
-          <div
-            className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
-              featured ? 'left-7 bg-gold-400' : 'left-1 bg-muted'
+
+        {/* Featured Status */}
+        <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${featured ? 'bg-gold/10' : 'bg-surface-2'}`}>
+              <Star className={featured ? 'text-gold-400' : 'text-muted'} size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-ivory">Destacado</p>
+              <p className="text-[10px] text-muted">
+                {featured ? "Mostrar en sección destacada" : "No destacar"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setFeatured(!featured);
+              handleToggle('featured', !featured);
+            }}
+            className={`relative w-14 h-8 rounded-full transition-colors ${
+              featured ? 'bg-gold/20' : 'bg-surface-2'
             }`}
-          />
-        </button>
+          >
+            <div
+              className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
+                featured ? 'left-7 bg-gold-400' : 'left-1 bg-muted'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Color */}
@@ -164,36 +228,6 @@ export default function MenuConfigPanel({ menu, onUpdate }: Props) {
         <p className="text-[10px] text-muted mt-2 ml-1">
           Identificador único para enlaces públicos
         </p>
-      </div>
-
-      {/* Public Status */}
-      <div className="flex items-center justify-between p-4 bg-surface-3 rounded-xl border border-white/5">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isPublic ? 'bg-violet-500/10' : 'bg-surface-2'}`}>
-            <Globe className={isPublic ? 'text-violet-300' : 'text-muted'} size={20} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-ivory">Público</p>
-            <p className="text-[10px] text-muted">
-              {isPublic ? "Visible para clientes externos" : "Solo uso interno"}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            setIsPublic(!isPublic);
-            onUpdate({ isPublic: !isPublic });
-          }}
-          className={`relative w-14 h-8 rounded-full transition-colors ${
-            isPublic ? 'bg-violet-500/20' : 'bg-surface-2'
-          }`}
-        >
-          <div
-            className={`absolute top-1 w-6 h-6 rounded-full transition-transform ${
-              isPublic ? 'left-7 bg-violet-300' : 'left-1 bg-muted'
-            }`}
-          />
-        </button>
       </div>
 
       {/* Availability Section */}

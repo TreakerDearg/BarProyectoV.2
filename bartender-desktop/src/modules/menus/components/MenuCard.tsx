@@ -23,7 +23,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -35,7 +35,7 @@ interface Props {
   simplified?: boolean;
 }
 
-export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport, simplified = false }: Props) {
+function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport, simplified = false }: Props) {
   const totalProducts = menu.categories?.reduce((acc, cat) => acc + (cat.products?.length || 0), 0) || 0;
   const totalCategories = menu.categories?.length || 0;
   const mainCategory = menu.categories?.[0]?.name || "Gral";
@@ -46,6 +46,7 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   // Calculate products with recipes
   const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
@@ -93,6 +94,11 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
     }
   };
 
+  // Handle image zoom
+  const handleImageZoom = () => {
+    setIsZoomed(!isZoomed);
+  };
+
   // Get type badge color
   const getTypeBadgeColor = () => {
     switch (menu.type) {
@@ -109,64 +115,87 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
   return (
     <div className={`
       relative group cursor-pointer
-      rounded-[2.5rem] p-8 space-y-7
-      border border-white/5
-      bg-surface-2 overflow-hidden transition-all duration-500
+      rounded-[2.5rem] overflow-hidden transition-all duration-500
       hover:translate-y-[-8px] hover:shadow-royale
       ${isActive ? 'hover:border-gold/30' : 'hover:border-red/30'}
     `}>
-      {/* ATMOSPHERIC GLOW */}
-      <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${isActive ? 'bg-gold/10' : 'bg-red/10'}`} />
+      {/* COVER IMAGE SECTION */}
+      <div className="relative aspect-[16/9] overflow-hidden">
+        {currentImage && !imageError ? (
+          <>
+            <img
+              src={currentImage}
+              alt={menu.name}
+              className={`w-full h-full object-cover transition-all duration-700 ${
+                isZoomed ? 'scale-110' : 'scale-100'
+              } group-hover:scale-105`}
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageLoading(false);
+                setImageError(true);
+              }}
+              onClick={handleImageZoom}
+            />
+            {imageLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
+                <Loader2 size={32} className="text-violet-400/50 animate-spin" />
+              </div>
+            )}
+            {/* Image Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-surface-2 via-transparent to-transparent opacity-80" />
+            
+            {/* Gallery Navigation */}
+            {menu.gallery && menu.gallery.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); prevGalleryImage(); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                >
+                  <ChevronRight size={16} className="rotate-180" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextGalleryImage(); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                >
+                  <ChevronRight size={16} />
+                </button>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  {menu.gallery.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        idx === galleryIndex ? 'bg-white scale-125' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            
+            {/* Zoom indicator */}
+            <button
+              onClick={(e) => { e.stopPropagation(); handleImageZoom(); }}
+              className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+              title={isZoomed ? 'Reducir' : 'Ampliar'}
+            >
+              <Zap size={16} />
+            </button>
+          </>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-surface-3 to-surface-2 flex items-center justify-center">
+            <ImageIcon size={48} className="text-muted/30" />
+          </div>
+        )}
+      </div>
+
+      {/* CARD CONTENT */}
+      <div className="p-8 space-y-7 bg-surface-2">
+        {/* ATMOSPHERIC GLOW */}
+        <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${isActive ? 'bg-gold/10' : 'bg-red/10'}`} />
 
       {/* ================= HEADER ================= */}
       <div className="flex justify-between items-start relative z-10">
-        <div className="flex items-center gap-4">
-          {currentImage && !imageError ? (
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative group/image shadow-lg">
-              {imageLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
-                  <Loader2 size={20} className="text-violet-400/50 animate-spin" />
-                </div>
-              )}
-              <img
-                src={currentImage}
-                alt={menu.name}
-                className="w-full h-full object-cover transition-all duration-500 group-hover/image:scale-110 group-hover/image:rotate-1"
-                onLoad={() => setImageLoading(false)}
-                onError={() => {
-                  setImageLoading(false);
-                  setImageError(true);
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" />
-              {menu.gallery && menu.gallery.length > 1 && (
-                <div className="absolute bottom-1 right-1 flex gap-1 opacity-0 group-hover/image:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); prevGalleryImage(); }}
-                    className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronRight size={10} className="rotate-180" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); nextGalleryImage(); }}
-                    className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
-                  >
-                    <ChevronRight size={10} />
-                  </button>
-                </div>
-              )}
-              {menu.gallery && menu.gallery.length > 0 && (
-                <div className="absolute top-1 left-1 bg-black/50 text-white text-[8px] px-1.5 py-0.5 rounded-full">
-                  {galleryIndex + 1}/{menu.gallery.length}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center shadow-lg group/image hover:from-violet/10 hover:to-surface-3 transition-all duration-300">
-              <ImageIcon size={24} className="text-muted/40 group-hover/image:text-violet-400/60 transition-colors" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate">
                 {menu.name}
@@ -354,3 +383,5 @@ export default function MenuCard({ menu, onEdit, onDelete, onDuplicate, onExport
     </div>
   );
 }
+
+export default memo(MenuCard);

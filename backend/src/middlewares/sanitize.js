@@ -34,16 +34,8 @@ export const sanitize = (req, res, next) => {
       req.body = clean(req.body);
     }
 
-    // IMPORTANTE: NO MUTAR req.query DIRECTAMENTE
-    if (req.query) {
-      const cleanedQuery = {};
-
-      for (const key of Object.keys(req.query)) {
-        cleanedQuery[key] = clean(req.query[key]);
-      }
-
-      req.query = cleanedQuery;
-    }
+    // IMPORTANTE: NO MUTAR req.query DIRECTAMENTE (es read-only en Express)
+    // Solo sanitizamos req.body y req.params
 
     if (req.params) {
       const cleanedParams = {};

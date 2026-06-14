@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle, Upload, Loader2, CheckCircle2, Eye } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Type, Image as ImageIcon, Globe, Clock, Plus, XCircle, X, AlertCircle, Upload, Loader2, CheckCircle2, Eye, Info, Sparkles } from "lucide-react";
 import type { Menu } from "../../../types/menu";
-import { validateImageFile, uploadMultipleImages, uploadImage, deleteImage } from "../../../services/uploadService";
+import { validateImageFile, uploadMultipleImages, uploadImage } from "../../../services/uploadService";
 import IdentityPreview from "./IdentityPreview";
 
 interface Props {
@@ -20,6 +20,8 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -91,6 +93,7 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       setImageUploading(true);
       setImageUploadProgress(0);
       setUploadError(null);
+      setUploadSuccess(false);
 
       // Simulate progress for better UX
       const progressInterval = setInterval(() => {
@@ -119,6 +122,10 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       setImagePreview(null);
       setImageFile(null);
 
+      // Show success feedback
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+
       console.log('[MenuIdentityEditor] Image uploaded successfully:', uploadResult);
     } catch (error: any) {
       console.error('[MenuIdentityEditor] Error uploading image:', error);
@@ -128,6 +135,42 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       setImageUploading(false);
     }
   };
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        setUploadError(validation.error || "Error de validación");
+        return;
+      }
+      
+      setUploadError(null);
+      setImageFile(file);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      await handleImageUpload(file);
+    }
+  }, [handleImageUpload]);
 
   const addGalleryImage = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -199,10 +242,18 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       </div>
 
       {/* Name */}
-      <div>
-        <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">
-          Nombre de la Carta
-        </label>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1">
+            Nombre de la Carta
+          </label>
+          <div className="group relative">
+            <Info size={12} className="text-muted/50 hover:text-violet-400 cursor-help" />
+            <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-surface-2 border border-white/10 rounded-lg text-[10px] text-muted opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+              El nombre debe ser único y descriptivo. Aparecerá en la vista pública del menú.
+            </div>
+          </div>
+        </div>
         <input
           type="text"
           value={name}
@@ -213,13 +264,27 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-violet/40 focus:border-transparent transition-all outline-none"
           placeholder="Ej: Carta de Cocteles Principal"
         />
+        {name.length > 0 && (
+          <div className="flex items-center gap-2 text-[10px] text-emerald-400">
+            <CheckCircle2 size={10} />
+            <span>Nombre válido</span>
+          </div>
+        )}
       </div>
 
       {/* Description */}
-      <div>
-        <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">
-          Descripción
-        </label>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1">
+            Descripción
+          </label>
+          <div className="group relative">
+            <Info size={12} className="text-muted/50 hover:text-violet-400 cursor-help" />
+            <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-surface-2 border border-white/10 rounded-lg text-[10px] text-muted opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+              Una descripción breve ayuda a los clientes a entender el tipo de menú.
+            </div>
+          </div>
+        </div>
         <textarea
           value={description}
           onChange={(e) => {
@@ -229,6 +294,12 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           className="w-full bg-surface-3 border-white/10 rounded-lg px-4 py-3 text-ivory focus:ring-2 focus:ring-violet/40 focus:border-transparent transition-all outline-none resize-none h-24"
           placeholder="Descripción breve de la carta..."
         />
+        <div className="flex items-center justify-between text-[10px] text-muted">
+          <span>{description.length}/500 caracteres</span>
+          {description.length > 0 && description.length < 50 && (
+            <span className="text-amber-400">Recomendado: más de 50 caracteres</span>
+          )}
+        </div>
       </div>
 
       {/* Type */}
@@ -261,11 +332,28 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
       </div>
 
       {/* Image */}
-      <div>
-        <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1 block mb-2">
-          Imagen de Portada
-        </label>
-        <div className="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center hover:border-violet/40 transition-colors">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] font-bold text-muted uppercase tracking-widest ml-1">
+            Imagen de Portada
+          </label>
+          <div className="group relative">
+            <Info size={12} className="text-muted/50 hover:text-violet-400 cursor-help" />
+            <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-surface-2 border border-white/10 rounded-lg text-[10px] text-muted opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+              Arrastra una imagen o haz clic para subir. Formatos: PNG, JPG, WebP (máx 5MB).
+            </div>
+          </div>
+        </div>
+        <div 
+          className={`relative group cursor-pointer border-2 border-dashed rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center transition-all ${
+            isDragging 
+              ? 'border-violet/40 bg-violet/5' 
+              : 'border-white/10 hover:border-violet/40'
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           {imageUploading ? (
             <div className="relative z-10 flex flex-col items-center text-violet-300">
               <Loader2 size={32} className="mb-2 animate-spin" />
@@ -277,6 +365,11 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
                 />
               </div>
               <p className="text-[10px] mt-2 opacity-60">{imageUploadProgress}%</p>
+            </div>
+          ) : uploadSuccess ? (
+            <div className="relative z-10 flex flex-col items-center text-emerald-400 animate-in fade-in duration-300">
+              <CheckCircle2 size={32} className="mb-2" />
+              <p className="text-sm font-medium">¡Imagen subida con éxito!</p>
             </div>
           ) : (imagePreview || menu.image) ? (
             <>
@@ -293,14 +386,18 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
                   </div>
                 )}
                 <ImageIcon size={32} className="mb-2" />
-                <p className="text-sm font-medium">Click to replace image</p>
+                <p className="text-sm font-medium">Click para reemplazar imagen</p>
+                <p className="text-[10px] mt-1 opacity-60">o arrastra una nueva imagen</p>
               </div>
             </>
           ) : (
             <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-violet-300">
-              <ImageIcon size={32} className="mb-2" />
-              <p className="text-sm font-medium">Click to upload image</p>
-              <p className="text-[10px] mt-1 opacity-60">PNG, JPG, WebP up to 5MB</p>
+              <div className="p-3 bg-violet/10 rounded-full mb-3 group-hover:bg-violet/20 transition-colors">
+                <Upload size={24} className="text-violet-400" />
+              </div>
+              <p className="text-sm font-medium">Arrastra una imagen aquí</p>
+              <p className="text-[10px] mt-1 opacity-60">o haz clic para seleccionar</p>
+              <p className="text-[9px] mt-2 opacity-40">PNG, JPG, WebP hasta 5MB</p>
             </div>
           )}
           <input
@@ -309,7 +406,6 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
-                // Validate file
                 const validation = validateImageFile(file);
                 if (!validation.isValid) {
                   setUploadError(validation.error || "Error de validación");
@@ -319,14 +415,12 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
                 setUploadError(null);
                 setImageFile(file);
                 
-                // Create preview
                 const reader = new FileReader();
                 reader.onloadend = () => {
                   setImagePreview(reader.result as string);
                 };
                 reader.readAsDataURL(file);
                 
-                // Upload immediately (not wait for save)
                 await handleImageUpload(file);
               }
             }}
@@ -334,13 +428,13 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
           />
         </div>
         {uploadError && (
-          <div className="mt-2 flex items-center gap-2 text-red-400 text-xs">
+          <div className="flex items-center gap-2 text-red-400 text-xs animate-in fade-in duration-300">
             <AlertCircle size={12} />
             <span>{uploadError}</span>
           </div>
         )}
         {menu.imagePublicId && !imageUploading && (
-          <div className="mt-2 flex items-center gap-2 text-emerald-400 text-xs">
+          <div className="flex items-center gap-2 text-emerald-400 text-xs">
             <CheckCircle2 size={12} />
             <span>Imagen sincronizada con Cloudinary</span>
           </div>

@@ -90,6 +90,14 @@ export const createMenu = async (req, res, next) => {
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
 
+    //  VERIFICAR NOMBRE DUPLICADO
+    const existingMenu = await Menu.findOne({ 
+      name: { $regex: `^${normalized.name}$`, $options: 'i' } 
+    });
+    if (existingMenu) {
+      return badRequest(res, "Ya existe un menú con este nombre");
+    }
+
     // Procesar imagen: puede venir de multer (req.file) o del frontend (req.body)
     if (req.file) {
       // Imagen subida directamente via multer
@@ -148,6 +156,17 @@ export const updateMenu = async (req, res, next) => {
 
     const errorMsg = await validateMenu(normalized);
     if (errorMsg) return badRequest(res, errorMsg);
+
+    //  VERIFICAR NOMBRE DUPLICADO (excluyendo el menú actual)
+    if (normalized.name) {
+      const existingMenu = await Menu.findOne({ 
+        name: { $regex: `^${normalized.name}$`, $options: 'i' },
+        _id: { $ne: req.params.id }
+      });
+      if (existingMenu) {
+        return badRequest(res, "Ya existe un menú con este nombre");
+      }
+    }
 
     // Procesar imagen: puede venir de multer (req.file) o del frontend (req.body)
     if (req.file) {
