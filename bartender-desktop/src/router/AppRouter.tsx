@@ -20,10 +20,7 @@ import TablesPage from "../modules/tables/pages/TablesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
 import OrdersPage from "../modules/orders/pages/OrdersPage";
-import DiscountPage from "../modules/discounts/pages/DiscountPage";
-import DynamicPricingPage from "../modules/discounts/pages/DynamicPricingPage";
-import PromotionsPage from "../modules/discounts/pages/PromotionsPage";
-import DiscountEventsPage from "../modules/discounts/pages/DiscountEventsPage";
+import DiscountsSuite from "../modules/discounts/pages/DiscountsSuite";
 
 /* ==============================
    ADMIN MODULE ROUTES
@@ -87,16 +84,7 @@ export default function AppRouter() {
               <Route path="/orders" element={<OrdersPage />} />
             </Route>
             <Route element={<RoleRoute path="/discounts" />}>
-              <Route path="/discounts" element={<DiscountPage />} />
-            </Route>
-            <Route element={<RoleRoute path="/discounts/dynamic-pricing" />}>
-              <Route path="/discounts/dynamic-pricing" element={<DynamicPricingPage />} />
-            </Route>
-            <Route element={<RoleRoute path="/discounts/promotions" />}>
-              <Route path="/discounts/promotions" element={<PromotionsPage />} />
-            </Route>
-            <Route element={<RoleRoute path="/discounts/events" />}>
-              <Route path="/discounts/events" element={<DiscountEventsPage />} />
+              <Route path="/discounts" element={<DiscountsSuite />} />
             </Route>
             <Route element={<RoleRoute path="/reservations" />}>
               <Route path="/reservations" element={<ReservationsPage />} />

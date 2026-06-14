@@ -1,21 +1,23 @@
-import { Link, useLocation } from "react-router-dom";
 import { HelpCircle, Sparkles } from "lucide-react";
+
+type DiscountView = "manual" | "dynamic-pricing" | "promotions" | "events";
 
 type Props = {
   title: string;
   subtitle: string;
+  currentView: DiscountView;
+  onViewChange: (view: DiscountView) => void;
   onOpenTutorial: () => void;
 };
 
 const tabs = [
-  { to: "/discounts", label: "Descuentos" },
-  { to: "/discounts/dynamic-pricing", label: "Precios" },
-  { to: "/discounts/promotions", label: "Promociones" },
-  { to: "/discounts/events", label: "Eventos" },
+  { value: "manual" as DiscountView, label: "Descuentos" },
+  { value: "dynamic-pricing" as DiscountView, label: "Precios" },
+  { value: "promotions" as DiscountView, label: "Promociones" },
+  { value: "events" as DiscountView, label: "Eventos" },
 ];
 
-export default function DiscountsSuiteHeader({ title, subtitle, onOpenTutorial }: Props) {
-  const location = useLocation();
+export default function DiscountsSuiteHeader({ title, subtitle, currentView, onViewChange, onOpenTutorial }: Props) {
 
   return (
     <div className="discounts-panel p-4 md:p-5">
@@ -40,11 +42,11 @@ export default function DiscountsSuiteHeader({ title, subtitle, onOpenTutorial }
 
       <div className="mt-4 flex flex-wrap gap-2">
         {tabs.map((tab) => {
-          const active = location.pathname === tab.to;
+          const active = currentView === tab.value;
           return (
-            <Link
-              key={tab.to}
-              to={tab.to}
+            <button
+              key={tab.value}
+              onClick={() => onViewChange(tab.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
                 active
                   ? "bg-gold text-black"
@@ -52,7 +54,7 @@ export default function DiscountsSuiteHeader({ title, subtitle, onOpenTutorial }
               }`}
             >
               {tab.label}
-            </Link>
+            </button>
           );
         })}
       </div>

@@ -348,7 +348,30 @@ export interface SessionCheckoutResult {
 export const createSessionCheckout = async (
   data: SessionCheckoutPayload
 ): Promise<SessionCheckoutResult> => {
-  return safeRequest<SessionCheckoutResult>(api.post("/payments/session-checkout", data));
+  try {
+    const result = await safeRequest<SessionCheckoutResult>(api.post("/payments/session-checkout", data));
+    return result;
+  } catch (error: any) {
+    // Enhanced error handling for session checkout
+    console.error("[Session Checkout Error]:", {
+      error: error?.message,
+      statusCode: error?.statusCode,
+      errorCode: error?.errorCode,
+      payload: data
+    });
+    
+    // Re-throw with more specific error information
+    if (error?.statusCode === 500) {
+      throw new PaymentServiceError(
+        "Error interno del servidor al procesar el pago. Por favor, inténtelo de nuevo.",
+        500,
+        "SERVER_ERROR",
+        error
+      );
+    }
+    
+    throw error;
+  }
 };
 
 /* =========================================================

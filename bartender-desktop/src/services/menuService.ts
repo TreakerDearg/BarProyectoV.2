@@ -1,6 +1,5 @@
 import api from "./api";
 import type { Menu } from "../types/menu";
-import { deleteImage as deleteImageFromCloudinary } from "./uploadService";
 
 /* =========================
    RESPONSE NORMALIZER 
@@ -18,12 +17,11 @@ function unwrap<T>(res: any): T {
    IMAGE VALIDATION
 ========================= */
 export function validateImageData(menu: any): { valid: boolean; error?: string } {
-  // If image URL is provided, publicId must also be provided
-  if (menu.image && !menu.imagePublicId) {
-    return {
-      valid: false,
-      error: 'Se requiere imagePublicId cuando se proporciona una imagen'
-    };
+  // If image URL is provided, publicId is optional for compatibility
+  // Allow empty string for imagePublicId
+  if (menu.image && menu.imagePublicId === undefined) {
+    // If imagePublicId is undefined, set it to empty string for compatibility
+    menu.imagePublicId = "";
   }
 
   // If publicId is provided, image URL must also be provided
@@ -34,12 +32,10 @@ export function validateImageData(menu: any): { valid: boolean; error?: string }
     };
   }
 
-  // Validate Cloudinary URL format (basic check)
+  // Validate Cloudinary URL format (basic check) - optional for compatibility
   if (menu.image && !menu.image.includes('cloudinary.com')) {
-    return {
-      valid: false,
-      error: 'La URL de la imagen debe ser de Cloudinary'
-    };
+    // Allow non-Cloudinary URLs for compatibility
+    console.warn('[MenuService] Image URL is not from Cloudinary:', menu.image);
   }
 
   return { valid: true };

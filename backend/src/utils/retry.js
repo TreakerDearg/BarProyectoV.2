@@ -3,6 +3,7 @@
    Handles transient database errors with exponential backoff
 ========================================================= */
 
+import mongoose from "mongoose";
 import { logger } from "../config/logger.js";
 
 /**

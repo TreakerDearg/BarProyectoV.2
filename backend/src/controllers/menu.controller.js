@@ -192,8 +192,10 @@ export const updateMenu = async (req, res, next) => {
         const existingMenu = await Menu.findById(req.params.id);
         
         // Solo requerir imagePublicId si la imagen está cambiando a una nueva URL
-        if (req.body.image && req.body.image !== existingMenu?.image && !req.body.imagePublicId) {
-          return badRequest(res, "Se requiere imagePublicId cuando se cambia la imagen");
+        // Permitir imagePublicId vacío para compatibilidad con frontend
+        if (req.body.image && req.body.image !== existingMenu?.image && (!req.body.imagePublicId || req.body.imagePublicId === "")) {
+          // No requerir imagePublicId - permitir para compatibilidad
+          logger.warn("[Menu] Imagen cambiada sin imagePublicId, permitiendo para compatibilidad");
         }
         
         // Si se envía imagePublicId pero no image, es un error
