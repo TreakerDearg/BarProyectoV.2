@@ -4,14 +4,12 @@ import { useState, useEffect } from "react";
 import { pricingService, type Promotion } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
-import { Plus, Minus, Trash2, Calendar, Clock, Tag, Loader2, Sparkles, Power, PackageSearch, Search } from "lucide-react";
+import { Plus, Calendar, Clock, Tag, Loader2, Sparkles, Power, PackageSearch, Search, Info } from "lucide-react";
 import TourGuide from "../components/TourGuide";
 import type { TourStep } from "../components/TourGuide";
 
 export default function NebulaPromotionsPage() {
   const [tourOpen, setTourOpen] = useState(false);
-  const [promoFormCollapsed, setPromoFormCollapsed] = useState(false);
-  const [promoListCollapsed, setPromoListCollapsed] = useState(false);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [autoEnabled, setAutoEnabled] = useState(true);
@@ -186,48 +184,24 @@ export default function NebulaPromotionsPage() {
       {/* ATMOSPHERIC GLOW */}
       <div className="nebula-discounts-aurora" />
 
-      <div className="nebula-discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-violet-300">Promociones por horario y producto</p>
-        <p className="text-xs text-violet-200/70">Crea, activa y controla campañas del turno</p>
-      </div>
-      {/* ================= HEADER & MASTER SWITCH ================= */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 relative z-10 animate-fade-in-up">
-        <div className="flex items-center gap-4">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-violet-500 blur-lg opacity-40 group-hover:opacity-60 transition-opacity rounded-2xl" />
-            <div className="relative p-4 glass-card border border-violet-500/40 rounded-2xl">
-              <Sparkles className="text-violet-400" size={28} />
-            </div>
-          </div>
-          <div>
-            <p className="text-[10px] text-violet-400 font-black uppercase tracking-[0.4em] mb-1 drop-shadow-[0_0_8px_rgba(139,92,246,0.6)]">
-              Marketing & Operaciones
-            </p>
-            <h1 className="text-3xl font-black text-ivory tracking-tighter uppercase leading-none" style={{ fontFamily: 'var(--font-display)' }}>
-              Gestor de <span className="text-violet-400">Promociones</span>
-            </h1>
-          </div>
+      {/* MASTER SWITCH */}
+      <div className="nebula-discounts-panel p-3 rounded-2xl flex items-center gap-4 mb-4" data-tour="master-switch">
+        <div>
+          <p className="text-[10px] text-muted font-black uppercase tracking-widest">Motor Automático</p>
+          <p className={`text-sm font-black uppercase tracking-wider ${autoEnabled ? 'text-lime' : 'text-red'}`}>
+            {autoEnabled ? 'EN LÍNEA' : 'SUSPENDIDO'}
+          </p>
         </div>
-
-        {/* MASTER SWITCH */}
-        <div className="nebula-discounts-panel p-3 rounded-2xl flex items-center gap-4" data-tour="master-switch">
-          <div>
-            <p className="text-[10px] text-muted font-black uppercase tracking-widest">Motor Automático</p>
-            <p className={`text-sm font-black uppercase tracking-wider ${autoEnabled ? 'text-lime' : 'text-red'}`}>
-              {autoEnabled ? 'EN LÍNEA' : 'SUSPENDIDO'}
-            </p>
-          </div>
-          <button 
-            onClick={toggleAutoPromotions}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 shadow-lg ${
-              autoEnabled 
-                ? 'bg-lime/20 border border-lime/40 text-lime hover:bg-lime/30 shadow-lime/20' 
-                : 'bg-red/20 border border-red/40 text-red hover:bg-red/30 shadow-red/20'
-            }`}
-          >
-            <Power size={20} />
-          </button>
-        </div>
+        <button 
+          onClick={toggleAutoPromotions}
+          className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 shadow-lg ${
+            autoEnabled 
+              ? 'bg-lime/20 border border-lime/40 text-lime hover:bg-lime/30 shadow-lime/20' 
+              : 'bg-red/20 border border-red/40 text-red hover:bg-red/30 shadow-red/20'
+          }`}
+        >
+          <Power size={20} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">

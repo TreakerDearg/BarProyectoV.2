@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { pricingService } from "../services/pricingService";
 import { getProducts } from "../../products/services/productService";
 import type { Product } from "../../../types/product";
-import { Activity, TrendingUp, TrendingDown, Target, Zap, ChevronRight, AlertTriangle, Flame } from "lucide-react";
+import { TrendingUp, Target, Zap, AlertTriangle } from "lucide-react";
 import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaDynamicPricingPage() {
@@ -63,30 +63,6 @@ export default function NebulaDynamicPricingPage() {
       <div className="discounts-shell discounts-page-frame relative overflow-hidden animate-fade-in">
       {/* ATMOSPHERIC GLOW */}
       <div className={`absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[150px] -z-10 pointer-events-none transition-colors duration-1000 ${themeBg} opacity-10`} />
-
-      <div className="discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-amber-200">Ajuste de precio por demanda</p>
-        <p className="text-xs text-amber-100/80">Controla margen sin perder ritmo de servicio</p>
-      </div>
-      {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between relative z-10 animate-fade-in-up">
-        <div className="flex items-center gap-6">
-          <div className="relative group">
-            <div className={`absolute inset-0 ${themeBg} blur-lg opacity-40 group-hover:opacity-60 transition-opacity rounded-2xl`} />
-            <div className={`relative p-5 glass-card border ${themeBorder} rounded-2xl`}>
-              <Activity className={themeColor} size={36} />
-            </div>
-          </div>
-          <div>
-            <p className={`text-[10px] ${themeColor} font-black uppercase tracking-[0.4em] mb-1 drop-shadow-lg`}>
-              Motor de Demanda Algorítmica
-            </p>
-            <h1 className="text-4xl font-black text-ivory tracking-tighter uppercase leading-none" style={{ fontFamily: 'var(--font-display)' }}>
-              Precios <span className={themeColor}>Dinámicos Nebula</span>
-            </h1>
-          </div>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 relative z-10">
         {/* =========================

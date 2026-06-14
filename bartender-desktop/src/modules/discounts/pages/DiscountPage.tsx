@@ -298,28 +298,10 @@ export default function NebulaDiscountPage() {
     <div className="nebula-discounts-root">
       <div className="nebula-discounts-shell nebula-discounts-page-frame">
       <div className="nebula-discounts-aurora" />
-      <div className="nebula-discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-cyan">Flujo de descuentos en vivo</p>
-        <p className="text-xs text-white/50">Selecciona pedido, calcula y aplica</p>
-      </div>
-      {/* ENCABEZADO AMIGABLE NEBULA */}
+      
+      {/* ACCIONES RÁPIDAS */}
       <div className="nebula-discounts-panel p-3 md:p-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl shadow-lg bg-gradient-to-br from-cyan to-violet">
-              <Sparkles className="text-black" size={24} />
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-ivory">
-                Sistema Nebula de Descuentos
-              </h1>
-              <p className="text-xs text-muted">
-                Aplica descuentos de forma rápida y segura
-              </p>
-            </div>
-          </div>
-          
-          {/* ACCIONES RÁPIDAS */}
           <div className="flex items-center gap-2 flex-wrap" data-tour="quick-actions">
             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10" data-tour="mode-toggle">
               <button

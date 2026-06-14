@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { pricingService, type PricingEvent } from "../services/pricingService";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Activity, Clock, ShieldAlert, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { Clock, ShieldAlert, AlertCircle, CheckCircle2, Info } from "lucide-react";
 import DiscountsSuiteTutorial from "../components/DiscountsSuiteTutorial";
 
 export default function NebulaDiscountEventsPage() {
@@ -65,30 +65,6 @@ export default function NebulaDiscountEventsPage() {
       <div className="discounts-shell discounts-page-frame glass-royale p-4 md:p-6 rounded-[2rem] shadow-royale animate-fade-in relative overflow-hidden min-h-[80vh]">
       {/* ATMOSPHERIC GLOW */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
-      <div className="discounts-title-band">
-        <p className="text-xs font-bold tracking-wider uppercase text-cyan">Auditoría de descuentos</p>
-        <p className="text-xs text-white/50">Seguimiento de cambios y validaciones en tiempo real</p>
-      </div>
-      {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between relative z-10">
-        <div className="flex items-center gap-6">
-          <div className="p-4 bg-white/5 border border-white/10 rounded-2xl shadow-inner">
-            <Activity className="text-cyan" size={32} />
-          </div>
-          <div>
-            <p className="text-[10px] text-cyan font-black uppercase tracking-[0.4em] mb-1">
-              Registro de Auditoría
-            </p>
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-              Eventos de Descuento Nebula
-            </h1>
-            <p className="text-xs text-white/50 font-bold tracking-widest uppercase mt-2">
-              Trazabilidad operativa y de seguridad
-            </p>
-          </div>
-        </div>
-      </div>
 
       <section className="bg-surface-2 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 shadow-royale relative z-10">
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
