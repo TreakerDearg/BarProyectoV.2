@@ -302,7 +302,7 @@ export default function OrdersPage() {
         onComplete={completeSalonTutorial}
       />
 
-      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-6">
+      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-8">
         <div className="p-3 rounded-2xl bg-violet-500/15 text-violet-200">
           <Sparkles size={20} />
         </div>
@@ -341,36 +341,36 @@ export default function OrdersPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-12 h-12 rounded-xl nebula-btn-primary flex items-center justify-center shadow-gold-glow"
+          className="w-14 h-14 rounded-xl nebula-btn-primary flex items-center justify-center shadow-gold-glow"
           title="Nueva orden"
         >
-          <Plus size={22} />
+          <Plus size={24} />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
-        <header className="flex flex-wrap items-end justify-between gap-4 px-1">
+        <header className="flex flex-wrap items-end justify-between gap-6 px-1">
           <div>
-            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">
+            <p className="text-xs text-muted font-semibold uppercase tracking-wide">
               Nebula · Comandas
             </p>
-            <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-ivory tracking-tight">
               Órdenes Activas
             </h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="nebula-mode-toggle">
               <button
                 type="button"
-                className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
+                className={`px-4 py-2 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
                 onClick={() => setSalonMode("simple")}
               >
                 Simple
               </button>
               <button
                 type="button"
-                className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
+                className={`px-4 py-2 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
                 onClick={() => setSalonMode("advanced")}
               >
                 Avanzado
@@ -390,7 +390,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={openSalonTutorial}
-              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10 text-xs flex items-center gap-1"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10 text-xs flex items-center gap-1"
             >
               <HelpCircle size={16} />
               Tutorial
@@ -399,7 +399,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={() => setShowExportImport(true)}
-              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10"
               title="Exportar/Importar"
             >
               <Target size={16} />
@@ -408,7 +408,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={fetchOrders}
-              className="btn btn-ghost !p-2.5 rounded-xl border border-white/10"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10"
             >
               <RefreshCcw
                 size={16}
@@ -419,26 +419,26 @@ export default function OrdersPage() {
         </header>
 
         {salonMode === "advanced" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <MetricCard
               label="Total"
               value={stats.total}
-              icon={<ChefHat size={14} />}
+              icon={<ChefHat size={16} />}
             />
             <MetricCard
               label="Pendientes"
               value={stats.pending}
-              icon={<Clock size={14} />}
+              icon={<Clock size={16} />}
             />
             <MetricCard
               label="En curso"
               value={stats.inProgress}
-              icon={<Zap size={14} />}
+              icon={<Zap size={16} />}
             />
             <MetricCard
               label="Críticos"
               value={stats.critical}
-              icon={<Flame size={14} />}
+              icon={<Flame size={16} />}
               warn
             />
           </div>
@@ -458,7 +458,7 @@ export default function OrdersPage() {
 
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
           {processedOrders.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8">
               {processedOrders.map((order) => (
                 <OrderCard
                   key={order._id}
@@ -541,10 +541,10 @@ function NavIcon({
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 ${active ? "text-violet-200" : "text-muted hover:text-ivory"}`}
+      className={`flex flex-col items-center gap-2 ${active ? "text-violet-200" : "text-muted hover:text-ivory"}`}
     >
       <div
-        className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-colors ${
+        className={`w-14 h-14 rounded-xl flex items-center justify-center border transition-colors ${
           active
             ? "bg-violet-500/15 border-violet-400/30"
             : "bg-white/5 border-white/10"
@@ -552,7 +552,7 @@ function NavIcon({
       >
         {icon}
       </div>
-      <span className="text-[8px] font-semibold uppercase">{label}</span>
+      <span className="text-xs font-semibold uppercase">{label}</span>
     </button>
   );
 }
@@ -570,14 +570,14 @@ function MetricCard({
 }) {
   return (
     <div
-      className={`nebula-panel !p-4 flex items-center gap-3 ${warn && value > 0 ? "border-amber-500/30" : ""}`}
+      className={`nebula-panel !p-5 flex items-center gap-4 ${warn && value > 0 ? "border-amber-500/30" : ""}`}
     >
-      <div className="p-2 rounded-lg bg-violet-500/10 text-violet-200">
+      <div className="p-2.5 rounded-lg bg-violet-500/10 text-violet-200">
         {icon}
       </div>
       <div>
-        <p className="text-[10px] text-muted uppercase">{label}</p>
-        <p className="text-xl font-bold text-ivory">{value}</p>
+        <p className="text-xs text-muted uppercase">{label}</p>
+        <p className="text-2xl font-bold text-ivory">{value}</p>
       </div>
     </div>
   );

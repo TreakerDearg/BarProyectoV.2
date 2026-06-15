@@ -66,37 +66,43 @@ export default function OrderCard(props: Props) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       className={`
-        relative flex flex-col bg-surface-2 rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl transition-all duration-500
+        relative flex flex-col bg-surface-2 rounded-[2rem] border border-white/5 overflow-hidden shadow-xl transition-all duration-300
         ${isCritical ? 'border-red-500/40 shadow-red-500/20 ring-1 ring-red-500/20' : `hover:border-white/20`}
         ${order.status === 'completed' ? 'opacity-60' : ''}
       `}
     >
       {/* STATUS DECOR BAR */}
-      <div className={`h-1.5 w-full ${config.accent} opacity-40`} />
+      <div className={`h-1 w-full ${config.accent} opacity-30`} />
 
-      <div className="p-8 space-y-6">
+      <div className="p-6 space-y-6">
         
-        {/* HEADER */}
-        <div className="flex justify-between items-start">
-           <div>
-              <div className="flex items-center gap-2 mb-1">
-                 <div className={`w-1.5 h-1.5 rounded-full ${config.accent} ${order.status === 'in-progress' ? 'animate-pulse' : ''}`} />
-                 <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${config.color}`}>
-                   {config.label}
-                 </span>
+        {/* HEADER WITH TABLE NUMBER PROMINENT */}
+        <div className="flex justify-between items-start gap-4">
+           <div className="flex-1">
+              {/* TABLE NUMBER - PROMINENT */}
+              <div className="flex items-center gap-3 mb-3">
+                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-3xl ${isCritical ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-gold/20 text-gold border-gold/30'} shadow-lg`}>
+                   {tableLabel}
+                 </div>
+                 <div>
+                    <div className={`w-2 h-2 rounded-full ${config.accent} ${order.status === 'in-progress' ? 'animate-pulse' : ''}`} />
+                    <span className={`text-xs font-black uppercase tracking-[0.2em] ${config.color} ml-2`}>
+                      {config.label}
+                    </span>
+                 </div>
               </div>
               <OrderHeader order={order} isBar={isBar} />
            </div>
 
            {isCritical ? (
              <div className="bg-red-500/10 text-red-500 p-2 rounded-xl animate-pulse">
-                <Flame size={20} />
+                <Flame size={18} />
              </div>
            ) : (
              <div className="bg-white/5 p-2 rounded-xl border border-white/5 text-muted">
-                {config.icon || <History size={16} />}
+                {config.icon || <History size={14} />}
              </div>
            )}
         </div>
@@ -104,11 +110,11 @@ export default function OrderCard(props: Props) {
         {/* LOGISTICS */}
         <div className="grid grid-cols-2 gap-4">
            <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-              <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Destino</p>
+              <p className="text-xs font-black text-muted uppercase tracking-widest mb-2">Destino</p>
               <OrderTableInfo order={order} tableLabel={tableLabel} />
            </div>
            <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-              <p className="text-[8px] font-black text-muted uppercase tracking-widest mb-1">Cronómetro</p>
+              <p className="text-xs font-black text-muted uppercase tracking-widest mb-2">Cronómetro</p>
               <OrderTimer order={order} />
            </div>
         </div>
@@ -118,9 +124,9 @@ export default function OrderCard(props: Props) {
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                  <div className="w-1 h-3 rounded-full bg-gold" />
-                 <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Contenido Comanda</span>
+                 <span className="text-xs font-black text-white/40 uppercase tracking-widest">Contenido Comanda</span>
               </div>
-              <span className="text-[9px] font-black text-gold/60">{order.items.length} items</span>
+              <span className="text-xs font-black text-gold/60">{order.items.length} items</span>
            </div>
            
            <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
@@ -145,9 +151,6 @@ export default function OrderCard(props: Props) {
            />
         </div>
       </div>
-
-      {/* BACKGROUND DECOR */}
-      <div className={`absolute -bottom-10 -right-10 w-32 h-32 ${config.accent} opacity-[0.03] blur-[60px] pointer-events-none`} />
     </motion.div>
   );
 }

@@ -30,8 +30,8 @@ export default function OrderTimer({ order }: Props) {
 
   return (
     <div className={`flex items-center gap-2 ${isCritical ? 'text-brand' : isWarning ? 'text-ember' : 'text-ivory'}`}>
-      <Clock size={12} className={isCritical ? 'animate-pulse' : ''} />
-      <span className="text-sm font-black tracking-widest font-mono">
+      <Clock size={14} className={isCritical ? 'animate-pulse' : ''} />
+      <span className="text-lg font-black tracking-widest font-mono">
         {time}
       </span>
     </div>

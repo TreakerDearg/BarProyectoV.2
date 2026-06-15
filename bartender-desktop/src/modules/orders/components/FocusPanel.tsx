@@ -78,30 +78,30 @@ export default function FocusPanel({
     >
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-violet-500/15 text-violet-200">
-            <ClipboardList size={20} />
+          <div className="p-3 rounded-xl bg-violet-500/15 text-violet-200">
+            <ClipboardList size={22} />
           </div>
           <div>
             <h2 className="text-lg font-bold text-ivory">Ítem de comanda</h2>
             <p className="text-xs text-muted">Nebula · Comandas</p>
           </div>
         </div>
-        <h3 className="text-xl font-bold text-ivory">
+        <h3 className="text-2xl font-bold text-ivory">
           {selectedItem.product?.name || "Producto"}
         </h3>
-        <p className="text-xs text-muted mt-1">
+        <p className="text-sm text-muted mt-1">
           Cantidad: {selectedItem.quantity ?? 1} ·{" "}
           {selectedItem.product?.type === "drink" ? "Barra" : "Cocina"}
         </p>
       </div>
 
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 p-6 space-y-8 overflow-y-auto custom-scrollbar">
         <section>
-          <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">
+          <p className="text-sm font-semibold text-muted uppercase tracking-wide mb-4">
             Estado del ítem
           </p>
           {canUpdate ? (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {STATUS_FLOW.map(({ key, label }) => {
                 const active = current === key;
                 return (
@@ -110,14 +110,14 @@ export default function FocusPanel({
                     type="button"
                     disabled={statusLoading}
                     onClick={() => handleStatus(key)}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-colors ${
+                    className={`px-4 py-3 rounded-xl text-sm font-semibold border transition-colors ${
                       active
                         ? "bg-violet-500/25 border-violet-400/40 text-violet-100"
                         : "border-white/10 text-muted hover:border-violet-400/30 hover:text-ivory"
                     }`}
                   >
                     {statusLoading && active ? (
-                      <Loader2 size={14} className="animate-spin inline mr-1" />
+                      <Loader2 size={16} className="animate-spin inline mr-1" />
                     ) : null}
                     {label}
                   </button>
@@ -125,19 +125,19 @@ export default function FocusPanel({
               })}
             </div>
           ) : (
-            <p className="text-sm text-muted capitalize">{current}</p>
+            <p className="text-base text-muted capitalize">{current}</p>
           )}
         </section>
 
         {selectedItem.notes && (
           <section>
-            <div className="flex items-center gap-2 mb-2">
-              <MessageSquare size={14} className="text-violet-300" />
-              <p className="text-xs font-semibold text-muted uppercase">
+            <div className="flex items-center gap-2 mb-3">
+              <MessageSquare size={16} className="text-violet-300" />
+              <p className="text-sm font-semibold text-muted uppercase">
                 Notas
               </p>
             </div>
-            <p className="text-sm text-ivory/90 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <p className="text-base text-ivory/90 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
               {selectedItem.notes}
             </p>
           </section>
