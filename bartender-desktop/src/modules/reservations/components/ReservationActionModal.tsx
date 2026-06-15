@@ -57,32 +57,32 @@ export default function ReservationActionModal({
 
       <div
         className={`
-          w-full max-w-2xl bg-surface-2 rounded-[2.5rem] overflow-hidden shadow-royale border border-white/5
+          w-full max-w-2xl bg-surface-2 rounded-[2rem] overflow-hidden shadow-royale border border-white/5
           ${reservation.isVIP ? 'border-gold/30' : ''}
-          transition-all duration-500 animate-float
+          transition-all duration-300
         `}
       >
         {/* TOP VIP HIGHLIGHT BAR */}
-        <div className={`h-2.5 w-full ${reservation.isVIP ? 'bg-grad-gold' : isDelayed ? 'bg-red-500' : 'bg-gold-soft'} shadow-lg`} />
+        <div className={`h-1.5 w-full ${reservation.isVIP ? 'bg-grad-gold' : isDelayed ? 'bg-red-500' : 'bg-gold-soft'} shadow-lg`} />
 
         {/* MODAL HEADER */}
-        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-surface-3">
-          <div className="flex items-center gap-5">
-            <div className={`p-4 rounded-2xl ${reservation.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow scale-110' : 'bg-surface-4 text-gold border border-white/5'}`}>
-              <Crown size={28} className={reservation.isVIP ? 'fill-current' : ''} />
+        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-surface-3">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-xl ${reservation.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow' : 'bg-surface-4 text-gold border border-white/5'}`}>
+              <Crown size={24} className={reservation.isVIP ? 'fill-current' : ''} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-black tracking-tighter text-white uppercase leading-none">
+                <h2 className="text-xl font-black tracking-tighter text-white uppercase leading-none">
                   {reservation.customerName}
                 </h2>
                 {reservation.isVIP && (
-                  <span className="text-[8px] font-black tracking-widest uppercase bg-gold/20 text-gold px-2 py-0.5 rounded border border-gold/30">
+                  <span className="text-[10px] font-black tracking-widest uppercase bg-gold/20 text-gold px-2 py-0.5 rounded border border-gold/30">
                     VIP GOLD
                   </span>
                 )}
               </div>
-              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mt-1.5">
+              <p className="text-xs text-muted font-black uppercase tracking-[0.4em] mt-1">
                 Centro de Operaciones · Mesa {reservation.tableId && typeof reservation.tableId === 'object' ? reservation.tableId.number : 'Sin Asignar'}
               </p>
             </div>
@@ -90,27 +90,27 @@ export default function ReservationActionModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-12 h-12 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all"
+            className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 hover:border-gold-border text-muted hover:text-gold transition-all"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* MODAL BODY */}
-        <div className="p-8 space-y-8 bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.02)_0%,transparent_50%)]">
+        <div className="p-6 space-y-6 bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.02)_0%,transparent_50%)]">
           
           {/* RETRASO ALARM PANEL */}
           {isDelayed && (
-            <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-2xl flex items-center justify-between text-red-400">
+            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center justify-between text-red-400">
               <div className="flex items-center gap-3">
-                <AlertCircle size={20} className="animate-pulse text-red-500" />
+                <AlertCircle size={18} className="animate-pulse text-red-500" />
                 <div className="text-left">
                   <p className="text-xs font-black uppercase tracking-wider">Cliente Atrasado</p>
                   <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-0.5">Límite de espera de 15 minutos superado</p>
                 </div>
               </div>
-              <span className="bg-red-500/20 text-white text-xs font-black uppercase px-3 py-1.5 rounded-xl border border-red-500/30">
-                +{delayMinutes} Minutos Tarde
+              <span className="bg-red-500/20 text-white text-xs font-black uppercase px-3 py-1 rounded-lg border border-red-500/30">
+                +{delayMinutes} Min
               </span>
             </div>
           )}
@@ -119,9 +119,9 @@ export default function ReservationActionModal({
           <div className="grid grid-cols-2 gap-4">
             
             {/* DATE & TIME CARD */}
-            <div className="bg-surface-3/50 border border-white/5 rounded-3xl p-5 space-y-3">
-              <p className="text-[8px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
-                <Calendar size={12} className="text-gold" />
+            <div className="bg-surface-3/50 border border-white/5 rounded-2xl p-4 space-y-2">
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
+                <Calendar size={14} className="text-gold" />
                 Día y Horario
               </p>
               <div>
@@ -131,15 +131,15 @@ export default function ReservationActionModal({
             </div>
 
             {/* GUESTS & TABLE CARD */}
-            <div className="bg-surface-3/50 border border-white/5 rounded-3xl p-5 space-y-3">
-              <p className="text-[8px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
-                <Users size={12} className="text-gold" />
+            <div className="bg-surface-3/50 border border-white/5 rounded-2xl p-4 space-y-2">
+              <p className="text-[10px] font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
+                <Users size={14} className="text-gold" />
                 Detalle Asignación
               </p>
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-white uppercase tracking-wider">{reservation.guests} Invitados</p>
-                  <p className="text-base font-black text-white/80 mt-1 uppercase tracking-widest">
+                  <p className="text-sm font-black text-white/80 mt-1 uppercase tracking-widest">
                     {reservation.tableId && typeof reservation.tableId === 'object'
                       ? `Mesa ${reservation.tableId.number} (${(reservation.tableId as any).location})`
                       : "Sin Asignar"}
@@ -151,7 +151,7 @@ export default function ReservationActionModal({
           </div>
 
           {/* QUICK INFOS DIRECTORY */}
-          <div className="space-y-3 bg-black/20 p-6 rounded-[2rem] border border-white/5">
+          <div className="space-y-3 bg-black/20 p-5 rounded-[1.5rem] border border-white/5">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted font-bold uppercase tracking-wider flex items-center gap-2">
                 <Phone size={14} className="text-gold" /> Teléfono
@@ -176,16 +176,16 @@ export default function ReservationActionModal({
             </div>
             {reservation.notes && (
               <div className="pt-3 border-t border-white/5 text-left">
-                <span className="text-[8px] font-black text-muted uppercase tracking-widest block mb-1">Notas especiales de servicio</span>
+                <span className="text-[10px] font-black text-muted uppercase tracking-widest block mb-1">Notas especiales de servicio</span>
                 <p className="text-xs text-muted italic leading-relaxed">"{reservation.notes}"</p>
               </div>
             )}
           </div>
 
           {/* DYNAMIC PROGRESS TIMELINE */}
-          <div className="space-y-4">
-            <p className="text-[8px] font-black text-muted uppercase tracking-widest text-left">Línea de Proceso de la Reserva</p>
-            <div className="flex items-center justify-between bg-black/10 p-4 rounded-2xl border border-white/5 relative">
+          <div className="space-y-3">
+            <p className="text-[10px] font-black text-muted uppercase tracking-widest text-left">Línea de Proceso de la Reserva</p>
+            <div className="flex items-center justify-between bg-black/10 p-4 rounded-xl border border-white/5 relative">
               <div className="absolute top-1/2 left-8 right-8 h-0.5 bg-white/5 -translate-y-1/2 -z-10" />
               
               <TimelineStep 
@@ -208,7 +208,7 @@ export default function ReservationActionModal({
 
           {/* FOOLPROOF MAIN HOST ACTION CENTER (GIANT BUTTONS) */}
           <div className="space-y-4 pt-2">
-            <p className="text-[10px] font-black text-gold uppercase tracking-[0.3em] text-center">Acciones Rápidas del Anfitrión (Hostess)</p>
+            <p className="text-xs font-black text-gold uppercase tracking-[0.3em] text-center">Acciones Rápidas del Anfitrión (Hostess)</p>
             
             <div className="grid grid-cols-2 gap-4">
               
@@ -217,12 +217,12 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onStatusChange("seated")}
-                  className="col-span-2 h-20 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400/20 text-white rounded-3xl flex items-center justify-center gap-4 transition-all hover:scale-[1.02] shadow-[0_15px_30px_rgba(16,185,129,0.3)] active:scale-95 group"
+                  className="col-span-2 h-16 bg-emerald-500 hover:bg-emerald-600 border border-emerald-400/20 text-white rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] shadow-[0_10px_25px_rgba(16,185,129,0.25)] active:scale-95 group"
                 >
-                  <CheckCircle2 size={26} className="group-hover:scale-110 transition-transform" />
+                  <CheckCircle2 size={22} className="group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <p className="text-sm font-black uppercase tracking-widest leading-none">SENTAR CLIENTE EN MESA</p>
-                    <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest mt-1">Activar mesa en el plano del salón</p>
+                    <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-0.5">Activar mesa en el plano del salón</p>
                   </div>
                 </button>
               )}
@@ -232,9 +232,9 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onWhatsapp(reservation)}
-                  className="col-span-2 h-16 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_10px_20px_rgba(16,185,129,0.05)]"
+                  className="col-span-2 h-14 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_8px_20px_rgba(16,185,129,0.05)]"
                 >
-                  <MessageCircle size={18} className="fill-current text-emerald-400" />
+                  <MessageCircle size={16} className="fill-current text-emerald-400" />
                   ENVIAR CONFIRMACIÓN POR WHATSAPP
                 </button>
               )}
@@ -244,9 +244,9 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onStatusChange("confirmed")}
-                  className="h-16 bg-gold hover:bg-gold-hover text-bg rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_10px_20px_rgba(212,163,64,0.2)]"
+                  className="h-14 bg-gold hover:bg-gold-hover text-bg rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_8px_20px_rgba(212,163,64,0.15)]"
                 >
-                  <Check size={18} className="stroke-[3]" />
+                  <Check size={16} className="stroke-[3]" />
                   CONFIRMAR ASISTENCIA
                 </button>
               )}
@@ -256,9 +256,9 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onStatusChange("no-show")}
-                  className={`h-16 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 ${reservation.status === 'pending' ? 'col-span-2' : ''}`}
+                  className={`h-14 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 ${reservation.status === 'pending' ? 'col-span-2' : ''}`}
                 >
-                  <AlertCircle size={18} />
+                  <AlertCircle size={16} />
                   NO ASISTIÓ (NO-SHOW)
                 </button>
               )}
@@ -268,9 +268,9 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onStatusChange("cancelled")}
-                  className="h-16 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 col-span-2"
+                  className="h-14 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 col-span-2"
                 >
-                  <XCircle size={18} />
+                  <XCircle size={16} />
                   ANULAR RESERVACIÓN (CANCELAR)
                 </button>
               )}
@@ -280,9 +280,9 @@ export default function ReservationActionModal({
                 <button
                   type="button"
                   onClick={() => onStatusChange("completed")}
-                  className="col-span-2 h-16 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95"
+                  className="col-span-2 h-14 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95"
                 >
-                  <CheckCircle2 size={18} />
+                  <CheckCircle2 size={16} />
                   COMPLETAR Y LIBERAR MESA
                 </button>
               )}
@@ -293,29 +293,29 @@ export default function ReservationActionModal({
         </div>
 
         {/* BOTTOM METRICS & SYSTEM CONFIG CONTROLS */}
-        <div className="p-6 bg-surface-3 border-t border-white/10 flex justify-between items-center gap-4">
+        <div className="p-5 bg-surface-3 border-t border-white/10 flex justify-between items-center gap-4">
           <button
             type="button"
             onClick={onDelete}
-            className="p-4 rounded-xl text-red-500 hover:text-white hover:bg-red-500/15 transition-all"
+            className="p-3 rounded-lg text-red-500 hover:text-white hover:bg-red-500/15 transition-all"
             title="Borrar Registro Permanentemente"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} />
           </button>
           
-          <div className="flex gap-4">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onEdit}
-              className="h-12 px-6 rounded-xl border border-white/15 hover:border-gold/40 text-muted hover:text-gold transition-all text-xs font-black uppercase tracking-wider flex items-center gap-2"
+              className="h-10 px-5 rounded-lg border border-white/15 hover:border-gold/40 text-muted hover:text-gold transition-all text-xs font-black uppercase tracking-wider flex items-center gap-2"
             >
-              <Pencil size={14} />
+              <Pencil size={12} />
               MODIFICAR DATOS
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="h-12 px-6 bg-white/5 hover:bg-white/10 rounded-xl text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all"
+              className="h-10 px-5 bg-white/5 hover:bg-white/10 rounded-lg text-white text-xs font-black uppercase tracking-widest border border-white/5 transition-all"
             >
               CERRAR
             </button>
@@ -331,18 +331,18 @@ function TimelineStep({ label, active, current }: { label: string; active: boole
     <div className="flex flex-col items-center gap-2 relative z-10">
       <div 
         className={`
-          w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300
+          w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300
           ${current 
-            ? 'bg-gold border-transparent text-bg shadow-gold-glow scale-110' 
+            ? 'bg-gold border-transparent text-bg shadow-gold-glow scale-105' 
             : active 
             ? 'bg-gold/15 border-gold text-gold' 
             : 'bg-surface-3 border-white/10 text-muted/30'
           }
         `}
       >
-        {active && !current ? <Check size={14} className="stroke-[3]" /> : <div className="w-2 h-2 rounded-full bg-current" />}
+        {active && !current ? <Check size={16} className="stroke-[3]" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
       </div>
-      <span className={`text-[9px] font-black uppercase tracking-wider ${current ? 'text-gold' : active ? 'text-white/80' : 'text-muted/40'}`}>
+      <span className={`text-[10px] font-black uppercase tracking-wider ${current ? 'text-gold' : active ? 'text-white/80' : 'text-muted/40'}`}>
         {label}
       </span>
     </div>

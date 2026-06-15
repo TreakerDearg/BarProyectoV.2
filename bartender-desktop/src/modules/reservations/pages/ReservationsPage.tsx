@@ -421,10 +421,10 @@ export default function ReservationsPage() {
 
           <button
             onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}
-            className="btn btn-gold !px-12 !h-16 !rounded-[2rem] shadow-[0_20px_50px_rgba(212,163,64,0.3)] flex items-center gap-4 group relative overflow-hidden"
+            className="btn btn-gold !px-10 !h-14 !rounded-[2rem] shadow-[0_15px_40px_rgba(212,163,64,0.25)] flex items-center gap-3 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            <Plus size={26} className="stroke-[4px] relative z-10" />
+            <Plus size={22} className="stroke-[4px] relative z-10" />
             <span className="font-black tracking-[0.2em] text-xs uppercase relative z-10">Nueva Reserva</span>
           </button>
         </div>
@@ -462,8 +462,8 @@ export default function ReservationsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {radarReservations.map((r) => {
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {radarReservations.slice(0, 6).map((r) => {
               const startTime = new Date(r.startTime);
               const diffMs = startTime.getTime() - now.getTime();
               const diffMin = Math.floor(diffMs / (60 * 1000));
@@ -489,7 +489,7 @@ export default function ReservationsPage() {
                   type="button"
                   onClick={() => handleCardClick(r)}
                   className={`
-                    p-4 rounded-2xl border transition-all text-left group/radar cursor-pointer
+                    p-5 rounded-2xl border transition-all text-left group/radar cursor-pointer
                     ${isLate
                       ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40 animate-pulse'
                       : isOverdue
@@ -501,18 +501,18 @@ export default function ReservationsPage() {
                   `}
                 >
                   {/* Name & Time */}
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-black text-ivory uppercase tracking-wider truncate max-w-[120px]">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-black text-ivory uppercase tracking-wider truncate max-w-[140px]">
                       {r.customerName}
                     </p>
                     {r.isVIP && (
-                      <Sparkles size={12} className="text-violet-300 shrink-0" />
+                      <Sparkles size={14} className="text-violet-300 shrink-0" />
                     )}
                   </div>
 
                   {/* Arrival Badge */}
                   <div className={`
-                    text-[10px] font-black uppercase tracking-wider mb-2
+                    text-xs font-black uppercase tracking-wider mb-3
                     ${isLate ? 'text-red-400' : isOverdue ? 'text-amber-400' : isImminent ? 'text-emerald-400' : 'text-muted'}
                   `}>
                     {timeLabel}
@@ -520,18 +520,18 @@ export default function ReservationsPage() {
 
                   {/* Details */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[9px] text-muted font-bold uppercase tracking-widest">
-                      <Clock size={10} className="text-gold/50" />
+                    <div className="flex items-center gap-2 text-xs text-muted font-bold uppercase tracking-widest">
+                      <Clock size={12} className="text-gold/50" />
                       {timeFormatted}
                     </div>
-                    <div className="flex items-center gap-1 text-[9px] text-muted font-bold">
-                      <Users size={10} className="text-gold/50" />
+                    <div className="flex items-center gap-1 text-xs text-muted font-bold">
+                      <Users size={12} className="text-gold/50" />
                       {r.guests}
                     </div>
                   </div>
 
                   {/* Quick Action Strip */}
-                  <div className="flex gap-1.5 mt-3 opacity-0 group-hover/radar:opacity-100 transition-opacity">
+                  <div className="flex gap-2 mt-4 opacity-0 group-hover/radar:opacity-100 transition-opacity">
                     {(r.status === "pending" || r.status === "confirmed") && (
                       <>
                         <button
@@ -540,10 +540,10 @@ export default function ReservationsPage() {
                             e.stopPropagation();
                             handleStatusChange(r._id!, "seated");
                           }}
-                          className="flex-1 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-[8px] font-black uppercase tracking-wider hover:bg-emerald-500/30 transition-colors"
+                          className="flex-1 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/30 transition-colors"
                           title="Sentar al cliente"
                         >
-                          <CheckCircle2 size={10} className="inline mr-1" />
+                          <CheckCircle2 size={12} className="inline mr-1" />
                           Sentar
                         </button>
                         <button
@@ -552,10 +552,10 @@ export default function ReservationsPage() {
                             e.stopPropagation();
                             handleStatusChange(r._id!, "no-show");
                           }}
-                          className="flex-1 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-[8px] font-black uppercase tracking-wider hover:bg-red-500/20 transition-colors"
+                          className="flex-1 py-2 bg-red-500/10 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-red-500/20 transition-colors"
                           title="Marcar como no asistió"
                         >
-                          <XCircle size={10} className="inline mr-1" />
+                          <XCircle size={12} className="inline mr-1" />
                           No-Show
                         </button>
                       </>
@@ -568,10 +568,10 @@ export default function ReservationsPage() {
                           e.stopPropagation();
                           handleOpenWhatsapp(r);
                         }}
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-lg"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-md"
                         title="Enviar confirmación por WhatsApp"
                       >
-                        <MessageCircle size={20} className="fill-current text-emerald-500 hover:text-emerald-400" />
+                        <MessageCircle size={18} className="fill-current text-emerald-500 hover:text-emerald-400" />
                       </button>
                     )}
                   </div>
@@ -653,9 +653,9 @@ export default function ReservationsPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="w-14 h-14 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
+                  className="w-12 h-12 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
                 >
-                  <ChevronLeft size={24} />
+                  <ChevronLeft size={20} />
                 </button>
 
                 <div className="flex items-center gap-3">
@@ -664,9 +664,9 @@ export default function ReservationsPage() {
                       key={i}
                       onClick={() => setCurrentPage(i + 1)}
                       className={`
-                        w-12 h-12 rounded-2xl font-black text-xs transition-all border
+                        w-10 h-10 rounded-xl font-black text-xs transition-all border
                         ${currentPage === i + 1
-                          ? 'bg-grad-gold text-bg border-transparent shadow-gold-glow scale-110'
+                          ? 'bg-grad-gold text-bg border-transparent shadow-gold-glow scale-105'
                           : 'bg-surface-3 text-muted border-white/5 hover:border-gold/20'
                         }
                       `}
@@ -679,9 +679,9 @@ export default function ReservationsPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="w-14 h-14 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
+                  className="w-12 h-12 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
                 >
-                  <ChevronRight size={24} />
+                  <ChevronRight size={20} />
                 </button>
               </div>
             )}
@@ -732,23 +732,23 @@ function ViewTab({ active, onClick, label, count, color }: any) {
     <button
       onClick={onClick}
       className={`
-        relative px-8 py-5 rounded-3xl transition-all duration-500 group flex items-center gap-4
-        ${active ? 'bg-surface-glow border-white/10 shadow-2xl' : 'hover:bg-white/5 border-transparent opacity-60 hover:opacity-100'}
+        relative px-6 py-4 rounded-2xl transition-all duration-300 group flex items-center gap-3
+        ${active ? 'bg-surface-glow border-white/10 shadow-xl' : 'hover:bg-white/5 border-transparent opacity-60 hover:opacity-100'}
         border
       `}
     >
       <div className={`w-2 h-2 rounded-full ${accentColor} ${active ? 'shadow-glow' : 'opacity-20'}`} />
-      <span className={`text-[11px] font-black uppercase tracking-[0.2em] ${active ? 'text-ivory' : 'text-muted'}`}>
+      <span className={`text-xs font-black uppercase tracking-[0.2em] ${active ? 'text-ivory' : 'text-muted'}`}>
         {label}
       </span>
       <span className={`
-        px-3 py-1 rounded-lg text-[10px] font-black border border-white/5
+        px-2.5 py-1 rounded-lg text-[10px] font-black border border-white/5
         ${active ? 'bg-gold/10 text-gold' : 'bg-black/20 text-muted'}
       `}>
         {count}
       </span>
       {active && (
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-grad-gold rounded-full shadow-gold-glow" />
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-grad-gold rounded-full shadow-gold-glow" />
       )}
     </button>
   );

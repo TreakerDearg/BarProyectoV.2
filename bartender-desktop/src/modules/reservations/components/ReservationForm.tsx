@@ -18,12 +18,10 @@ import {
   Star,
   Timer,
   AlertCircle,
-  ChevronDown,
 } from "lucide-react";
 
 import type { Reservation } from "../types/reservation";
 import { getAvailableTables } from "../services/reservationService";
-import MiniFloorPlan from "./MiniFloorPlan";
 
 /* =========================
    TYPES
@@ -92,7 +90,6 @@ export default function ReservationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
-  const [useVisualPicker, setUseVisualPicker] = useState(true);
 
   const isEditing = Boolean(reservation?._id);
 
@@ -319,16 +316,16 @@ export default function ReservationForm({
         `}
       >
         {/* HEADER (ROYALE DESIGN) */}
-        <div className={`p-8 border-b border-white/5 flex justify-between items-center ${formData.isVIP ? 'bg-grad-gold' : 'bg-surface-3'}`}>
-          <div className="flex items-center gap-6">
-            <div className={`p-4 rounded-2xl ${formData.isVIP ? 'bg-bg text-gold shadow-2xl scale-110' : 'bg-gold-soft text-gold shadow-gold-glow'}`}>
-              {formData.isVIP ? <Crown size={32} /> : <Star size={32} />}
+        <div className={`p-6 border-b border-white/5 flex justify-between items-center ${formData.isVIP ? 'bg-grad-gold' : 'bg-surface-3'}`}>
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-2xl ${formData.isVIP ? 'bg-bg text-gold shadow-2xl scale-110' : 'bg-gold-soft text-gold shadow-gold-glow'}`}>
+              {formData.isVIP ? <Crown size={28} /> : <Star size={28} />}
             </div>
             <div>
-              <h2 className={`text-3xl font-black tracking-tighter uppercase leading-none ${formData.isVIP ? 'text-bg' : 'text-grad-gold'}`}>
+              <h2 className={`text-2xl font-black tracking-tighter uppercase leading-none ${formData.isVIP ? 'text-bg' : 'text-grad-gold'}`}>
                 {isEditing ? "Modificar Reserva" : "Nueva Reservación"}
               </h2>
-              <p className={`text-[10px] font-black uppercase tracking-[0.5em] mt-2 ${formData.isVIP ? 'text-bg/60' : 'text-muted'}`}>
+              <p className={`text-xs font-black uppercase tracking-[0.5em] mt-2 ${formData.isVIP ? 'text-bg/60' : 'text-muted'}`}>
                 {isEditing ? `EDITANDO · ID: ${reservation?._id?.slice(-8)}` : "Sistema de Ingreso Casino Royale"}
               </p>
             </div>
@@ -336,14 +333,14 @@ export default function ReservationForm({
           <button 
             type="button"
             onClick={onClose}
-            className={`w-14 h-14 rounded-full flex items-center justify-center border transition-all ${formData.isVIP ? 'border-bg/20 hover:bg-bg/10 text-bg' : 'border-white/10 hover:border-gold-border text-muted hover:text-gold'}`}
+            className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${formData.isVIP ? 'border-bg/20 hover:bg-bg/10 text-bg' : 'border-white/10 hover:border-gold-border text-muted hover:text-gold'}`}
           >
-            <X size={28} />
+            <X size={24} />
           </button>
         </div>
 
         {/* CONTENT (SCROLLABLE AREA) */}
-        <div className="p-100 md:p-44 space-y-22 max-h-[65vh] overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.03)_0%,transparent_50%)]">
+        <div className="p-8 md:p-12 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.03)_0%,transparent_50%)]">
           
           {/* ERROR FEEDBACK */}
           {error && (
@@ -371,14 +368,14 @@ export default function ReservationForm({
           )}
 
           {/* VIP TOGGLE (HIGH ROLLER) */}
-          <div className="flex items-center justify-between bg-surface-3/30 p-8 rounded-[2.5rem] border border-white/5 group hover:border-gold/20 transition-all shadow-inner">
-            <div className="flex items-center gap-6">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow scale-110' : 'bg-surface-4 text-muted border border-white/5'}`}>
-                <Crown size={28} className={formData.isVIP ? 'fill-current' : ''} />
+          <div className="flex items-center justify-between bg-surface-3/30 p-6 rounded-[2rem] border border-white/5 group hover:border-gold/20 transition-all shadow-inner">
+            <div className="flex items-center gap-4">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow scale-110' : 'bg-surface-4 text-muted border border-white/5'}`}>
+                <Crown size={24} className={formData.isVIP ? 'fill-current' : ''} />
               </div>
               <div className="space-y-1">
-                <p className="text-lg font-black text-ivory uppercase tracking-tighter">Estado VIP / High Roller</p>
-                <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em]">Tratamiento prioritario · Mesa Premium</p>
+                <p className="text-base font-black text-ivory uppercase tracking-tighter">Estado VIP / High Roller</p>
+                <p className="text-xs text-muted font-black uppercase tracking-[0.3em]">Tratamiento prioritario · Mesa Premium</p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -402,28 +399,28 @@ export default function ReservationForm({
               </div>
               
               <div className="space-y-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Nombre Completo</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Nombre Completo</label>
                   <div className="relative group/field">
-                    <User size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
+                    <User size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
                     <input 
                       name="customerName" 
                       value={formData.customerName} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14" 
+                      className="input-royale !pl-14 !py-5" 
                       placeholder="Escriba el nombre del cliente..." 
                     />
                   </div>
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Teléfono Directo</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Teléfono Directo</label>
                   <div className="relative group/field">
-                    <Phone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
+                    <Phone size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
                     <input 
                       name="customerPhone" 
                       value={formData.customerPhone} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14" 
+                      className="input-royale !pl-14 !py-5" 
                       placeholder="+54 9..." 
                     />
                   </div>
@@ -439,30 +436,30 @@ export default function ReservationForm({
               </div>
               
               <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Invitados</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Invitados</label>
                   <div className="relative group/field">
-                    <Users size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
+                    <Users size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
                     <input 
                       type="number"
                       name="guests" 
                       value={formData.guests} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14" 
+                      className="input-royale !pl-14 !py-5" 
                       min={1}
                     />
                   </div>
                 </div>
-                <div className="space-y-2.5">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Depósito ($)</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Depósito ($)</label>
                   <div className="relative group/field">
-                    <Wallet size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
+                    <Wallet size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
                     <input 
                       type="number"
                       name="deposit" 
                       value={formData.deposit} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14" 
+                      className="input-royale !pl-14 !py-5" 
                       min={0}
                     />
                   </div>
@@ -470,103 +467,63 @@ export default function ReservationForm({
               </div>
 
               {/* TABLE SELECTOR WITH LOCATION GROUPING */}
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1 flex justify-between items-center">
+              <div className="space-y-4">
+                <label className="text-xs font-black text-muted uppercase tracking-widest ml-1 flex justify-between items-center">
                   <span className="flex items-center gap-2">
-                    <MapPin size={12} className="text-gold" />
+                    <MapPin size={14} className="text-gold" />
                     Mesa Asignada
                   </span>
-                  <div className="flex items-center gap-3">
-                    {loadingTables && <Loader2 className="animate-spin text-gold animate-duration-slow" size={12} />}
-                    <button
-                      type="button"
-                      onClick={() => setUseVisualPicker(!useVisualPicker)}
-                      className="text-[9px] font-black text-gold hover:text-white uppercase tracking-widest bg-white/5 border border-white/5 hover:border-gold/30 px-2.5 py-1 rounded-lg transition-all"
-                    >
-                      {useVisualPicker ? "Lista de Mesas" : "Mapa de Salón"}
-                    </button>
-                  </div>
+                  {loadingTables && <Loader2 className="animate-spin text-gold" size={14} />}
                 </label>
 
-                {useVisualPicker ? (
-                  /* 🗺️ MINI FLOOR PLAN VISUAL PICKER */
-                  <MiniFloorPlan
-                    availableTables={tables}
-                    selectedTableId={formData.tableId}
-                    onSelectTable={(id) => setFormData((prev: any) => ({ ...prev, tableId: id }))}
-                    guestsCount={formData.guests}
-                  />
+                {/* VISUAL TABLE TILES (grouped by location) */}
+                {tables.length > 0 ? (
+                  <div className="space-y-5">
+                    {Object.entries(groupedTables).map(([location, locationTables]) => {
+                      const config = getLocationConfig(location);
+                      return (
+                        <div key={location}>
+                          <p className={`text-xs font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
+                            <span className="text-lg">{config.icon}</span>
+                            {config.label}
+                            <span className="text-muted/50 text-sm">({locationTables.length})</span>
+                          </p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {locationTables.map((t) => {
+                              const isSelected = formData.tableId === t._id;
+                              const overCapacity = formData.guests > t.capacity;
+                              return (
+                                <button
+                                  key={t._id}
+                                  type="button"
+                                  onClick={() => setFormData((prev: any) => ({ ...prev, tableId: t._id }))}
+                                  className={`
+                                    p-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all border flex flex-col items-center gap-2
+                                    ${isSelected
+                                      ? 'bg-gold/20 text-gold border-gold/40 shadow-gold-glow scale-105'
+                                      : overCapacity
+                                      ? 'bg-red-500/5 text-red-400/50 border-red-500/10 opacity-50 line-through'
+                                      : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory'
+                                    }
+                                  `}
+                                  title={overCapacity ? `Capacidad insuficiente (${t.capacity} max)` : `Mesa ${t.number} · ${t.capacity} personas`}
+                                >
+                                  <span className="text-2xl font-black">M{t.number}</span>
+                                  <span className="text-xs opacity-70">{t.capacity} personas</span>
+                                  {isSelected && (
+                                    <div className="w-2 h-2 bg-gold rounded-full shadow-gold-glow" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  /* 📋 FALLBACK TRADITIONAL LIST SELECTOR */
-                  <div className="space-y-4">
-                    <div className="relative group/field">
-                      <MapPin size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity z-10" />
-                      <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-                      <select
-                        name="tableId"
-                        value={formData.tableId}
-                        onChange={handleChange}
-                        className="input-royale !pl-14 !pr-12 appearance-none cursor-pointer"
-                      >
-                        <option value="">— Seleccionar Mesa —</option>
-                        {Object.entries(groupedTables).map(([location, locationTables]) => {
-                          const config = getLocationConfig(location);
-                          return (
-                            <optgroup key={location} label={`${config.icon} ${config.label}`}>
-                              {locationTables.map((t) => (
-                                <option key={t._id} value={t._id}>
-                                  Mesa {t.number} — Capacidad: {t.capacity} personas
-                                </option>
-                              ))}
-                            </optgroup>
-                          );
-                        })}
-                      </select>
-                    </div>
-
-                    {/* VISUAL TABLE TILES (grouped by location) */}
-                    {tables.length > 0 && (
-                      <div className="space-y-4 mt-4">
-                        {Object.entries(groupedTables).map(([location, locationTables]) => {
-                          const config = getLocationConfig(location);
-                          return (
-                            <div key={location}>
-                              <p className={`text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
-                                <span>{config.icon}</span>
-                                {config.label}
-                                <span className="text-muted/50">({locationTables.length})</span>
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {locationTables.map((t) => {
-                                  const isSelected = formData.tableId === t._id;
-                                  const overCapacity = formData.guests > t.capacity;
-                                  return (
-                                    <button
-                                      key={t._id}
-                                      type="button"
-                                      onClick={() => setFormData((prev: any) => ({ ...prev, tableId: t._id }))}
-                                      className={`
-                                        px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border
-                                        ${isSelected
-                                          ? 'bg-gold/20 text-gold border-gold/40 shadow-gold-glow scale-105'
-                                          : overCapacity
-                                          ? 'bg-red-500/5 text-red-400/50 border-red-500/10 opacity-50 line-through'
-                                          : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory'
-                                        }
-                                      `}
-                                      title={overCapacity ? `Capacidad insuficiente (${t.capacity} max)` : `Mesa ${t.number} · ${t.capacity} personas`}
-                                    >
-                                      M{t.number}
-                                      <span className="text-[8px] ml-1 opacity-60">({t.capacity}p)</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                  <div className="text-center py-8 text-muted text-sm font-black uppercase tracking-widest">
+                    {loadingTables ? 'Cargando mesas disponibles...' : 'No hay mesas disponibles para este horario'}
                   </div>
                 )}
               </div>
@@ -583,10 +540,10 @@ export default function ReservationForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Check-in (Entrada)</label>
+              <div className="space-y-3">
+                <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Check-in (Entrada)</label>
                 <div className="relative group/field">
-                  <Calendar size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
+                  <Calendar size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
                   <input 
                     type="datetime-local" 
                     name="startTime" 
@@ -604,14 +561,14 @@ export default function ReservationForm({
                         }));
                       }
                     }}
-                    className="input-royale !pl-14" 
+                    className="input-royale !pl-14 !py-5" 
                   />
                 </div>
               </div>
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Check-out (Salida)</label>
+              <div className="space-y-3">
+                <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Check-out (Salida)</label>
                 <div className="relative group/field">
-                  <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
+                  <Clock size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
                   <input 
                     type="datetime-local" 
                     name="endTime" 
@@ -620,7 +577,7 @@ export default function ReservationForm({
                       handleChange(e);
                       setSelectedDuration(null); // Deselect preset on manual edit
                     }}
-                    className="input-royale !pl-14" 
+                    className="input-royale !pl-14 !py-5" 
                   />
                 </div>
               </div>
@@ -680,10 +637,10 @@ export default function ReservationForm({
           <div className="space-y-4">
             <div className="flex items-center gap-4 text-gold">
               <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
-              <p className="text-xs font-black uppercase tracking-[0.5em]">Observaciones Especiales</p>
+              <p className="text-sm font-black uppercase tracking-[0.5em]">Observaciones Especiales</p>
             </div>
             <div className="relative group/field">
-              <FileText size={18} className="absolute left-5 top-6 text-gold/50 group-focus-within/field:text-gold transition-colors" />
+              <FileText size={20} className="absolute left-5 top-6 text-gold/50 group-focus-within/field:text-gold transition-colors" />
               <textarea
                 name="notes"
                 value={formData.notes}
@@ -696,11 +653,11 @@ export default function ReservationForm({
         </div>
 
         {/* FOOTER ACTIONS (STICKY) */}
-        <div className="p-10 md:p-12 bg-surface-3 border-t border-white/10 flex gap-8 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
+        <div className="p-6 md:p-8 bg-surface-3 border-t border-white/10 flex gap-6 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+            className="flex-1 h-14 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
           >
             CANCELAR
           </button>
@@ -708,12 +665,12 @@ export default function ReservationForm({
             type="submit"
             disabled={!validation.valid || loading}
             className={`
-              flex-[2] h-16 rounded-[1.5rem] flex items-center justify-center gap-4 transition-all shadow-2xl
+              flex-[2] h-14 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all shadow-2xl
               ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold/30 hover:scale-[1.02]' : 'btn-gold hover:scale-[1.02]'}
               disabled:opacity-20 disabled:grayscale disabled:scale-100
             `}
           >
-            {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
             <span className="text-sm font-black uppercase tracking-[0.3em]">
               {isEditing ? "GUARDAR CAMBIOS" : "CONFIRMAR RESERVA"}
             </span>

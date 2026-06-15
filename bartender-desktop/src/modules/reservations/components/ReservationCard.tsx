@@ -10,10 +10,6 @@ import {
   X,
   ShieldCheck,
   Zap,
-  Club,
-  Spade,
-  Heart,
-  Diamond,
   Calendar,
   AlertCircle,
   Crown,
@@ -39,47 +35,42 @@ const statusConfig: any = {
   pending: {
     label: "Por Confirmar",
     badge: "badge-ember",
-    glow: "shadow-ember/40",
-    icon: <Clock size={14} className="animate-pulse" />,
+    glow: "shadow-ember/30",
+    icon: <Clock size={16} className="animate-pulse" />,
     bg: "bg-ember/10",
     accent: "text-orange-light",
-    suit: <Spade size={24} className="opacity-10 absolute -right-2 -bottom-2 rotate-12" />,
   },
   confirmed: {
     label: "Confirmada",
     badge: "badge-gold",
-    glow: "shadow-gold/40",
-    icon: <ShieldCheck size={14} />,
+    glow: "shadow-gold/30",
+    icon: <ShieldCheck size={16} />,
     bg: "bg-gold/10",
     accent: "text-gold",
-    suit: <Diamond size={24} className="opacity-10 text-gold absolute -right-2 -bottom-2 rotate-12" />,
   },
   seated: {
     label: "En Mesa",
     badge: "badge-lime",
-    glow: "shadow-lime/40",
-    icon: <Zap size={14} />,
+    glow: "shadow-lime/30",
+    icon: <Zap size={16} />,
     bg: "bg-lime/10",
     accent: "text-green-light",
-    suit: <Club size={24} className="opacity-10 text-green absolute -right-2 -bottom-2 rotate-12" />,
   },
   completed: {
     label: "Finalizada",
     badge: "badge-neutral",
     glow: "",
-    icon: <CheckCircle2 size={14} />,
+    icon: <CheckCircle2 size={16} />,
     bg: "bg-white/5",
     accent: "text-muted",
-    suit: <Heart size={24} className="opacity-5 absolute -right-2 -bottom-2 rotate-12" />,
   },
   cancelled: {
     label: "Cancelada",
     badge: "badge-red",
     glow: "",
-    icon: <X size={14} />,
+    icon: <X size={16} />,
     bg: "bg-red/10",
     accent: "text-red-light",
-    suit: <Heart size={24} className="opacity-10 text-red absolute -right-2 -bottom-2 rotate-12" />,
   },
 };
 
@@ -123,29 +114,25 @@ export default function ReservationCard({
 
   return (
     <motion.div
-      whileHover={{ y: -8, scale: 1.01 }}
+      whileHover={{ y: -4, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        p-0 rounded-[2.5rem] transition-all duration-500
+        p-0 rounded-[2rem] transition-all duration-300
         group relative overflow-hidden flex flex-col cursor-pointer
-        hover:shadow-[0_30px_70px_rgba(0,0,0,0.7)]
+        hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]
         ${config.glow}
         ${r.isVIP 
-          ? 'bg-gradient-to-br from-violet-950/40 via-[#0d091a] to-purple-950/40 border-gold/30 shadow-[0_0_30px_rgba(139,92,246,0.15)] hover:border-gold hover:shadow-[0_0_40px_rgba(212,163,64,0.3)] ring-1 ring-gold/20' 
+          ? 'bg-gradient-to-br from-violet-950/30 via-[#0d091a] to-purple-950/30 border-gold/30 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:border-gold hover:shadow-[0_0_30px_rgba(212,163,64,0.2)] ring-1 ring-gold/20' 
           : 'glass border-white/5'
         }
-        ${isDelayed ? 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)] ring-1 ring-red-500/20' : ''}
+        ${isDelayed ? 'border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)] ring-1 ring-red-500/20' : ''}
         ${highlighted ? 'ring-2 ring-violet-400/50 border-violet-400/40' : ''}
       `}
       onClick={onClick}
     >
-      {/* Shimmer light effect for VIP Obsidian Card */}
-      {r.isVIP && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
-      )}
 
-      {/* CASINO DECOR BAR */}
-      <div className={`h-2.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-gradient-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-60 shadow-lg`} />
+      {/* STATUS BAR */}
+      <div className={`h-1.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-gradient-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-50`} />
 
       {/* DELAY ALARM STRIP */}
       {isDelayed && (
@@ -177,73 +164,69 @@ export default function ReservationCard({
         </div>
       )}
 
-      <div className="p-8 space-y-7 relative">
-        
-        {/* BACKGROUND SUIT */}
-        {config.suit}
-
+      <div className="p-6 space-y-5 relative">
         {/* HEADER */}
         <div className="flex justify-between items-start gap-4">
           <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black text-ivory tracking-tighter uppercase group-hover:text-gold transition-all duration-500 group-hover:tracking-normal">
+              <h3 className="text-2xl font-black text-ivory tracking-tighter uppercase group-hover:text-gold transition-all duration-300">
                 {r.customerName}
               </h3>
               {(r as any).isVIP && (
-                <div className="p-1.5 bg-grad-gold rounded-lg shadow-gold-glow animate-pulse">
-                  <Crown size={12} className="text-bg" />
+                <div className="p-1.5 bg-grad-gold rounded-lg shadow-gold-glow">
+                  <Crown size={14} className="text-bg" />
                 </div>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 text-[10px] text-muted font-black tracking-widest uppercase bg-surface-4/80 px-3 py-1.5 rounded-xl border border-white/5">
-                <Phone size={12} className="text-gold" />
+              <div className="flex items-center gap-2 text-xs text-muted font-black tracking-widest uppercase bg-surface-4/80 px-3 py-1.5 rounded-xl border border-white/5">
+                <Phone size={14} className="text-gold" />
                 {r.customerPhone}
               </div>
               {r.isVIP && (
-                <div className="flex items-center gap-2 text-[10px] text-gold font-black tracking-widest uppercase bg-gold/10 px-3 py-1.5 rounded-xl border border-gold/20">
-                  <Crown size={12} />
+                <div className="flex items-center gap-2 text-xs text-gold font-black tracking-widest uppercase bg-gold/10 px-3 py-1.5 rounded-xl border border-gold/20">
+                  <Crown size={14} />
                   VIP
                 </div>
               )}
               {r.deposit && r.deposit > 0 && (
-                <div className="flex items-center gap-2 text-[10px] text-green-light font-black tracking-widest uppercase bg-green/10 px-3 py-1.5 rounded-xl border border-green/20">
-                  <Wallet size={12} />
+                <div className="flex items-center gap-2 text-xs text-green-light font-black tracking-widest uppercase bg-green/10 px-3 py-1.5 rounded-xl border border-green/20">
+                  <Wallet size={14} />
                   ${r.deposit}
                 </div>
               )}
               {r.source && r.source !== 'admin' && (
-                <div className="flex items-center gap-2 text-[10px] text-blue-light font-black tracking-widest uppercase bg-blue/10 px-3 py-1.5 rounded-xl border border-blue/20">
-                  <Globe size={12} />
+                <div className="flex items-center gap-2 text-xs text-blue-light font-black tracking-widest uppercase bg-blue/10 px-3 py-1.5 rounded-xl border border-blue/20">
+                  <Globe size={14} />
                   {r.source === 'web' ? 'Web' : 'App'}
                 </div>
               )}
             </div>
           </div>
-          <div className={`badge ${config.badge} flex items-center gap-3 py-2.5 px-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl border border-white/10 backdrop-blur-md`}>
+          <div className={`badge ${config.badge} flex items-center gap-2 py-2 px-4 rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-lg border border-white/10 backdrop-blur-md`}>
             {config.icon}
             {config.label}
           </div>
         </div>
 
-        {/* DATE & TIME (CASINO TOKEN STYLE) */}
-        <div className="bg-surface-3/30 rounded-[2rem] p-5 border border-white/5 space-y-4 group-hover:border-gold/20 transition-colors">
+        {/* DATE & TIME */}
+        <div className="bg-surface-3/30 rounded-[1.5rem] p-4 border border-white/5 space-y-3 group-hover:border-gold/20 transition-colors">
           <div className="flex items-center gap-3 text-muted">
-            <Calendar size={14} className="text-gold opacity-50" />
-            <p className="text-[10px] font-black uppercase tracking-[0.3em]">{dateStr}</p>
+            <Calendar size={16} className="text-gold opacity-50" />
+            <p className="text-xs font-black uppercase tracking-[0.3em]">{dateStr}</p>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mb-1">Check-in</p>
+              <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mb-1">Check-in</p>
               <p className={`text-2xl font-black tracking-widest ${config.accent}`}>{timeStr}</p>
             </div>
             
             <div className="flex flex-col items-end">
-              <p className="text-[9px] text-muted font-black uppercase tracking-[0.4em] mb-1">Invitados</p>
-              <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-2xl border border-white/5">
-                <Users size={16} className="text-gold" />
-                <span className="text-lg font-black text-ivory">{r.guests}</span>
+              <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mb-1">Invitados</p>
+              <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
+                <Users size={18} className="text-gold" />
+                <span className="text-xl font-black text-ivory">{r.guests}</span>
               </div>
             </div>
           </div>
@@ -251,15 +234,15 @@ export default function ReservationCard({
 
         {/* TABLE & ACTIONS */}
         <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-3xl bg-grad-dark border border-white/10 flex items-center justify-center shadow-2xl group-hover:border-gold/60 transition-all -rotate-3 group-hover:rotate-0">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-grad-dark border border-white/10 flex items-center justify-center shadow-lg group-hover:border-gold/60 transition-all">
               <span className="text-xl font-black text-grad-gold">
                 {r.tableId && typeof r.tableId === 'object' ? r.tableId.number : '--'}
               </span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[9px] text-muted font-black uppercase tracking-[0.2em]">Asignación</p>
-              <p className="text-xs font-black text-ivory uppercase tracking-widest">
+              <p className="text-[10px] text-muted font-black uppercase tracking-[0.2em]">Asignación</p>
+              <p className="text-sm font-black text-ivory uppercase tracking-widest">
                 {r.tableId && typeof r.tableId === 'object' 
                   ? `Mesa ${r.tableId.number} · ${(r.tableId as any).location || 'Indoor'}` 
                   : r.tableId 
@@ -269,17 +252,17 @@ export default function ReservationCard({
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {onDelete && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(r._id!);
                 }}
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 active:scale-90 shadow-lg"
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-red-500/20 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 active:scale-90 shadow-md"
                 title="Eliminar Registro"
               >
-                <Trash2 size={20} />
+                <Trash2 size={18} />
               </button>
             )}
 
@@ -289,10 +272,10 @@ export default function ReservationCard({
                   e.stopPropagation();
                   onWhatsapp(r);
                 }}
-                className="w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-lg"
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-md"
                 title="Enviar confirmación por WhatsApp"
               >
-                <MessageCircle size={20} className="fill-current text-emerald-500 hover:text-emerald-400" />
+                <MessageCircle size={18} className="fill-current text-emerald-500 hover:text-emerald-400" />
               </button>
             )}
 
@@ -302,10 +285,10 @@ export default function ReservationCard({
                   e.stopPropagation();
                   onSeat(r._id!);
                 }}
-                className="btn btn-gold !h-12 !px-8 !rounded-2xl gap-3 text-xs shadow-gold/20 hover:shadow-gold/40 border-gold/40 group/btn"
+                className="btn btn-gold !h-11 !px-6 !rounded-xl gap-2 text-xs shadow-gold/20 hover:shadow-gold/40 border-gold/40 group/btn"
               >
                 SENTAR
-                <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
               </button>
             )}
           </div>
@@ -313,11 +296,11 @@ export default function ReservationCard({
 
         {/* NOTES STRIP */}
         {r.notes && (
-          <div className="pt-6 border-t border-white/10 flex items-start gap-4">
-            <div className="p-2 rounded-xl bg-surface-4 border border-white/5 shadow-inner">
+          <div className="pt-4 border-t border-white/10 flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-surface-4 border border-white/5 shadow-inner">
               <AlertCircle size={14} className="text-gold opacity-60" />
             </div>
-            <p className="text-xs text-muted italic line-clamp-2 leading-relaxed font-medium flex-1">
+            <p className="text-sm text-muted italic line-clamp-2 leading-relaxed font-medium flex-1">
               {r.notes}
             </p>
           </div>
@@ -325,11 +308,11 @@ export default function ReservationCard({
 
         {/* TAGS STRIP */}
         {r.tags && r.tags.length > 0 && (
-          <div className="pt-6 border-t border-white/10 flex flex-wrap gap-2">
+          <div className="pt-4 border-t border-white/10 flex flex-wrap gap-2">
             {r.tags.map((tag, idx) => (
               <div
                 key={idx}
-                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border ${
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
                   tag.priority === 'high' 
                     ? 'bg-red/10 text-red-light border-red/20' 
                     : tag.priority === 'medium'
@@ -343,9 +326,6 @@ export default function ReservationCard({
           </div>
         )}
       </div>
-
-      {/* CASINO GLOW DECOR */}
-      <div className={`absolute -bottom-32 -right-32 w-64 h-64 ${config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-0 group-hover:opacity-10 blur-[120px] transition-all duration-1000`} />
     </motion.div>
   );
 }
