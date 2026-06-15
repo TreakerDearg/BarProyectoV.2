@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { TrendingUp, DollarSign, Clock, Target } from "lucide-react";
 import VersusChart from "../../../components/shared/VersusChart";
@@ -184,7 +184,7 @@ export default function AnalyticsDashboardView({ data, onRangeChange }: Props) {
   );
 }
 
-function KPICard({ title, value, trend, icon, color, benchmark, benchmarkLabel }: {
+const KPICard = memo(function KPICard({ title, value, trend, icon, color, benchmark, benchmarkLabel }: {
   title: string;
   value: string | number;
   trend: number;
@@ -230,4 +230,4 @@ function KPICard({ title, value, trend, icon, color, benchmark, benchmarkLabel }
       )}
     </div>
   );
-}
+});

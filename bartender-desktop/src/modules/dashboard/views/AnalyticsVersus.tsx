@@ -123,7 +123,7 @@ export default function AnalyticsVersus({
   );
 
   return (
-    <div className="flex flex-col gap-6 animate-fade-in-up-fusion">
+    <div className="flex flex-col gap-6 dashboard-animate-fade-in-up">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-ivory flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function AnalyticsVersus({
       </div>
 
       {/* Educational Context */}
-      <div className="nebula-panel p-5 bg-violet-500/5 border-violet-400/20">
+      <div className="dashboard-panel p-5 bg-violet-500/5 border-violet-400/20">
         <div className="flex items-start gap-3">
           <Info size={18} className="text-violet-300 mt-0.5 shrink-0" />
           <div>
@@ -167,7 +167,7 @@ export default function AnalyticsVersus({
         </div>
       </div>
 
-      <div className="nebula-panel p-6 md:p-8" data-tutorial="analytics-radar">
+      <div className="dashboard-panel p-6 md:p-8" data-tutorial="analytics-radar">
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <div>
             <h3 className="text-base font-bold text-ivory">Comparativa por atributo</h3>
@@ -228,7 +228,7 @@ export default function AnalyticsVersus({
           {rankingTable}
         </CollapsibleSection>
       ) : (
-        <div className="nebula-panel overflow-hidden">
+        <div className="dashboard-panel overflow-hidden">
           <div className="p-6 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-violet-500/15 text-violet-300">

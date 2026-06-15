@@ -39,8 +39,8 @@ export default function DashboardPricingPanel() {
   }
 
   return (
-    <div className={`glass-royale-fusion rounded-[2rem] p-6 border transition-all duration-500 ${
-      isHighDemand ? 'border-red/30 bg-red/5 neon-glow-fusion' : isLowDemand ? 'border-blue-400/30 bg-blue-400/5 neon-glow-fusion' : 'border-lime/30 bg-lime/5 neon-glow-fusion'
+    <div className={`dashboard-glass-card rounded-[2rem] p-6 border transition-all duration-500 ${
+      isHighDemand ? 'border-red/30 bg-red/5 dashboard-neon-glow' : isLowDemand ? 'border-blue-400/30 bg-blue-400/5 dashboard-neon-glow' : 'border-lime/30 bg-lime/5 dashboard-neon-glow'
     }`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

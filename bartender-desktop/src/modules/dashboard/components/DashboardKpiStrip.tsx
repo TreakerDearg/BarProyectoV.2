@@ -1,7 +1,9 @@
 "use client";
 
+import { memo } from "react";
 import type { DashboardStats } from "../services/dashboardService";
 import type { DashboardMode, DashboardTab } from "../store/dashboardUiStore";
+import KpiSkeleton from "./skeletons/KpiSkeleton";
 
 interface KpiItem {
   label: string;
@@ -17,6 +19,7 @@ interface Props {
   tab: DashboardTab;
   data: DashboardStats;
   mode: DashboardMode;
+  loading?: boolean;
 }
 
 const accentClasses: Record<string, string> = {
@@ -170,9 +173,27 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
   }
 }
 
-export default function DashboardKpiStrip({ tab, data, mode }: Props) {
+export default function DashboardKpiStrip({ tab, data, mode, loading = false }: Props) {
+  if (loading) {
+    return (
+      <div
+        data-tutorial="kpi-strip"
+        className={`grid gap-4 ${
+          mode === "simple"
+            ? "grid-cols-1 sm:grid-cols-2"
+            : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+        }`}
+      >
+        <KpiSkeleton />
+        <KpiSkeleton />
+        {mode !== "simple" && <KpiSkeleton />}
+      </div>
+    );
+  }
+
   const items = buildKpis(tab, data);
-  const visible = mode === "simple" ? items.slice(0, 2) : items;
+  // Reduce visible KPIs from all to 2 by default for better layout
+  const visible = mode === "simple" ? items.slice(0, 2) : items.slice(0, 2);
 
   return (
     <div
@@ -190,7 +211,7 @@ export default function DashboardKpiStrip({ tab, data, mode }: Props) {
   );
 }
 
-function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod, status }: KpiItem) {
+const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod, status }: KpiItem) {
   const theme = accentClasses[accent] ?? accentClasses.gold;
   const trendLabel = formatTrend(trend);
   const trendUp = trend != null && trend > 0;
@@ -260,4 +281,4 @@ function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod,
       )}
     </div>
   );
-}
+});

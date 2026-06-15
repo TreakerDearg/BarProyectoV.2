@@ -24,7 +24,7 @@ export default function CollapsibleSection({
   );
 
   return (
-    <section className="nebula-panel overflow-hidden">
+    <section className="dashboard-panel overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

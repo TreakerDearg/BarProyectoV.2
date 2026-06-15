@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { ToastProvider } from "../../../components/shared/ToastProvider";
 import {
   Zap,
   ShieldCheck,
@@ -62,8 +63,8 @@ export default function Dashboard() {
 
   if (loading && !data) {
     return (
-      <div className="flex h-full min-h-[420px] items-center justify-center nebula-dashboard-root relative overflow-hidden">
-        <div className="absolute inset-0 nebula-aurora opacity-60" />
+      <div className="flex h-full min-h-[420px] items-center justify-center dashboard-root relative overflow-hidden">
+        <div className="absolute inset-0 dashboard-aurora opacity-60" />
         <div className="relative flex flex-col items-center gap-6">
           <div className="w-16 h-16 rounded-2xl border-2 border-violet-400/30 border-t-violet-300 animate-spin" />
           <div className="text-center space-y-1">
@@ -77,7 +78,7 @@ export default function Dashboard() {
 
   if (error && !data) {
     return (
-      <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-4 nebula-dashboard-root p-6">
+      <div className="flex h-full min-h-[360px] flex-col items-center justify-center gap-4 dashboard-root p-6">
         <p className="text-sm text-red text-center max-w-md">{error}</p>
         <button
           type="button"
@@ -94,7 +95,8 @@ export default function Dashboard() {
   if (!data) return null;
 
   return (
-    <div className="nebula-dashboard-root flex flex-col h-full gap-6 md:gap-8 animate-fade-in-up-fusion relative">
+    <ToastProvider>
+      <div className="dashboard-root flex flex-col h-full gap-6 md:gap-8 dashboard-animate-fade-in-up relative">
       <RealTimeDiscountAlert />
       <DashboardTutorial
         isOpen={tutorialOpen}
@@ -103,7 +105,7 @@ export default function Dashboard() {
       />
 
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="nebula-aurora" />
+        <div className="dashboard-aurora" />
       </div>
 
       {/* Cabecera */}
@@ -156,7 +158,7 @@ export default function Dashboard() {
 
       <DashboardAlertsBanner />
 
-      <DashboardKpiStrip tab={activeTab} data={data} mode={mode} />
+      <DashboardKpiStrip tab={activeTab} data={data} mode={mode} loading={loading} />
 
       {/* Analytics Dashboard Integration */}
       {activeTab === "analytics" && mode === "advanced" && (
@@ -257,6 +259,7 @@ export default function Dashboard() {
         </Modal>
       )}
     </div>
+    </ToastProvider>
   );
 }
 
@@ -383,7 +386,7 @@ function Modal({
         onClick={onClose}
         aria-hidden
       />
-      <div className="relative nebula-panel p-6 md:p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+      <div className="relative dashboard-panel p-6 md:p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold text-ivory">{title}</h2>
           <button

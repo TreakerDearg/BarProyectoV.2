@@ -54,13 +54,13 @@ export default function ServiceDashboard({
 
   return (
     <div
-      className={`grid gap-6 animate-fade-in-up-fusion ${
+      className={`grid gap-6 dashboard-animate-fade-in-up ${
         isSimple ? "grid-cols-1" : "grid-cols-12"
       }`}
     >
       {/* Executive Summary - Only in advanced mode */}
       {!isSimple && (
-        <div className="col-span-12 nebula-panel p-6 bg-violet-500/5 border-violet-400/20">
+        <div className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
@@ -90,7 +90,7 @@ export default function ServiceDashboard({
       )}
 
       <div className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
-        <div className="nebula-panel p-6 md:p-8" data-tutorial="revenue-chart">
+        <div className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h3 className="text-lg font-bold text-ivory">Ingresos diarios - Últimos 7 días</h3>
@@ -141,7 +141,7 @@ export default function ServiceDashboard({
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="nebula-panel p-6 md:p-8">
+              <div className="dashboard-panel p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2.5 rounded-xl bg-gold/10 text-gold">
                     <Flame size={22} />
@@ -156,7 +156,7 @@ export default function ServiceDashboard({
                   bgBar="bg-grad-gold shadow-gold-glow"
                 />
               </div>
-              <div className="nebula-panel p-6 md:p-8">
+              <div className="dashboard-panel p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2.5 rounded-xl bg-emerald-400/10 text-emerald-400">
                     <Target size={22} />
@@ -179,14 +179,14 @@ export default function ServiceDashboard({
       {!isSimple && (
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <DashboardPricingPanel />
-          <div className="nebula-panel p-6">
+          <div className="dashboard-panel p-6">
             <div className="flex items-center gap-3 mb-4">
               <Monitor size={18} className="text-violet-300" />
               <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>
             </div>
             <ServiceHealth data={data} />
           </div>
-          <div className="nebula-panel p-6 border-red/15 bg-red/[0.03]">
+          <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
             <div className="flex items-center gap-3 mb-4">
               <ShieldAlert size={18} className="text-red" />
               <h3 className="text-sm font-bold text-red">Alertas de inventario</h3>
@@ -282,7 +282,7 @@ function ActivityPanel({
   compact?: boolean;
 }) {
   return (
-    <div className={compact ? "" : "nebula-panel p-6"}>
+    <div className={compact ? "" : "dashboard-panel p-6"}>
       <div className="flex items-center gap-3 mb-4">
         <Activity size={18} className="text-violet-300" />
         <h3 className="text-sm font-bold text-ivory">Actividad reciente</h3>
