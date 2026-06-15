@@ -96,9 +96,9 @@ export default function EmployeeKPIsDashboard({
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat("es-MX", {
       style: "currency",
-      currency: "EUR"
+      currency: "MXN"
     }).format(value);
   };
 
@@ -499,7 +499,7 @@ const EmployeeKPICard = ({ kpi }: EmployeeKPICardProps) => {
             Ventas
           </div>
           <div className="text-lg font-black text-ivory">
-            {new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(kpi.totalSales)}
+            {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(kpi.totalSales)}
           </div>
         </div>
       </div>

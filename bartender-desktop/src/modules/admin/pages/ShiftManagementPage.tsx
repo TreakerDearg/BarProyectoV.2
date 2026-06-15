@@ -27,7 +27,7 @@ import {
 } from "../services/trackingService";
 import { getEmployees } from "../services/userService";
 import AdminTutorialModal from "../components/AdminTutorialModal";
-import "../styles/luxury-theme.css";
+import "../../../styles/nebula-obsidian-theme.css";
 
 const todayISO = () => new Date().toISOString().split("T")[0];
 const addDaysISO = (days: number) => {
@@ -325,23 +325,22 @@ export default function ShiftManagementPage() {
   };
 
   return (
-    <div className="min-h-screen luxury-bg p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen fused-bg p-4 md:p-8 relative overflow-hidden">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial opacity-30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-radial opacity-20 rounded-full blur-2xl" style={{ animationDelay: '1s' }} />
+        <div className="fused-aurora" />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto space-y-8">
-        
+
         {/* ================= HEADER ================= */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in-up">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 fused-animate-fade-in-up">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+            <h1 className="text-2xl md:text-3xl font-bold text-fused-text-primary tracking-tight" style={{ fontFamily: 'var(--fused-font-display)' }}>
               Gestión de Turnos
             </h1>
-            <p className="text-sm text-white/50 font-medium mt-1">
+            <p className="text-sm text-fused-text-secondary font-medium mt-1">
               Administración de horarios y asignaciones
             </p>
           </div>
@@ -367,7 +366,7 @@ export default function ShiftManagementPage() {
                 });
                 setShowModal(true);
               }}
-              className="flex items-center gap-2 h-10 px-5 rounded-xl bg-[#00E5FF] text-black font-semibold hover:bg-[#00E5FF]/90 active:scale-95 transition-all duration-200"
+              className="fused-btn-primary flex items-center gap-2 h-10 px-5"
             >
               <Plus size={18} />
               <span className="text-sm font-semibold">Nuevo Turno</span>
@@ -376,7 +375,7 @@ export default function ShiftManagementPage() {
         </div>
 
         {/* ================= SUMMARY CARDS ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 fused-animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
           <SummaryCard
             label="Total Turnos"
             value={shifts.length}
@@ -404,34 +403,30 @@ export default function ShiftManagementPage() {
         </div>
 
         {/* ================= SHIFTS GRID ================= */}
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <div className="fused-animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Turnos Configurados</h2>
+            <h2 className="text-lg font-semibold text-fused-text-primary">Turnos Configurados</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {loading ? (
               <div className="col-span-full p-8 text-center">
-                <Loader2 size={32} className="text-white/40 mx-auto animate-spin" />
-                <p className="text-white/40 text-sm mt-2">Cargando turnos...</p>
+                <Loader2 size={32} className="text-fused-text-muted mx-auto animate-spin" />
+                <p className="text-fused-text-muted text-sm mt-2">Cargando turnos...</p>
               </div>
             ) : shifts.length === 0 ? (
-              <div className="col-span-full p-8 text-center rounded-xl border border-white/5 bg-white/[0.02]">
-                <Calendar size={32} className="text-white/20 mx-auto mb-2" />
-                <p className="text-white/30 text-sm">No hay turnos configurados</p>
+              <div className="col-span-full p-8 text-center rounded-xl border border-fused-glass-border bg-fused-bg-card">
+                <Calendar size={32} className="text-fused-text-tertiary mx-auto mb-2" />
+                <p className="text-fused-text-tertiary text-sm">No hay turnos configurados</p>
               </div>
             ) : (
               shifts.map((shift) => {
                 const config = shiftTypes.find(s => s.key === shift.shiftType) || shiftTypes[0];
                 const assignmentsCount = getAssignmentsCount(shift._id);
-                
+
                 return (
                   <div
                     key={shift._id}
-                    className={`p-5 rounded-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${shift.isActive ? 'opacity-100' : 'opacity-50'}`}
-                    style={{
-                      background: 'rgba(18, 18, 25, 0.85)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)'
-                    }}
+                    className={`fused-nebula-panel p-5 transition-all duration-300 hover:-translate-y-1 ${shift.isActive ? 'opacity-100' : 'opacity-50'}`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">
@@ -440,25 +435,25 @@ export default function ShiftManagementPage() {
                           {config.icon}
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-white">
+                          <h3 className="text-lg font-semibold text-fused-text-primary">
                             {config.label}
                           </h3>
-                          <p className="text-xs text-white/50 font-medium">
+                          <p className="text-xs text-fused-text-secondary font-medium">
                             {shift.startTime} - {shift.endTime}
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => handleEdit(shift)}
-                          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+                          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-fused-text-muted hover:text-fused-text-primary transition-all"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(shift._id)}
-                          className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-white/50 hover:text-red-400 transition-all"
+                          className="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-fused-text-muted hover:text-red-400 transition-all"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -467,29 +462,29 @@ export default function ShiftManagementPage() {
 
                     {/* Details */}
                     <div className="grid grid-cols-3 gap-3 mb-4">
-                      <div className="bg-white/[0.03] rounded-lg p-3 border border-white/5">
-                        <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-1">
+                      <div className="bg-fused-bg-tertiary rounded-lg p-3 border border-fused-glass-border">
+                        <div className="text-[10px] text-fused-text-tertiary font-semibold uppercase tracking-wider mb-1">
                           Personal
                         </div>
-                        <div className="text-lg font-bold text-white">
-                          {assignmentsCount} <span className="text-white/30 text-sm">/ {shift.maxEmployees}</span>
+                        <div className="text-lg font-bold text-fused-text-primary">
+                          {assignmentsCount} <span className="text-fused-text-tertiary text-sm">/ {shift.maxEmployees}</span>
                         </div>
                       </div>
-                      
-                      <div className="bg-white/[0.03] rounded-lg p-3 border border-white/5">
-                        <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-1">
+
+                      <div className="bg-fused-bg-tertiary rounded-lg p-3 border border-fused-glass-border">
+                        <div className="text-[10px] text-fused-text-tertiary font-semibold uppercase tracking-wider mb-1">
                           Mínimo
                         </div>
-                        <div className="text-lg font-bold text-white">
+                        <div className="text-lg font-bold text-fused-text-primary">
                           {shift.minEmployees}
                         </div>
                       </div>
-                      
-                      <div className="bg-white/[0.03] rounded-lg p-3 border border-white/5">
-                        <div className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mb-1">
+
+                      <div className="bg-fused-bg-tertiary rounded-lg p-3 border border-fused-glass-border">
+                        <div className="text-[10px] text-fused-text-tertiary font-semibold uppercase tracking-wider mb-1">
                           Prioridad
                         </div>
-                        <div className="text-lg font-bold text-white">
+                        <div className="text-lg font-bold text-fused-text-primary">
                           {shift.priority}
                         </div>
                       </div>

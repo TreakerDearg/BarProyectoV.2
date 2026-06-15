@@ -13,6 +13,7 @@ import {
   updateUser,
 } from "../services/userService";
 import type { User, UserSchedule } from "../types/user";
+import "../../../styles/nebula-obsidian-theme.css";
 
 export default function EmployeesPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -204,25 +205,25 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="space-y-6 glass-card p-8 rounded-[3rem] animate-fade-in relative overflow-hidden luxury-bg">
+    <div className="space-y-6 fused-glass-card p-8 rounded-[3rem] fused-animate-fade-in relative overflow-hidden fused-bg">
 
       {/* ATMOSPHERIC GLOW */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-fused-gold/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* ================= HEADER ================= */}
       <div className="flex items-end justify-between relative z-10">
 
         <div className="flex items-center gap-6">
-          <div className="p-4 glass-card rounded-2xl">
-            <h1 className="text-3xl font-black text-[#ffffff] tracking-tighter uppercase leading-none gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
+          <div className="p-4 fused-glass-card rounded-2xl">
+            <h1 className="text-3xl font-black text-[#ffffff] tracking-tighter uppercase leading-none fused-gradient-text-gold" style={{ fontFamily: 'var(--fused-font-display)' }}>
               Directorio
             </h1>
           </div>
           <div>
-            <p className="text-[10px] text-[#d4af37] font-black uppercase tracking-[0.4em] mb-1">
+            <p className="text-[10px] text-fused-gold font-black uppercase tracking-[0.4em] mb-1">
               Operaciones Umbra
             </p>
-            <p className="text-xs text-[#a0a0b0] font-bold tracking-widest uppercase">
+            <p className="text-xs text-fused-text-secondary font-bold tracking-widest uppercase">
               Gestión de Personal Elite
             </p>
 
@@ -236,13 +237,13 @@ export default function EmployeesPage() {
 
         <div className="flex items-center gap-3">
           {/* System Tabs */}
-          <div className="flex p-1 rounded-xl border border-white/8 bg-white/5">
+          <div className="fused-mode-toggle">
             <button
               onClick={() => setActiveSystemTab("employees")}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeSystemTab === "employees"
-                  ? "bg-[#d4af37]/20 text-[#d4af37]"
-                  : "text-white/40 hover:text-white"
+                  ? "active"
+                  : "text-fused-text-muted hover:text-fused-text-primary"
               }`}
             >
               Personal
@@ -251,8 +252,8 @@ export default function EmployeesPage() {
               onClick={() => setActiveSystemTab("backup")}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeSystemTab === "backup"
-                  ? "bg-[#d4af37]/20 text-[#d4af37]"
-                  : "text-white/40 hover:text-white"
+                  ? "active"
+                  : "text-fused-text-muted hover:text-fused-text-primary"
               }`}
             >
               <Database size={14} className="inline mr-1" />
@@ -262,8 +263,8 @@ export default function EmployeesPage() {
               onClick={() => setActiveSystemTab("audit")}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
                 activeSystemTab === "audit"
-                  ? "bg-[#d4af37]/20 text-[#d4af37]"
-                  : "text-white/40 hover:text-white"
+                  ? "active"
+                  : "text-fused-text-muted hover:text-fused-text-primary"
               }`}
             >
               <FileText size={14} className="inline mr-1" />
@@ -275,17 +276,14 @@ export default function EmployeesPage() {
             <>
               <button
                 onClick={() => setShowExportImport(true)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-fused-glass-border text-xs font-semibold text-fused-text-muted hover:text-fused-violet hover:border-fused-violet/30 transition-colors"
                 title="Exportar/Importar"
               >
                 <Target size={16} />
               </button>
               <button
                 onClick={() => setOpen(true)}
-                className="flex items-center gap-3 h-14 px-6 rounded-2xl
-                luxury-button
-                hover:shadow-gold-glow hover:scale-[1.02] active:scale-95
-                transition-all"
+                className="flex items-center gap-3 h-14 px-6 rounded-2xl fused-btn-gold"
               >
                 <Plus size={20} className="text-[#0a0a0f]" />
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Nuevo Colaborador</span>
@@ -313,7 +311,7 @@ export default function EmployeesPage() {
 
           {/* ================= EMPTY ================= */}
           {!error && filteredUsers.length === 0 && (
-            <div className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest glass-card p-6 rounded-2xl text-center border border-white/5">
+            <div className="text-[10px] font-black text-fused-text-secondary uppercase tracking-widest fused-glass-card p-6 rounded-2xl text-center border border-fused-glass-border">
               {search || Object.keys(activeFilters).length > 0
                 ? "No se encontraron colaboradores con los filtros aplicados"
                 : "No hay colaboradores en el sistema"}
@@ -399,13 +397,13 @@ export default function EmployeesPage() {
 
       {/* EXPORT/IMPORT PANEL */}
       {showExportImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 fused-animate-fade-in">
+          <div className="fused-glass-card p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Empleados</h3>
+              <h3 className="text-lg font-bold text-fused-text-primary">Exportar/Importar Empleados</h3>
               <button
                 onClick={() => setShowExportImport(false)}
-                className="text-muted hover:text-ivory transition-colors"
+                className="text-fused-text-muted hover:text-fused-text-primary transition-colors"
               >
                 <X size={20} />
               </button>
@@ -490,62 +488,62 @@ function EmployeeAuditPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-      <section className="glass-card w-full max-w-3xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 fused-animate-fade-in">
+      <section className="fused-glass-card w-full max-w-3xl overflow-hidden fused-animate-scale-in flex flex-col max-h-[90vh]">
         {/* HEADER */}
-        <div className="p-6 border-b border-white/10 flex items-start justify-between gap-6 flex-shrink-0">
+        <div className="p-6 border-b border-fused-glass-border flex items-start justify-between gap-6 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-[#d4af37]/10 border border-[#d4af37]/20">
-              <ShieldCheck className="text-[#d4af37]" size={28} />
+            <div className="p-4 rounded-2xl bg-fused-gold/10 border border-fused-gold/20">
+              <ShieldCheck className="text-fused-gold" size={28} />
             </div>
             <div>
-              <p className="text-[10px] text-[#d4af37] font-black uppercase tracking-[0.35em]">
+              <p className="text-[10px] text-fused-gold font-black uppercase tracking-[0.35em]">
                 Auditoría de personal
               </p>
-              <h2 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
+              <h2 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: "var(--fused-font-display)" }}>
                 {user.name}
               </h2>
-              <p className="text-xs text-[#a0a0b0] font-bold uppercase tracking-widest">
+              <p className="text-xs text-fused-text-secondary font-bold uppercase tracking-widest">
                 {user.email}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-[#d4af37]/30 transition-all flex items-center justify-center"
+            className="w-11 h-11 rounded-xl bg-white/5 border border-fused-glass-border text-fused-text-muted hover:text-fused-text-primary hover:border-fused-gold/30 transition-all flex items-center justify-center"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* TABS HEADERS */}
-        <div className="flex gap-6 border-b border-white/10 px-6 pt-2 flex-shrink-0">
+        <div className="flex gap-6 border-b border-fused-glass-border px-6 pt-2 flex-shrink-0">
           <button
             onClick={() => setActiveTab("audit")}
             className={`pb-3 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${
-              activeTab === "audit" ? "text-[#d4af37]" : "text-white/40 hover:text-white"
+              activeTab === "audit" ? "text-fused-gold" : "text-fused-text-muted hover:text-fused-text-primary"
             }`}
           >
             Auditoría y Permisos
             {activeTab === "audit" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4af37] shadow-[0_0_8px_#d4af37]" />
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-fused-gold shadow-[0_0_8px_var(--fused-gold)]" />
             )}
           </button>
           <button
             onClick={() => setActiveTab("schedule")}
             className={`pb-3 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${
-              activeTab === "schedule" ? "text-[#d4af37]" : "text-white/40 hover:text-white"
+              activeTab === "schedule" ? "text-fused-gold" : "text-fused-text-muted hover:text-fused-text-primary"
             }`}
           >
             Agenda Semanal
             {activeTab === "schedule" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4af37] shadow-[0_0_8px_#d4af37]" />
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-fused-gold shadow-[0_0_8px_var(--fused-gold)]" />
             )}
           </button>
         </div>
 
         {/* TAB CONTENT */}
-        <div className="p-6 overflow-y-auto luxury-scrollbar flex-1 space-y-6">
+        <div className="p-6 overflow-y-auto fused-scrollbar flex-1 space-y-6">
           {activeTab === "audit" ? (
             <>
               {/* TOP METRICS */}
@@ -557,40 +555,40 @@ function EmployeeAuditPanel({
 
               {/* DETAILS & PERMISSIONS GRID */}
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-5">
-                <div className="metric-card space-y-4">
+                <div className="fused-metric-card space-y-4">
                   <div className="flex items-center gap-3">
-                    <Clock className="text-[#00d4ff]" size={18} />
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                    <Clock className="text-fused-neon-blue" size={18} />
+                    <h3 className="text-sm font-black text-fused-text-primary uppercase tracking-widest">
                       Registro operativo
                     </h3>
                   </div>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between gap-4">
-                      <span className="text-white/45">Último acceso</span>
-                      <span className="text-white font-bold text-right">{lastLogin}</span>
+                      <span className="text-fused-text-muted">Último acceso</span>
+                      <span className="text-fused-text-primary font-bold text-right">{lastLogin}</span>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-white/45">Permisos activos</span>
+                      <span className="text-fused-text-muted">Permisos activos</span>
                       <span className="text-[#00ff88] font-black">{activePermissions.length}</span>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <span className="text-white/45">Creado</span>
-                      <span className="text-white font-bold text-right">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString("es-AR") : "N/A"}
+                      <span className="text-fused-text-muted">Creado</span>
+                      <span className="text-fused-text-primary font-bold text-right">
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString("es-MX") : "N/A"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="metric-card space-y-4">
+                <div className="fused-metric-card space-y-4">
                   <div className="flex items-center gap-3">
-                    <KeyRound className="text-[#d4af37]" size={18} />
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                    <KeyRound className="text-fused-gold" size={18} />
+                    <h3 className="text-sm font-black text-fused-text-primary uppercase tracking-widest">
                       Matriz de permisos
                     </h3>
                   </div>
                   {permissions.length === 0 ? (
-                    <p className="text-sm text-white/40">Este usuario no tiene permisos personalizados.</p>
+                    <p className="text-sm text-fused-text-muted">Este usuario no tiene permisos personalizados.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {permissions.map(([key, enabled]) => (

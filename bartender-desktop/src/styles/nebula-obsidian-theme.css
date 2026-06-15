@@ -1,0 +1,458 @@
+/* =========================================================
+   NEBULA-OBSIDIAN FUSED THEME
+   Fusión de efectos nebula (aurora, glassmorphism) con 
+   elegancia premium obsidian (dorado, neón, tipografía display)
+========================================================= */
+
+:root {
+  /* ================= NEBULA COLORS ================= */
+  --nebula-violet: #8b5cf6;
+  --nebula-cyan: #22d3ee;
+  --nebula-gold: #d4a354;
+  --nebula-dark-bg: #12101c;
+  --nebula-panel-bg: rgba(18, 16, 28, 0.92);
+  
+  /* ================= OBSIDIAN COLORS ================= */
+  --obsidian-gold-primary: #d4af37;
+  --obsidian-gold-secondary: #f4e4a6;
+  --obsidian-neon-blue: #00d4ff;
+  --obsidian-neon-purple: #b147ff;
+  --obsidian-bg-primary: #0a0a0f;
+  --obsidian-bg-secondary: #12121a;
+  --obsidian-bg-tertiary: #1a1a25;
+  
+  /* ================= FUSED PALETTE ================= */
+  --fused-bg-primary: #0a0a0f;
+  --fused-bg-secondary: #12121a;
+  --fused-bg-tertiary: #1a1a25;
+  --fused-bg-card: rgba(20, 20, 30, 0.85);
+  
+  --fused-gold: #d4af37;
+  --fused-gold-light: #f4e4a6;
+  --fused-violet: #8b5cf6;
+  --fused-cyan: #22d3ee;
+  --fused-neon-blue: #00d4ff;
+  --fused-neon-purple: #b147ff;
+  
+  --fused-text-primary: #ffffff;
+  --fused-text-secondary: #a0a0b0;
+  --fused-text-tertiary: #606070;
+  --fused-text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* ================= GRADIENTS ================= */
+  --fused-gradient-gold: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+  --fused-gradient-nebula: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
+  --fused-gradient-neon: linear-gradient(135deg, #00d4ff 0%, #b147ff 100%);
+  --fused-gradient-panel: linear-gradient(145deg, rgba(18, 16, 28, 0.92) 0%, rgba(12, 11, 18, 0.88) 100%);
+  --fused-gradient-aurora: 
+    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 55, 0.04) 0%, transparent 45%);
+  
+  /* ================= EFFECTS ================= */
+  --fused-shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --fused-shadow-md: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --fused-shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+  --fused-shadow-gold: 0 8px 24px rgba(212, 175, 55, 0.3);
+  --fused-shadow-neon: 0 8px 24px rgba(0, 212, 255, 0.3);
+  --fused-shadow-nebula: 0 4px 24px rgba(0, 0, 0, 0.35);
+  
+  --fused-glass-bg: rgba(20, 20, 30, 0.7);
+  --fused-glass-border: rgba(255, 255, 255, 0.08);
+  --fused-glass-blur: blur(16px);
+  
+  /* ================= TYPOGRAPHY ================= */
+  --fused-font-display: 'Playfair Display', 'Cormorant Garamond', serif;
+  --fused-font-body: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  --fused-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* ================= SPACING ================= */
+  --fused-space-xs: 0.5rem;
+  --fused-space-sm: 1rem;
+  --fused-space-md: 1.5rem;
+  --fused-space-lg: 2rem;
+  --fused-space-xl: 3rem;
+  
+  /* ================= BORDER RADIUS ================= */
+  --fused-radius-sm: 0.5rem;
+  --fused-radius-md: 0.75rem;
+  --fused-radius-lg: 1rem;
+  --fused-radius-xl: 1.25rem;
+  --fused-radius-2xl: 1.5rem;
+  
+  /* ================= TRANSITIONS ================= */
+  --fused-transition-fast: 0.2s ease;
+  --fused-transition-base: 0.3s ease;
+  --fused-transition-slow: 0.5s ease;
+}
+
+/* ================= BACKGROUND EFFECTS ================= */
+.fused-bg {
+  background: var(--fused-bg-primary);
+  background-image: var(--fused-gradient-aurora);
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+
+.fused-aurora {
+  position: absolute;
+  inset: -20% -10%;
+  background: var(--fused-gradient-aurora);
+  pointer-events: none;
+  animation: fused-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes fused-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(2%, -1%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+/* ================= GLASS CARD ================= */
+.fused-glass-card {
+  background: var(--fused-glass-bg);
+  backdrop-filter: var(--fused-glass-blur);
+  -webkit-backdrop-filter: var(--fused-glass-blur);
+  border: 1px solid var(--fused-glass-border);
+  border-radius: var(--fused-radius-xl);
+  box-shadow: var(--fused-shadow-md);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--fused-transition-base);
+}
+
+.fused-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+}
+
+.fused-glass-card:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+  box-shadow: var(--fused-shadow-gold);
+  transform: translateY(-2px);
+}
+
+/* ================= NEBULA PANEL ================= */
+.fused-nebula-panel {
+  background: var(--fused-gradient-panel);
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: var(--fused-radius-xl);
+  box-shadow: var(--fused-shadow-nebula), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  transition: border-color var(--fused-transition-base), box-shadow var(--fused-transition-base);
+}
+
+.fused-nebula-panel:hover {
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+/* ================= GOLD BORDER ================= */
+.fused-gold-border {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--fused-bg-secondary), var(--fused-bg-secondary)) padding-box,
+              var(--fused-gradient-gold) border-box;
+  border-radius: var(--fused-radius-lg);
+}
+
+/* ================= NEON GLOW EFFECTS ================= */
+.fused-glow-gold {
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.3),
+    0 0 40px rgba(212, 175, 55, 0.1);
+}
+
+.fused-glow-neon {
+  box-shadow: 
+    0 0 20px rgba(0, 212, 255, 0.3),
+    0 0 40px rgba(0, 212, 255, 0.1);
+}
+
+.fused-glow-nebula {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(34, 211, 238, 0.1);
+}
+
+/* ================= GRADIENT TEXT ================= */
+.fused-gradient-text-gold {
+  background: var(--fused-gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.fused-gradient-text-nebula {
+  background: var(--fused-gradient-nebula);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.fused-gradient-text-neon {
+  background: var(--fused-gradient-neon);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ================= BUTTONS ================= */
+.fused-btn-primary {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(79, 70, 229, 0.85));
+  color: #fff;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: var(--fused-radius-md);
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all var(--fused-transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.fused-btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: var(--fused-shadow-nebula);
+}
+
+.fused-btn-gold {
+  background: var(--fused-gradient-gold);
+  border: none;
+  border-radius: var(--fused-radius-md);
+  color: var(--fused-bg-primary);
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--fused-transition-base);
+}
+
+.fused-btn-gold::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left var(--fused-transition-slow);
+}
+
+.fused-btn-gold:hover::before {
+  left: 100%;
+}
+
+.fused-btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--fused-shadow-gold);
+}
+
+/* ================= INPUT FIELDS ================= */
+.fused-input {
+  background: var(--fused-bg-tertiary);
+  border: 1px solid var(--fused-glass-border);
+  border-radius: var(--fused-radius-sm);
+  color: var(--fused-text-primary);
+  font-family: var(--fused-font-body);
+  padding: 12px 16px;
+  transition: all var(--fused-transition-base);
+}
+
+.fused-input:focus {
+  outline: none;
+  border-color: var(--fused-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.fused-input::placeholder {
+  color: var(--fused-text-tertiary);
+}
+
+/* ================= METRIC CARDS ================= */
+.fused-metric-card {
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.9) 0%, rgba(30, 30, 45, 0.9) 100%);
+  border: 1px solid var(--fused-glass-border);
+  border-radius: var(--fused-radius-xl);
+  padding: var(--fused-space-lg);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--fused-transition-base);
+}
+
+.fused-metric-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--fused-transition-base);
+  pointer-events: none;
+}
+
+.fused-metric-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.fused-metric-card:hover::after {
+  opacity: 1;
+}
+
+/* ================= STATUS INDICATORS ================= */
+.fused-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.fused-status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: fused-pulse 2s infinite;
+}
+
+.fused-status-success { 
+  background: #00ff88; 
+}
+.fused-status-success::after { 
+  background: #00ff88; 
+}
+
+.fused-status-warning { 
+  background: #ffaa00; 
+}
+.fused-status-warning::after { 
+  background: #ffaa00; 
+}
+
+.fused-status-error { 
+  background: #ff4757; 
+}
+.fused-status-error::after { 
+  background: #ff4757; 
+}
+
+@keyframes fused-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+/* ================= MODE TOGGLE ================= */
+.fused-mode-toggle {
+  display: flex;
+  padding: 0.25rem;
+  border-radius: var(--fused-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fused-mode-toggle button.active {
+  background: rgba(139, 92, 246, 0.25);
+  color: #e9d5ff;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+/* ================= SCROLLBAR ================= */
+.fused-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fused-scrollbar::-webkit-scrollbar-track {
+  background: var(--fused-bg-secondary);
+}
+
+.fused-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--fused-gold);
+  border-radius: 3px;
+}
+
+.fused-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--fused-gold-light);
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fused-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fused-slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fused-scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fused-animate-fade-in-up {
+  animation: fused-fadeInUp 0.6s ease forwards;
+}
+
+.fused-animate-slide-in-left {
+  animation: fused-slideInLeft 0.6s ease forwards;
+}
+
+.fused-animate-scale-in {
+  animation: fused-scaleIn 0.4s ease forwards;
+}
+
+/* ================= UTILITY CLASSES ================= */
+.fused-text-gold { color: var(--fused-gold); }
+.fused-text-neon { color: var(--fused-neon-blue); }
+.fused-text-violet { color: var(--fused-violet); }
+.fused-text-muted { color: var(--fused-text-muted); }
+
+.fused-bg-gold { background: var(--fused-gold); }
+.fused-bg-neon { background: var(--fused-neon-blue); }
+.fused-bg-violet { background: var(--fused-violet); }
+
+.fused-border-gold { border-color: var(--fused-gold); }
+.fused-border-neon { border-color: var(--fused-neon-blue); }
+.fused-border-violet { border-color: var(--fused-violet); }
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+  :root {
+    --fused-space-lg: 1.5rem;
+    --fused-space-xl: 2rem;
+  }
+}
