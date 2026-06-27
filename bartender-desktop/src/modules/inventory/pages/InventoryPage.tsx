@@ -12,7 +12,9 @@ import {
   LayoutGrid,
   HelpCircle,
   List,
-  X
+  X,
+  Pencil,
+  Trash2
 } from "lucide-react";
 
 import InventoryCard from "../components/InventoryCard";
@@ -360,8 +362,6 @@ export default function InventoryPage() {
         ) : (
           <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
             {filteredItems.map((item) => {
-              const averageCost = items.reduce((sum, i) => sum + Number(i.cost), 0) / items.length || 0;
-              const stockTrend: 'up' | 'down' | 'stable' = 'stable';
               return (
                 <InventoryCard
                   key={item._id}
@@ -371,10 +371,83 @@ export default function InventoryPage() {
                   simplified={mode === 'simple'}
                   expanded={expandedCards.has(item._id!)}
                   onExpandToggle={handleExpandToggle}
-                  averageCost={averageCost}
-                  lastRestock={item.updatedAt}
-                  stockTrend={stockTrend}
                 />
+              );
+            })}
+          </div>
+        )}
+
+        {/* LIST VIEW - Improved Design */}
+        {view === 'list' && filteredItems.length > 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/10 text-xs font-bold text-white/50 uppercase tracking-wider">
+              <div className="col-span-4">Producto</div>
+              <div className="col-span-2 text-center">Stock</div>
+              <div className="col-span-2 text-center">Estado</div>
+              <div className="col-span-2 text-center">Costo</div>
+              <div className="col-span-2 text-right">Valor Total</div>
+            </div>
+            {filteredItems.map((item) => {
+              const stock = Number(item.stock ?? 0);
+              const minStock = Number(item.minStock ?? 0);
+              const percent = Math.min((stock / Number(item.maxStock || 100)) * 100, 100);
+              const status = stock <= minStock ? "critical" : stock <= minStock * 1.5 ? "low" : "optimal";
+              const totalValue = stock * Number(item.cost ?? 0);
+
+              const statusConfig = {
+                critical: { color: "text-red-400", bg: "bg-red-500/10", border: "border-red/30" },
+                low: { color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber/30" },
+                optimal: { color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald/30" },
+              }[status];
+
+              return (
+                <div
+                  key={item._id}
+                  className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/5 hover:bg-white/10 transition-colors items-center group"
+                >
+                  <div className="col-span-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${statusConfig.bg} ${statusConfig.border}`}>
+                        <Package size={16} className={statusConfig.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{item.name}</p>
+                        <p className="text-xs text-white/50 truncate">{item.category}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-span-2 text-center">
+                    <p className="text-sm font-bold text-white">{stock} {item.unit}</p>
+                    <p className="text-xs text-white/40">Min: {minStock}</p>
+                  </div>
+                  <div className="col-span-2 text-center">
+                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold ${statusConfig.bg} ${statusConfig.color} ${statusConfig.border}`}>
+                      {status === 'critical' && <AlertTriangle size={12} />}
+                      {status.toUpperCase()}
+                    </div>
+                    <p className="text-xs text-white/40 mt-1">{percent.toFixed(0)}%</p>
+                  </div>
+                  <div className="col-span-2 text-center">
+                    <p className="text-sm font-bold text-white">${Number(item.cost).toFixed(2)}</p>
+                  </div>
+                  <div className="col-span-2 text-right">
+                    <p className="text-sm font-bold text-gold">${totalValue.toFixed(2)}</p>
+                  </div>
+                  <div className="col-span-12 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => { setSelected(item); setOpen(true); }}
+                      className="p-2 rounded-lg bg-cyan/20 border border-cyan/30 text-cyan hover:bg-cyan/30 transition-colors"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      className="p-2 rounded-lg bg-red/20 border border-red/30 text-red hover:bg-red/30 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>

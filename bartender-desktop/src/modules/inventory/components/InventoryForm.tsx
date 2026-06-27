@@ -70,7 +70,7 @@ function InventoryBasicInfo({ formData, setFormData }: { formData: InventoryItem
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-violet-500/10 rounded-xl">
+        <div className="p-2 bg-gradient-to-br from-violet-500/20 to-cyan-500/10 rounded-xl border border-violet-500/20">
           <Target className="text-violet-400" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Información Básica</h3>
@@ -127,7 +127,7 @@ function StockLevelIndicator({ formData, setFormData }: { formData: InventoryIte
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-emerald-500/10 rounded-xl">
+        <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 rounded-xl border border-emerald-500/20">
           <Gauge className="text-emerald-400" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Nivel de Stock</h3>
@@ -220,7 +220,7 @@ function InventoryLocationPicker({ formData, setFormData }: { formData: Inventor
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-cyan-500/10 rounded-xl">
+        <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-xl border border-cyan-500/20">
           <MapPin className="text-cyan-400" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Ubicación y Especificaciones</h3>
@@ -301,7 +301,7 @@ function InventoryCostCalculator({ formData, setFormData }: { formData: Inventor
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-gold/10 rounded-xl">
+        <div className="p-2 bg-gradient-to-br from-gold/20 to-amber-500/10 rounded-xl border border-gold/20">
           <DollarSign className="text-gold" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Calculadora de Costos</h3>

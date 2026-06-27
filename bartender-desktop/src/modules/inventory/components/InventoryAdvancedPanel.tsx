@@ -61,24 +61,24 @@ export default function InventoryAdvancedPanel({ items }: Props) {
   return (
     <div className="space-y-6">
       {/* Stock Health Indicator */}
-      <div className="nebula-panel rounded-3xl p-6 border border-white/5">
+      <div className="rounded-2xl p-6 border border-violet-500/20 bg-gradient-to-br from-violet-500/10 to-cyan-500/5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-violet-500/20 text-violet-300">
-            <BarChart3 size={20} />
+          <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-500/30">
+            <BarChart3 size={20} className="text-violet-300" />
           </div>
-          <h3 className="text-lg font-bold text-ivory">Salud del Inventario</h3>
+          <h3 className="text-lg font-bold text-white">Salud del Inventario</h3>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 rounded-2xl bg-surface-3/50">
-            <p className="text-xs text-muted mb-1">Stock Total</p>
-            <p className="text-2xl font-black text-ivory">{analytics.totalStock}</p>
+          <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-xs text-white/50 mb-1">Stock Total</p>
+            <p className="text-2xl font-black text-white">{analytics.totalStock}</p>
           </div>
-          <div className="text-center p-4 rounded-2xl bg-surface-3/50">
-            <p className="text-xs text-muted mb-1">Mínimo Requerido</p>
-            <p className="text-2xl font-black text-ivory">{analytics.totalMinStock}</p>
+          <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-xs text-white/50 mb-1">Mínimo Requerido</p>
+            <p className="text-2xl font-black text-white">{analytics.totalMinStock}</p>
           </div>
-          <div className="text-center p-4 rounded-2xl bg-surface-3/50">
-            <p className="text-xs text-muted mb-1">Salud</p>
+          <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-xs text-white/50 mb-1">Salud</p>
             <p className={`text-2xl font-black ${
               analytics.stockHealth >= 100 ? "text-emerald-400" :
               analytics.stockHealth >= 70 ? "text-gold" :
@@ -92,30 +92,30 @@ export default function InventoryAdvancedPanel({ items }: Props) {
 
       {/* Critical Items */}
       {analytics.criticalItems.length > 0 && (
-        <div className="nebula-panel rounded-3xl p-6 border border-red-500/20 bg-red-500/5">
+        <div className="rounded-2xl p-6 border border-red-500/30 bg-gradient-to-br from-red-500/10 to-orange-500/5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-xl bg-red-500/20 text-red-300">
-              <AlertCircle size={20} />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-500/30">
+              <AlertCircle size={20} className="text-red-300" />
             </div>
-            <h3 className="text-lg font-bold text-ivory">Items Críticos - Reposición Urgente</h3>
+            <h3 className="text-lg font-bold text-white">Items Críticos - Reposición Urgente</h3>
           </div>
           <div className="space-y-3">
             {analytics.criticalItems.map((item) => (
-              <div key={item._id} className="flex items-center justify-between p-4 rounded-2xl bg-surface-3/50 border border-white/5">
+              <div key={item._id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-red-500/10 text-red-400">
+                  <div className="p-2 rounded-lg bg-red-500/20 text-red-400">
                     <Package size={18} />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-ivory">{item.name}</p>
-                    <p className="text-xs text-muted">{item.category}</p>
+                    <p className="text-sm font-bold text-white">{item.name}</p>
+                    <p className="text-xs text-white/50">{item.category}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-red-400">
                     {item.stock} / {item.minStock}
                   </p>
-                  <p className="text-xs text-muted">Unidades</p>
+                  <p className="text-xs text-white/50">Unidades</p>
                 </div>
               </div>
             ))}
@@ -124,12 +124,12 @@ export default function InventoryAdvancedPanel({ items }: Props) {
       )}
 
       {/* Category Distribution */}
-      <div className="nebula-panel rounded-3xl p-6 border border-white/5">
+      <div className="rounded-2xl p-6 border border-gold/20 bg-gradient-to-br from-gold/10 to-amber-500/5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-gold/20 text-gold">
-            <Package size={20} />
+          <div className="p-2 rounded-xl bg-gradient-to-br from-gold/30 to-amber-500/20 border border-gold/30">
+            <Package size={20} className="text-gold" />
           </div>
-          <h3 className="text-lg font-bold text-ivory">Distribución por Categoría</h3>
+          <h3 className="text-lg font-bold text-white">Distribución por Categoría</h3>
         </div>
         <div className="space-y-3">
           {Object.entries(analytics.categoryDistribution)
@@ -139,10 +139,10 @@ export default function InventoryAdvancedPanel({ items }: Props) {
               <div key={category} className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm text-muted">{category}</span>
-                    <span className="text-sm font-bold text-ivory">{count}</span>
+                    <span className="text-sm text-white/70">{category}</span>
+                    <span className="text-sm font-bold text-white">{count}</span>
                   </div>
-                  <div className="h-2 bg-surface-3 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-gold to-gold/60 rounded-full"
                       style={{
@@ -157,17 +157,17 @@ export default function InventoryAdvancedPanel({ items }: Props) {
       </div>
 
       {/* Value by Sector */}
-      <div className="nebula-panel rounded-3xl p-6 border border-white/5">
+      <div className="rounded-2xl p-6 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-cyan-500/5">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
-            <DollarSign size={20} />
+          <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/20 border border-emerald-500/30">
+            <DollarSign size={20} className="text-emerald-300" />
           </div>
-          <h3 className="text-lg font-bold text-ivory">Valor por Sector</h3>
+          <h3 className="text-lg font-bold text-white">Valor por Sector</h3>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {Object.entries(analytics.valueBySector).map(([sector, value]) => (
-            <div key={sector} className="text-center p-4 rounded-2xl bg-surface-3/50">
-              <p className="text-xs text-muted mb-1 capitalize">{sector}</p>
+            <div key={sector} className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-xs text-white/50 mb-1 capitalize">{sector}</p>
               <p className="text-lg font-black text-emerald-400">
                 ${value.toFixed(0)}
               </p>
