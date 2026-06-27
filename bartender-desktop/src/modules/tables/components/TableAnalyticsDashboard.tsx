@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, TrendingDown, Clock, DollarSign, Users, Award, AlertTriangle, X, Calendar, Filter } from "lucide-react";
-import { getTableAnalyticsById, generateTableAnalytics as apiGenerateTableAnalytics } from "../services/tableService";
+import { TrendingUp, TrendingDown, Clock, DollarSign, Users, Award, AlertTriangle, X, Calendar, Filter, ShoppingBag } from "lucide-react";
+import {
+  getTableAnalyticsById,
+  generateTableAnalytics as apiGenerateTableAnalytics,
+  getTables,
+  getTablePayments
+} from "../services/tableService";
 
 interface AnalyticsData {
   table: {
@@ -31,21 +36,44 @@ interface Props {
 const COLORS = ["#d4a340", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"];
 
 export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
+  const [tables, setTables] = useState<any[]>([]);
+  const [activeTableId, setActiveTableId] = useState(tableId);
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [paymentsList, setPaymentsList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setActiveTableId(tableId);
+  }, [tableId]);
+
+  useEffect(() => {
+    const fetchTablesList = async () => {
+      try {
+        const list = await getTables();
+        setTables(list || []);
+      } catch (err) {
+        console.error("Error loading tables list for selector", err);
+      }
+    };
+    fetchTablesList();
+  }, []);
+
+  useEffect(() => {
     fetchAnalytics();
-  }, [tableId, period]);
+  }, [activeTableId, period]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
-      const result = await getTableAnalyticsById(tableId, { period });
-      setData(result);
+      const [analyticsResult, paymentsResult] = await Promise.all([
+        getTableAnalyticsById(activeTableId, { period }),
+        getTablePayments(activeTableId)
+      ]);
+      setData(analyticsResult);
+      setPaymentsList(paymentsResult || []);
     } catch (err: any) {
       console.error("Error fetching analytics:", err);
       setError(err.message || "Error al cargar analytics");
@@ -59,7 +87,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
       setLoading(true);
       setError(null);
       const today = new Date().toISOString().split('T')[0];
-      await apiGenerateTableAnalytics(tableId, { date: today, period });
+      await apiGenerateTableAnalytics(activeTableId, { date: today, period });
       await fetchAnalytics();
     } catch (err: any) {
       console.error("Error generating analytics:", err);
@@ -68,6 +96,73 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
       setLoading(false);
     }
   };
+
+  // Agregación de qué se compró
+  const aggregatedItems = useMemo(() => {
+    const itemsMap: Record<string, { quantity: number; total: number }> = {};
+    paymentsList.forEach((payment) => {
+      const items = payment.receipt?.items || [];
+      items.forEach((item: any) => {
+        const name = item.name || "Producto sin nombre";
+        const quantity = Number(item.quantity || 0);
+        const subtotal = Number(item.subtotal || (item.price * quantity) || 0);
+        
+        if (itemsMap[name]) {
+          itemsMap[name].quantity += quantity;
+          itemsMap[name].total += subtotal;
+        } else {
+          itemsMap[name] = { quantity, total: subtotal };
+        }
+      });
+    });
+
+    return Object.entries(itemsMap)
+      .map(([name, stats]) => ({
+        name,
+        quantity: stats.quantity,
+        total: stats.total,
+      }))
+      .sort((a, b) => b.quantity - a.quantity);
+  }, [paymentsList]);
+
+  // Agregación de cómo se compró
+  const aggregatedPaymentMethods = useMemo(() => {
+    const methodsMap: Record<string, { count: number; total: number }> = {
+      cash: { count: 0, total: 0 },
+      card: { count: 0, total: 0 },
+      transfer: { count: 0, total: 0 },
+      split: { count: 0, total: 0 },
+    };
+
+    paymentsList.forEach((payment) => {
+      const method = payment.method || "other";
+      const amount = Number(payment.amount || 0);
+
+      if (!methodsMap[method]) {
+        methodsMap[method] = { count: 0, total: 0 };
+      }
+
+      methodsMap[method].count += 1;
+      methodsMap[method].total += amount;
+    });
+
+    const methodNames: Record<string, string> = {
+      cash: "Efectivo",
+      card: "Tarjeta",
+      transfer: "Transferencia",
+      split: "Dividido",
+      other: "Otros",
+    };
+
+    return Object.entries(methodsMap)
+      .map(([method, stats]) => ({
+        method,
+        displayName: methodNames[method] || method.toUpperCase(),
+        count: stats.count,
+        total: stats.total,
+      }))
+      .filter((m) => m.count > 0);
+  }, [paymentsList]);
 
   if (error) {
     return (
@@ -153,14 +248,36 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
       >
         {/* HEADER */}
         <div className="p-8 border-b border-white/10 flex justify-between items-start sticky top-0 bg-surface-1/95 backdrop-blur-sm z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Award size={16} className="text-gold" />
-              <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Analytics de Mesa</p>
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Award size={16} className="text-gold" />
+                <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Analytics de Mesa</p>
+              </div>
+              <h2 className="text-3xl font-black text-white tracking-tight">
+                Mesa #{data.table.number} <span className="text-gold">· {data.table.location === "indoor" ? "Interior" : data.table.location === "outdoor" ? "Terraza" : "Barra"}</span>
+              </h2>
             </div>
-            <h2 className="text-3xl font-black text-white tracking-tight">
-              Mesa #{data.table.number} <span className="text-gold">· {data.table.location}</span>
-            </h2>
+
+            {tables.length > 0 && (
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2">
+                <label htmlFor="analyticsTableSelector" className="text-[10px] font-black text-muted uppercase tracking-wider">
+                  Mesa Activa:
+                </label>
+                <select
+                  id="analyticsTableSelector"
+                  value={activeTableId}
+                  onChange={(e) => setActiveTableId(e.target.value)}
+                  className="bg-transparent text-xs text-white font-bold outline-none border-none cursor-pointer focus:ring-0"
+                >
+                  {tables.map((t) => (
+                    <option key={t._id} value={t._id} className="bg-surface-2 text-white font-bold">
+                      Mesa #{t.number} ({t.location === "indoor" ? "Interior" : t.location === "outdoor" ? "Terraza" : "Barra"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -305,6 +422,77 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
               </div>
             </div>
           )}
+
+          {/* CONSUMPTION & PAYMENT BREAKDOWN */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* QUE SE COMPRO */}
+            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-[320px]">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                <ShoppingBag size={16} className="text-gold" />
+                Qué se compró (Productos Consumidos)
+              </h3>
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                {aggregatedItems.length > 0 ? (
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/10 text-muted uppercase font-black text-[9px] tracking-wider">
+                        <th className="pb-2">Producto</th>
+                        <th className="pb-2 text-center">Cantidad</th>
+                        <th className="pb-2 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-bold text-white/80">
+                      {aggregatedItems.map((item, index) => (
+                        <tr key={index} className="hover:bg-white/5 transition-colors">
+                          <td className="py-2.5 max-w-[200px] truncate">{item.name}</td>
+                          <td className="py-2.5 text-center text-gold">{item.quantity}</td>
+                          <td className="py-2.5 text-right text-emerald-400">${item.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
+                    <p className="text-xs uppercase font-black tracking-wider">Sin historial de consumo</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* COMO SE COMPRO */}
+            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-[320px]">
+              <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                <DollarSign size={16} className="text-gold" />
+                Cómo se compró (Métodos de Pago)
+              </h3>
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                {aggregatedPaymentMethods.length > 0 ? (
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/10 text-muted uppercase font-black text-[9px] tracking-wider">
+                        <th className="pb-2">Método</th>
+                        <th className="pb-2 text-center">Transacciones</th>
+                        <th className="pb-2 text-right">Total Recaudado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-bold text-white/80">
+                      {aggregatedPaymentMethods.map((method, index) => (
+                        <tr key={index} className="hover:bg-white/5 transition-colors">
+                          <td className="py-2.5 uppercase tracking-wider">{method.displayName}</td>
+                          <td className="py-2.5 text-center text-blue-400">{method.count}</td>
+                          <td className="py-2.5 text-right text-emerald-400">${method.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
+                    <p className="text-xs uppercase font-black tracking-wider">Sin historial de pagos</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* PERFORMANCE METRICS */}
           {latestAnalytics && (

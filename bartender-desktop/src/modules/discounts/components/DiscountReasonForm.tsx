@@ -26,7 +26,7 @@ export default function NebulaDiscountReasonForm({
   ];
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-3 md:space-y-4">
       
       <div>
         <h3 className="text-sm font-bold text-white mb-1">
@@ -37,7 +37,7 @@ export default function NebulaDiscountReasonForm({
         </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5 md:space-y-2">
         {razones.map((r) => {
           const Icon = r.icon;
           return (
@@ -45,22 +45,22 @@ export default function NebulaDiscountReasonForm({
               key={r.val}
               onClick={() => setReason(r.val)}
               className={`
-                p-3 rounded-xl text-left transition-all border flex items-start gap-3
+                p-2.5 md:p-3 rounded-xl text-left transition-all border flex items-start gap-2 md:gap-3
                 ${reason === r.val
-                  ? "bg-cyan text-black border-cyan"
+                  ? "bg-cyan text-black border-cyan shadow-lg"
                   : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"}
               `}
             >
-              <div className={`p-2 rounded-lg ${reason === r.val ? 'bg-black/10 text-black' : 'bg-white/10 text-white/50'}`}>
-                <Icon size={18} />
+              <div className={`p-1.5 md:p-2 rounded-lg ${reason === r.val ? 'bg-black/10 text-black' : 'bg-white/10 text-white/50'}`}>
+                <Icon size={14} className="md:size-18" />
               </div>
               <div className="flex-1">
-                <span className="font-semibold text-sm block mb-0.5">{r.label}</span>
-                <span className="text-[10px] opacity-70">{r.description}</span>
+                <span className="font-semibold text-xs md:text-sm block mb-0.5">{r.label}</span>
+                <span className="text-[10px] md:text-[10px] opacity-70">{r.description}</span>
               </div>
               {reason === r.val && (
-                <div className="w-5 h-5 bg-black/20 rounded-full flex items-center justify-center">
-                  <span className="text-black text-xs font-bold">✓</span>
+                <div className="w-4 h-4 md:w-5 md:h-5 bg-black/20 rounded-full flex items-center justify-center">
+                  <span className="text-black text-[10px] md:text-xs font-bold">✓</span>
                 </div>
               )}
             </button>
@@ -68,15 +68,15 @@ export default function NebulaDiscountReasonForm({
         })}
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider flex items-center gap-2">
-          <FileText size={12} /> Notas adicionales
+      <div className="space-y-1.5 md:space-y-2">
+        <p className="text-[10px] md:text-xs font-semibold text-white/40 uppercase tracking-wider flex items-center gap-2">
+          <FileText size={10} className="md:size-12" /> Notas adicionales
         </p>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Agrega detalles extras si es necesario..."
-          className="w-full min-h-[80px] bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-cyan transition-all resize-none placeholder:text-white/30"
+          className="w-full min-h-[60px] md:min-h-[80px] bg-white/5 border border-white/10 rounded-xl px-2.5 md:px-3 py-2 text-xs md:text-sm text-white outline-none focus:border-cyan transition-all resize-none placeholder:text-white/30"
           style={{ height: '3rem' }}
         />
         <p className="text-[10px] text-white/30">
@@ -84,11 +84,11 @@ export default function NebulaDiscountReasonForm({
         </p>
       </div>
 
-      <div className="p-3 rounded-lg border flex items-start gap-3" style={{
+      <div className="p-2 md:p-3 rounded-lg border flex items-start gap-2 md:gap-3" style={{
         background: 'rgba(0, 229, 255, 0.1)',
         borderColor: 'rgba(0, 229, 255, 0.2)'
       }}>
-        <Info size={16} className="text-cyan flex-shrink-0 mt-0.5" />
+        <Info size={12} className="md:size-16 text-cyan flex-shrink-0 mt-0.5" />
         <p className="text-[10px] text-cyan/80 leading-relaxed">
           Esta información ayuda a mejorar nuestro servicio. Tu nombre y la razón quedarán registrados para fines de auditoría.
         </p>

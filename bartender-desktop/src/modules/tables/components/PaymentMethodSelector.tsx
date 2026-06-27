@@ -9,6 +9,7 @@ import {
   getPaymentErrorMessage,
   isNetworkError
 } from "../services/tableService";
+import DiscountSummary from "../../discounts/components/DiscountSummary";
 
 interface PaymentMethod {
   _id: string;
@@ -27,6 +28,13 @@ interface Props {
   balanceDue: number;
   onSelect: (method: string, data?: any) => void;
   onClose: () => void;
+  discounts?: Array<{
+    amount: number;
+    type: "PERCENT" | "FLAT";
+    reason: string;
+    note?: string;
+  }>;
+  subtotal?: number;
 }
 
 // Métodos de pago por defecto en caso de error de API
@@ -75,6 +83,8 @@ export default function PaymentMethodSelector({
   balanceDue,
   onSelect,
   onClose,
+  discounts = [],
+  subtotal = balanceDue,
 }: Props) {
   const [methods, setMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
@@ -347,8 +357,8 @@ export default function PaymentMethodSelector({
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
-        <div className="p-8 border-b border-white/10 flex justify-between items-start">
-          <div>
+        <div className="p-6 md:p-8 border-b border-white/10 flex justify-between items-start">
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Wallet size={16} className="text-gold" />
               <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Método de Pago</p>
@@ -363,6 +373,18 @@ export default function PaymentMethodSelector({
             <X size={18} className="text-muted" />
           </button>
         </div>
+
+        {/* DISCOUNT SUMMARY */}
+        {discounts.length > 0 && (
+          <div className="px-6 md:px-8 py-4 border-b border-white/10">
+            <DiscountSummary
+              subtotal={subtotal}
+              discounts={discounts}
+              finalTotal={balanceDue}
+              compact={true}
+            />
+          </div>
+        )}
 
         {/* CONTENT */}
         <div className="p-6">

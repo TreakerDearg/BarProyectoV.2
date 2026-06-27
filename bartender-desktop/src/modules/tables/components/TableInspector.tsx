@@ -94,6 +94,9 @@ export default function TableInspector({
   const totalPaid = table.totalPaid || table.totalPayments || 0;
   const balanceDue = table.balanceDue !== undefined ? table.balanceDue : Math.max(0, totalAmount - totalPaid);
 
+  const openOrders = table.orders?.filter((o) => o.sessionStatus === "open") || [];
+  const hasPendingOrInProgress = openOrders.some((o) => o.status === "pending" || o.status === "in-progress");
+
   return (
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
@@ -422,14 +425,25 @@ export default function TableInspector({
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onPaymentSelector}
-              className="w-full btn btn-gold !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 shadow-gold-glow"
+              whileHover={hasPendingOrInProgress ? {} : { scale: 1.02 }}
+              whileTap={hasPendingOrInProgress ? {} : { scale: 0.98 }}
+              onClick={hasPendingOrInProgress ? undefined : onPaymentSelector}
+              disabled={hasPendingOrInProgress}
+              className={`w-full btn !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 transition-all ${
+                hasPendingOrInProgress
+                  ? "bg-white/5 border border-white/5 text-muted cursor-not-allowed opacity-50"
+                  : "btn-gold shadow-gold-glow"
+              }`}
             >
               <Wallet size={16} className="w-4 h-4 md:w-5 md:h-5" />
               <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Procesar Pago</span>
             </motion.button>
+
+            {hasPendingOrInProgress && (
+              <p className="text-[9px] text-orange-400 font-bold text-center uppercase tracking-wider">
+                * Hay pedidos en preparación. Espere para cobrar.
+              </p>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.02 }}

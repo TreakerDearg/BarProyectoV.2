@@ -37,9 +37,26 @@ const resolveTableLabel = (table: Order["table"]): string => {
 export const discountService = {
   async applyDiscount(data: ApplyDiscountDTO) {
     try {
-      return await applyDiscount(data);
+      console.log("[DiscountService] Applying discount:", {
+        orderId: data.orderId,
+        type: data.type,
+        value: data.value,
+        itemsCount: data.items?.length || 0,
+        reason: data.reason
+      });
+
+      const result = await applyDiscount(data);
+
+      console.log("[DiscountService] Discount applied successfully:", result);
+      return result;
     } catch (error) {
-      throw new Error(extractError(error));
+      const errorMessage = extractError(error);
+      console.error("[DiscountService] Error applying discount:", {
+        error: errorMessage,
+        data: data,
+        originalError: error
+      });
+      throw new Error(errorMessage);
     }
   },
 

@@ -55,19 +55,35 @@ export function useDiscount({ items }: UseDiscountProps) {
   const errors = useMemo(() => {
     const errs: string[] = [];
 
-    if (value <= 0) errs.push("El descuento debe ser mayor a 0");
+    const selectedItems = items.filter((i) => i.selected);
 
-    if (type === "PERCENT" && value > 100)
+    // Validar que haya items seleccionados
+    if (selectedItems.length === 0) {
+      errs.push("Selecciona al menos un producto para aplicar el descuento");
+    }
+
+    // Validar valor del descuento
+    if (value <= 0) {
+      errs.push("El descuento debe ser mayor a 0");
+    }
+
+    // Validar porcentaje máximo
+    if (type === "PERCENT" && value > 100) {
       errs.push("El porcentaje no puede exceder 100%");
+    }
 
-    if (discountAmount > subtotal)
-      errs.push("El descuento no puede exceder el subtotal");
+    // Validar que el descuento no exceda el subtotal
+    if (discountAmount > subtotal && subtotal > 0) {
+      errs.push(`El descuento ($${discountAmount.toFixed(2)}) no puede exceder el subtotal ($${subtotal.toFixed(2)})`);
+    }
 
-    if (subtotal === 0)
-      errs.push("Selecciona al menos un producto");
+    // Validar que el valor sea un número válido
+    if (isNaN(value) || !isFinite(value)) {
+      errs.push("El valor del descuento no es válido");
+    }
 
     return errs;
-  }, [value, type, discountAmount, subtotal]);
+  }, [value, type, discountAmount, subtotal, items]);
 
   const isValid = errors.length === 0;
 
@@ -92,6 +108,8 @@ export function useDiscount({ items }: UseDiscountProps) {
   const reset = useCallback(() => {
     setValueInput("0");
     setNote("");
+    setType("PERCENT");
+    setReason("WAIT_TIME");
   }, []);
 
   /* =========================

@@ -94,6 +94,26 @@ export const getPaymentErrorMessage = (error: any): string => {
         return "La terminal de pago no responde o está fuera de línea.";
       case "UNAUTHORIZED":
         return "No autorizado para procesar el pago.";
+      case "INVALID_ID":
+        return "ID inválido. Verifique la información e intente nuevamente.";
+      case "VALIDATION_ERROR":
+        return "Error de validación en los datos de pago.";
+      case "TABLE_NO_ACTIVE_SESSION":
+        return "La mesa no tiene una sesión activa para cobrar.";
+      case "SESSION_MISMATCH":
+        return "La sesión indicada no coincide con la sesión activa de la mesa.";
+      case "ORDER_NOT_FOUND":
+        return "No se encontraron órdenes abiertas para esta mesa.";
+      case "TABLE_NOT_FOUND":
+        return "La mesa especificada no existe.";
+      case "ORDER_ALREADY_PAID":
+        return "El pedido ya ha sido pagado.";
+      case "ORDER_ALREADY_CLOSED":
+        return "El pedido ya se encuentra cerrado.";
+      case "INVALID_AMOUNT":
+        return "El monto ingresado es inválido o insuficiente.";
+      case "PAYMENT_VALIDATION_ERROR":
+        return error.message || "Error en los datos de validación de pago.";
       default:
         return error.message || "Error al procesar el pago.";
     }
@@ -122,9 +142,19 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
     return response as T;
   } catch (error: any) {
     // Extraer detalles de error normalizado por Axios / Interceptor
-    const msg = error?.message || "Error inesperado";
+    let msg = error?.response?.data?.message || error?.message || "Error inesperado";
     const statusCode = error?.status || error?.response?.status || 500;
     const errorCode = error?.errorCode || error?.response?.data?.code || "UNKNOWN_ERROR";
+
+    // Si hay un arreglo de errores detallados de validación (por ejemplo Zod)
+    if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+      const details = error.response.data.errors
+        .map((e: any) => `${e.field || "campo"}: ${e.message}`)
+        .join(", ");
+      if (details) {
+        msg = `${msg} (${details})`;
+      }
+    }
 
     console.error("[Payment Service Error]:", {
       message: msg,

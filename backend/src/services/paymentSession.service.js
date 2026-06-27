@@ -135,6 +135,15 @@ export const processSessionCheckout = async ({
         throw new OrderNotFoundError("No hay órdenes abiertas para cobrar en esta mesa");
       }
 
+      const hasPendingOrInProgress = orders.some(
+        (o) => o.status === "pending" || o.status === "in-progress"
+      );
+      if (hasPendingOrInProgress) {
+        throw new PaymentValidationError(
+          "No se puede realizar el checkout: hay pedidos pendientes o en preparación"
+        );
+      }
+
       const orderBreakdown = orders.map((order) => ({
         order,
         ...getOrderFinancials(order),
@@ -172,6 +181,12 @@ export const processSessionCheckout = async ({
             ? item.total + (isLast ? Math.max(0, amountPaid - finalTotal) : 0)
             : item.total;
 
+        // Generar receiptNumber único para evitar error E11000
+        const date = new Date();
+        const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+        const receiptNumber = `PAY-${dateStr}-${random}-${index + 1}`;
+
         return {
           table: tableId,
           order: item.order._id,
@@ -202,6 +217,7 @@ export const processSessionCheckout = async ({
                 }
               : undefined,
           receipt: {
+            receiptNumber,
             items: item.order.items.map((orderItem) => ({
               name: orderItem.name,
               quantity: orderItem.quantity,

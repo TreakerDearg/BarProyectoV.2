@@ -400,6 +400,14 @@ export default function TablesPage() {
       return;
     }
 
+    const hasPendingOrInProgress = openOrders.some(
+      (o) => o.status === "pending" || o.status === "in-progress"
+    );
+    if (hasPendingOrInProgress) {
+      setError("No se puede proceder al pago: hay pedidos pendientes o en preparación.");
+      return;
+    }
+
     const totalAmount =
       selectedTable.totalAmount ??
       openOrders.reduce((sum, o) => sum + (o.total || 0), 0);

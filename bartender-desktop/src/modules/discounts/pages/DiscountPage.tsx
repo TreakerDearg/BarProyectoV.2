@@ -279,15 +279,21 @@ export default function NebulaDiscountPage() {
       setLoadingApply(true);
       setError(null);
       setFeedback(null);
+
       const payload = discount.buildPayload(selectedOrder._id);
+
+      console.log("[DiscountPage] Applying discount with payload:", payload);
 
       await discountService.applyDiscount(payload);
 
       setFeedback("¡Descuento aplicado correctamente! ✨");
       discount.reset();
       setPasoActual(1);
+
+      // Recargar órdenes y estadísticas para reflejar cambios
       await Promise.all([cargarOrdenes(), cargarEstadisticas()]);
     } catch (err: any) {
+      console.error("[DiscountPage] Error applying discount:", err);
       setError(err.message || "Error al aplicar descuento");
     } finally {
       setLoadingApply(false);
