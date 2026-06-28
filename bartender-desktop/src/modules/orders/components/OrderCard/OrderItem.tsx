@@ -1,5 +1,5 @@
 import type { OrderItem as IOrderItem } from "../../types/order";
-import { CheckCircle2, Circle, AlertCircle } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, Zap } from "lucide-react";
 
 interface Props {
   item: IOrderItem;
@@ -8,51 +8,92 @@ interface Props {
   isActive?: boolean;
 }
 
+const statusConfig = {
+  pending: {
+    color: "text-white/50",
+    bg: "bg-white/5",
+    border: "border-white/10",
+    icon: <Circle size={12} className="fill-current" />
+  },
+  preparing: {
+    color: "text-cyan-400",
+    bg: "bg-cyan/10",
+    border: "border-cyan/30",
+    icon: <Zap size={14} className="animate-pulse" />
+  },
+  ready: {
+    color: "text-emerald-400",
+    bg: "bg-emerald/10",
+    border: "border-emerald/30",
+    icon: <CheckCircle2 size={14} />
+  },
+  served: {
+    color: "text-cyan-300",
+    bg: "bg-cyan/10",
+    border: "border-cyan/30",
+    icon: <CheckCircle2 size={14} />
+  },
+  cancelled: {
+    color: "text-red-400",
+    bg: "bg-red/10",
+    border: "border-red/30",
+    icon: <AlertCircle size={14} />
+  }
+};
+
 export default function OrderItem({ item, onSelect, isActive }: Props) {
-  const isCancelled = (item.status as string) === "cancelled";
-  const isReady = item.status === "ready" || (item.status as string) === "served";
+  const itemStatus = (item.status as string) || "pending";
+  const config = statusConfig[itemStatus as keyof typeof statusConfig] || statusConfig.pending;
+  const isCancelled = itemStatus === "cancelled";
+  const isReady = itemStatus === "ready" || itemStatus === "served";
   const itemAny = item as any;
 
   return (
     <div
       onClick={() => onSelect?.(item)}
       className={`
-        flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer group/item
+        flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer group/item
         ${isActive 
-          ? "bg-gold/10 border-gold/40 shadow-gold-glow" 
-          : "bg-surface-3/50 border-white/5 hover:bg-surface-4 hover:border-white/10"
+          ? "bg-cyan/10 border-cyan/40" 
+          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
         }
-        ${isCancelled ? "opacity-30 grayscale" : ""}
+        ${isCancelled ? "opacity-40 grayscale" : ""}
       `}
     >
       <div className="flex items-center justify-center relative">
-        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
-          isReady ? 'bg-lime/10 border-lime text-lime' : 
-          isCancelled ? 'border-muted text-muted' : 
-          'border-gold/30 text-gold/30'
-        }`}>
-          {isReady ? <CheckCircle2 size={16} /> : isCancelled ? <AlertCircle size={16} /> : <Circle size={12} className="fill-current" />}
+        <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${config.bg} ${config.border} ${config.color}`}>
+          {config.icon}
         </div>
         {item.quantity > 1 && (
-          <div className="absolute -top-1 -right-1 bg-gold text-bg text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-bg">
+          <div className="absolute -top-1 -right-1 bg-cyan-400 text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border border-black">
             {item.quantity}
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <h4 className={`text-sm font-black uppercase tracking-tight truncate ${isCancelled ? 'line-through text-muted' : 'text-ivory group-hover/item:text-gold transition-colors'}`}>
+        <h4 className={`text-sm font-bold uppercase tracking-tight truncate ${isCancelled ? 'line-through text-white/30' : 'text-white group-hover/item:text-cyan-400 transition-colors'}`}>
           {(item.product as any)?.name || "Producto desconocido"}
         </h4>
+        <div className="flex items-center gap-2 mt-1">
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${config.color}`}>
+            {itemStatus === "pending" ? "Pendiente" : 
+             itemStatus === "preparing" ? "Preparando" :
+             itemStatus === "ready" ? "Listo" :
+             itemStatus === "served" ? "Servido" : "Cancelado"}
+          </span>
+        </div>
         {itemAny.notes && (
-          <p className="text-[10px] text-ember font-black uppercase tracking-widest mt-1 animate-pulse">
+          <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider mt-1">
             ! {itemAny.notes}
           </p>
         )}
       </div>
 
       {isReady && !isCancelled && (
-        <div className="badge badge-lime text-[8px] py-1 px-2 uppercase tracking-widest font-black">LISTO</div>
+        <div className={`px-2 py-1 rounded-lg text-[8px] font-bold uppercase tracking-wider ${config.bg} ${config.color} ${config.border}`}>
+          LISTO
+        </div>
       )}
     </div>
   );

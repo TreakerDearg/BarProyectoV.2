@@ -55,6 +55,7 @@ export default function OrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
   const [showExportImport, setShowExportImport] = useState(false);
+  const [tableFilter, setTableFilter] = useState<"all" | "1-5" | "6-10" | "11+">("all");
 
   // Filter groups for AdvancedSearchFilter
   const filterGroups = [
@@ -230,6 +231,17 @@ export default function OrdersPage() {
       );
     }
 
+    // Apply table filter
+    if (tableFilter !== "all") {
+      list = list.filter(o => {
+        const tableNum = (o.table as { number?: number })?.number || 0;
+        if (tableFilter === "1-5") return tableNum >= 1 && tableNum <= 5;
+        if (tableFilter === "6-10") return tableNum >= 6 && tableNum <= 10;
+        if (tableFilter === "11+") return tableNum >= 11;
+        return true;
+      });
+    }
+
     // Apply status filter
     if (activeFilters["status"]?.length > 0) {
       list = list.filter(o => activeFilters["status"]!.includes(o.status));
@@ -255,7 +267,7 @@ export default function OrdersPage() {
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeA - timeB;
     });
-  }, [orders, filter, searchQuery, salonMode, activeFilters]);
+  }, [orders, filter, searchQuery, salonMode, activeFilters, tableFilter]);
 
   const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
     try {
@@ -302,8 +314,8 @@ export default function OrdersPage() {
         onComplete={completeSalonTutorial}
       />
 
-      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-8">
-        <div className="p-3 rounded-2xl bg-violet-500/15 text-violet-200">
+      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-6">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30 text-violet-200">
           <Sparkles size={20} />
         </div>
 
@@ -341,22 +353,27 @@ export default function OrdersPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-xl nebula-btn-primary flex items-center justify-center shadow-gold-glow"
+          className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan/20 hover:shadow-cyan/40 transition-all"
           title="Nueva orden"
         >
-          <Plus size={24} />
+          <Plus size={24} className="text-white" />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
         <header className="flex flex-wrap items-end justify-between gap-6 px-1">
-          <div>
-            <p className="text-xs text-muted font-semibold uppercase tracking-wide">
-              Nebula · Comandas
-            </p>
-            <h1 className="text-3xl md:text-4xl font-bold text-ivory tracking-tight">
-              Órdenes Activas
-            </h1>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30">
+              <ChefHat className="text-violet-200" size={28} />
+            </div>
+            <div>
+              <p className="text-xs text-white/50 font-semibold uppercase tracking-wide">
+                Nebula · Comandas
+              </p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                Órdenes Activas
+              </h1>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -377,6 +394,47 @@ export default function OrdersPage() {
               </button>
             </div>
 
+            {salonMode === "advanced" && (
+              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setTableFilter("all")}
+                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
+                    tableFilter === "all" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  Todas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableFilter("1-5")}
+                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
+                    tableFilter === "1-5" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  1-5
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableFilter("6-10")}
+                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
+                    tableFilter === "6-10" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  6-10
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTableFilter("11+")}
+                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
+                    tableFilter === "11+" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                  }`}
+                >
+                  11+
+                </button>
+              </div>
+            )}
+
             <AdvancedSearchFilter
               filterGroups={filterGroups}
               onSearch={setSearchQuery}
@@ -386,6 +444,38 @@ export default function OrdersPage() {
               onSaveFilter={() => {}}
               onLoadFilter={() => {}}
             />
+
+            {/* Active Filters Display */}
+            {(Object.keys(activeFilters).length > 0 || tableFilter !== "all") && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {tableFilter !== "all" && (
+                  <button
+                    onClick={() => setTableFilter("all")}
+                    className="px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan-400 text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-cyan/20 transition-all"
+                  >
+                    <X size={12} />
+                    Mesas {tableFilter}
+                  </button>
+                )}
+                {Object.entries(activeFilters).map(([key, values]) =>
+                  values.map((value) => (
+                    <button
+                      key={`${key}-${value}`}
+                      onClick={() => {
+                        setActiveFilters(prev => ({
+                          ...prev,
+                          [key]: prev[key]?.filter(v => v !== value) || []
+                        }));
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-violet/10 border border-violet/30 text-violet-400 text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-violet/20 transition-all"
+                    >
+                      <X size={12} />
+                      {value}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
 
             <button
               type="button"
@@ -424,21 +514,25 @@ export default function OrdersPage() {
               label="Total"
               value={stats.total}
               icon={<ChefHat size={16} />}
+              color="violet"
             />
             <MetricCard
               label="Pendientes"
               value={stats.pending}
               icon={<Clock size={16} />}
+              color="cyan"
             />
             <MetricCard
               label="En curso"
               value={stats.inProgress}
               icon={<Zap size={16} />}
+              color="orange"
             />
             <MetricCard
               label="Críticos"
               value={stats.critical}
               icon={<Flame size={16} />}
+              color="red"
               warn
             />
           </div>
@@ -457,7 +551,15 @@ export default function OrdersPage() {
         )}
 
         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
-          {processedOrders.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full border-2 border-violet-400/20 animate-spin" />
+                <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+              </div>
+              <p className="text-sm text-white/50 mt-4 animate-pulse">Cargando órdenes...</p>
+            </div>
+          ) : processedOrders.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8">
               {processedOrders.map((order) => (
                 <OrderCard
@@ -472,8 +574,10 @@ export default function OrdersPage() {
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center opacity-40 gap-4">
-              <ChefHat size={48} />
-              <p className="text-sm text-muted">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20">
+                <ChefHat size={48} className="text-violet-300/60" />
+              </div>
+              <p className="text-sm text-white/50">
                 No hay comandas en este filtro
               </p>
             </div>
@@ -562,22 +666,40 @@ function MetricCard({
   value,
   icon,
   warn,
+  color,
 }: {
   label: string;
   value: number;
   icon: ReactNode;
   warn?: boolean;
+  color?: string;
 }) {
+  const colorClasses = {
+    violet: "from-violet-500/20 via-purple-500/15 to-violet-600/10 border-violet-400/30",
+    cyan: "from-cyan-500/20 via-teal-500/15 to-cyan-600/10 border-cyan-400/30",
+    orange: "from-orange-500/20 via-amber-500/15 to-orange-600/10 border-orange-400/30",
+    red: "from-red-500/20 via-rose-500/15 to-red-600/10 border-red-400/30",
+  };
+
+  const iconBg = {
+    violet: "bg-violet/20 text-violet-400",
+    cyan: "bg-cyan/20 text-cyan-400",
+    orange: "bg-orange/20 text-orange-400",
+    red: "bg-red/20 text-red-400",
+  };
+
+  const selectedColor = color || "violet";
+
   return (
     <div
-      className={`nebula-panel !p-5 flex items-center gap-4 ${warn && value > 0 ? "border-amber-500/30" : ""}`}
+      className={`nebula-panel !p-5 flex items-center gap-4 bg-gradient-to-br ${colorClasses[selectedColor as keyof typeof colorClasses]} rounded-xl border transition-all hover:scale-[1.02] ${warn && value > 0 ? "border-red-500/50" : ""}`}
     >
-      <div className="p-2.5 rounded-lg bg-violet-500/10 text-violet-200">
+      <div className={`p-2.5 rounded-lg ${iconBg[selectedColor as keyof typeof iconBg]}`}>
         {icon}
       </div>
       <div>
-        <p className="text-xs text-muted uppercase">{label}</p>
-        <p className="text-2xl font-bold text-ivory">{value}</p>
+        <p className="text-xs text-white/60 uppercase">{label}</p>
+        <p className="text-2xl font-bold text-white">{value}</p>
       </div>
     </div>
   );
