@@ -596,126 +596,120 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
   const isValid = formData.name.trim() && formData.price > 0;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-6">
-      <div className="nebula-forms-root w-full max-w-6xl lg:max-w-7xl">
-        <div className="nebula-forms-aurora" />
-        
-        <div className="nebula-form-panel">
-          {/* HEADER */}
-          <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center shrink-0">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-gradient-to-br from-rose-600 to-violet-600 rounded-xl md:rounded-2xl shadow-lg">
-                <Box className="text-white" size={24} />
-              </div>
-              <div>
-                <nav className="flex items-center gap-2 text-xs text-muted mb-1">
-                  <span>Catalog</span>
-                  <ChevronRight size={12} />
-                  <span className="text-rose-300 font-medium">Edit Product</span>
-                </nav>
-                <h2 className="text-xl md:text-2xl font-bold text-ivory">
-                  {product ? "Edit Product" : "New Product"}
-                </h2>
-              </div>
+    <div className="flex flex-col h-full animate-fade-in">
+      {/* HEADER */}
+      <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center shrink-0 bg-surface-2">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="p-2 md:p-3 bg-gradient-to-br from-rose-600 to-violet-600 rounded-xl md:rounded-2xl shadow-lg">
+            <Box className="text-white" size={24} />
+          </div>
+          <div>
+            <nav className="flex items-center gap-2 text-xs text-muted mb-1">
+              <span>Catalog</span>
+              <ChevronRight size={12} />
+              <span className="text-rose-300 font-medium">{product ? "Edit Product" : "New Product"}</span>
+            </nav>
+            <h2 className="text-xl md:text-2xl font-bold text-ivory">
+              {product ? "Edit Product" : "New Product"}
+            </h2>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 bg-surface-3 p-3 rounded-lg border border-white/10">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Visibility</span>
+              <span className={`text-xs font-medium ${formData.available ? 'text-emerald-400' : 'text-muted'}`}>
+                {formData.available ? 'Active' : 'Inactive'}
+              </span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 bg-surface-3 p-3 rounded-lg border border-white/10">
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Visibility</span>
-                  <span className={`text-xs font-medium ${formData.available ? 'text-emerald-400' : 'text-muted'}`}>
-                    {formData.available ? 'Active' : 'Inactive'}
-                  </span>
+            <button
+              onClick={() => setFormData({ ...formData, available: !formData.available })}
+              className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-rose/40 bg-emerald-500"
+            >
+              <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black/50 shadow ring-0 transition duration-200 ease-in-out translate-x-5" />
+            </button>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} className="text-muted" />
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT - ASYMMETRIC GRID LAYOUT */}
+      <div className="p-6 md:p-8 flex-1 overflow-y-auto pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
+          {/* LEFT COLUMN - Image Upload & Product Core (7 columns) */}
+          <div className="lg:col-span-7 space-y-8">
+            <EnhancedImageUpload currentImage={formData.image} onImageUpload={handleImageUpload} />
+            <ProductIdentityCard formData={formData} setFormData={setFormData} />
+          </div>
+
+          {/* RIGHT COLUMN - Pricing & Logistics + Display Options + Help Card (5 columns) */}
+          <div className="lg:col-span-5 space-y-8">
+            <ProductFinancePanel formData={formData} setFormData={setFormData} />
+            <DietaryRestrictionSelector formData={formData} setFormData={setFormData} />
+            <ProductAttributeGrid formData={formData} setFormData={setFormData} />
+            <HelpTipCard />
+            <ProductPricePreview formData={formData} />
+
+            {/* Validation Panel */}
+            {error && (
+              <div className="nebula-form-card border-red/30">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="text-red-400" size={20} />
+                  <p className="text-xs text-red-400">{error}</p>
                 </div>
-                <button
-                  onClick={() => setFormData({ ...formData, available: !formData.available })}
-                  className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-rose/40 bg-emerald-500"
-                >
-                  <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-black/50 shadow ring-0 transition duration-200 ease-in-out translate-x-5" />
-                </button>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                <X size={24} className="text-muted" />
-              </button>
-            </div>
-          </div>
+            )}
 
-          {/* MAIN CONTENT - ASYMMETRIC GRID LAYOUT */}
-          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll pb-32">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* LEFT COLUMN - Image Upload & Product Core (7 columns) */}
-              <div className="lg:col-span-7 space-y-8">
-                <EnhancedImageUpload currentImage={formData.image} onImageUpload={handleImageUpload} />
-                <ProductIdentityCard formData={formData} setFormData={setFormData} />
-              </div>
-
-              {/* RIGHT COLUMN - Pricing & Logistics + Display Options + Help Card (5 columns) */}
-              <div className="lg:col-span-5 space-y-8">
-                <ProductFinancePanel formData={formData} setFormData={setFormData} />
-                <DietaryRestrictionSelector formData={formData} setFormData={setFormData} />
-                <ProductAttributeGrid formData={formData} setFormData={setFormData} />
-                <HelpTipCard />
-                <ProductPricePreview formData={formData} />
-
-                {/* Validation Panel */}
-                {error && (
-                  <div className="nebula-form-card border-red/30">
-                    <div className="flex items-center gap-3">
-                      <AlertTriangle className="text-red-400" size={20} />
-                      <p className="text-xs text-red-400">{error}</p>
-                    </div>
-                  </div>
-                )}
-
-                {isValid && !error && (
-                  <div className="nebula-form-card border-emerald/30">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="text-emerald-400" size={20} />
-                      <p className="text-xs text-emerald-400">Ready to save</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* FIXED FOOTER */}
-          <div className="fixed bottom-0 right-0 left-0 ml-64 h-20 bg-black/80 backdrop-blur-xl border-t border-white/10 px-12 flex items-center justify-between z-20">
-            <div className="flex items-center gap-4">
-              {autoSaved && lastSaved && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-surface-3 rounded-full border border-white/10">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest">
-                    Auto-saved {Math.floor((Date.now() - lastSaved.getTime()) / 60000)}m ago
-                  </span>
+            {isValid && !error && (
+              <div className="nebula-form-card border-emerald/30">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="text-emerald-400" size={20} />
+                  <p className="text-xs text-emerald-400">Ready to save</p>
                 </div>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onClose}
-                className="px-6 py-2.5 text-muted hover:text-ivory text-sm font-bold transition-colors"
-              >
-                Discard
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading || !isValid}
-                className="bg-rose text-black px-8 py-2.5 rounded-lg text-sm font-black shadow-lg shadow-rose/20 hover:shadow-rose/40 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin mr-2" size={18} />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="mr-2" size={18} />
-                    {product ? 'Save Changes' : 'Create Product'}
-                  </>
-                )}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* FIXED FOOTER */}
+      <div className="fixed bottom-0 right-0 left-0 h-20 bg-black/80 backdrop-blur-xl border-t border-white/10 px-12 flex items-center justify-between z-20">
+        <div className="flex items-center gap-4">
+          {autoSaved && lastSaved && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-surface-3 rounded-full border border-white/10">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold text-muted uppercase tracking-widest">
+                Auto-saved {Math.floor((Date.now() - lastSaved.getTime()) / 60000)}m ago
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="px-6 py-2.5 text-muted hover:text-ivory text-sm font-bold transition-colors"
+          >
+            Discard
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !isValid}
+            className="bg-rose text-black px-8 py-2.5 rounded-lg text-sm font-black shadow-lg shadow-rose/20 hover:shadow-rose/40 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={18} />
+                Saving...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2" size={18} />
+                {product ? 'Save Changes' : 'Create Product'}
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

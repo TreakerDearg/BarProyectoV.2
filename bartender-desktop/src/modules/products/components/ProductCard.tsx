@@ -3,18 +3,16 @@
 import {
   Pencil,
   Trash2,
-  DollarSign,
-  TrendingUp,
   Zap,
-  Activity,
-  Box,
   Copy,
   CheckCircle,
   XCircle,
   Star,
   Clock,
   FileText,
-  Layers
+  Layers,
+  Martini,
+  UtensilsCrossed
 } from "lucide-react";
 
 import type { Product } from "../../../types/product";
@@ -47,8 +45,30 @@ export default function ProductCard({
   const dynamicPrice = (product.dynamicPrice ?? price) as number;
   const cost = product.cost ?? 0;
   const margin = dynamicPrice > 0 ? Math.round(((dynamicPrice - cost) / dynamicPrice) * 100) : 0;
-  const hasAdjustment = Math.abs(dynamicPrice - price) > 0.01;
 
+  // Nebula theme configuration by type
+  const typeTheme = {
+    drink: {
+      gradient: "from-gold/20 via-amber-500/15 to-orange-500/10",
+      borderColor: "border-gold/30",
+      icon: <Martini size={24} className="text-gold" />,
+      glow: "bg-gold/10",
+      primaryColor: "text-gold",
+      badgeColor: "bg-gold/20 text-gold border-gold/30"
+    },
+    food: {
+      gradient: "from-emerald-500/20 via-green-500/15 to-teal-500/10",
+      borderColor: "border-emerald/30",
+      icon: <UtensilsCrossed size={24} className="text-emerald-400" />,
+      glow: "bg-emerald-400/10",
+      primaryColor: "text-emerald-400",
+      badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald/500/30"
+    }
+  }[product.type || "drink"];
+
+  const statusConfig = product.available
+    ? { color: "text-emerald-400", bg: "bg-emerald-500/20", border: "border-emerald/30" }
+    : { color: "text-red-400", bg: "bg-red-500/20", border: "border-red/30" };
 
   return (
     <ExpandableCardWrapper
@@ -59,167 +79,164 @@ export default function ProductCard({
     >
       <div className={`
         relative group cursor-pointer
-        rounded-[2.5rem] p-8 space-y-7
-        border border-white/5
-        bg-surface-2 overflow-hidden transition-all duration-500
-        hover:translate-y-[-8px] hover:shadow-royale
-        ${isDrink ? 'hover:border-gold/30' : 'hover:border-emerald-400/30'}
+        rounded-2xl overflow-hidden transition-all duration-500
+        bg-gradient-to-br ${typeTheme.gradient} border ${typeTheme.borderColor}
+        hover:scale-[1.02] hover:shadow-2xl
       `}>
       
-      {/* ATMOSPHERIC GLOW */}
-      <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] transition-opacity duration-700 opacity-0 group-hover:opacity-100 ${isDrink ? 'bg-gold/10' : 'bg-emerald-400/10'}`} />
-
-      {/* ================= HEADER ================= */}
-      <div className="flex justify-between items-start relative z-10">
-        <div className="flex items-center gap-4">
-          {product.image && (
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-            </div>
-          )}
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-black text-xl text-ivory tracking-tighter uppercase leading-none truncate max-w-[150px]">
-                {product.name}
-              </h3>
-              {product.available ? (
-                <CheckCircle size={16} className="text-emerald-400 flex-shrink-0" />
-              ) : (
-                <XCircle size={16} className="text-red-400 flex-shrink-0" />
+      {/* Hero Section */}
+      <div className={`relative p-6 bg-gradient-to-r ${typeTheme.gradient}`}>
+        <div className={`absolute -top-16 -right-16 w-32 h-32 rounded-full blur-[60px] transition-opacity duration-700 opacity-50 group-hover:opacity-100 ${typeTheme.glow}`} />
+        
+        <div className="flex items-start justify-between relative z-10">
+          <div className="flex items-center gap-4">
+            {product.image ? (
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow-lg">
+                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className={`w-20 h-20 rounded-2xl flex items-center justify-center bg-white/10 border border-white/20 flex-shrink-0 shadow-lg`}>
+                {typeTheme.icon}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-bold text-lg text-white truncate">
+                  {product.name}
+                </h3>
+                <div className={`p-1.5 rounded-full ${statusConfig.bg} ${statusConfig.border}`}>
+                  {product.available ? (
+                    <CheckCircle size={14} className={statusConfig.color} />
+                  ) : (
+                    <XCircle size={14} className={statusConfig.color} />
+                  )}
+                </div>
+              </div>
+              {!simplified && (
+                <p className="text-xs text-white/60 font-medium uppercase tracking-wider">
+                  {product.category || 'General'} · {product.type === 'drink' ? 'Bebida' : 'Comida'}
+                </p>
+              )}
+              {isDrink && product.drinkStyle && (
+                <div className="mt-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
+                    product.drinkStyle === 'author' 
+                      ? 'bg-violet-500/20 text-violet-400 border border-violet/30' 
+                      : 'bg-cyan-500/20 text-cyan-400 border border-cyan/30'
+                  }`}>
+                    {product.drinkStyle === 'author' ? 'Autor' : 'Clásico'}
+                  </span>
+                </div>
               )}
             </div>
-            {!simplified && (
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.3em] mt-1">
-                {product.category || 'GENERAL'} · {product.type?.toUpperCase()}
-              </p>
-            )}
-            {isDrink && product.drinkStyle && (
-              <div className="mt-1">
-                <span className={`text-[8px] px-2 py-0.5 rounded font-semibold ${
-                  product.drinkStyle === 'author' 
-                    ? 'bg-violet-500/20 text-violet-400' 
-                    : 'bg-emerald-500/20 text-emerald-400'
-                }`}>
-                  {product.drinkStyle === 'author' ? 'AUTOR' : 'CLÁSICO'}
-                </span>
-              </div>
-            )}
-            {Array.isArray(product.tags) && product.tags.length > 0 && (
-              <div className="flex items-center gap-1 mt-1 flex-wrap">
-                {product.tags.slice(0, 2).map((tag, idx) => (
-                  <span key={idx} className="text-[8px] px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded font-semibold">
-                    {tag}
-                  </span>
-                ))}
-                {product.tags.length > 2 && (
-                  <span className="text-[8px] text-muted">+{product.tags.length - 2}</span>
-                )}
-              </div>
-            )}
           </div>
-        </div>
-
-        {!simplified && (
-          <div className={`badge ${isDrink ? 'badge-gold' : 'badge-emerald'} text-[8px] px-3 py-1.5 rounded-xl font-black tracking-widest flex items-center gap-1`}>
-            {product.featured && <Star size={10} fill="currentColor" />}
-            VIP SELECTION
-          </div>
-        )}
-      </div>
-
-      {/* ================= PRICE & PROFIT ================= */}
-      <div className={`grid gap-3 relative z-10 ${simplified ? 'grid-cols-1' : 'grid-cols-2'}`}>
-        <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PRECIO VENTA</p>
-          <div className="flex items-center gap-2">
-            <DollarSign size={14} className={hasAdjustment ? "text-primary" : "text-emerald-400"} />
-            <span className={`text-lg font-black ${hasAdjustment ? "text-primary" : "text-ivory"}`}>
-              ${dynamicPrice.toFixed(2)}
-            </span>
-            {hasAdjustment && (
-              <span className="text-[10px] text-muted line-through opacity-50 ml-1">
-                ${price.toFixed(2)}
-              </span>
-            )}
-          </div>
-        </div>
-        {!simplified && (
-          <div className="bg-surface-3/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">RENTABILIDAD</p>
-            <div className="flex items-center gap-2">
-              <TrendingUp size={14} className={margin > 50 ? 'text-lime' : 'text-gold'} />
-              <span className={`text-lg font-black ${margin > 50 ? 'text-lime' : 'text-gold'}`}>{margin}%</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ================= TACTICAL STATS - Hidden in simplified mode ================= */}
-      {!simplified && (
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="flex items-center gap-2">
-            <Activity size={12} className="text-muted" />
-            <p className="text-[9px] font-black text-muted uppercase tracking-widest">Costo: ${cost.toFixed(2)}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock size={12} className="text-muted" />
-            <p className="text-[9px] font-black text-muted uppercase tracking-widest">{product.preparationTime || 5} min</p>
-          </div>
-          {product.hasRecipe && (
-            <div className="flex items-center gap-2">
-              <FileText size={12} className="text-emerald-400" />
-              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Tiene Receta</p>
+          
+          {product.featured && (
+            <div className="p-2 rounded-lg bg-gold/20 border border-gold/30">
+              <Star size={16} className="text-gold fill-gold" />
             </div>
           )}
-          {product.menuIds && product.menuIds.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Layers size={12} className="text-violet-400" />
-              <p className="text-[9px] font-black text-violet-400 uppercase tracking-widest">{product.menuIds.length} menú(s)</p>
+        </div>
+      </div>
+
+      {/* Quick Stats Row */}
+      <div className="grid grid-cols-3 gap-2 p-4 bg-white/5 border-t border-white/10">
+        <div className="text-center">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Precio</p>
+          <p className="text-lg font-bold text-white">
+            ${dynamicPrice.toFixed(2)}
+          </p>
+        </div>
+        {!simplified && (
+          <>
+            <div className="text-center">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Margen</p>
+              <p className={`text-lg font-bold ${margin > 50 ? 'text-emerald-400' : margin > 30 ? 'text-cyan-400' : 'text-gold'}`}>
+                {margin}%
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Costo</p>
+              <p className="text-lg font-bold text-white/70">
+                ${cost.toFixed(2)}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Additional Info (Advanced Mode) */}
+      {!simplified && (
+        <div className="px-4 pb-4 space-y-2">
+          <div className="flex items-center gap-4 text-xs text-white/50">
+            <div className="flex items-center gap-1">
+              <Clock size={12} />
+              <span>{product.preparationTime || 5} min</span>
+            </div>
+            {product.hasRecipe && (
+              <div className="flex items-center gap-1">
+                <FileText size={12} className="text-emerald-400" />
+                <span className="text-emerald-400">Tiene receta</span>
+              </div>
+            )}
+            {product.menuIds && product.menuIds.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Layers size={12} className="text-violet-400" />
+                <span className="text-violet-400">{product.menuIds.length} menú(s)</span>
+              </div>
+            )}
+          </div>
+          
+          {Array.isArray(product.tags) && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {product.tags.slice(0, 3).map((tag, idx) => (
+                <span key={idx} className="text-[10px] px-2 py-0.5 bg-violet-500/20 text-violet-300 rounded border border-violet/30">
+                  {tag}
+                </span>
+              ))}
+              {product.tags.length > 3 && (
+                <span className="text-[10px] text-white/40">+{product.tags.length - 3}</span>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* ================= ACTIONS - Simplified in simple mode ================= */}
-      <div className={`flex flex-col gap-3 relative z-10 ${simplified ? 'flex-row' : ''}`}>
-        {!simplified && (
+      {/* Action Buttons */}
+      <div className="flex gap-2 p-4 bg-white/5 border-t border-white/10">
+        {!simplified && onInspect && (
           <button
-            onClick={() => onInspect?.(product)}
-            className="w-full h-14 rounded-2xl bg-gold/5 border border-gold/10 flex items-center justify-center gap-3 hover:bg-gold/10 hover:border-gold/30 transition-all group/btn"
+            onClick={() => onInspect(product)}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-violet/20 border border-violet/30 text-violet hover:bg-violet/30 transition-all"
           >
-            <Zap size={16} className="text-gold" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold">MAPEO DE INGREDIENTES</span>
+            <Zap size={14} />
+            <span className="text-xs font-bold">Mapeo</span>
           </button>
         )}
-
-        <div className={`flex gap-3 ${simplified ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0'} transition-all duration-500`}>
-          {onDuplicate && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDuplicate(product); }}
-              className="w-14 h-14 rounded-2xl bg-violet/5 border border-violet/10 flex items-center justify-center text-violet/40 hover:text-violet hover:bg-violet/20 transition-all"
-            >
-              <Copy size={18} />
-            </button>
-          )}
+        
+        <button
+          onClick={() => onEdit(product)}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
+        >
+          <Pencil size={14} />
+          <span className="text-xs font-bold">Editar</span>
+        </button>
+        
+        {onDuplicate && (
           <button
-            onClick={() => onEdit(product)}
-            className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+            onClick={(e) => { e.stopPropagation(); onDuplicate(product); }}
+            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all"
           >
-            <Pencil size={14} className="text-muted" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-muted">EDITAR</span>
+            <Copy size={14} />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(product._id!); }}
-            className="w-14 h-14 rounded-2xl bg-red/5 border border-red/10 flex items-center justify-center text-red/40 hover:text-red hover:bg-red/20 transition-all"
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* CASINO DECOR */}
-      <div className="absolute -bottom-1 -right-1 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-        <Box size={100} />
+        )}
+        
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(product._id!); }}
+          className="p-2.5 rounded-xl bg-red/10 border border-red/20 text-red-400 hover:bg-red/20 transition-all"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
     </div>
     </ExpandableCardWrapper>

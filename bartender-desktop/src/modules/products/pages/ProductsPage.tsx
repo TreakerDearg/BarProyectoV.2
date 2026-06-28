@@ -4,6 +4,7 @@ import { Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity, TrendingUp, 
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
 import ProductTutorial from "../components/tutorial/ProductTutorial";
+import IngredientMappingPanel from "../components/IngredientMappingPanel";
 import DataExportImport from "../../../components/shared/DataExportImport";
 import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 
@@ -25,13 +26,14 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pageView, setPageView] = useState<"list" | "form">("list");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showExportImport, setShowExportImport] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [mappingProduct, setMappingProduct] = useState<Product | null>(null);
 
   const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
     try {
@@ -219,8 +221,14 @@ export default function ProductsPage() {
     const featured = products.filter((p) => p.featured).length;
     const drinks = products.filter((p) => p.type === 'drink').length;
     const food = products.filter((p) => p.type === 'food').length;
+    const avgMargin = products.length > 0 
+      ? products.reduce((acc, p) => {
+          const margin = p.price > 0 && p.cost > 0 ? ((p.price - p.cost) / p.price) * 100 : 0;
+          return acc + margin;
+        }, 0) / products.length
+      : 0;
 
-    return { total, available, featured, drinks, food };
+    return { total, available, featured, drinks, food, avgMargin };
   }, [products]);
 
   /* =========================
@@ -234,7 +242,7 @@ export default function ProductsPage() {
         await createProduct(product);
       }
 
-      setIsModalOpen(false);
+      setPageView("list");
       setSelectedProduct(null);
 
       fetchProducts();
@@ -278,14 +286,14 @@ export default function ProductsPage() {
       {/* HEADER SECTION */}
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30 shadow-[0_0_32px_rgba(139,92,246,0.2)]">
             <Package className="text-violet-200" size={28} />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
               Catálogo de Productos
             </h1>
-            <p className="text-xs text-muted mt-1 flex items-center gap-1.5">
+            <p className="text-xs text-white/50 mt-1 flex items-center gap-1.5">
               <Target size={12} className="text-violet-400/70" />
               Product Management · Nebula v3
             </p>
@@ -341,7 +349,7 @@ export default function ProductsPage() {
           <button
             onClick={() => {
               setSelectedProduct(null);
-              setIsModalOpen(true);
+              setPageView("form");
             }}
             className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
           >
@@ -352,7 +360,7 @@ export default function ProductsPage() {
       </header>
 
       {/* KPI DASHBOARD */}
-      <div className={`grid gap-4 ${mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-5'}`}>
+      <div className={`grid gap-4 ${mode === 'simple' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-5'}`}>
         <KPIBox label="Total" value={stats.total} icon={<Package size={18} />} color="violet" />
         <KPIBox label="Disponibles" value={stats.available} icon={<Zap size={18} />} color="cyan" />
         <KPIBox label="Destacados" value={stats.featured} icon={<Activity size={18} />} color="orange" />
@@ -374,13 +382,19 @@ export default function ProductsPage() {
       {/* MAIN GRID */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-12 h-12 rounded-xl border-2 border-violet-400/30 border-t-violet-300 animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-2 border-violet-400/20 animate-spin" />
+              <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+            </div>
+            <p className="text-sm text-white/50 mt-4 animate-pulse">Cargando productos...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Package size={48} className="text-violet-300/40 mb-4" />
-            <p className="text-muted text-sm">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20 mb-4">
+              <Package size={48} className="text-violet-300/60" />
+            </div>
+            <p className="text-white/50 text-sm">
               {search ? "No se encontraron productos" : "No hay productos registrados"}
             </p>
           </div>
@@ -392,8 +406,9 @@ export default function ProductsPage() {
                 product={product}
                 onEdit={(p) => {
                   setSelectedProduct(p);
-                  setIsModalOpen(true);
+                  setPageView("form");
                 }}
+                onInspect={(p) => setMappingProduct(p)}
                 onDelete={() => handleDelete(product._id!)}
                 simplified={mode === 'simple'}
                 expanded={expandedCards.has(product._id!)}
@@ -404,14 +419,26 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* MODAL */}
-      {isModalOpen && (
+      {/* FORM VIEW */}
+      {pageView === "form" && (
         <ProductForm
           product={selectedProduct}
           onSave={handleSave}
           onClose={() => {
-            setIsModalOpen(false);
+            setPageView("list");
             setSelectedProduct(null);
+          }}
+        />
+      )}
+
+      {/* INGREDIENT MAPPING PANEL */}
+      {mappingProduct && (
+        <IngredientMappingPanel
+          product={mappingProduct}
+          onClose={() => setMappingProduct(null)}
+          onSave={(recipe) => {
+            console.log("Recipe saved:", recipe);
+            setMappingProduct(null);
           }}
         />
       )}
@@ -448,19 +475,25 @@ export default function ProductsPage() {
 ========================= */
 function KPIBox({ label, value, icon, color }: { label: string; value: number | string; icon: React.ReactNode; color: string }) {
   const colorClasses = {
-    violet: "from-violet-500/20 to-violet-600/10 border-violet-400/20",
-    cyan: "from-cyan-500/20 to-cyan-600/10 border-cyan-400/20",
-    orange: "from-orange-500/20 to-orange-600/10 border-orange-400/20",
+    violet: "from-violet-500/20 via-purple-500/15 to-violet-600/10 border-violet-400/30",
+    cyan: "from-cyan-500/20 via-teal-500/15 to-cyan-600/10 border-cyan-400/30",
+    orange: "from-orange-500/20 via-amber-500/15 to-orange-600/10 border-orange-400/30",
+  };
+
+  const iconBg = {
+    violet: "bg-violet/20 text-violet-400",
+    cyan: "bg-cyan/20 text-cyan-400",
+    orange: "bg-orange/20 text-orange-400",
   };
 
   return (
-    <div className={`nebula-panel p-4 flex items-center gap-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <div className="p-2.5 rounded-lg bg-white/5">
+    <div className={`nebula-panel p-4 flex items-center gap-4 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} rounded-xl border transition-all hover:scale-[1.02]`}>
+      <div className={`p-2.5 rounded-lg ${iconBg[color as keyof typeof iconBg]}`}>
         {icon}
       </div>
       <div className="flex-1">
-        <p className="text-xs text-muted mb-1">{label}</p>
-        <p className="text-2xl font-bold text-ivory">{value}</p>
+        <p className="text-xs text-white/60 mb-1 uppercase tracking-wider">{label}</p>
+        <p className="text-2xl font-bold text-white">{value}</p>
       </div>
     </div>
   );

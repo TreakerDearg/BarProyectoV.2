@@ -232,13 +232,9 @@ export default function NebulaDiscountPage() {
     // Cargar órdenes primero (crítico)
     cargarOrdenes(signal);
 
-    // Cargar estadísticas y límites en segundo plano (no crítico)
-    setTimeout(() => {
-      if (!signal.aborted) {
-        cargarEstadisticas(signal);
-        cargarLimiteDiario(signal);
-      }
-    }, 100);
+    // Cargar estadísticas y límites en paralelo (no crítico)
+    cargarEstadisticas(signal);
+    cargarLimiteDiario(signal);
 
     return () => {
       abortController.abort();
@@ -251,6 +247,7 @@ export default function NebulaDiscountPage() {
   useEffect(() => {
     if (!selectedOrder) {
       setPasoActual(1);
+      setItems([]);
       return;
     }
 
@@ -260,9 +257,9 @@ export default function NebulaDiscountPage() {
     }));
 
     setItems(itemsMapeados);
-    discount.reset();
     setPasoActual(1);
-  }, [selectedOrder, discount]);
+    discount.reset();
+  }, [selectedOrder?._id]);
 
   /* =========================
      APLICAR DESCUENTO

@@ -19,7 +19,7 @@ export default function DiscountsSuiteHeader({
 }: Props) {
   const views = [
     { id: "manual", label: "Manual" },
-    { id: "dynamic", label: "Precios Dinámicos" },
+    { id: "dynamic-pricing", label: "Precios Dinámicos" },
     { id: "promotions", label: "Promociones" },
     { id: "events", label: "Eventos" },
   ];
