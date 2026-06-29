@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   getOrders, getOrderById, createOrder, updateOrderStatus,
-  updateOrderItemStatus, deleteOrder, applyDiscount
+  updateOrderItemStatus, deleteOrder, applyDiscount, updateOrderItems
 } from "../controllers/order.controller.js";
 import { validate } from "../middlewares/validate.js";
 import {
@@ -29,6 +29,7 @@ router.post("/", protect, validate(createOrderSchema), asyncHandler(createOrder)
 
 router.patch("/:id/status", protect, validate(updateOrderStatusSchema), asyncHandler(updateOrderStatus));
 router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatusSchema), asyncHandler(updateOrderItemStatus));
+router.patch("/:orderId/items", protect, asyncHandler(updateOrderItems));
 
 /* =========================================================
    DISCOUNTS

@@ -41,9 +41,9 @@ export default function FocusPanel({
 }: Props) {
   if (!selectedItem) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-12 text-center nebula-panel opacity-60">
-        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-          <Info size={32} className="text-muted" />
+      <div className="h-full flex flex-col items-center justify-center p-12 text-center nebula-luxury-panel opacity-75">
+        <div className="w-20 h-20 rounded-xl nebula-brand-mark flex items-center justify-center mb-6">
+          <Info size={32} />
         </div>
         <h3 className="text-base font-semibold text-ivory/70">
           Detalle del ítem
@@ -74,16 +74,16 @@ export default function FocusPanel({
     <motion.div
       initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      className="h-full flex flex-col nebula-panel overflow-hidden"
+      className="h-full flex flex-col nebula-luxury-panel overflow-hidden"
     >
       <div className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 rounded-xl bg-violet-500/15 text-violet-200">
+          <div className="p-3 rounded-xl nebula-brand-mark">
             <ClipboardList size={22} />
           </div>
           <div>
             <h2 className="text-lg font-bold text-ivory">Ítem de comanda</h2>
-            <p className="text-xs text-muted">Nebula · Comandas</p>
+            <p className="text-xs uppercase nebula-kicker">Nebula Royale · Comandas</p>
           </div>
         </div>
         <h3 className="text-2xl font-bold text-ivory">
@@ -112,8 +112,8 @@ export default function FocusPanel({
                     onClick={() => handleStatus(key)}
                     className={`px-4 py-3 rounded-xl text-sm font-semibold border transition-colors ${
                       active
-                        ? "bg-violet-500/25 border-violet-400/40 text-violet-100"
-                        : "border-white/10 text-muted hover:border-violet-400/30 hover:text-ivory"
+                        ? "bg-gold/15 border-gold/40 text-gold-light"
+                        : "border-white/10 text-muted hover:border-gold/30 hover:text-ivory"
                     }`}
                   >
                     {statusLoading && active ? (
@@ -132,7 +132,7 @@ export default function FocusPanel({
         {selectedItem.notes && (
           <section>
             <div className="flex items-center gap-2 mb-3">
-              <MessageSquare size={16} className="text-violet-300" />
+              <MessageSquare size={16} className="text-gold-light" />
               <p className="text-sm font-semibold text-muted uppercase">
                 Notas
               </p>

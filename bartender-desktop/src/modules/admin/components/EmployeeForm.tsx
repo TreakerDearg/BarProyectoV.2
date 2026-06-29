@@ -17,7 +17,7 @@ import {
   Users,
   Briefcase
 } from "lucide-react";
-import "../styles/luxury-theme.css";
+import { motion } from "framer-motion";
 
 type Role = "admin" | "bartender" | "waiter" | "cashier" | "kitchen";
 
@@ -30,10 +30,10 @@ interface EmployeeFormData {
 }
 
 const ROLE_OPTIONS = [
-  { value: "bartender", label: "Mixólogo / Bartender", icon: <Zap size={18} /> },
-  { value: "waiter", label: "Servicio / Mozo", icon: <Award size={18} /> },
-  { value: "kitchen", label: "Chef / Cocina", icon: <Zap size={18} /> },
-  { value: "admin", label: "Alto Mando / Admin", icon: <Shield size={18} /> },
+  { value: "bartender", label: "Mixólogo / Bartender", icon: <Zap size={18} />, color: "from-cyan-500/20 to-blue-500/10", border: "border-cyan/30", text: "text-cyan-400" },
+  { value: "waiter", label: "Servicio / Mozo", icon: <Award size={18} />, color: "from-emerald-500/20 to-green-500/10", border: "border-emerald/30", text: "text-emerald-400" },
+  { value: "kitchen", label: "Chef / Cocina", icon: <Zap size={18} />, color: "from-orange-500/20 to-red-500/10", border: "border-orange/30", text: "text-orange-400" },
+  { value: "admin", label: "Alto Mando / Admin", icon: <Shield size={18} />, color: "from-gold/20 to-violet-500/10", border: "border-gold/30", text: "text-gold" },
 ];
 
 export default function EmployeeForm({
@@ -79,76 +79,110 @@ export default function EmployeeForm({
     onSave(data);
   };
 
+  const getPasswordStrength = (password: string) => {
+    if (password.length === 0) return 0;
+    if (password.length < 6) return 1;
+    if (password.length < 8) return 2;
+    if (password.length < 10) return 3;
+    return 4;
+  };
+
+  const passwordStrength = getPasswordStrength(form.password);
+
   return (
-    <div className="fixed inset-0 bg-[#0a0a0f]/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in luxury-bg overflow-y-auto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 overflow-y-auto"
+    >
+      {/* Atmosphere */}
+      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-gradient-to-br from-gold/10 to-violet/10 rounded-full blur-[150px] -z-10 animate-pulse" />
+      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-gradient-to-br from-cyan/10 to-violet/10 rounded-full blur-[120px] -z-10 animate-pulse" />
 
-      {/* ATMOSPHERE */}
-      <div className="fixed top-1/4 left-1/4 w-[400px] h-[400px] bg-[#d4af37]/5 rounded-full blur-[150px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-[#b147ff]/5 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
-
-      <div className="w-full max-w-2xl glass-card rounded-[3rem] overflow-hidden my-auto animate-fade-in-up">
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        className="w-full max-w-2xl rounded-3xl overflow-hidden my-auto bg-gradient-to-br from-surface-2 to-surface-3 border border-white/10"
+      >
         
-        {/* HEADER */}
-        <div className="p-8 md:p-10 border-b border-white/5 flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <div className="p-4 rounded-2xl shadow-gold-glow" style={{ background: 'var(--gradient-gold)' }}>
-              <Users className="text-[#0a0a0f]" size={32} />
+        {/* Header */}
+        <div className="p-6 md:p-8 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-gold/10 via-violet/10 to-cyan/10">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-gold to-violet text-black shadow-lg">
+              <Users className="text-black" size={24} />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tighter uppercase leading-none gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
+              <h2 className="text-2xl font-bold tracking-tight uppercase text-white">
                 Nuevo Perfil
               </h2>
-              <p className="text-[10px] text-[#a0a0b0] font-black uppercase tracking-[0.5em] mt-2">
-                Reclutamiento Estratégico Umbra
+              <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider mt-1">
+                Reclutamiento Estratégico
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-14 h-14 rounded-full glass-card flex items-center justify-center hover:border-[#d4af37]/30 text-[#a0a0b0] hover:text-[#d4af37] transition-all">
-            <X size={28} />
+          <button onClick={onClose} className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white transition-all">
+            <X size={20} />
           </button>
         </div>
 
-        <div className="p-10 md:p-12 space-y-10">
+        <div className="p-6 md:p-8 space-y-8">
           
-          {/* ERRORS */}
+          {/* Errors */}
           {error && (
-            <div className="p-5 bg-[#ff4757]/5 border border-[#ff4757]/20 rounded-2xl flex items-center gap-4">
-              <AlertTriangle size={20} className="text-[#ff4757]" />
-              <p className="text-[10px] font-black text-[#ff4757] uppercase tracking-widest">{error}</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red/10 border border-red/30 rounded-xl flex items-center gap-3"
+            >
+              <AlertTriangle size={18} className="text-red-400" />
+              <p className="text-xs font-bold text-red-400 uppercase tracking-wider">{error}</p>
+            </motion.div>
           )}
 
-          {/* BASIC INFO */}
-          <div className="space-y-6">
-            <p className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.4em] flex items-center gap-3">
+          {/* Basic Info */}
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-gold uppercase tracking-wider flex items-center gap-2">
               <Briefcase size={14} /> Identidad del Colaborador
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest ml-1">Nombre Completo</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Nombre Completo</label>
                 <div className="relative group">
-                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-[#a0a0b0] group-focus-within:text-[#d4af37] transition-colors" size={18} />
-                  <input name="name" value={form.name} onChange={handleChange} placeholder="Ej: John Doe" className="luxury-input !pl-14" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-cyan-400 transition-colors" size={18} />
+                  <input 
+                    name="name" 
+                    value={form.name} 
+                    onChange={handleChange} 
+                    placeholder="Ej: John Doe" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-white outline-none focus:border-cyan/40 transition-all"
+                  />
                 </div>
               </div>
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest ml-1">Email Estratégico</label>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Email Estratégico</label>
                 <div className="relative group">
-                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-[#a0a0b0] group-focus-within:text-[#d4af37] transition-colors" size={18} />
-                  <input name="email" value={form.email} onChange={handleChange} placeholder="john@umbragroup.com" className="luxury-input !pl-14" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-cyan-400 transition-colors" size={18} />
+                  <input 
+                    name="email" 
+                    value={form.email} 
+                    onChange={handleChange} 
+                    placeholder="john@umbragroup.com" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-white outline-none focus:border-cyan/40 transition-all"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* SECURITY */}
-          <div className="space-y-6">
-            <p className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.4em] flex items-center gap-3">
+          {/* Security */}
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-gold uppercase tracking-wider flex items-center gap-2">
               <Lock size={14} /> Protocolos de Seguridad
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest ml-1">Clave de Acceso</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Clave de Acceso</label>
                 <div className="relative group">
                   <input
                     name="password"
@@ -156,70 +190,100 @@ export default function EmployeeForm({
                     value={form.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="luxury-input pr-14"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pr-12 pl-4 text-sm font-medium text-white outline-none focus:border-cyan/40 transition-all"
                   />
-                  <button onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-[#a0a0b0] hover:text-[#d4af37] transition-colors">
+                  <button 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-cyan-400 transition-colors"
+                  >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {/* Password Strength Indicator */}
+                <div className="flex gap-1 mt-2">
+                  {[1, 2, 3, 4].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-1 flex-1 rounded-full transition-all ${
+                        passwordStrength >= level 
+                          ? level === 1 ? 'bg-red-400' 
+                          : level === 2 ? 'bg-orange-400' 
+                          : level === 3 ? 'bg-yellow-400' 
+                          : 'bg-emerald-400'
+                          : 'bg-white/10'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2.5">
-                <label className="text-[10px] font-black text-[#a0a0b0] uppercase tracking-widest ml-1">Confirmar Protocolo</label>
-                <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder="••••••••" className="luxury-input" />
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider ml-1">Confirmar Protocolo</label>
+                <input 
+                  name="confirmPassword" 
+                  type="password" 
+                  value={form.confirmPassword} 
+                  onChange={handleChange} 
+                  placeholder="••••••••" 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm font-medium text-white outline-none focus:border-cyan/40 transition-all"
+                />
               </div>
             </div>
           </div>
 
-          {/* ROLE SELECTION */}
-          <div className="space-y-6">
-            <p className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.4em] flex items-center gap-3">
+          {/* Role Selection */}
+          <div className="space-y-4">
+            <p className="text-xs font-bold text-gold uppercase tracking-wider flex items-center gap-2">
               <Shield size={14} /> Asignación de Rango
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {ROLE_OPTIONS.map((role) => (
-                <button
+                <motion.button
                   key={role.value}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setForm({ ...form, role: role.value as Role })}
                   className={`
-                    flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all duration-500 gap-3
+                    flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-300 gap-2
                     ${form.role === role.value
-                      ? 'shadow-gold-glow scale-105'
-                      : 'glass-card hover:border-white/20'}
+                      ? `bg-gradient-to-br ${role.color} ${role.border} shadow-lg`
+                      : 'bg-white/5 border-white/10 hover:border-white/20'
+                    }
                   `}
-                  style={form.role === role.value ? {
-                    background: 'var(--gradient-gold)',
-                    borderColor: '#d4af37',
-                    color: '#0a0a0f'
-                  } : {}}
                 >
-                  {role.icon}
-                  <span className="text-[8px] font-black uppercase tracking-widest text-center">{role.label.split(' / ')[0]}</span>
-                </button>
+                  <div className={`${form.role === role.value ? role.text : 'text-white/50'}`}>
+                    {role.icon}
+                  </div>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider text-center ${
+                    form.role === role.value ? role.text : 'text-white/50'
+                  }`}>
+                    {role.label.split(' / ')[0]}
+                  </span>
+                </motion.button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="p-10 border-t border-white/10 flex gap-6">
+        {/* Footer */}
+        <div className="p-6 border-t border-white/10 flex gap-4 bg-gradient-to-r from-gold/5 via-violet/5 to-cyan/5">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 h-16 rounded-[1.5rem] glass-card text-xs font-black uppercase tracking-[0.4em] text-[#a0a0b0] hover:text-[#ffffff] transition-all"
+            className="flex-1 h-12 rounded-xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider text-white/50 hover:text-white hover:bg-white/10 transition-all"
           >
-            CANCELAR
+            Cancelar
           </button>
 
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-[2] h-16 rounded-[1.5rem] luxury-button flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl disabled:opacity-50"
+            className="flex-[2] h-12 rounded-xl bg-gradient-to-r from-gold via-violet to-cyan text-black font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-gold/20 transition-all disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin" size={24} /> : <CheckCircle size={24} />}
-            <span className="text-sm font-black uppercase tracking-[0.3em]">ESTABLECER PERFIL</span>
+            {loading ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle size={18} />}
+            <span>Establecer Perfil</span>
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

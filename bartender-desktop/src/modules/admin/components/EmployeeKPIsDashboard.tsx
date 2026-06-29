@@ -8,6 +8,7 @@ import {
   Target,
   Download
 } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   getEmployeeKPIs,
   getAllEmployeesKPIs,
@@ -17,7 +18,6 @@ import {
   type KPITrend
 } from "../services/trackingService";
 import { getEmployees } from "../services/userService";
-import "../styles/luxury-theme.css";
 
 interface EmployeeKPIsDashboardProps {
   userId?: string;
@@ -109,37 +109,46 @@ export default function EmployeeKPIsDashboard({
 
   return (
     <div className="space-y-6">
-      {/* ================= HEADER ================= */}
-      <div className="flex items-end justify-between animate-fade-in-up">
-        <div className="flex items-center gap-6">
-          <div className="p-4 glass-card rounded-2xl">
-            <TrendingUp className="text-[#00ff88]" size={32} />
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-end justify-between"
+      >
+        <div className="flex items-center gap-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-gold/20 via-violet/20 to-cyan/20 border border-gold/30">
+            <TrendingUp className="text-gold" size={32} />
           </div>
           <div>
-            <p className="text-[10px] text-[#00ff88] font-black uppercase tracking-[0.4em] mb-1">
-              Análisis de Rendimiento
+            <p className="text-xs text-gold font-bold uppercase tracking-wider mb-1">
+              Nebula · Rendimiento
             </p>
-            <h1 className="text-3xl font-black text-[#ffffff] tracking-tighter uppercase leading-none gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
+            <h1 className="text-3xl font-bold text-white tracking-tight">
               Dashboard de KPIs
             </h1>
           </div>
         </div>
 
-        <button className="flex items-center gap-3 h-12 px-5 rounded-xl glass-card text-[#a0a0b0] hover:text-[#ffffff] hover:border-[#d4af37]/30 transition-all">
+        <button className="flex items-center gap-3 h-12 px-5 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:text-white hover:border-cyan/30 transition-all">
           <Download size={16} />
-          <span className="text-xs font-black uppercase tracking-widest">Exportar</span>
+          <span className="text-xs font-bold uppercase tracking-wider">Exportar</span>
         </button>
-      </div>
+      </motion.div>
 
-      {/* ================= EMPLOYEE SELECTOR ================= */}
-      <div className="flex gap-3 flex-wrap animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+      {/* Employee Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex gap-3 flex-wrap"
+      >
         <button
           onClick={() => handleEmployeeChange("")}
           className={`
-            flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300
+            flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300
             ${!selectedUserId
-              ? "bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/30 shadow-[0_0_20px_rgba(0,255,136,0.2)]"
-              : "glass-card text-[#a0a0b0] hover:text-[#ffffff] hover:border-[#d4af37]/30"
+              ? "bg-gradient-to-r from-gold/20 to-violet/20 text-gold border border-gold/30"
+              : "bg-white/5 text-white/50 hover:text-white hover:border-white/20"
             }
           `}
         >
@@ -151,17 +160,17 @@ export default function EmployeeKPIsDashboard({
             key={emp._id}
             onClick={() => handleEmployeeChange(emp._id)}
             className={`
-              flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-black tracking-widest uppercase transition-all duration-300
+              flex items-center gap-3 px-5 h-12 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-300
               ${selectedUserId === emp._id
-                ? "bg-[#00ff88]/10 text-[#00ff88] border border-[#00ff88]/30 shadow-[0_0_20px_rgba(0,255,136,0.2)]"
-                : "glass-card text-[#a0a0b0] hover:text-[#ffffff] hover:border-[#d4af37]/30"
+                ? "bg-gradient-to-r from-gold/20 to-violet/20 text-gold border border-gold/30"
+                : "bg-white/5 text-white/50 hover:text-white hover:border-white/20"
               }
             `}
           >
             {emp.name}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* ================= INDIVIDUAL KPIs ================= */}
       {selectedUserId && kpiData ? (
@@ -390,43 +399,48 @@ interface KPICardProps {
 }
 
 const KPICard = ({ label, value, unit, icon, color, target, rank, total, inverse }: KPICardProps) => {
-  const colorClasses = {
-    lime: "text-lime border-lime/30 bg-lime/10",
-    gold: "text-gold border-gold/30 bg-gold/10",
-    cyan: "text-cyan border-cyan-500/30 bg-cyan-500/10",
-    violet: "text-violet border-violet-500/30 bg-violet-500/10"
+  const colorConfig = {
+    lime: { bg: "from-emerald/20 to-green/10", border: "border-emerald/30", text: "text-emerald-400" },
+    gold: { bg: "from-gold/20 to-amber/10", border: "border-gold/30", text: "text-gold" },
+    cyan: { bg: "from-cyan/20 to-blue/10", border: "border-cyan/30", text: "text-cyan-400" },
+    violet: { bg: "from-violet/20 to-purple/10", border: "border-violet/30", text: "text-violet-400" }
   };
+
+  const config = colorConfig[color];
 
   const isTargetMet = target ? (
     inverse ? Number.parseFloat(String(value)) <= target : Number.parseFloat(String(value)) >= target
   ) : true;
 
   return (
-    <div className={`p-6 rounded-2xl border backdrop-blur-xl bg-surface-2 ${colorClasses[color]} relative overflow-hidden`}>
-      <div className="flex items-start justify-between mb-4">
-        {icon}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className={`p-5 rounded-xl border bg-gradient-to-br ${config.bg} ${config.border} relative overflow-hidden`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className={config.text}>{icon}</div>
         {rank !== undefined && total !== undefined && (
-          <div className="text-[10px] text-muted font-black uppercase tracking-widest">
+          <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
             #{rank} / {total}
           </div>
         )}
       </div>
-      <div className="text-[10px] text-muted font-black uppercase tracking-widest mb-2">
+      <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider mb-2">
         {label}
       </div>
-      <div className="text-2xl font-black text-ivory tracking-tighter uppercase flex items-baseline gap-2">
+      <div className="text-2xl font-bold text-white tracking-tight uppercase flex items-baseline gap-2">
         {value}
-        {unit && <span className="text-sm text-muted">{unit}</span>}
+        {unit && <span className="text-sm text-white/50">{unit}</span>}
       </div>
       {target && (
-        <div className="mt-4 flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isTargetMet ? "bg-lime" : "bg-red"}`} />
-          <span className={`text-[10px] font-black uppercase tracking-wider ${isTargetMet ? "text-lime" : "text-red"}`}>
+        <div className="mt-3 flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isTargetMet ? "bg-emerald-400" : "bg-red-400"}`} />
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${isTargetMet ? "text-emerald-400" : "text-red-400"}`}>
             {isTargetMet ? "Objetivo cumplido" : "Por debajo del objetivo"}
           </span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
@@ -440,24 +454,26 @@ interface MetricDetailProps {
 }
 
 const MetricDetail = ({ label, value, total, icon, color }: MetricDetailProps) => {
-  const colorClasses = {
-    lime: "text-lime border-lime/30 bg-lime/10",
-    gold: "text-gold border-gold/30 bg-gold/10",
-    cyan: "text-cyan border-cyan-500/30 bg-cyan-500/10",
-    red: "text-red border-red/30 bg-red/10"
+  const colorConfig = {
+    lime: { bg: "from-emerald/20 to-green/10", border: "border-emerald/30", text: "text-emerald-400" },
+    gold: { bg: "from-gold/20 to-amber/10", border: "border-gold/30", text: "text-gold" },
+    cyan: { bg: "from-cyan/20 to-blue/10", border: "border-cyan/30", text: "text-cyan-400" },
+    red: { bg: "from-red/20 to-orange/10", border: "border-red/30", text: "text-red-400" }
   };
 
+  const config = colorConfig[color];
+
   return (
-    <div className={`p-5 rounded-xl border backdrop-blur-xl bg-surface-2 ${colorClasses[color]}`}>
-      <div className="flex items-center gap-3 mb-3">
-        {icon}
-        <span className="text-[10px] text-muted font-black uppercase tracking-widest">
+    <div className={`p-4 rounded-xl border bg-gradient-to-br ${config.bg} ${config.border}`}>
+      <div className="flex items-center gap-3 mb-2">
+        <div className={config.text}>{icon}</div>
+        <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
           {label}
         </span>
       </div>
-      <div className="text-lg font-black text-ivory tracking-tighter uppercase">
+      <div className="text-lg font-bold text-white">
         {value}
-        {total && <span className="text-sm text-muted ml-2">/ {total}</span>}
+        {total && <span className="text-sm text-white/50 ml-2">/ {total}</span>}
       </div>
     </div>
   );
@@ -469,50 +485,56 @@ interface EmployeeKPICardProps {
 }
 
 const EmployeeKPICard = ({ kpi }: EmployeeKPICardProps) => {
+  const productivityColor = kpi.productivityScore >= 80 ? "text-emerald-400" : kpi.productivityScore >= 60 ? "text-gold" : "text-red-400";
+  const productivityBg = kpi.productivityScore >= 80 ? "bg-emerald/10 border-emerald/30" : kpi.productivityScore >= 60 ? "bg-gold/10 border-gold/30" : "bg-red/10 border-red/30";
+
   return (
-    <div className="p-6 rounded-2xl border border-white/5 bg-surface-2 backdrop-blur-xl hover:border-lime/30 transition-all">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="p-5 rounded-xl border border-white/10 bg-white/5 hover:border-cyan/30 transition-all"
+    >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-sm font-black text-ivory uppercase tracking-wider mb-1">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
             {kpi.userName}
           </h3>
-          <p className="text-[10px] text-muted font-bold uppercase tracking-wider">
+          <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
             {new Date(kpi.period.start).toLocaleDateString("es-ES")} - {new Date(kpi.period.end).toLocaleDateString("es-ES")}
           </p>
         </div>
-        <div className={`px-3 py-1 rounded-lg ${kpi.productivityScore >= 80 ? "bg-lime/10 text-lime" : kpi.productivityScore >= 60 ? "bg-gold/10 text-gold" : "bg-red/10 text-red"} text-[10px] font-black uppercase tracking-wider`}>
+        <div className={`px-3 py-1 rounded-lg ${productivityBg} ${productivityColor} text-[10px] font-bold uppercase tracking-wider`}>
           {kpi.productivityScore} pts
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <div className="text-[10px] text-muted font-black uppercase tracking-widest mb-1">
+          <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider mb-1">
             Pedidos
           </div>
-          <div className="text-lg font-black text-ivory">
+          <div className="text-lg font-bold text-white">
             {kpi.ordersCompleted}
           </div>
         </div>
         <div>
-          <div className="text-[10px] text-muted font-black uppercase tracking-widest mb-1">
+          <div className="text-[10px] text-white/50 font-bold uppercase tracking-wider mb-1">
             Ventas
           </div>
-          <div className="text-lg font-black text-ivory">
+          <div className="text-lg font-bold text-white">
             {new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(kpi.totalSales)}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-        <span className="text-[10px] text-muted font-bold uppercase tracking-wider">
+      <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+        <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
           Ranking: #{kpi.rankAmongPeers}
         </span>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${kpi.percentile >= 75 ? "text-lime" : kpi.percentile >= 50 ? "text-gold" : "text-red"}`}>
+        <span className={`text-[10px] font-bold uppercase tracking-wider ${kpi.percentile >= 75 ? "text-emerald-400" : kpi.percentile >= 50 ? "text-gold" : "text-red-400"}`}>
           Top {kpi.percentile}%
         </span>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

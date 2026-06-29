@@ -487,6 +487,133 @@ export const applyDiscount = async (req, res, next) => {
 };
 
 /* =========================================================
+   UPDATE ORDER ITEMS
+========================================================= */
+export const updateOrderItems = async (req, res, next) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const { orderId } = req.params;
+    const { items } = req.body;
+
+    if (!isValidId(orderId)) return badRequest(res, "ID de orden inválido");
+    if (!items || !Array.isArray(items)) return badRequest(res, "Items inválidos");
+
+    const order = await Order.findById(orderId).session(session);
+    if (!order) return notFound(res, "Orden no encontrada");
+    if (order.status !== "pending") return badRequest(res, "Solo se pueden modificar órdenes en estado pendiente");
+    if (order.sessionStatus === "closed") return badRequest(res, "La orden está cerrada");
+
+    /* ─── Validar y procesar items ─── */
+    const productIds = items
+      .filter(i => i.product && !i.menu)
+      .map(i => i.product);
+
+    const products = await Product.find({
+      _id: { $in: productIds },
+      available: true,
+      isActiveForPOS: true,
+    }).session(session);
+
+    const productMap = Object.fromEntries(products.map((p) => [p._id.toString(), p]));
+
+    const updatedItems = [];
+
+    for (const item of items) {
+      if (item.product && !item.menu) {
+        const product = productMap[item.product?.toString()];
+        if (!product) throw new Error("Producto inválido o no disponible");
+
+        const dynamicPrice = await calculateProductPrice(product);
+
+        updatedItems.push({
+          _id: item._id || new mongoose.Types.ObjectId(),
+          product: product._id,
+          name: product.name,
+          quantity: Math.max(1, Number(item.quantity) || 1),
+          price: dynamicPrice,
+          type: product.type === "food" ? "food" : "drink",
+          status: item.status || "pending",
+          notes: item.notes || "",
+        });
+      } else if (item.menu) {
+        const menuProducts = await expandMenuItems(item.menu, session);
+        const menu = await Menu.findById(item.menu).session(session);
+
+        updatedItems.push({
+          _id: item._id || new mongoose.Types.ObjectId(),
+          menu: item.menu,
+          name: menu.name,
+          quantity: Math.max(1, Number(item.quantity) || 1),
+          price: item.price || 0,
+          type: "menu",
+          status: item.status || "pending",
+          notes: item.notes || "",
+          menuItems: menuProducts.map(p => p._id),
+        });
+
+        for (const product of menuProducts) {
+          const dynamicPrice = await calculateProductPrice(product);
+          updatedItems.push({
+            _id: new mongoose.Types.ObjectId(),
+            product: product._id,
+            name: product.name,
+            quantity: Math.max(1, Number(item.quantity) || 1),
+            price: dynamicPrice,
+            type: product.type === "food" ? "food" : "drink",
+            status: "pending",
+            notes: `Parte de menú: ${menu.name}`,
+          });
+        }
+      }
+    }
+
+    /* ─── Actualizar orden ─── */
+    order.items = updatedItems;
+    await order.save({ session });
+
+    /* ─── Activity Log ─── */
+    if (req.user?.id) {
+      const userLog = await mongoose.model("User").findById(req.user.id).select("name role").lean();
+      await ActivityLog.create([{
+        userId: req.user.id,
+        userName: userLog?.name || "Sistema",
+        userRole: userLog?.role || "waiter",
+        activityType: "order_items_modified",
+        description: `Modificó items de orden ${order._id}`,
+        metadata: { itemsCount: updatedItems.length },
+        sessionId: order.sessionId,
+        orderId: order._id,
+        tableId: order.table,
+      }], { session });
+    }
+
+    await session.commitTransaction();
+
+    // Actualizar la mesa
+    const updatedTable = await Table.findById(order.table);
+    if (updatedTable) {
+      io.emit("table:update", updatedTable);
+      io.to(`table:${order.table}`).emit("table:update", updatedTable);
+    }
+
+    emitOrderUpdate(order);
+    logger.info(`[Order] Items modificados: ${order._id}`);
+
+    return ok(res, order, "Items de orden actualizados correctamente");
+
+  } catch (error) {
+    await session.abortTransaction();
+    logger.error("[Order] Error updating order items:", error);
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+/* =========================================================
    CLOSE ORDER WITH PAYMENT (Integración con Payment)
 ========================================================= */
 export const closeOrderWithPayment = async (req, res, next) => {

@@ -6,16 +6,27 @@ import type { Product } from "../../../types/product";
 export interface OrderItem {
   _id?: string;
 
-  product: Product | string; 
+  product?: Product | string;
   // puede venir populated o solo ID
+
+  menu?: string;
+  // referencia a menú
+
+  name?: string;
+  // snapshot del nombre para auditoría
 
   quantity: number;
 
   price: number;
 
-  type: "drink" | "food";
+  type: "drink" | "food" | "menu";
 
   status: "pending" | "preparing" | "ready" | "served" | "cancelled";
+
+  notes?: string;
+
+  menuItems?: string[];
+  // IDs de productos si es un menú
 }
 
 /* ==============================

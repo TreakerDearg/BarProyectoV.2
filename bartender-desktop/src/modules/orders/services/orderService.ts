@@ -210,3 +210,39 @@ export const deleteOrder = async (id: string): Promise<void> => {
     throw new Error(extractError(error));
   }
 };
+
+/* ==============================
+   UPDATE ORDER ITEMS
+============================== */
+export const updateOrderItems = async (
+  orderId: string,
+  items: {
+    _id?: string;
+    product?: string;
+    menu?: string;
+    quantity: number;
+    price?: number;
+    status?: string;
+    notes?: string;
+  }[]
+): Promise<Order> => {
+  if (!orderId) throw new Error("Order ID is required");
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new Error("Order must have items");
+  }
+
+  try {
+    const { data } = await api.patch(`/orders/${orderId}/items`, {
+      items,
+    });
+
+    // Emitir evento para actualizar la mesa en tiempo real
+    if (typeof window !== 'undefined' && (window as any).socket) {
+      (window as any).socket.emit('order:update', data);
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error(extractError(error));
+  }
+};

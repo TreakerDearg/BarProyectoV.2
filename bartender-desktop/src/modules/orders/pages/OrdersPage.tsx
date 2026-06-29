@@ -20,6 +20,7 @@ import {
 import OrderCard from "../components/OrderCard/Card";
 import NewOrderTablePicker from "../components/NewOrderTablePicker";
 import FocusPanel from "../components/FocusPanel";
+import OrderEditModal from "../components/OrderEditModal";
 import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 import DataExportImport from "../../../components/shared/DataExportImport";
 
@@ -93,6 +94,7 @@ export default function OrdersPage() {
   } | null>(null);
   const [itemStatusLoading, setItemStatusLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
   const salonMode = useSalonUiStore((s) => s.mode);
   const setSalonMode = useSalonUiStore((s) => s.setMode);
@@ -208,6 +210,13 @@ export default function OrdersPage() {
     }
   };
 
+  const handleEditOrder = (orderId: string) => {
+    const order = orders.find((o) => o._id === orderId);
+    if (order) {
+      setEditingOrder(order);
+    }
+  };
+
   const processedOrders = useMemo(() => {
     let list = orders.filter((o) =>
       filter === "all" ? true : o.status === filter
@@ -306,16 +315,16 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="nebula-salon-root flex h-screen overflow-hidden bg-bg p-4 md:p-6 gap-4 md:gap-6 relative">
-      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-40" />
+    <div className="nebula-salon-root nebula-luxury-root flex h-screen overflow-hidden bg-bg p-4 md:p-6 gap-4 md:gap-6 relative">
+      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10" />
       <SalonFlowTutorial
         isOpen={salonTutorialOpen}
         onClose={closeSalonTutorial}
         onComplete={completeSalonTutorial}
       />
 
-      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-panel shrink-0 space-y-6">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30 text-violet-200">
+      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-rail shrink-0 space-y-6">
+        <div className="p-3 rounded-xl nebula-brand-mark">
           <Sparkles size={20} />
         </div>
 
@@ -353,31 +362,31 @@ export default function OrdersPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan/20 hover:shadow-cyan/40 transition-all"
+          className="w-14 h-14 rounded-xl bg-gradient-to-br from-gold-light to-gold text-bg flex items-center justify-center shadow-lg shadow-gold/25 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all"
           title="Nueva orden"
         >
-          <Plus size={24} className="text-white" />
+          <Plus size={24} />
         </button>
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
         <header className="flex flex-wrap items-end justify-between gap-6 px-1">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30">
-              <ChefHat className="text-violet-200" size={28} />
+            <div className="p-3 rounded-xl nebula-brand-mark">
+              <ChefHat size={28} />
             </div>
             <div>
-              <p className="text-xs text-white/50 font-semibold uppercase tracking-wide">
-                Nebula · Comandas
+              <p className="text-xs font-semibold uppercase nebula-kicker">
+                Nebula Royale · Comandas
               </p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-white nebula-luxury-title">
                 Órdenes Activas
               </h1>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="nebula-mode-toggle">
+            <div className="nebula-segmented">
               <button
                 type="button"
                 className={`px-4 py-2 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
@@ -395,12 +404,12 @@ export default function OrdersPage() {
             </div>
 
             {salonMode === "advanced" && (
-              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
+              <div className="nebula-segmented">
                 <button
                   type="button"
                   onClick={() => setTableFilter("all")}
                   className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "all" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                    tableFilter === "all" ? "active" : "text-white/50 hover:text-white"
                   }`}
                 >
                   Todas
@@ -409,7 +418,7 @@ export default function OrdersPage() {
                   type="button"
                   onClick={() => setTableFilter("1-5")}
                   className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "1-5" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                    tableFilter === "1-5" ? "active" : "text-white/50 hover:text-white"
                   }`}
                 >
                   1-5
@@ -418,7 +427,7 @@ export default function OrdersPage() {
                   type="button"
                   onClick={() => setTableFilter("6-10")}
                   className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "6-10" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                    tableFilter === "6-10" ? "active" : "text-white/50 hover:text-white"
                   }`}
                 >
                   6-10
@@ -427,7 +436,7 @@ export default function OrdersPage() {
                   type="button"
                   onClick={() => setTableFilter("11+")}
                   className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "11+" ? "bg-cyan/20 text-cyan-400" : "text-white/50 hover:text-white"
+                    tableFilter === "11+" ? "active" : "text-white/50 hover:text-white"
                   }`}
                 >
                   11+
@@ -451,7 +460,7 @@ export default function OrdersPage() {
                 {tableFilter !== "all" && (
                   <button
                     onClick={() => setTableFilter("all")}
-                    className="px-3 py-1.5 rounded-lg bg-cyan/10 border border-cyan/30 text-cyan-400 text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-cyan/20 transition-all"
+                    className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold-light text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-gold/20 transition-all"
                   >
                     <X size={12} />
                     Mesas {tableFilter}
@@ -467,7 +476,7 @@ export default function OrdersPage() {
                           [key]: prev[key]?.filter(v => v !== value) || []
                         }));
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-violet/10 border border-violet/30 text-violet-400 text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-violet/20 transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-ivory/70 text-[10px] font-bold uppercase flex items-center gap-1 hover:border-gold/30 hover:text-gold-light transition-all"
                     >
                       <X size={12} />
                       {value}
@@ -480,7 +489,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={openSalonTutorial}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10 text-xs flex items-center gap-1"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10 text-xs flex items-center gap-1 hover:border-gold/30"
             >
               <HelpCircle size={16} />
               Tutorial
@@ -489,7 +498,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={() => setShowExportImport(true)}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10 hover:border-gold/30"
               title="Exportar/Importar"
             >
               <Target size={16} />
@@ -498,7 +507,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={fetchOrders}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10"
+              className="btn btn-ghost !p-3 rounded-xl border border-white/10 hover:border-gold/30"
             >
               <RefreshCcw
                 size={16}
@@ -554,8 +563,8 @@ export default function OrdersPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full border-2 border-violet-400/20 animate-spin" />
-                <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+                <div className="w-16 h-16 rounded-full border-2 border-gold/20 animate-spin" />
+                <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-gold-light animate-spin" />
               </div>
               <p className="text-sm text-white/50 mt-4 animate-pulse">Cargando órdenes...</p>
             </div>
@@ -569,13 +578,14 @@ export default function OrdersPage() {
                   onStatusChange={handleStatusChange}
                   onSelectItem={setSelectedItem}
                   selectedItemId={selectedItem?._id}
+                  onEdit={handleEditOrder}
                 />
               ))}
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center opacity-40 gap-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20">
-                <ChefHat size={48} className="text-violet-300/60" />
+              <div className="p-4 rounded-xl nebula-brand-mark">
+                <ChefHat size={48} className="text-gold-light/70" />
               </div>
               <p className="text-sm text-white/50">
                 No hay comandas en este filtro
@@ -603,10 +613,21 @@ export default function OrdersPage() {
         />
       )}
 
+      {editingOrder && (
+        <OrderEditModal
+          order={editingOrder}
+          onClose={() => setEditingOrder(null)}
+          onSuccess={() => {
+            fetchOrders();
+            setEditingOrder(null);
+          }}
+        />
+      )}
+
       {/* EXPORT/IMPORT PANEL */}
       {showExportImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+          <div className="nebula-luxury-panel p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-ivory">Exportar/Importar Órdenes</h3>
               <button
@@ -645,14 +666,10 @@ function NavIcon({
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-2 ${active ? "text-violet-200" : "text-muted hover:text-ivory"}`}
+      className={`flex flex-col items-center gap-2 ${active ? "text-gold-light" : "text-muted hover:text-ivory"}`}
     >
       <div
-        className={`w-14 h-14 rounded-xl flex items-center justify-center border transition-colors ${
-          active
-            ? "bg-violet-500/15 border-violet-400/30"
-            : "bg-white/5 border-white/10"
-        }`}
+        className={`nebula-nav-button ${active ? "is-active" : ""}`}
       >
         {icon}
       </div>
@@ -675,30 +692,30 @@ function MetricCard({
   color?: string;
 }) {
   const colorClasses = {
-    violet: "from-violet-500/20 via-purple-500/15 to-violet-600/10 border-violet-400/30",
-    cyan: "from-cyan-500/20 via-teal-500/15 to-cyan-600/10 border-cyan-400/30",
-    orange: "from-orange-500/20 via-amber-500/15 to-orange-600/10 border-orange-400/30",
-    red: "from-red-500/20 via-rose-500/15 to-red-600/10 border-red-400/30",
+    violet: "border-gold/25",
+    cyan: "border-cyan-300/20",
+    orange: "border-amber-400/25",
+    red: "border-red-400/30",
   };
 
   const iconBg = {
-    violet: "bg-violet/20 text-violet-400",
-    cyan: "bg-cyan/20 text-cyan-400",
-    orange: "bg-orange/20 text-orange-400",
-    red: "bg-red/20 text-red-400",
+    violet: "bg-gold/15 text-gold-light",
+    cyan: "bg-cyan-300/10 text-cyan-200",
+    orange: "bg-amber-400/10 text-amber-300",
+    red: "bg-red-400/10 text-red-300",
   };
 
   const selectedColor = color || "violet";
 
   return (
     <div
-      className={`nebula-panel !p-5 flex items-center gap-4 bg-gradient-to-br ${colorClasses[selectedColor as keyof typeof colorClasses]} rounded-xl border transition-all hover:scale-[1.02] ${warn && value > 0 ? "border-red-500/50" : ""}`}
+      className={`nebula-luxury-panel !p-5 flex items-center gap-4 ${colorClasses[selectedColor as keyof typeof colorClasses]} transition-all hover:-translate-y-0.5 ${warn && value > 0 ? "border-red-500/50" : ""}`}
     >
       <div className={`p-2.5 rounded-lg ${iconBg[selectedColor as keyof typeof iconBg]}`}>
         {icon}
       </div>
       <div>
-        <p className="text-xs text-white/60 uppercase">{label}</p>
+        <p className="text-xs text-white/55 uppercase tracking-wide">{label}</p>
         <p className="text-2xl font-bold text-white">{value}</p>
       </div>
     </div>

@@ -34,7 +34,7 @@ export default function NewOrderTablePicker({ onClose, onSuccess }: Props) {
           <button
             type="button"
             onClick={() => setSelected(null)}
-            className="absolute -top-10 left-0 text-xs text-violet-300 hover:text-ivory"
+            className="absolute -top-10 left-0 text-xs text-gold-light hover:text-ivory"
           >
             ← Cambiar mesa
           </button>
@@ -51,7 +51,7 @@ export default function NewOrderTablePicker({ onClose, onSuccess }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
-      <div className="nebula-panel w-full max-w-lg p-6">
+      <div className="nebula-luxury-panel w-full max-w-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-ivory">Nuevo pedido</h2>
           <button type="button" onClick={onClose} className="text-muted hover:text-ivory">
@@ -63,7 +63,7 @@ export default function NewOrderTablePicker({ onClose, onSuccess }: Props) {
           desde Nebula · Salón o Reservas.
         </p>
         {loading ? (
-          <p className="text-sm text-muted py-8 text-center">Cargando mesas…</p>
+          <p className="text-sm text-muted py-8 text-center">Cargando mesas...</p>
         ) : tables.length === 0 ? (
           <p className="text-sm text-amber-200/90 py-6 text-center border border-amber-500/20 rounded-xl bg-amber-500/5 px-4">
             No hay mesas ocupadas con sesión activa. Abre una mesa o senta una reserva
@@ -76,7 +76,7 @@ export default function NewOrderTablePicker({ onClose, onSuccess }: Props) {
                 <button
                   type="button"
                   onClick={() => setSelected(t)}
-                  className="w-full text-left px-4 py-3 rounded-xl border border-white/10 hover:border-violet-400/30 hover:bg-violet-500/10 transition-colors"
+                  className="w-full text-left px-4 py-3 rounded-xl border border-white/10 hover:border-gold/30 hover:bg-gold/10 transition-colors"
                 >
                   <span className="font-semibold text-ivory">Mesa {t.number}</span>
                   <span className="text-xs text-muted block mt-0.5">
