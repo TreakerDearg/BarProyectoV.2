@@ -1,14 +1,15 @@
 "use client";
 
-import { 
-  X, 
-  Martini, 
-  Utensils, 
-  Zap, 
-  CheckCircle2, 
+import {
+  X,
+  Martini,
+  Utensils,
+  Zap,
+  CheckCircle2,
   Activity,
   Box,
-  TrendingUp
+  TrendingUp,
+  Edit
 } from "lucide-react";
 import type { Recipe } from "../types/recipe";
 
@@ -16,12 +17,14 @@ interface Props {
   recipe: Recipe | null;
   open: boolean;
   onClose: () => void;
+  onEdit?: (recipe: Recipe) => void;
 }
 
 export default function RecipeDetailModal({
   recipe,
   open,
   onClose,
+  onEdit,
 }: Props) {
   if (!open || !recipe) return null;
 
@@ -164,9 +167,20 @@ export default function RecipeDetailModal({
                   <p className="text-[9px] text-muted font-bold uppercase tracking-widest">Estándar de calidad verificado</p>
                 </div>
               </div>
-              <button onClick={onClose} className="px-10 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:border-white/20 transition-all">
-                Cerrar Protocolo
-              </button>
+              <div className="flex gap-4">
+                {onEdit && (
+                  <button
+                    onClick={() => { onEdit(recipe); onClose(); }}
+                    className="px-8 h-16 rounded-[1.5rem] bg-gold/10 border border-gold/20 text-[10px] font-black uppercase tracking-[0.4em] text-gold hover:bg-gold/20 hover:border-gold/30 transition-all flex items-center gap-2"
+                  >
+                    <Edit size={16} />
+                    Editar
+                  </button>
+                )}
+                <button onClick={onClose} className="px-10 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:border-white/20 transition-all">
+                  Cerrar Protocolo
+                </button>
+              </div>
             </div>
 
           </div>

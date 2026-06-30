@@ -29,6 +29,7 @@ import {
   getRecipes,
   createRecipe,
   deleteRecipe,
+  updateRecipe,
 } from "../services/recipeService";
 
 import { useRecipeSocketEvents } from "../../../hooks/useSocket";
@@ -52,7 +53,8 @@ interface HistoryItem {
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [openForm, setOpenForm] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "create" | "edit">("list");
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -162,13 +164,24 @@ export default function RecipesPage() {
   ========================= */
   const handleSave = async (data: Recipe) => {
     try {
-      await createRecipe(data);
-      addToHistory(data.product?.name || "Nueva Receta", 'created', data.type || 'food');
-      setOpenForm(false);
+      if (viewMode === "edit" && editingRecipe?._id) {
+        await updateRecipe(editingRecipe._id, data);
+        addToHistory(data.product?.name || "Receta", 'updated', data.type || 'food');
+      } else {
+        await createRecipe(data);
+        addToHistory(data.product?.name || "Nueva Receta", 'created', data.type || 'food');
+      }
+      setViewMode("list");
+      setEditingRecipe(null);
       await fetchData();
     } catch (err) {
       setError("No se pudo registrar la arquitectura de receta");
     }
+  };
+
+  const handleEdit = (recipe: Recipe) => {
+    setEditingRecipe(recipe);
+    setViewMode("edit");
   };
 
   /* =========================
@@ -236,7 +249,7 @@ export default function RecipesPage() {
             </button>
 
             <button
-              onClick={() => setOpenForm(true)}
+              onClick={() => setViewMode("create")}
               className="btn btn-gold !px-12 !h-16 !rounded-[1.5rem] shadow-royale flex items-center gap-4 group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -271,33 +284,44 @@ export default function RecipesPage() {
 
       {/* MAIN DUAL-PANEL LAYOUT */}
       <div className="flex-1 flex gap-10 min-h-0">
-        
-        {/* LEFT PANEL: RECIPE GRID (UMBRA VIP) */}
+
+        {/* LEFT PANEL: RECIPE GRID (UMBRA VIP) OR FORM */}
         <div className="flex-1 flex flex-col gap-8 min-w-0">
-          {loading ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map(i => <RecipeSkeleton key={i} />)}
-            </div>
-          ) : filteredRecipes.length === 0 ? (
-            <div className="flex-1 border-2 border-dashed border-white/5 rounded-[3rem] flex flex-col items-center justify-center opacity-20">
-              <Dices size={64} className="mb-6 animate-bounce-slow" />
-              <p className="text-sm font-black uppercase tracking-[0.5em]">No se encontraron registros</p>
-            </div>
+          {viewMode === "list" ? (
+            <>
+              {loading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8">
+                  {[1, 2, 3, 4, 5, 6].map(i => <RecipeSkeleton key={i} />)}
+                </div>
+              ) : filteredRecipes.length === 0 ? (
+                <div className="flex-1 border-2 border-dashed border-white/5 rounded-[3rem] flex flex-col items-center justify-center opacity-20">
+                  <Dices size={64} className="mb-6 animate-bounce-slow" />
+                  <p className="text-sm font-black uppercase tracking-[0.5em]">No se encontraron registros</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8 overflow-y-auto pr-6 custom-scrollbar pb-32">
+                  {filteredRecipes.map((r) => (
+                    <RecipeCard
+                      key={r._id}
+                      recipe={r}
+                      onDelete={handleDelete}
+                      onOpen={(recipe) => setSelectedRecipe(recipe)}
+                      onEdit={handleEdit}
+                      expanded={expandedCards.has(r._id!)}
+                      onExpandToggle={handleExpandToggle}
+                      estimatedTime={5}
+                      difficulty="medium"
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8 overflow-y-auto pr-6 custom-scrollbar pb-32">
-              {filteredRecipes.map((r) => (
-                <RecipeCard
-                  key={r._id}
-                  recipe={r}
-                  onDelete={handleDelete}
-                  onOpen={(recipe) => setSelectedRecipe(recipe)}
-                  expanded={expandedCards.has(r._id!)}
-                  onExpandToggle={handleExpandToggle}
-                  estimatedTime={5}
-                  difficulty="medium"
-                />
-              ))}
-            </div>
+            <RecipeForm
+              recipe={editingRecipe || undefined}
+              onSave={handleSave}
+              onCancel={() => setViewMode("list")}
+            />
           )}
         </div>
 
@@ -343,18 +367,11 @@ export default function RecipesPage() {
         </div>
       </div>
 
-      {/* MODAL SYSTEM */}
-      {openForm && (
-        <RecipeForm
-          onSave={handleSave}
-          onClose={() => setOpenForm(false)}
-        />
-      )}
-
       <RecipeDetailModal
         open={!!selectedRecipe}
         recipe={selectedRecipe}
         onClose={() => setSelectedRecipe(null)}
+        onEdit={handleEdit}
       />
 
     </div>

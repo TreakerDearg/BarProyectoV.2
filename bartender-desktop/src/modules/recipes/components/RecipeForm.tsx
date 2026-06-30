@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { 
-  X, 
-  Layers, 
-  Zap, 
-  CheckCircle, 
-  Loader2, 
-  Trash2, 
+import {
+  X,
+  Layers,
+  Zap,
+  CheckCircle,
+  Loader2,
+  Trash2,
   Plus,
   ArrowUp,
   ArrowDown,
   Info,
   Target,
-  ChevronDown,
-  ChevronUp,
   Eye,
   Calculator,
   Beaker,
@@ -30,8 +28,9 @@ import "../../../styles/nebula-forms-theme.css";
 import type { Recipe } from "../types/recipe";
 
 interface Props {
+  recipe?: Recipe;
   onSave: (recipe: Recipe) => void;
-  onClose: () => void;
+  onCancel: () => void;
 }
 
 const EMPTY_INGREDIENT = {
@@ -43,10 +42,10 @@ const EMPTY_INGREDIENT = {
 // RecipeProductSelector Component
 function RecipeProductSelector({ form, setForm, products }: { form: Recipe; setForm: (f: Recipe) => void; products: any[] }) {
   return (
-    <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-violet-500/10 rounded-xl">
-          <Target className="text-violet-400" size={20} />
+    <div className="nebula-form-card nebula-form-animate-slide-in bg-gradient-to-br from-violet-500/5 to-cyan-500/5 border-violet-500/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-violet-500/10">
+        <div className="p-2 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl shadow-violet-glow">
+          <Target className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Producto Asociado</h3>
       </div>
@@ -127,9 +126,9 @@ function RecipeProductSelector({ form, setForm, products }: { form: Recipe; setF
 }
 
 // IngredientBuilder Component
-function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngredientDraft }: { 
-  form: Recipe; 
-  setForm: (f: Recipe) => void; 
+function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngredientDraft }: {
+  form: Recipe;
+  setForm: (f: Recipe) => void;
   inventory: any[];
   ingredientDraft: any;
   setIngredientDraft: (d: any) => void;
@@ -141,7 +140,7 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
       const unitCost = item.cost || 0;
       const quantity = ing.quantity || 0;
       let cost = 0;
-      
+
       // Convert units to base unit for cost calculation
       if (ing.unit === 'ml' && item.unit === 'l') {
         cost = (quantity / 1000) * unitCost;
@@ -154,7 +153,7 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
       } else {
         cost = quantity * unitCost;
       }
-      
+
       return sum + cost;
     }, 0);
   }, [form.ingredients, inventory]);
@@ -197,10 +196,10 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
   };
 
   return (
-    <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-cyan-500/10 rounded-xl">
-          <Beaker className="text-cyan-400" size={20} />
+    <div className="nebula-form-card nebula-form-animate-slide-in bg-gradient-to-br from-cyan-500/5 to-emerald-500/5 border-cyan-500/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-cyan-500/10">
+        <div className="p-2 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-cyan-glow">
+          <Beaker className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Constructor de Ingredientes</h3>
       </div>
@@ -298,10 +297,10 @@ function IngredientBuilder({ form, setForm, inventory, ingredientDraft, setIngre
 // MethodEditor Component
 function MethodEditor({ form, setForm }: { form: Recipe; setForm: (f: Recipe) => void }) {
   return (
-    <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-gold/10 rounded-xl">
-          <Zap className="text-gold" size={20} />
+    <div className="nebula-form-card nebula-form-animate-slide-in bg-gradient-to-br from-gold/5 to-amber-500/5 border-gold/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gold/10">
+        <div className="p-2 bg-gradient-to-br from-gold to-amber-500 rounded-xl shadow-gold-glow">
+          <Zap className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Metodología</h3>
       </div>
@@ -361,10 +360,10 @@ function StepSequenceBuilder({ form, setForm }: { form: Recipe; setForm: (f: Rec
   };
 
   return (
-    <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-emerald-500/10 rounded-xl">
-          <ListOrdered className="text-emerald-400" size={20} />
+    <div className="nebula-form-card nebula-form-animate-slide-in bg-gradient-to-br from-emerald-500/5 to-green-500/5 border-emerald-500/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-emerald-500/10">
+        <div className="p-2 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-emerald-glow">
+          <ListOrdered className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Secuencia de Pasos</h3>
       </div>
@@ -433,10 +432,10 @@ function RecipeCostCalculator({ form, inventory }: { form: Recipe; inventory: an
   }, [form.ingredients, inventory]);
 
   return (
-    <div className="nebula-form-card nebula-form-animate-slide-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-gold/10 rounded-xl">
-          <Calculator className="text-gold" size={20} />
+    <div className="nebula-form-card nebula-form-animate-slide-in bg-gradient-to-br from-gold/5 to-orange-500/5 border-gold/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gold/10">
+        <div className="p-2 bg-gradient-to-br from-gold to-orange-500 rounded-xl shadow-gold-glow">
+          <Calculator className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Calculadora de Costos</h3>
       </div>
@@ -472,10 +471,10 @@ function RecipeCostCalculator({ form, inventory }: { form: Recipe; inventory: an
 // RecipePreview Component
 function RecipePreview({ form }: { form: Recipe }) {
   return (
-    <div className="nebula-form-card nebula-form-animate-scale-in">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-violet-500/10 rounded-xl">
-          <Eye className="text-violet-400" size={20} />
+    <div className="nebula-form-card nebula-form-animate-scale-in bg-gradient-to-br from-violet-500/5 to-purple-500/5 border-violet-500/20">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b border-violet-500/10">
+        <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-violet-glow">
+          <Eye className="text-white" size={20} />
         </div>
         <h3 className="text-sm font-bold text-ivory">Vista Previa</h3>
       </div>
@@ -516,18 +515,10 @@ function RecipePreview({ form }: { form: Recipe }) {
   );
 }
 
-export default function RecipeForm({ onSave, onClose }: Props) {
+export default function RecipeForm({ recipe, onSave, onCancel }: Props) {
   const [products, setProducts] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState({
-    product: false,
-    ingredients: false,
-    method: false,
-    steps: false,
-    cost: false,
-    preview: false,
-  });
 
   const [form, setForm] = useState<Recipe>({
     product: { _id: "", name: "" },
@@ -541,14 +532,18 @@ export default function RecipeForm({ onSave, onClose }: Props) {
 
   const [ingredientDraft, setIngredientDraft] = useState(EMPTY_INGREDIENT);
 
+  const isEditMode = !!recipe;
+
   useEffect(() => {
     getProducts().then(setProducts);
     getInventory().then(setInventory);
   }, []);
 
-  const toggleSection = (section: keyof typeof collapsedSections) => {
-    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+  useEffect(() => {
+    if (recipe) {
+      setForm(recipe);
+    }
+  }, [recipe]);
 
   const handleSubmit = async () => {
     if (!form.product?._id) return;
@@ -561,11 +556,10 @@ export default function RecipeForm({ onSave, onClose }: Props) {
   const isValid = form.product?._id && form.ingredients.length > 0;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
-      <div className="nebula-forms-root w-full max-w-7xl">
-        <div className="nebula-forms-aurora" />
-        
-        <div className="nebula-form-panel">
+    <div className="nebula-forms-root w-full h-full flex flex-col">
+      <div className="nebula-forms-aurora" />
+
+      <div className="nebula-form-panel flex-1 flex flex-col">
           {/* HEADER */}
           <div className="p-4 md:p-6 border-b border-violet-500/10 flex justify-between items-center shrink-0">
             <div className="flex items-center gap-3 md:gap-4">
@@ -574,14 +568,14 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-bold text-ivory">
-                  Nueva Receta
+                  {isEditMode ? "Editar Receta" : "Nueva Receta"}
                 </h2>
                 <p className="text-xs md:text-sm text-muted">
                   Sistema Nebula de Recetas
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
               <X size={24} className="text-muted" />
             </button>
           </div>
@@ -593,49 +587,18 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               <div className="space-y-6">
                 {/* Product Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('product')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Target className="text-violet-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Producto</span>
-                    </div>
-                    {collapsedSections.product ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.product && (
-                    <div className="nebula-form-section-content">
-                      <RecipeProductSelector form={form} setForm={setForm} products={products} />
-                    </div>
-                  )}
+                  <RecipeProductSelector form={form} setForm={setForm} products={products} />
                 </div>
 
                 {/* Ingredients Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('ingredients')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Beaker className="text-cyan-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Ingredientes</span>
-                      <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded text-xs font-semibold">
-                        {form.ingredients.length}
-                      </span>
-                    </div>
-                    {collapsedSections.ingredients ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.ingredients && (
-                    <div className="nebula-form-section-content">
-                      <IngredientBuilder 
-                        form={form} 
-                        setForm={setForm} 
-                        inventory={inventory} 
-                        ingredientDraft={ingredientDraft}
-                        setIngredientDraft={setIngredientDraft}
-                      />
-                    </div>
-                  )}
+                  <IngredientBuilder
+                    form={form}
+                    setForm={setForm}
+                    inventory={inventory}
+                    ingredientDraft={ingredientDraft}
+                    setIngredientDraft={setIngredientDraft}
+                  />
                 </div>
               </div>
 
@@ -643,43 +606,12 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               <div className="space-y-6">
                 {/* Method Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('method')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Zap className="text-gold" size={18} />
-                      <span className="text-sm font-bold text-ivory">Metodología</span>
-                    </div>
-                    {collapsedSections.method ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.method && (
-                    <div className="nebula-form-section-content">
-                      <MethodEditor form={form} setForm={setForm} />
-                    </div>
-                  )}
+                  <MethodEditor form={form} setForm={setForm} />
                 </div>
 
                 {/* Steps Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('steps')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ListOrdered className="text-emerald-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Pasos</span>
-                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-xs font-semibold">
-                        {form.steps?.length || 0}
-                      </span>
-                    </div>
-                    {collapsedSections.steps ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.steps && (
-                    <div className="nebula-form-section-content">
-                      <StepSequenceBuilder form={form} setForm={setForm} />
-                    </div>
-                  )}
+                  <StepSequenceBuilder form={form} setForm={setForm} />
                 </div>
               </div>
 
@@ -687,40 +619,12 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               <div className="space-y-8">
                 {/* Cost Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('cost')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Calculator className="text-gold" size={18} />
-                      <span className="text-sm font-bold text-ivory">Costos</span>
-                    </div>
-                    {collapsedSections.cost ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.cost && (
-                    <div className="nebula-form-section-content">
-                      <RecipeCostCalculator form={form} inventory={inventory} />
-                    </div>
-                  )}
+                  <RecipeCostCalculator form={form} inventory={inventory} />
                 </div>
 
                 {/* Preview Section */}
                 <div className="nebula-form-section">
-                  <div
-                    className="nebula-form-section-header"
-                    onClick={() => toggleSection('preview')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Eye className="text-violet-400" size={18} />
-                      <span className="text-sm font-bold text-ivory">Vista Previa</span>
-                    </div>
-                    {collapsedSections.preview ? <ChevronDown className="text-muted" size={18} /> : <ChevronUp className="text-muted" size={18} />}
-                  </div>
-                  {!collapsedSections.preview && (
-                    <div className="nebula-form-section-content">
-                      <RecipePreview form={form} />
-                    </div>
-                  )}
+                  <RecipePreview form={form} />
                 </div>
 
                 {/* Validation Panel */}
@@ -750,7 +654,7 @@ export default function RecipeForm({ onSave, onClose }: Props) {
           {/* FOOTER */}
           <div className="p-4 md:p-6 border-t border-violet-500/10 flex gap-3 md:gap-4 shrink-0">
             <button
-              onClick={onClose}
+              onClick={onCancel}
               className="nebula-form-button-secondary flex-1 text-sm md:text-base"
             >
               Cancelar
@@ -773,7 +677,6 @@ export default function RecipeForm({ onSave, onClose }: Props) {
               )}
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

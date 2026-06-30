@@ -11,7 +11,8 @@ import {
   DollarSign,
   Beaker,
   CheckCircle,
-  XCircle
+  XCircle,
+  Edit
 } from "lucide-react";
 
 import type { Recipe } from "../types/recipe";
@@ -23,6 +24,7 @@ interface Props {
   onDelete: (id: string) => void;
   onOpen?: (recipe: Recipe) => void;
   onDuplicate?: (recipe: Recipe) => void;
+  onEdit?: (recipe: Recipe) => void;
   productImage?: string;
   estimatedTime?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
@@ -35,6 +37,7 @@ export default function RecipeCard({
   onDelete,
   onOpen,
   onDuplicate,
+  onEdit,
   productImage,
   estimatedTime = 5,
   difficulty = 'medium',
@@ -207,6 +210,15 @@ export default function RecipeCard({
             className="w-14 h-14 rounded-2xl bg-violet/5 border border-violet/10 flex items-center justify-center text-violet/40 hover:text-violet hover:bg-violet/20 transition-all"
           >
             <Copy size={18} />
+          </button>
+        )}
+        {onEdit && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(recipe); }}
+            className="w-14 h-14 rounded-2xl bg-gold/5 border border-gold/10 flex items-center justify-center text-gold/40 hover:text-gold hover:bg-gold/20 transition-all"
+            title="Editar Receta"
+          >
+            <Edit size={18} />
           </button>
         )}
         <button
