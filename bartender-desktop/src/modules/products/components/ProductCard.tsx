@@ -3,50 +3,43 @@
 import {
   Pencil,
   Trash2,
-  Zap,
   Copy,
   CheckCircle,
   XCircle,
   Star,
   Clock,
-  FileText,
   Layers,
   Martini,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Eye
 } from "lucide-react";
 
 import type { Product } from "../../../types/product";
-import ExpandableCardWrapper from "../../../components/ui/ExpandableCardWrapper";
-import ProductExpandedPanel from "./ProductExpandedPanel";
+import { useProductUiStore } from "../store/productUiStore";
 
 interface Props {
   product: Product;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
-  onInspect?: (product: Product) => void;
   onDuplicate?: (product: Product) => void;
   simplified?: boolean;
-  expanded?: boolean;
-  onExpandToggle?: (id: string) => void;
 }
 
 export default function ProductCard({
   product,
   onEdit,
   onDelete,
-  onInspect,
   onDuplicate,
   simplified = false,
-  expanded,
-  onExpandToggle
 }: Props) {
+  const { openDrawer } = useProductUiStore();
   const isDrink = product.type === "drink";
   const price = product.price ?? 0;
   const dynamicPrice = (product.dynamicPrice ?? price) as number;
   const cost = product.cost ?? 0;
   const margin = dynamicPrice > 0 ? Math.round(((dynamicPrice - cost) / dynamicPrice) * 100) : 0;
 
-  // Nebula theme configuration by type
+  // Nebula theme configuration by type and category
   const typeTheme = {
     drink: {
       gradient: "from-gold/20 via-amber-500/15 to-orange-500/10",
@@ -66,21 +59,33 @@ export default function ProductCard({
     }
   }[product.type || "drink"];
 
+  // Category-based color variations
+  const categoryTheme = {
+    // Drink categories
+    "Cócteles Clásicos": { accent: "border-violet/30", glow: "bg-violet/10" },
+    "Cócteles de Autor": { accent: "border-cyan/30", glow: "bg-cyan/10" },
+    "Shots": { accent: "border-amber/30", glow: "bg-amber/10" },
+    "Bebidas sin Alcohol": { accent: "border-emerald/30", glow: "bg-emerald/10" },
+    // Food categories
+    "Entradas": { accent: "border-orange/30", glow: "bg-orange/10" },
+    "Platos Principales": { accent: "border-red/30", glow: "bg-red/10" },
+    "Postres": { accent: "border-pink/30", glow: "bg-pink/10" },
+    "Acompañamientos": { accent: "border-yellow/30", glow: "bg-yellow/10" },
+  }[product.category] || { accent: "border-white/20", glow: "bg-white/5" };
+
   const statusConfig = product.available
     ? { color: "text-emerald-400", bg: "bg-emerald-500/20", border: "border-emerald/30" }
     : { color: "text-red-400", bg: "bg-red-500/20", border: "border-red/30" };
 
+  const handleViewDetails = () => {
+    openDrawer(product);
+  };
+
   return (
-    <ExpandableCardWrapper
-      id={product._id}
-      expanded={expanded}
-      onExpandToggle={() => onExpandToggle?.(product._id!)}
-      expandedContent={<ProductExpandedPanel product={product} />}
-    >
       <div className={`
         relative group cursor-pointer
         rounded-2xl overflow-hidden transition-all duration-500
-        bg-gradient-to-br ${typeTheme.gradient} border ${typeTheme.borderColor}
+        bg-gradient-to-br ${typeTheme.gradient} border ${typeTheme.borderColor} ${categoryTheme.accent}
         hover:scale-[1.02] hover:shadow-2xl
       `}>
       
@@ -173,9 +178,9 @@ export default function ProductCard({
               <Clock size={12} />
               <span>{product.preparationTime || 5} min</span>
             </div>
-            {product.hasRecipe && (
+            {product.recipe && (
               <div className="flex items-center gap-1">
-                <FileText size={12} className="text-emerald-400" />
+                <Layers size={12} className="text-emerald-400" />
                 <span className="text-emerald-400">Tiene receta</span>
               </div>
             )}
@@ -186,7 +191,7 @@ export default function ProductCard({
               </div>
             )}
           </div>
-          
+
           {Array.isArray(product.tags) && product.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {product.tags.slice(0, 3).map((tag, idx) => (
@@ -204,16 +209,14 @@ export default function ProductCard({
 
       {/* Action Buttons */}
       <div className="flex gap-2 p-4 bg-white/5 border-t border-white/10">
-        {!simplified && onInspect && (
-          <button
-            onClick={() => onInspect(product)}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-violet/20 border border-violet/30 text-violet hover:bg-violet/30 transition-all"
-          >
-            <Zap size={14} />
-            <span className="text-xs font-bold">Mapeo</span>
-          </button>
-        )}
-        
+        <button
+          onClick={(e) => { e.stopPropagation(); handleViewDetails(); }}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-violet/20 border border-violet/30 text-violet hover:bg-violet/30 transition-all"
+        >
+          <Eye size={14} />
+          <span className="text-xs font-bold">Detalles</span>
+        </button>
+
         <button
           onClick={() => onEdit(product)}
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
@@ -221,7 +224,7 @@ export default function ProductCard({
           <Pencil size={14} />
           <span className="text-xs font-bold">Editar</span>
         </button>
-        
+
         {onDuplicate && (
           <button
             onClick={(e) => { e.stopPropagation(); onDuplicate(product); }}
@@ -230,7 +233,7 @@ export default function ProductCard({
             <Copy size={14} />
           </button>
         )}
-        
+
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(product._id!); }}
           className="p-2.5 rounded-xl bg-red/10 border border-red/20 text-red-400 hover:bg-red/20 transition-all"
@@ -239,6 +242,5 @@ export default function ProductCard({
         </button>
       </div>
     </div>
-    </ExpandableCardWrapper>
   );
 }

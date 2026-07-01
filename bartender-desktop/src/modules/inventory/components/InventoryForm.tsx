@@ -482,33 +482,32 @@ export default function InventoryForm({
   const isValid = formData.name.trim() && formData.category.trim() && formData.minStock <= formData.maxStock;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-6">
-      <div className="nebula-forms-root w-full max-w-7xl">
-        <div className="nebula-forms-aurora" />
-        
-        <div className="nebula-form-panel">
-          {/* HEADER */}
-          <div className="p-4 md:p-6 border-b border-violet-500/10 flex justify-between items-center shrink-0">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="p-2 md:p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-xl md:rounded-2xl shadow-lg">
-                <Package className="text-white" size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-ivory">
-                  {item ? "Editar Inventario" : "Nuevo Inventario"}
-                </h2>
-                <p className="text-xs md:text-sm text-muted">
-                  Sistema Nebula de Inventario
-                </p>
-              </div>
-            </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <X size={24} className="text-muted" />
-            </button>
-          </div>
+    <div className="nebula-forms-root w-full h-full flex flex-col">
+      <div className="nebula-forms-aurora" />
 
-          {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
-          <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll">
+      <div className="nebula-form-panel flex-1 flex flex-col">
+        {/* HEADER */}
+        <div className="p-4 md:p-6 border-b border-violet-500/10 flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="p-2 md:p-3 bg-gradient-to-br from-violet-600 to-cyan-600 rounded-xl md:rounded-2xl shadow-lg">
+              <Package className="text-white" size={24} />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-ivory">
+                {item ? "Editar Inventario" : "Nuevo Inventario"}
+              </h2>
+              <p className="text-xs md:text-sm text-muted">
+                Sistema Nebula de Inventario
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <X size={24} className="text-muted" />
+          </button>
+        </div>
+
+        {/* MAIN CONTENT - 3 COLUMN LAYOUT */}
+        <div className="p-6 md:p-8 flex-1 overflow-y-auto nebula-forms-scroll">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               {/* LEFT COLUMN - Basic & Stock */}
               <div className="space-y-8">
@@ -684,7 +683,6 @@ export default function InventoryForm({
               )}
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

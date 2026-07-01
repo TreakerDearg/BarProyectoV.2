@@ -3,8 +3,8 @@ import { Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity, TrendingUp, 
 
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
+import ProductDetailDrawer from "../components/ProductDetailDrawer";
 import ProductTutorial from "../components/tutorial/ProductTutorial";
-import IngredientMappingPanel from "../components/IngredientMappingPanel";
 import DataExportImport from "../../../components/shared/DataExportImport";
 import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 
@@ -26,14 +26,11 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const [pageView, setPageView] = useState<"list" | "form">("list");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showExportImport, setShowExportImport] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
-  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-  const [mappingProduct, setMappingProduct] = useState<Product | null>(null);
 
   const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
     try {
@@ -103,19 +100,7 @@ export default function ProductsPage() {
     completeTutorial,
   } = useProductTutorial();
 
-  const { mode, setMode, view, toggleView } = useProductUiStore();
-
-  const handleExpandToggle = (id: string) => {
-    setExpandedCards(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
+  const { mode, setMode, view, toggleView, pageView, setPageView, selectedProduct: storeSelectedProduct, isDrawerOpen } = useProductUiStore();
 
   /* =========================
      FETCH PRODUCTS
@@ -252,6 +237,11 @@ export default function ProductsPage() {
         err instanceof Error ? err.message : "Error al guardar producto";
       setError(message);
     }
+  };
+
+  const handleEdit = (product: Product) => {
+    setSelectedProduct(product);
+    setPageView("form");
   };
 
   /* =========================
@@ -404,15 +394,9 @@ export default function ProductsPage() {
               <ProductCard
                 key={product._id}
                 product={product}
-                onEdit={(p) => {
-                  setSelectedProduct(p);
-                  setPageView("form");
-                }}
-                onInspect={(p) => setMappingProduct(p)}
+                onEdit={handleEdit}
                 onDelete={() => handleDelete(product._id!)}
                 simplified={mode === 'simple'}
-                expanded={expandedCards.has(product._id!)}
-                onExpandToggle={handleExpandToggle}
               />
             ))}
           </div>
@@ -431,15 +415,12 @@ export default function ProductsPage() {
         />
       )}
 
-      {/* INGREDIENT MAPPING PANEL */}
-      {mappingProduct && (
-        <IngredientMappingPanel
-          product={mappingProduct}
-          onClose={() => setMappingProduct(null)}
-          onSave={(recipe) => {
-            console.log("Recipe saved:", recipe);
-            setMappingProduct(null);
-          }}
+      {/* DETAIL DRAWER */}
+      {isDrawerOpen && storeSelectedProduct && (
+        <ProductDetailDrawer
+          product={storeSelectedProduct}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       )}
 

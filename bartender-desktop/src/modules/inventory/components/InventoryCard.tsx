@@ -9,20 +9,18 @@ import {
   MapPin,
   DollarSign,
   Activity,
-  Package
+  Package,
+  Eye
 } from "lucide-react";
 
 import type { InventoryItem } from "../types/inventory";
-import ExpandableCardWrapper from "../../../components/ui/ExpandableCardWrapper";
-import InventoryExpandedPanel from "./InventoryExpandedPanel";
+import { useInventoryUiStore } from "../store/inventoryUiStore";
 
 interface Props {
   item: InventoryItem;
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
   simplified?: boolean;
-  expanded?: boolean;
-  onExpandToggle?: (id: string) => void;
 }
 
 export default function InventoryCard({
@@ -30,9 +28,8 @@ export default function InventoryCard({
   onEdit,
   onDelete,
   simplified = false,
-  expanded,
-  onExpandToggle
 }: Props) {
+  const { openDrawer } = useInventoryUiStore();
   const stock = Number(item.stock ?? 0);
   const minStock = Number(item.minStock ?? 0);
   const maxStock = Number(item.maxStock ?? 100);
@@ -88,14 +85,12 @@ export default function InventoryCard({
     },
   }[status];
 
+  const handleViewDetails = () => {
+    openDrawer(item);
+  };
+
   return (
-    <ExpandableCardWrapper
-      id={item._id}
-      expanded={expanded}
-      onExpandToggle={() => onExpandToggle?.(item._id!)}
-      expandedContent={<InventoryExpandedPanel item={item} />}
-    >
-      <div className={`
+    <div className={`
         relative group cursor-pointer
         rounded-2xl overflow-hidden
         border ${sectorTheme.borderColor}
@@ -232,6 +227,13 @@ export default function InventoryCard({
         ${simplified ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
       `}>
         <button
+          onClick={(e) => { e.stopPropagation(); handleViewDetails(); }}
+          className="p-2 rounded-lg bg-violet/20 border border-violet/30 text-violet hover:bg-violet/30 transition-colors"
+          title="Ver detalles"
+        >
+          <Eye size={16} />
+        </button>
+        <button
           onClick={(e) => { e.stopPropagation(); onEdit(item); }}
           className="p-2 rounded-lg bg-cyan/20 border border-cyan/30 text-cyan hover:bg-cyan/30 transition-colors"
           title="Editar"
@@ -250,6 +252,5 @@ export default function InventoryCard({
       {/* DECORATIVE ELEMENT */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
     </div>
-    </ExpandableCardWrapper>
   );
 }

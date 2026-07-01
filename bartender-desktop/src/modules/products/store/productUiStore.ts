@@ -1,7 +1,9 @@
 import { create } from "zustand";
+import type { Product } from "../../../types/product";
 
 export type ProductMode = "simple" | "advanced";
 export type ProductView = "grid" | "list";
+export type ProductPageView = "list" | "form";
 
 const MODE_KEY = "nebula_product_mode";
 const VIEW_KEY = "nebula_product_view";
@@ -9,10 +11,18 @@ const VIEW_KEY = "nebula_product_view";
 interface ProductUiState {
   mode: ProductMode;
   view: ProductView;
+  pageView: ProductPageView;
+  selectedProduct: Product | null;
+  isDrawerOpen: boolean;
   setMode: (mode: ProductMode) => void;
   toggleMode: () => void;
   setView: (view: ProductView) => void;
   toggleView: () => void;
+  setPageView: (view: ProductPageView) => void;
+  setSelectedProduct: (product: Product | null) => void;
+  toggleDrawer: () => void;
+  openDrawer: (product: Product) => void;
+  closeDrawer: () => void;
 }
 
 function readStoredMode(): ProductMode {
@@ -38,6 +48,9 @@ function readStoredView(): ProductView {
 export const useProductUiStore = create<ProductUiState>((set) => ({
   mode: readStoredMode(),
   view: readStoredView(),
+  pageView: "list",
+  selectedProduct: null,
+  isDrawerOpen: false,
 
   setMode: (mode) => {
     try {
@@ -78,4 +91,14 @@ export const useProductUiStore = create<ProductUiState>((set) => ({
       }
       return { view: next };
     }),
+
+  setPageView: (pageView) => set({ pageView }),
+  setSelectedProduct: (selectedProduct) => set({ selectedProduct }),
+  toggleDrawer: () =>
+    set((state) => ({
+      isDrawerOpen: !state.isDrawerOpen,
+      selectedProduct: state.isDrawerOpen ? null : state.selectedProduct,
+    })),
+  openDrawer: (product) => set({ selectedProduct: product, isDrawerOpen: true }),
+  closeDrawer: () => set({ isDrawerOpen: false, selectedProduct: null }),
 }));

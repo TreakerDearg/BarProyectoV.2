@@ -19,6 +19,7 @@ import {
 
 import InventoryCard from "../components/InventoryCard";
 import InventoryForm from "../components/InventoryForm";
+import InventoryDetailDrawer from "../components/InventoryDetailDrawer";
 import InventoryTutorial from "../components/tutorial/InventoryTutorial";
 import InventoryAdvancedPanel from "../components/InventoryAdvancedPanel";
 import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
@@ -41,12 +42,10 @@ import "../../../styles/nebula-theme.css";
 export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [selected, setSelected] = useState<InventoryItem | null>(null);
-  const [open, setOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showExportImport, setShowExportImport] = useState(false);
-  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   const {
     isOpen: tutorialOpen,
@@ -79,7 +78,7 @@ export default function InventoryPage() {
     setError("Importación deshabilitada - solo exportación para auditoría");
   };
 
-  const { mode, setMode, view, toggleView } = useInventoryUiStore();
+  const { mode, setMode, view, toggleView, pageView, setPageView, selectedItem, isDrawerOpen } = useInventoryUiStore();
 
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
@@ -204,23 +203,11 @@ export default function InventoryPage() {
     return { total, critical, totalValue, lowStock };
   }, [items]);
 
-  const handleExpandToggle = (id: string) => {
-    setExpandedCards(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
   const handleSave = async (item: InventoryItem) => {
     try {
       if (item._id) await updateInventoryItem(item._id, item);
       else await createInventoryItem(item);
-      setOpen(false);
+      setPageView('list');
       setSelected(null);
       fetchData();
     } catch (err) {
@@ -315,7 +302,7 @@ export default function InventoryPage() {
           </button>
 
           <button
-            onClick={() => { setSelected(null); setOpen(true); }}
+            onClick={() => { setSelected(null); setPageView('form'); }}
             className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
           >
             <Plus size={18} />
@@ -366,11 +353,9 @@ export default function InventoryPage() {
                 <InventoryCard
                   key={item._id}
                   item={item}
-                  onEdit={() => { setSelected(item); setOpen(true); }}
+                  onEdit={() => { setSelected(item); setPageView('form'); }}
                   onDelete={() => handleDelete(item._id)}
                   simplified={mode === 'simple'}
-                  expanded={expandedCards.has(item._id!)}
-                  onExpandToggle={handleExpandToggle}
                 />
               );
             })}
@@ -435,7 +420,7 @@ export default function InventoryPage() {
                   </div>
                   <div className="col-span-12 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => { setSelected(item); setOpen(true); }}
+                      onClick={() => { setSelected(item); setPageView('form'); }}
                       className="p-2 rounded-lg bg-cyan/20 border border-cyan/30 text-cyan hover:bg-cyan/30 transition-colors"
                     >
                       <Pencil size={14} />
@@ -454,12 +439,23 @@ export default function InventoryPage() {
         )}
       </div>
 
-      {/* FORM MODAL */}
-      {open && (
-        <InventoryForm
-          item={selected}
-          onSave={handleSave}
-          onClose={() => { setOpen(false); setSelected(null); }}
+      {/* FORM VIEW (replaces grid when pageView is 'form') */}
+      {pageView === 'form' && (
+        <div className="flex-1 overflow-hidden">
+          <InventoryForm
+            item={selected}
+            onSave={handleSave}
+            onClose={() => { setPageView('list'); setSelected(null); }}
+          />
+        </div>
+      )}
+
+      {/* DETAIL DRAWER */}
+      {isDrawerOpen && selectedItem && (
+        <InventoryDetailDrawer
+          item={selectedItem}
+          onEdit={(item) => { setSelected(item); setPageView('form'); }}
+          onDelete={handleDelete}
         />
       )}
 
