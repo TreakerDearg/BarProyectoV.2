@@ -51,7 +51,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           value: String(activeOrders),
           hint: "Pedidos en cocina o barra actualmente",
           trend: formatTrend(t?.ordersPct),
-          comparisonPeriod: "vs ayer"",
+          comparisonPeriod: "vs ayer",
           accent: "emerald",
           status: activeOrders > 30 ? "warning" : activeOrders > 50 ? "critical" : "good",
         },
