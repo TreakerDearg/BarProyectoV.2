@@ -3,7 +3,8 @@ import type { DashboardMode } from "../store/dashboardUiStore";
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
 import CollapsibleSection from "../components/CollapsibleSection";
-import { BarChart4, LayoutPanelLeft } from "lucide-react";
+import ImprovementSuggestions from "../components/ImprovementSuggestions";
+import { BarChart4, LayoutPanelLeft, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface Props {
   data: DashboardStats;
@@ -23,6 +24,7 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
   >("DIARIO");
   const hourlyData = data.hourlyData || [];
   const isSimple = mode === "simple";
+  const isMedium = mode === "medium";
 
   const handlePeriodChange = (period: "DIARIO" | "SEMANAL" | "MENSUAL") => {
     setSelectedPeriod(period);
@@ -35,6 +37,52 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
   const acceptedPct =
     totalSpins > 0 ? Math.round((acceptedSpins / totalSpins) * 100) : 0;
 
+  // Generate improvement suggestions
+  const generateSuggestions = () => {
+    const suggestions = [];
+    const totalSales = hourlyData.reduce((sum, item) => sum + (item.sales || 0), 0);
+    const totalDiscounts = hourlyData.reduce((sum, item) => sum + (item.sales || 0), 0);
+
+    if (acceptedPct < 50 && totalSpins > 10) {
+      suggestions.push({
+        id: "low-roulette",
+        text: "Poca aceptación de ruleta: Mejora los premios ofrecidos",
+        type: "warning" as const,
+        icon: <AlertTriangle size={16} className="text-gold" />,
+      });
+    }
+
+    if (totalDiscounts > totalSales * 0.15) {
+      suggestions.push({
+        id: "high-discounts",
+        text: "Descuentos muy altos: Revisa el impacto en ganancias",
+        type: "warning" as const,
+        icon: <AlertTriangle size={16} className="text-gold" />,
+      });
+    }
+
+    if (acceptedPct > 70) {
+      suggestions.push({
+        id: "good-roulette",
+        text: "Ruleta funciona muy bien: Mantén la promoción",
+        type: "success" as const,
+        icon: <CheckCircle size={16} className="text-emerald-400" />,
+      });
+    }
+
+    if (totalSales > 30000) {
+      suggestions.push({
+        id: "good-sales",
+        text: "Ventas excelentes: Considera expandir horarios",
+        type: "info" as const,
+      });
+    }
+
+    return suggestions.slice(0, 3);
+  };
+
+  const suggestions = generateSuggestions();
+
   const chartBlock = (
     <div
       data-tutorial="sales-chart"
@@ -42,8 +90,8 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
     >
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h3 className="text-base font-bold text-ivory">Ventas por hora - Hoy</h3>
-          <p className="text-xs text-muted">Ventas frente a descuentos aplicados</p>
+          <h3 className="text-base font-bold text-ivory">Ventas por hora</h3>
+          <p className="text-xs text-muted">Ventas y descuentos del día</p>
         </div>
         <div className="flex gap-4 text-[10px] font-semibold uppercase text-muted">
           <span className="flex items-center gap-1.5">
@@ -136,8 +184,8 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
 
   const distributionBlock = (
     <div className="nebula-panel p-6 md:p-8 flex flex-col">
-      <h3 className="text-base font-bold text-ivory mb-1">Distribución de ingresos</h3>
-      <p className="text-xs text-muted mb-6">Por categoría con valores monetarios</p>
+      <h3 className="text-base font-bold text-ivory mb-1">Ingresos por categoría</h3>
+      <p className="text-xs text-muted mb-6">Dinero por tipo de producto</p>
       <div className="space-y-5 flex-1">
         {(data?.revenueByCategory || []).slice(0, 4).map((item, idx) => {
           const totalRev =
@@ -216,10 +264,10 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
         <div>
           <h2 className="text-xl font-bold text-ivory flex items-center gap-2">
             <BarChart4 className="text-emerald-400" size={22} />
-            Ventas y descuentos
+            Dinero y promos
           </h2>
           <p className="text-xs text-muted mt-1">
-            Rendimiento financiero e impacto de promociones
+            Ventas, descuentos y ruleta
           </p>
         </div>
         <div className="flex p-1 rounded-xl border border-white/8 bg-surface-3/30">
@@ -244,8 +292,8 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
         <>
           {chartBlock}
           <CollapsibleSection
-            title="Distribución y top bebidas"
-            subtitle="Categorías y productos destacados"
+            title="Categorías y bebidas"
+            subtitle="Distribución de ingresos"
             mode="simple"
           >
             <div className="space-y-6">
@@ -256,6 +304,8 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
         </>
       ) : (
         <>
+          {/* Improvement Suggestions - Medium and Advanced */}
+          <ImprovementSuggestions suggestions={suggestions} />
           <div className="grid grid-cols-12 gap-6">
             {chartBlock}
             <div className="col-span-12 lg:col-span-4">{distributionBlock}</div>
@@ -263,7 +313,7 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
           <div className="nebula-panel overflow-hidden">
             <div className="p-6 border-b border-white/5">
               <h3 className="text-base font-bold text-ivory">
-                Bebidas con mejor rendimiento
+                Bebidas que más venden
               </h3>
             </div>
             {drinksTable}

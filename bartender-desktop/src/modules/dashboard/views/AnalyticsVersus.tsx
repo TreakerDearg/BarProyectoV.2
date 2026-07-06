@@ -3,7 +3,8 @@ import type { DashboardMode } from "../store/dashboardUiStore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useState } from "react";
 import CollapsibleSection from "../components/CollapsibleSection";
-import { Trophy, ArrowUpRight, Sparkles, Info } from "lucide-react";
+import ImprovementSuggestions from "../components/ImprovementSuggestions";
+import { Trophy, ArrowUpRight, Sparkles, Info, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface Props {
   data: DashboardStats;
@@ -28,6 +29,7 @@ export default function AnalyticsVersus({
   const radarData = data?.versusStats?.radarData || [];
   const headToHead = data?.versusStats?.headToHead || [];
   const isSimple = mode === "simple";
+  const isMedium = mode === "medium";
 
   const handlePeriodChange = (period: "24H" | "7D" | "30D") => {
     setSelectedPeriod(period);
@@ -46,6 +48,49 @@ export default function AnalyticsVersus({
   const authorAvg = radarData.reduce((sum, item) => sum + (item.A || 0), 0) / (radarData.length || 1);
   const classicAvg = radarData.reduce((sum, item) => sum + (item.B || 0), 0) / (radarData.length || 1);
   const authorWins = radarData.filter((item) => (item.A || 0) > (item.B || 0)).length;
+
+  // Generate improvement suggestions
+  const generateSuggestions = () => {
+    const suggestions = [];
+
+    if (authorAvg > classicAvg && authorAvg > 60) {
+      suggestions.push({
+        id: "author-strong",
+        text: "Cócteles de autor son fuertes: Considera más creaciones exclusivas",
+        type: "success" as const,
+        icon: <CheckCircle size={16} className="text-emerald-400" />,
+      });
+    }
+
+    if (classicAvg > authorAvg && classicAvg > 60) {
+      suggestions.push({
+        id: "classic-strong",
+        text: "Clásicos son preferidos: Mantén stock de ingredientes base",
+        type: "info" as const,
+      });
+    }
+
+    if (headToHead.length > 0 && headToHead[0].perf < 50) {
+      suggestions.push({
+        id: "low-perf",
+        text: "Rendimiento bajo en top productos: Revisa precios o promoción",
+        type: "warning" as const,
+        icon: <AlertTriangle size={16} className="text-gold" />,
+      });
+    }
+
+    if (authorWins > radarData.length / 2) {
+      suggestions.push({
+        id: "author-wins",
+        text: "Autor gana en más atributos: Destaca en menú y promoción",
+        type: "info" as const,
+      });
+    }
+
+    return suggestions.slice(0, 3);
+  };
+
+  const suggestions = generateSuggestions();
 
   const rankingTable = (
     <div className="overflow-x-auto">
@@ -157,15 +202,20 @@ export default function AnalyticsVersus({
         <div className="flex items-start gap-3">
           <Info size={18} className="text-violet-300 mt-0.5 shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-violet-200 mb-1">¿Qué significa esta comparativa?</p>
+            <p className="text-sm font-semibold text-violet-200 mb-1">¿Qué es esto?</p>
             <p className="text-xs text-muted leading-relaxed">
-              Comparamos el rendimiento de los <strong className="text-gold">cócteles de autor</strong> (creaciones exclusivas del bar) 
-              contra los <strong className="text-emerald-400">cócteles clásicos</strong> (recetas internacionales reconocidas). 
-              Esto nos ayuda a entender qué tipo de bebidas generan más ingresos y cuáles prefieren nuestros clientes.
+              Comparamos <strong className="text-gold">cócteles de autor</strong> (creaciones del bar) 
+              contra <strong className="text-emerald-400">cócteles clásicos</strong> (recetas famosas). 
+              Así sabemos qué vende más.
             </p>
           </div>
         </div>
       </div>
+
+      {/* Improvement Suggestions - Medium and Advanced */}
+      {!isSimple && (
+        <ImprovementSuggestions suggestions={suggestions} />
+      )}
 
       <div className="dashboard-panel p-6 md:p-8" data-tutorial="analytics-radar">
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
@@ -198,7 +248,7 @@ export default function AnalyticsVersus({
                 }}
                 formatter={(value: number) => `${value} pts`}
               />
-              <Bar dataKey="autor" fill="#D4A340" name="Autor" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="autor" fill="#FFD700" name="Autor" radius={[0, 4, 4, 0]} />
               <Bar dataKey="clasico" fill="#34D399" name="Clásico" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>

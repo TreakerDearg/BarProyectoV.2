@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type DashboardMode = "simple" | "advanced";
+export type DashboardMode = "simple" | "medium" | "advanced";
 export type DashboardTab = "service" | "analytics" | "sales" | "inventory";
 
 const MODE_KEY = "nebula_dashboard_mode";
@@ -14,7 +14,7 @@ interface DashboardUiState {
 function readStoredMode(): DashboardMode {
   try {
     const stored = localStorage.getItem(MODE_KEY);
-    if (stored === "advanced" || stored === "simple") return stored;
+    if (stored === "advanced" || stored === "simple" || stored === "medium") return stored;
   } catch {
     /* ignore */
   }

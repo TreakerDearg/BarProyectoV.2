@@ -114,7 +114,7 @@ export default function Sidebar() {
               BARTENDER
             </h1>
             <p className="text-violet-400 text-[9px] font-bold tracking-widest uppercase mt-0.5">
-              NEBULA_CONTROL
+              BAR CONTROL
             </p>
           </div>
         )}

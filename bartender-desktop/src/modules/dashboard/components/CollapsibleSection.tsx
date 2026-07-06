@@ -9,7 +9,7 @@ interface Props {
   children: ReactNode;
   defaultOpen?: boolean;
   /** En modo simple, empieza cerrado salvo que defaultOpen sea true */
-  mode?: "simple" | "advanced";
+  mode?: "simple" | "medium" | "advanced";
 }
 
 export default function CollapsibleSection({
@@ -20,7 +20,7 @@ export default function CollapsibleSection({
   mode = "advanced",
 }: Props) {
   const [open, setOpen] = useState(
-    mode === "advanced" ? defaultOpen : false
+    mode === "advanced" || mode === "medium" ? defaultOpen : false
   );
 
   return (

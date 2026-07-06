@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { 
-  X, 
-  Users, 
-  MapPin, 
-  AlertCircle, 
-  Save, 
-  Hash, 
+import {
+  X,
+  Users,
+  MapPin,
+  AlertCircle,
+  Save,
+  Hash,
   MessageSquare,
-  Tag,
-  Plus,
   Maximize,
   Square,
   Circle,
@@ -48,7 +46,6 @@ export default function TableForm({
   existingTables = [],
 }: Props) {
   const [formData, setFormData] = useState<Table>(emptyTable);
-  const [tagInput, setTagInput] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const nextTableNumber = useMemo(() => {
@@ -79,23 +76,6 @@ export default function TableForm({
     }));
   };
 
-  const addTag = () => {
-    const val = tagInput.trim().toLowerCase();
-    if (!val || formData.tags?.some(t => t.label === val)) return;
-    setFormData(prev => ({
-      ...prev,
-      tags: [...(prev.tags || []), { label: val, type: "other", priority: "low" }]
-    }));
-    setTagInput("");
-  };
-
-  const removeTag = (label: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags?.filter(t => t.label !== label)
-    }));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -114,31 +94,31 @@ export default function TableForm({
   };
 
   return (
-    <div className="w-full max-w-5xl glass-royale rounded-[3rem] border-white/5 overflow-hidden shadow-royale relative">
+    <div className="w-full max-w-4xl glass rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl relative">
       {/* HEADER */}
-      <div className="p-8 md:p-10 border-b border-white/5 flex justify-between items-center bg-surface-3/50">
+      <div className="p-6 md:p-8 border-b border-white/10 flex justify-between items-center bg-surface-3/50">
         <div className="flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-grad-gold shadow-gold-glow">
-            <Layout size={28} className="text-bg" />
+          <div className="p-3 rounded-2xl bg-gold/15 text-gold">
+            <Layout size={24} />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-grad-gold tracking-tight uppercase leading-none">
-              {table ? "Configurar Activo" : "Registrar Activo"}
+            <h2 className="text-2xl font-bold text-ivory tracking-tight">
+              {table ? "Editar mesa" : "Nueva mesa"}
             </h2>
-            <p className="text-[10px] text-muted font-bold uppercase tracking-[0.3em] mt-2">
-              Management · Central Core
+            <p className="text-xs text-muted mt-1">
+              {table ? `Mesa ${table.number}` : `Mesa ${nextTableNumber}`}
             </p>
           </div>
         </div>
         <button 
           onClick={onClose}
-          className="w-14 h-14 rounded-full flex items-center justify-center hover:bg-white/5 hover:text-gold transition-all border border-white/5"
+          className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
         >
-          <X size={28} />
+          <X size={20} className="text-muted" />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-10 md:p-12 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
+      <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
         {error && (
           <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black uppercase tracking-widest flex items-center gap-3 animate-fade-in">
             <AlertCircle size={18} />
@@ -147,24 +127,24 @@ export default function TableForm({
         )}
 
         {/* SECTION 1: BASIC SPECS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-           <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="space-y-4">
               <div className="flex items-center gap-2">
                  <Hash size={12} className="text-gold opacity-50" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Especificaciones Base</h3>
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Información básica</h3>
               </div>
 
-             <div className="space-y-6">
+             <div className="space-y-4">
                <div className="space-y-2">
-                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Identificador</label>
+                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Número de mesa</label>
                  <div className="relative">
-                   <Hash size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
+                   <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/50" />
                    <input
                      type="number"
                      name="number"
                      value={formData.number}
                      onChange={handleChange}
-                     className="input !pl-14 !py-4 rounded-2xl border-white/5"
+                     className="input !pl-12 !py-3 rounded-xl border-white/5"
                      placeholder="0"
                      required
                    />
@@ -172,15 +152,15 @@ export default function TableForm({
                </div>
 
                <div className="space-y-2">
-                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Capacidad Máxima</label>
+                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Capacidad</label>
                  <div className="relative">
-                   <Users size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
+                   <Users size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/50" />
                    <input
                      type="number"
                      name="capacity"
                      value={formData.capacity}
                      onChange={handleChange}
-                     className="input !pl-14 !py-4 rounded-2xl border-white/5"
+                     className="input !pl-12 !py-3 rounded-xl border-white/5"
                      min="1"
                      required
                    />
@@ -189,201 +169,91 @@ export default function TableForm({
              </div>
            </div>
 
-           <div className="space-y-6">
+           <div className="space-y-4">
               <div className="flex items-center gap-2">
                  <Maximize size={12} className="text-gold opacity-50" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Atributos Físicos (Plano)</h3>
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Ubicación</h3>
               </div>
 
-             <div className="space-y-6">
+             <div className="space-y-4">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Zona</label>
+                   <div className="relative">
+                      <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gold/50" />
+                      <select
+                         name="location"
+                         value={formData.location}
+                         onChange={handleChange}
+                         className="input !pl-12 !py-3 rounded-xl border-white/5 appearance-none cursor-pointer"
+                      >
+                         <option value="indoor">Salón interior</option>
+                         <option value="outdoor">Terraza</option>
+                         <option value="bar">Barra</option>
+                      </select>
+                   </div>
+                </div>
+
                 <div className="space-y-2">
                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Forma</label>
-                   <div className="grid grid-cols-3 gap-3">
+                   <div className="grid grid-cols-3 gap-2">
                      {[
-                       { val: 'rect', icon: <Square size={20} />, label: 'Rectángulo' },
-                       { val: 'circle', icon: <Circle size={20} />, label: 'Círculo' },
-                       { val: 'square', icon: <Square size={20} className="rotate-45" />, label: 'Cuadrado' }
+                       { val: 'rect', icon: <Square size={18} />, label: 'Rect' },
+                       { val: 'circle', icon: <Circle size={18} />, label: 'Círc' },
+                       { val: 'square', icon: <Square size={18} className="rotate-45" />, label: 'Cuad' }
                      ].map((s) => (
                        <button
                          key={s.val}
                          type="button"
                          onClick={() => setFormData(prev => ({ ...prev, shape: s.val as any }))}
                          className={`
-                           flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 aspect-square
+                           flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all gap-1 aspect-square
                            ${formData.shape === s.val
-                             ? "bg-gold/10 border-gold/40 text-gold shadow-gold-glow/20"
+                             ? "bg-gold/10 border-gold/40 text-gold"
                              : "bg-white/5 border-white/10 text-muted hover:border-white/20 hover:bg-white/10"}
                          `}
                        >
-                         <div className={`p-3 rounded-xl ${formData.shape === s.val ? "bg-gold/20" : "bg-white/5"}`}>
+                         <div className={`p-2 rounded-lg ${formData.shape === s.val ? "bg-gold/20" : "bg-white/5"}`}>
                            {s.icon}
                          </div>
-                         <span className="text-[9px] font-black uppercase tracking-wider">{s.label}</span>
+                         <span className="text-[8px] font-black uppercase tracking-wider">{s.label}</span>
                        </button>
                      ))}
                    </div>
-                </div>
-
-                <div className="space-y-2">
-                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ubicación</label>
-                   <div className="relative">
-                      <MapPin size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50" />
-                      <select
-                         name="location"
-                         value={formData.location}
-                         onChange={handleChange}
-                         className="input !pl-14 !py-4 rounded-2xl border-white/5 appearance-none cursor-pointer"
-                      >
-                         <option value="indoor">Salón Interior</option>
-                         <option value="outdoor">Terraza / Exterior</option>
-                         <option value="bar">Barra / Counter</option>
-                      </select>
-                   </div>
-                </div>
-
-                {/* Dimensiones Físicas */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ancho (px)</label>
-                    <input
-                      type="number"
-                      name="width"
-                      value={formData.width || 120}
-                      onChange={handleChange}
-                      className="input !py-3 rounded-xl border-white/5 text-center text-xs font-bold"
-                      min="60"
-                      max="250"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Alto (px)</label>
-                    <input
-                      type="number"
-                      name="height"
-                      value={formData.height || 120}
-                      onChange={handleChange}
-                      className="input !py-3 rounded-xl border-white/5 text-center text-xs font-bold"
-                      min="60"
-                      max="250"
-                      required
-                    />
-                  </div>
                 </div>
              </div>
            </div>
         </div>
 
         {/* SECTION 2: NOTES */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <MessageSquare size={12} className="text-gold opacity-50" />
-            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Notas de Activo</h3>
+            <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Notas</h3>
           </div>
           <textarea
             name="notes"
             value={formData.notes || ""}
             onChange={handleChange}
-            className="input !p-6 min-h-[120px] resize-none rounded-[2rem] border-white/5 bg-black/20"
-            placeholder="Especificaciones técnicas o detalles especiales..."
+            className="input !p-4 min-h-[80px] resize-none rounded-xl border-white/5 bg-black/20"
+            placeholder="Detalles adicionales..."
           />
         </div>
 
-        {/* SECTION 3: TAGS */}
-        <div className="space-y-4">
-           <div className="flex items-center gap-2">
-              <Tag size={12} className="text-gold opacity-50" />
-              <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Etiquetas de Alerta Alimentaria</h3>
-           </div>
-           
-           {/* Preset Tags for Food Allergies/Diets */}
-           <div className="flex flex-wrap gap-2">
-              {[
-                { label: "Celíaco", type: "allergy" as const, priority: "high" as const },
-                { label: "Alergia frutos secos", type: "allergy" as const, priority: "high" as const },
-                { label: "Alergia mariscos", type: "allergy" as const, priority: "high" as const },
-                { label: "Sin lactosa", type: "diet" as const, priority: "medium" as const },
-                { label: "Vegetariano", type: "diet" as const, priority: "medium" as const },
-              ].map((preset) => {
-                const isActive = formData.tags?.some(t => t.label === preset.label);
-                return (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => isActive ? removeTag(preset.label) : setFormData(prev => ({
-                      ...prev,
-                      tags: [...(prev.tags || []), { label: preset.label, type: preset.type, priority: preset.priority }]
-                    }))}
-                    className={`
-                      px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all
-                      ${isActive
-                        ? preset.priority === 'high'
-                          ? 'bg-red-500/20 text-red-400 border-red-500/30'
-                          : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-                        : 'bg-white/5 text-muted border-white/10 hover:border-white/20'
-                      }
-                    `}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-           </div>
-
-           {/* Custom Tag Input */}
-           <div className="flex gap-4 pt-2">
-             <input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                className="input !px-6 !py-4 rounded-2xl border-white/5 bg-white/5 flex-1"
-                placeholder="Añadir etiqueta personalizada..."
-             />
-             <button
-                type="button"
-                onClick={addTag}
-                className="btn btn-ghost !p-4 rounded-2xl border border-white/5"
-             >
-                <Plus size={20} />
-             </button>
-           </div>
-
-           {/* All Tags Display */}
-           <div className="flex flex-wrap gap-2">
-              {formData.tags?.map((t, i) => (
-                <span key={i} className={`
-                  px-4 py-2 rounded-full text-[10px] font-black flex items-center gap-3 border
-                  ${t.priority === 'high'
-                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                    : t.priority === 'medium'
-                    ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
-                    : 'bg-white/5 text-gold/80 border-white/10'
-                  }
-                `}>
-                  {t.label}
-                  <button type="button" onClick={() => removeTag(t.label)} className="hover:text-white transition-colors">
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-           </div>
-        </div>
-
         {/* FINAL ACTIONS */}
-        <div className="pt-6 grid grid-cols-2 gap-6">
+        <div className="pt-4 grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={onClose}
-            className="btn btn-ghost !py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest border border-white/5 hover:bg-white/5"
+            className="btn btn-ghost !py-3 rounded-xl font-bold text-xs uppercase tracking-widest border border-white/5 hover:bg-white/5"
           >
-            Descartar
+            Cancelar
           </button>
           <button
             type="submit"
-            className="btn btn-gold !py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-gold-glow flex items-center justify-center gap-3"
+            className="btn btn-gold !py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-gold-glow flex items-center justify-center gap-2"
           >
-            <Save size={20} />
-            {table ? "Actualizar" : "Registrar Mesa"}
+            <Save size={16} />
+            {table ? "Guardar" : "Crear"}
           </button>
         </div>
       </form>

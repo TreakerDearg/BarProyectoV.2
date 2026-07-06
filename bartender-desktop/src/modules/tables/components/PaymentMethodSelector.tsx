@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check } from "lucide-react";
+import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check, Sparkles } from "lucide-react";
 import {
   getAvailablePaymentMethods,
   PaymentServiceError,
@@ -10,6 +10,7 @@ import {
   isNetworkError
 } from "../services/tableService";
 import DiscountSummary from "../../discounts/components/DiscountSummary";
+import DiscountModal from "./DiscountModal";
 
 interface PaymentMethod {
   _id: string;
@@ -25,9 +26,11 @@ interface PaymentMethod {
 interface Props {
   tableId: string;
   sessionId: string;
+  orderId?: string;
   balanceDue: number;
   onSelect: (method: string, data?: any) => void;
   onClose: () => void;
+  onApplyDiscount?: (discount: { type: "PERCENT" | "FLAT"; value: number; reason: string; note?: string }) => void;
   discounts?: Array<{
     amount: number;
     type: "PERCENT" | "FLAT";
@@ -83,6 +86,7 @@ export default function PaymentMethodSelector({
   balanceDue,
   onSelect,
   onClose,
+  onApplyDiscount,
   discounts = [],
   subtotal = balanceDue,
 }: Props) {
@@ -94,6 +98,7 @@ export default function PaymentMethodSelector({
     lastFour: "",
     cardType: "other" as "visa" | "mastercard" | "amex" | "other",
   });
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
 
   const [splitDetails, setSplitDetails] = useState({
     totalSplits: 2,
@@ -197,6 +202,13 @@ export default function PaymentMethodSelector({
     } else {
       onSelect(method);
     }
+  };
+
+  const handleApplyDiscount = (discount: { type: "PERCENT" | "FLAT"; value: number; reason: string; note?: string }) => {
+    if (onApplyDiscount) {
+      onApplyDiscount(discount);
+    }
+    setIsDiscountModalOpen(false);
   };
 
   const renderMethodInfo = () => {
@@ -361,17 +373,28 @@ export default function PaymentMethodSelector({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Wallet size={16} className="text-gold" />
-              <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Método de Pago</p>
+              <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Forma de pago</p>
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">${balanceDue.toFixed(2)}</h2>
-            <p className="text-[10px] text-muted mt-1">Saldo de sesión</p>
+            <p className="text-[10px] text-muted mt-1">Faltante</p>
           </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-          >
-            <X size={18} className="text-muted" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onApplyDiscount && (
+              <button
+                onClick={() => setIsDiscountModalOpen(true)}
+                className="px-4 py-2 rounded-xl bg-gold/10 text-gold border border-gold/30 hover:bg-gold/20 transition-all flex items-center gap-2"
+              >
+                <Sparkles size={16} />
+                <span className="text-xs font-bold uppercase">Descuento</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+            >
+              <X size={18} className="text-muted" />
+            </button>
+          </div>
         </div>
 
         {/* DISCOUNT SUMMARY */}
@@ -446,7 +469,40 @@ export default function PaymentMethodSelector({
             </>
           )}
         </div>
+
+        {/* FOOTER ACTIONS */}
+        <div className="p-6 md:p-8 border-t border-white/10 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => selectedMethod && handleStandardPayment(selectedMethod)}
+            disabled={!selectedMethod}
+            className={`flex-1 py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+              selectedMethod
+                ? "bg-gold text-black hover:bg-gold/90"
+                : "bg-white/5 text-muted cursor-not-allowed"
+            }`}
+          >
+            <Check size={16} />
+            Procesar pago
+          </button>
+        </div>
       </motion.div>
+
+      {/* DISCOUNT MODAL */}
+      <AnimatePresence>
+        {isDiscountModalOpen && (
+          <DiscountModal
+            subtotal={subtotal}
+            onApplyDiscount={handleApplyDiscount}
+            onClose={() => setIsDiscountModalOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

@@ -17,12 +17,12 @@
   --dashboard-surface-3: #171B24;
   --dashboard-surface-4: #1E232E;
   
-  /* Dashboard Accent Colors */
-  --dashboard-gold-primary: #d4af37;
-  --dashboard-gold-secondary: #f4e4a6;
-  --dashboard-neon-blue: #00d4ff;
-  --dashboard-neon-purple: #b147ff;
-  --dashboard-neon-cyan: #22d3ee;
+  /* Dashboard Accent Colors - Optimizados para mejor legibilidad */
+  --dashboard-gold-primary: #FFD700;
+  --dashboard-gold-secondary: #FFE55C;
+  --dashboard-neon-blue: #00E5FF;
+  --dashboard-neon-purple: #9D6AFF;
+  --dashboard-neon-cyan: #00E5FF;
   
   /* Dashboard Card Colors */
   --dashboard-card-bg: rgba(20, 20, 30, 0.8);
@@ -33,20 +33,20 @@
   --dashboard-error: #ff4757;
   --dashboard-info: #00d4ff;
   
-  /* Dashboard Text Colors */
-  --dashboard-text-primary: #ffffff;
-  --dashboard-text-secondary: #a0a0b0;
-  --dashboard-text-tertiary: #606070;
-  --dashboard-text-muted: rgba(255, 255, 255, 0.5);
+  /* Dashboard Text Colors - Mejor contraste */
+  --dashboard-text-primary: #FFFFFF;
+  --dashboard-text-secondary: #E0E0E0;
+  --dashboard-text-tertiary: #B0B0B0;
+  --dashboard-text-muted: rgba(255, 255, 255, 0.7);
   
   /* =========================================================
-     DASHBOARD GRADIENTS
+     DASHBOARD GRADIENTS - Optimizados
   ========================================================= */
-  --dashboard-gradient-gold: linear-gradient(135deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%);
+  --dashboard-gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFE55C 50%, #FFD700 100%);
   --dashboard-gradient-dark: linear-gradient(180deg, #0a0a0f 0%, #08090C 100%);
-  --dashboard-gradient-neon: linear-gradient(135deg, #00d4ff 0%, #b147ff 100%);
-  --dashboard-gradient-nebula: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
-  --dashboard-gradient-panel: linear-gradient(145deg, rgba(18, 16, 28, 0.92) 0%, rgba(12, 11, 18, 0.88) 100%);
+  --dashboard-gradient-neon: linear-gradient(135deg, #00E5FF 0%, #9D6AFF 100%);
+  --dashboard-gradient-nebula: linear-gradient(135deg, #9D6AFF 0%, #00E5FF 100%);
+  --dashboard-gradient-panel: linear-gradient(145deg, rgba(18, 16, 28, 0.95) 0%, rgba(12, 11, 18, 0.92) 100%);
   --dashboard-gradient-aurora: 
     radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
     radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),

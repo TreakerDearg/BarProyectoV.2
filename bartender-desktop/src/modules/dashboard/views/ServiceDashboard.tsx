@@ -13,6 +13,7 @@ import InventoryAlerts from "../components/alerts/InventoryAlerts";
 import LiveActivity from "../components/alerts/LiveActivity";
 import DashboardPricingPanel from "../components/DashboardPricingPanel";
 import CollapsibleSection from "../components/CollapsibleSection";
+import ImprovementSuggestions from "../components/ImprovementSuggestions";
 import {
   Activity,
   Target,
@@ -20,6 +21,7 @@ import {
   ShieldAlert,
   ArrowRight,
   Monitor,
+  AlertTriangle,
 } from "lucide-react";
 
 interface Props {
@@ -34,6 +36,8 @@ export default function ServiceDashboard({
   onViewActivityLog,
 }: Props) {
   const isSimple = mode === "simple";
+  const isMedium = mode === "medium";
+  const isAdvanced = mode === "advanced";
   const liveActivities = useDashboardStore((s) => s.liveActivities);
 
   // Calculate executive summary
@@ -42,23 +46,69 @@ export default function ServiceDashboard({
     const barLoad = data.barLoad || 0;
 
     if (kitchenLoad > 80 || barLoad > 80) {
-      return { status: "Pico de demanda", color: "text-red", bg: "bg-red/10", border: "border-red/20" };
+      return { status: "Muy ocupado", color: "text-red", bg: "bg-red/10", border: "border-red/20" };
     } else if (kitchenLoad > 50 || barLoad > 50) {
-      return { status: "Operación activa", color: "text-gold", bg: "bg-gold/10", border: "border-gold/20" };
+      return { status: "Ocupado", color: "text-gold", bg: "bg-gold/10", border: "border-gold/20" };
     } else {
-      return { status: "Operación normal", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" };
+      return { status: "Normal", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" };
     }
   };
 
   const operationStatus = getOperationStatus();
 
+  // Generate improvement suggestions
+  const generateSuggestions = () => {
+    const suggestions = [];
+    const avgTime = data.avgOrderTimeMin || 0;
+    const activeOrders = data.activeOrdersCount || 0;
+    const lowStock = data.inventory?.lowStock || 0;
+
+    if (avgTime > 15) {
+      suggestions.push({
+        id: "wait-time",
+        text: "Tiempo de espera alto: Considera más personal en barra",
+        type: "warning" as const,
+        icon: <AlertTriangle size={16} className="text-gold" />,
+      });
+    }
+
+    if (data.totalSales && data.totalSales < 20000) {
+      suggestions.push({
+        id: "low-sales",
+        text: "Ventas bajas en horario valle: Promo de 2x1 en cócteles",
+        type: "info" as const,
+      });
+    }
+
+    if (lowStock > 5) {
+      suggestions.push({
+        id: "stock-critical",
+        text: `Stock crítico en ${lowStock} productos: Reponer urgente`,
+        type: "warning" as const,
+        icon: <AlertTriangle size={16} className="text-gold" />,
+      });
+    }
+
+    if (activeOrders > 40) {
+      suggestions.push({
+        id: "high-orders",
+        text: "Muchos pedidos: Considera abrir otra estación de servicio",
+        type: "info" as const,
+      });
+    }
+
+    return suggestions.slice(0, 3);
+  };
+
+  const suggestions = generateSuggestions();
+
   return (
     <div
       className={`grid gap-6 dashboard-animate-fade-in-up ${
-        isSimple ? "grid-cols-1" : "grid-cols-12"
+        isSimple ? "grid-cols-1" : isMedium ? "grid-cols-12" : "grid-cols-12"
       }`}
     >
-      {/* Executive Summary - Only in advanced mode */}
+      {/* Executive Summary - Medium and Advanced mode */}
       {!isSimple && (
         <div className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20">
           <div className="flex items-center justify-between">
@@ -71,20 +121,22 @@ export default function ServiceDashboard({
                 <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
               </div>
             </div>
-            <div className="flex items-center gap-8">
-              <div className="text-center">
-                <p className="text-xs text-muted mb-1">Órdenes activas</p>
-                <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
+            {isAdvanced && (
+              <div className="flex items-center gap-8">
+                <div className="text-center">
+                  <p className="text-xs text-muted mb-1">Pedidos ahora</p>
+                  <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted mb-1">Tiempo espera</p>
+                  <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted mb-1">Reservas</p>
+                  <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-xs text-muted mb-1">Tiempo promedio</p>
-                <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted mb-1">Reservas hoy</p>
-                <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -93,9 +145,9 @@ export default function ServiceDashboard({
         <div className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
-              <h3 className="text-lg font-bold text-ivory">Ingresos diarios - Últimos 7 días</h3>
+              <h3 className="text-lg font-bold text-ivory">Ventas por hora - Hoy</h3>
               <p className="text-xs text-muted mt-0.5">
-                Evolución de ventas con tendencia
+                Ventas del día con pico marcado
               </p>
             </div>
             <span className="text-[10px] font-semibold uppercase tracking-wide px-3 py-1 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 flex items-center gap-1.5">
@@ -178,6 +230,8 @@ export default function ServiceDashboard({
 
       {!isSimple && (
         <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Improvement Suggestions - Medium and Advanced */}
+          <ImprovementSuggestions suggestions={suggestions} />
           <DashboardPricingPanel />
           <div className="dashboard-panel p-6">
             <div className="flex items-center gap-3 mb-4">

@@ -478,6 +478,39 @@ export const disconnectTableSocket = () => {
   if (socket) socket.off("table:update");
 };
 
+/* =========================================================
+   DISCOUNT INTEGRATION FOR PAYMENT
+========================================================= */
+export const applyDiscountToOrder = async (
+  orderId: string,
+  discount: {
+    type: "PERCENT" | "FLAT";
+    value: number;
+    reason: string;
+    note?: string;
+    items?: Array<{ product: string; quantity: number }>;
+  }
+) => {
+  try {
+    const response = await api.post("/discounts/apply", {
+      orderId,
+      type: discount.type,
+      value: discount.value,
+      reason: discount.reason,
+      note: discount.note,
+      items: discount.items || [],
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new PaymentServiceError(
+      error.response?.data?.message || "Error al aplicar descuento",
+      error.response?.status || 500,
+      error.response?.data?.code || "DISCOUNT_ERROR",
+      error
+    );
+  }
+};
+
 export default {
   // Tables CRUD
   getTables,
@@ -497,6 +530,7 @@ export default {
   // Payments & Receipts
   getAvailablePaymentMethods,
   getTablePayments,
+  applyDiscountToOrder,
   getTableSessionHistory,
   getSessionPayments,
   getPaymentById,

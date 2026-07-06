@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { TrendingUp, Trophy, Target, Zap } from "lucide-react";
 
 interface RadarDataPoint {
@@ -30,10 +30,26 @@ interface VersusChartProps {
 export default function VersusChart({
   radarData,
   headToHead,
-  drinkAName = "Drink A",
-  drinkBName = "Drink B",
+  drinkAName = "Autor",
+  drinkBName = "Clásico",
 }: VersusChartProps) {
-  const [activeTab, setActiveTab] = useState<"radar" | "head-to-head">("radar");
+  const [activeTab, setActiveTab] = useState<"bars" | "head-to-head">("bars");
+
+  // Transform radar data to horizontal bar chart format
+  const barData = radarData.map(item => ({
+    attribute: item.subject,
+    autor: item.A || 0,
+    clasico: item.B || 0,
+  }));
+
+  // Calculate winner
+  const authorAvg = radarData.reduce((sum, item) => sum + (item.A || 0), 0) / (radarData.length || 1);
+  const classicAvg = radarData.reduce((sum, item) => sum + (item.B || 0), 0) / (radarData.length || 1);
+  const authorWins = radarData.filter((item) => (item.A || 0) > (item.B || 0)).length;
+  const winner = authorAvg > classicAvg ? drinkAName : drinkBName;
+  const winnerPct = Math.max(authorAvg, classicAvg) > 0 
+    ? Math.round((Math.max(authorAvg, classicAvg) / Math.min(authorAvg, classicAvg) - 1) * 100)
+    : 0;
 
   return (
     <div className="bg-surface-3 border border-white/10 rounded-2xl p-6">
@@ -44,23 +60,23 @@ export default function VersusChart({
             <Trophy size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-ivory">Comparativa de Tragos</h3>
-            <p className="text-xs text-muted">Análisis comparativo de rendimiento</p>
+            <h3 className="text-lg font-bold text-ivory">Autor vs Clásico</h3>
+            <p className="text-xs text-muted">Gana el que tiene barra más larga</p>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2">
           <button
-            onClick={() => setActiveTab("radar")}
+            onClick={() => setActiveTab("bars")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              activeTab === "radar"
+              activeTab === "bars"
                 ? "bg-violet-500/20 text-violet-200"
                 : "bg-white/5 text-muted hover:text-ivory"
             }`}
           >
             <Target size={14} className="inline mr-1" />
-            Radar
+            Barras
           </button>
           <button
             onClick={() => setActiveTab("head-to-head")}
@@ -71,60 +87,64 @@ export default function VersusChart({
             }`}
           >
             <Zap size={14} className="inline mr-1" />
-            Head-to-Head
+            Ranking
           </button>
         </div>
       </div>
 
       {/* Content */}
-      {activeTab === "radar" && (
+      {activeTab === "bars" && (
         <div className="space-y-4">
+          {/* Winner badge */}
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-violet-500/10 border border-violet-400/20">
+            <Trophy size={18} className="text-gold" />
+            <span className="text-sm font-semibold text-ivory">
+              {winner} gana por {winnerPct}%
+            </span>
+          </div>
+
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: "#a0a0a0", fontSize: 12 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 150]} tick={{ fill: "#a0a0a0", fontSize: 10 }} />
-                <Radar
-                  name={drinkAName}
-                  dataKey="A"
-                  stroke="#8b5cf6"
-                  fill="#8b5cf6"
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
-                <Radar
-                  name={drinkBName}
-                  dataKey="B"
-                  stroke="#06b6d4"
-                  fill="#06b6d4"
-                  fillOpacity={0.3}
-                  strokeWidth={2}
-                />
+              <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis type="number" domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }} />
+                <YAxis dataKey="attribute" type="category" tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }} width={80} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1a1a2e",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: "8px",
+                    backgroundColor: "#0c0a12",
+                    border: "1px solid rgba(139,92,246,0.25)",
+                    borderRadius: "12px",
                   }}
-                  itemStyle={{ color: "#e0e0e0" }}
+                  formatter={(value: number) => `${value} pts`}
                 />
-                <Legend />
-              </RadarChart>
+                <Bar dataKey="autor" fill="#FFD700" name="Autor" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="clasico" fill="#34D399" name="Clásico" radius={[0, 4, 4, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Legend */}
           <div className="flex items-center justify-center gap-6 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-violet-500" />
+              <div className="w-3 h-3 rounded-full bg-gold" />
               <span className="text-muted">{drinkAName}</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-cyan-500" />
+              <div className="w-3 h-3 rounded-full bg-emerald-400" />
               <span className="text-muted">{drinkBName}</span>
             </div>
           </div>
+
+          {/* Summary */}
+          {radarData.length > 0 && (
+            <div className="mt-4 p-4 rounded-xl bg-violet-500/10 border border-violet-400/20">
+              <p className="text-xs text-muted">
+                <span className="text-violet-300 font-semibold">Resumen:</span> 
+                {drinkAName} tiene {authorAvg.toFixed(0)} puntos vs {classicAvg.toFixed(0)} de {drinkBName}.
+                {authorWins > radarData.length / 2 && ` Destaca en ${authorWins} de ${radarData.length} atributos.`}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -134,46 +154,45 @@ export default function VersusChart({
             <table className="w-full">
               <thead>
                 <tr className="text-left text-xs text-muted border-b border-white/10">
-                  <th className="pb-3 font-medium">Rank</th>
-                  <th className="pb-3 font-medium">Trago</th>
-                  <th className="pb-3 font-medium">Categoría</th>
-                  <th className="pb-3 font-medium text-right">Ventas</th>
-                  <th className="pb-3 font-medium text-right">Revenue</th>
-                  <th className="pb-3 font-medium text-right">Ganancia</th>
-                  <th className="pb-3 font-medium text-right">Margen</th>
-                  <th className="pb-3 font-medium text-right">Perf</th>
+                  <th className="pb-3 font-medium">#</th>
+                  <th className="pb-3 font-medium">Bebida</th>
+                  <th className="pb-3 font-medium text-center">Tipo</th>
+                  <th className="pb-3 font-medium text-right">Unidades</th>
+                  <th className="pb-3 font-medium text-right">Ingresos</th>
+                  <th className="pb-3 font-medium text-right">Rendimiento</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {headToHead.map((item) => (
                   <tr key={item.rank} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="py-3">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                        item.rank === 1 ? "bg-yellow-500/20 text-yellow-400" :
-                        item.rank === 2 ? "bg-gray-400/20 text-gray-300" :
-                        item.rank === 3 ? "bg-orange-500/20 text-orange-400" :
-                        "bg-white/5 text-muted"
+                    <td className="py-3 pl-4">
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-bold ${
+                        item.rank === 1 ? "bg-violet-500/30 text-violet-100" : "bg-surface-3/50 text-muted"
                       }`}>
                         {item.rank}
                       </span>
                     </td>
-                    <td className="py-3 font-medium text-ivory">{item.name}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-1 rounded-full text-xs bg-white/5 text-muted">
-                        {item.category}
+                    <td className="py-3 font-semibold text-ivory">{item.name}</td>
+                    <td className="py-3 text-center">
+                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-lg border ${
+                        item.category === "AUTHOR" 
+                          ? "border-gold/30 text-gold bg-gold/5" 
+                          : "border-emerald-400/30 text-emerald-400 bg-emerald-400/5"
+                      }`}>
+                        {item.category === "AUTHOR" ? "Autor" : "Clásico"}
                       </span>
                     </td>
-                    <td className="py-3 text-right text-ivory">{item.sold}</td>
-                    <td className="py-3 text-right text-cyan-400">{item.profit}</td>
-                    <td className="py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                    <td className="py-3 text-right text-muted">{item.sold.toLocaleString("es-MX")}</td>
+                    <td className="py-3 text-right text-gold font-medium">${item.profit}</td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center gap-2 ml-auto">
+                        <div className="w-24 h-1.5 bg-surface-3/50 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded-full"
-                            style={{ width: `${Math.min(item.perf, 100)}%` }}
+                            className={`h-full ${item.category === "AUTHOR" ? "bg-gold" : "bg-emerald-400"}`}
+                            style={{ width: `${item.perf}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted">{item.perf}%</span>
+                        <span className="text-[10px] text-muted w-8 text-right">{item.perf}%</span>
                       </div>
                     </td>
                   </tr>

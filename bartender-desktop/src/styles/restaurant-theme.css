@@ -1,0 +1,68 @@
+/* Restaurant-centric Nebula enhancements */
+
+.glass {
+  background: rgba(18, 16, 28, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shadow-gold-glow {
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.15);
+}
+
+.bg-gold {
+  background: linear-gradient(135deg, #ffd700, #ffb700);
+}
+
+.text-gold {
+  color: #ffd700;
+}
+
+.border-gold {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.bg-surface-2 {
+  background: rgba(12, 11, 18, 0.9);
+}
+
+.bg-surface-3 {
+  background: rgba(19, 20, 27, 0.85);
+}
+
+.bg-surface-3\/50 {
+  background: rgba(19, 20, 27, 0.5);
+}
+
+.text-ivory {
+  color: #fffff0;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #ffd700, #ffb700);
+  color: #0a0a0a;
+  border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.btn-gold:hover {
+  background: linear-gradient(135deg, #ffe033, #ffc700);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

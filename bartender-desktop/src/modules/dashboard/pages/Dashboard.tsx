@@ -34,10 +34,10 @@ import {
 import "../../../styles/dashboard-theme.css";
 
 const TABS: { id: DashboardTab; label: string; icon: ReactNode }[] = [
-  { id: "service", label: "Operación", icon: <Zap size={18} /> },
-  { id: "analytics", label: "Análisis", icon: <BarChart3 size={18} /> },
-  { id: "sales", label: "Ventas", icon: <DollarSign size={18} /> },
-  { id: "inventory", label: "Inventario", icon: <PackageSearch size={18} /> },
+  { id: "service", label: "Hoy", icon: <Zap size={18} /> },
+  { id: "analytics", label: "Datos", icon: <BarChart3 size={18} /> },
+  { id: "sales", label: "Dinero", icon: <DollarSign size={18} /> },
+  { id: "inventory", label: "Stock", icon: <PackageSearch size={18} /> },
 ];
 
 export default function Dashboard() {
@@ -117,11 +117,11 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory flex items-center gap-2">
               <Sparkles className="text-violet-300 w-6 h-6" />
-              Panel Nebula
+              Bar Control
             </h1>
             <p className="text-xs text-muted mt-1 flex items-center gap-1.5">
               <ShieldCheck size={12} className="text-violet-400/70" />
-              Operación del local · Nebula v3
+              El Bar hoy · Versión 3
             </p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function Dashboard() {
             />
           </div>
           <p className="text-center text-muted text-xs mt-6">
-            Generado por Centro Nebula
+            Generado por Sistema Nebula
           </p>
         </Modal>
       )}
@@ -267,8 +267,8 @@ function ModeToggle({
   mode,
   onChange,
 }: {
-  mode: "simple" | "advanced";
-  onChange: (m: "simple" | "advanced") => void;
+  mode: "simple" | "medium" | "advanced";
+  onChange: (m: "simple" | "medium" | "advanced") => void;
 }) {
   return (
     <div
@@ -280,7 +280,7 @@ function ModeToggle({
       <button
         type="button"
         onClick={() => onChange("simple")}
-        className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
           mode === "simple"
             ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
             : "text-muted hover:text-ivory"
@@ -293,8 +293,19 @@ function ModeToggle({
       </button>
       <button
         type="button"
+        onClick={() => onChange("medium")}
+        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+          mode === "medium"
+            ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
+            : "text-muted hover:text-ivory"
+        }`}
+      >
+        Medio
+      </button>
+      <button
+        type="button"
         onClick={() => onChange("advanced")}
-        className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
           mode === "advanced"
             ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
             : "text-muted hover:text-ivory"

@@ -9,7 +9,7 @@ interface KpiItem {
   label: string;
   value: string;
   hint?: string;
-  trend?: number | null;
+  trend?: { text: string; direction: "up" | "down" | "same" } | null;
   accent?: "gold" | "emerald" | "cyan" | "ember" | "violet";
   comparisonPeriod?: string;
   status?: "good" | "warning" | "critical";
@@ -30,11 +30,11 @@ const accentClasses: Record<string, string> = {
   violet: "text-violet-300 border-violet-400/25 bg-violet-400/8",
 };
 
-function formatTrend(pct: number | null | undefined): string | null {
+function formatTrend(pct: number | null | undefined): { text: string; direction: "up" | "down" | "same" } | null {
   if (pct == null || Number.isNaN(pct)) return null;
-  if (pct > 0) return `+${pct}%`;
-  if (pct < 0) return `${pct}%`;
-  return "0%";
+  if (pct > 0) return { text: `↑ ${pct}%`, direction: "up" };
+  if (pct < 0) return { text: `↓ ${Math.abs(pct)}%`, direction: "down" };
+  return { text: "= 0%", direction: "same" };
 }
 
 function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
@@ -47,16 +47,16 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
       const activeOrders = data.activeOrdersCount ?? 0;
       return [
         {
-          label: "Órdenes activas",
+          label: "Pedidos ahora",
           value: String(activeOrders),
-          hint: "Órdenes en cocina o barra actualmente",
-          trend: t?.ordersPct,
-          comparisonPeriod: "vs ayer",
+          hint: "Pedidos en cocina o barra actualmente",
+          trend: formatTrend(t?.ordersPct),
+          comparisonPeriod: "vs ayer"",
           accent: "emerald",
           status: activeOrders > 30 ? "warning" : activeOrders > 50 ? "critical" : "good",
         },
         {
-          label: "Reservas hoy",
+          label: "Reservas",
           value: String(data.reservationsToday ?? 0),
           hint: "Reservas confirmadas para hoy",
           comparisonPeriod: "hoy",
@@ -64,18 +64,18 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           status: "good",
         },
         {
-          label: "Ingresos del periodo",
+          label: "Ventas hoy",
           value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
-          hint: "Ventas totales en el periodo seleccionado",
-          trend: t?.salesPct,
-          comparisonPeriod: "vs periodo anterior",
+          hint: "Ventas totales del día",
+          trend: formatTrend(t?.salesPct),
+          comparisonPeriod: "vs ayer",
           accent: "gold",
           status: (data.totalSales ?? 0) > 30000 ? "good" : "warning",
         },
         {
-          label: "Tiempo prom. orden",
+          label: "Tiempo espera",
           value: avgMin != null ? `${avgMin} min` : "—",
-          hint: "Tiempo promedio para completar pedidos",
+          hint: "Tiempo promedio para preparar pedidos",
           comparisonPeriod: "promedio actual",
           accent: "cyan",
           status: avgMin != null && avgMin > 15 ? "warning" : avgMin != null && avgMin > 25 ? "critical" : "good",
@@ -84,29 +84,29 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
     case "analytics":
       return [
         {
-          label: "Ventas totales",
+          label: "Ventas",
           value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
           hint: "Ventas acumuladas en el periodo",
-          trend: t?.salesPct,
-          comparisonPeriod: "vs periodo anterior",
+          trend: formatTrend(t?.salesPct),
+          comparisonPeriod: "vs ayer",
           accent: "gold",
           status: (data.totalSales ?? 0) > 40000 ? "good" : "warning",
         },
         {
-          label: "Ticket promedio",
+          label: "Promedio cuenta",
           value: `$${(data.avgTicket ?? 0).toFixed(2)}`,
-          hint: "Valor promedio por orden",
-          trend: t?.ticketPct,
-          comparisonPeriod: "vs periodo anterior",
+          hint: "Valor promedio por cuenta",
+          trend: formatTrend(t?.ticketPct),
+          comparisonPeriod: "vs ayer",
           accent: "cyan",
           status: (data.avgTicket ?? 0) > 150 ? "good" : "warning",
         },
         {
-          label: "Órdenes",
+          label: "Cuentas",
           value: String(data.totalOrders ?? 0),
-          hint: "Total de órdenes procesadas",
-          trend: t?.ordersPct,
-          comparisonPeriod: "vs periodo anterior",
+          hint: "Total de cuentas procesadas",
+          trend: formatTrend(t?.ordersPct),
+          comparisonPeriod: "vs ayer",
           accent: "emerald",
           status: "good",
         },
@@ -114,24 +114,24 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
     case "sales":
       return [
         {
-          label: "Ingresos",
+          label: "Dinero total",
           value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
           hint: "Ventas brutas del periodo",
-          trend: t?.salesPct,
-          comparisonPeriod: "vs periodo anterior",
+          trend: formatTrend(t?.salesPct),
+          comparisonPeriod: "vs ayer",
           accent: "gold",
           status: (data.totalSales ?? 0) > 30000 ? "good" : "warning",
         },
         {
-          label: "Descuentos aplicados",
+          label: "Descuentos",
           value: `$${(data.discountsGiven ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
-          hint: "Valor total de descuentos otorgados",
+          hint: "Valor total de descuentos dados",
           comparisonPeriod: "acumulado",
           accent: "ember",
           status: (data.discountsGiven ?? 0) > 5000 ? "warning" : "good",
         },
         {
-          label: "Giros de ruleta",
+          label: "Ruletas",
           value: String(data.rouletteSpins?.total ?? 0),
           hint: `${data.rouletteSpins?.accepted ?? 0} aceptados de ${data.rouletteSpins?.total ?? 0}`,
           comparisonPeriod: "acumulado",
@@ -144,7 +144,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
       const outOfStock = inv?.outOfStock ?? 0;
       return [
         {
-          label: "Stock bajo",
+          label: "Por terminar",
           value: String(lowStock),
           hint: "Productos con stock por agotarse",
           comparisonPeriod: "actual",
@@ -152,7 +152,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           status: lowStock > 10 ? "warning" : lowStock > 20 ? "critical" : "good",
         },
         {
-          label: "Agotados",
+          label: "Sin stock",
           value: String(outOfStock),
           hint: "Productos sin stock disponible",
           comparisonPeriod: "actual",
@@ -160,7 +160,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           status: outOfStock > 0 ? "critical" : "good",
         },
         {
-          label: "Valor en bodega",
+          label: "Valor total",
           value: `$${(inv?.stockValue ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
           hint: "Valor total del inventario",
           comparisonPeriod: "actual",
@@ -213,9 +213,8 @@ export default function DashboardKpiStrip({ tab, data, mode, loading = false }: 
 
 const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod, status }: KpiItem) {
   const theme = accentClasses[accent] ?? accentClasses.gold;
-  const trendLabel = formatTrend(trend);
-  const trendUp = trend != null && trend > 0;
-  const trendDown = trend != null && trend < 0;
+  const trendUp = trend?.direction === "up";
+  const trendDown = trend?.direction === "down";
 
   const statusClasses = {
     good: "bg-emerald-400/10 border-emerald-400/30",
@@ -244,7 +243,7 @@ const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gol
         <p className="text-[11px] font-semibold text-muted uppercase tracking-wide">
           {label}
         </p>
-        {trendLabel && (
+        {trend && (
           <span
             className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
               trendUp
@@ -254,7 +253,7 @@ const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gol
                   : "text-muted bg-white/5"
             }`}
           >
-            {trendLabel}
+            {trend.text}
           </span>
         )}
       </div>
