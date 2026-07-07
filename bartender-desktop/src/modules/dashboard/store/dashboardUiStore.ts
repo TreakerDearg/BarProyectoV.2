@@ -35,8 +35,11 @@ export const useDashboardUiStore = create<DashboardUiState>((set) => ({
 
   toggleMode: () =>
     set((state) => {
-      const next: DashboardMode =
-        state.mode === "simple" ? "advanced" : "simple";
+      let next: DashboardMode = "simple";
+      if (state.mode === "simple") next = "medium";
+      else if (state.mode === "medium") next = "advanced";
+      else if (state.mode === "advanced") next = "simple";
+      
       try {
         localStorage.setItem(MODE_KEY, next);
       } catch {

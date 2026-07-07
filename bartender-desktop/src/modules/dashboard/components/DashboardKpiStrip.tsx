@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { DashboardStats } from "../services/dashboardService";
 import type { DashboardMode, DashboardTab } from "../store/dashboardUiStore";
 import KpiSkeleton from "./skeletons/KpiSkeleton";
@@ -192,22 +193,34 @@ export default function DashboardKpiStrip({ tab, data, mode, loading = false }: 
   }
 
   const items = buildKpis(tab, data);
-  // Reduce visible KPIs from all to 2 by default for better layout
-  const visible = mode === "simple" ? items.slice(0, 2) : items.slice(0, 2);
+  // In simple mode, show 2. In medium/advanced, show all.
+  const visible = mode === "simple" ? items.slice(0, 2) : items;
 
   return (
-    <div
+    <motion.div
+      layout
       data-tutorial="kpi-strip"
       className={`grid gap-4 ${
         visible.length <= 2
           ? "grid-cols-1 sm:grid-cols-2"
-          : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+          : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
       }`}
     >
-      {visible.map((kpi) => (
-        <KpiCard key={kpi.label} {...kpi} />
-      ))}
-    </div>
+      <AnimatePresence mode="popLayout">
+        {visible.map((kpi, index) => (
+          <motion.div
+            key={kpi.label}
+            layout
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+          >
+            <KpiCard {...kpi} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

@@ -6,6 +6,7 @@ import {
   useDashboardStore,
   type LiveActivityItem,
 } from "../store/dashboardStore";
+import { motion, AnimatePresence } from "framer-motion";
 import RevenueStreamChart from "../components/charts/RevenueStreamChart";
 import TopPerformanceBars from "../components/performance/TopPerformanceBars";
 import ServiceHealth from "../components/health/ServiceHealth";
@@ -36,7 +37,6 @@ export default function ServiceDashboard({
   onViewActivityLog,
 }: Props) {
   const isSimple = mode === "simple";
-  const isMedium = mode === "medium";
   const isAdvanced = mode === "advanced";
   const liveActivities = useDashboardStore((s) => s.liveActivities);
 
@@ -103,46 +103,65 @@ export default function ServiceDashboard({
   const suggestions = generateSuggestions();
 
   return (
-    <div
+    <motion.div
+      layout
       className={`grid gap-6 dashboard-animate-fade-in-up ${
-        isSimple ? "grid-cols-1" : isMedium ? "grid-cols-12" : "grid-cols-12"
+        isSimple ? "grid-cols-1" : "grid-cols-12"
       }`}
     >
       {/* Executive Summary - Medium and Advanced mode */}
-      {!isSimple && (
-        <div className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
-                <Activity size={24} className={operationStatus.color} />
+      <AnimatePresence mode="popLayout">
+        {!isSimple && (
+          <motion.div
+            key="executive-summary"
+            layout
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+            className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20"
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
+                  <Activity size={24} className={operationStatus.color} />
+                </div>
+                <div>
+                  <p className="text-xs text-muted uppercase tracking-wider mb-1">Estado actual</p>
+                  <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">Estado actual</p>
-                <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
-              </div>
+              
+              <AnimatePresence>
+                {isAdvanced && (
+                  <motion.div
+                    key="advanced-stats"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="flex flex-wrap items-center gap-8"
+                  >
+                    <div className="text-center">
+                      <p className="text-xs text-muted mb-1">Pedidos ahora</p>
+                      <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted mb-1">Tiempo espera</p>
+                      <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted mb-1">Reservas</p>
+                      <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            {isAdvanced && (
-              <div className="flex items-center gap-8">
-                <div className="text-center">
-                  <p className="text-xs text-muted mb-1">Pedidos ahora</p>
-                  <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-muted mb-1">Tiempo espera</p>
-                  <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-muted mb-1">Reservas</p>
-                  <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
-        <div className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
+      <motion.div layout className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
+        <motion.div layout className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h3 className="text-lg font-bold text-ivory">Ventas por hora - Hoy</h3>
@@ -155,11 +174,11 @@ export default function ServiceDashboard({
               En vivo
             </span>
           </div>
-          <div className={isSimple ? "h-[260px]" : "h-[320px]"}>
+          <motion.div layout className={isSimple ? "h-[260px]" : "h-[320px]"}>
             <RevenueStreamChart data={data.salesData} />
-          </div>
+          </motion.div>
           {data.salesData && data.salesData.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/5">
+            <motion.div layout className="mt-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Total del periodo:</span>
                 <span className="text-lg font-bold text-gold">
@@ -174,25 +193,38 @@ export default function ServiceDashboard({
                   </span>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        {isSimple ? (
-          <CollapsibleSection
-            title="Más detalles de operación"
-            subtitle="Bebidas, comida, precios y estado del servicio"
-            mode="simple"
-          >
-            <OperationDetails
-              data={data}
-              activities={liveActivities}
-              onViewActivityLog={onViewActivityLog}
-            />
-          </CollapsibleSection>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <AnimatePresence mode="wait">
+          {isSimple ? (
+            <motion.div
+              key="simple-op-details"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+            >
+              <CollapsibleSection
+                title="Más detalles de operación"
+                subtitle="Bebidas, comida, precios y estado del servicio"
+                mode="simple"
+              >
+                <OperationDetails
+                  data={data}
+                  activities={liveActivities}
+                  onViewActivityLog={onViewActivityLog}
+                />
+              </CollapsibleSection>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="advanced-op-details"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
               <div className="dashboard-panel p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2.5 rounded-xl bg-gold/10 text-gold">
@@ -223,63 +255,80 @@ export default function ServiceDashboard({
                   bgBar="bg-emerald-400 shadow-emerald-400/20"
                 />
               </div>
-            </div>
-          </>
-        )}
-      </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
-      {!isSimple && (
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Improvement Suggestions - Medium and Advanced */}
-          <ImprovementSuggestions suggestions={suggestions} />
-          <DashboardPricingPanel />
-          <div className="dashboard-panel p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Monitor size={18} className="text-violet-300" />
-              <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>
+      <AnimatePresence mode="popLayout">
+        {!isSimple && (
+          <motion.div
+            key="advanced-sidebar"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
+            className="col-span-12 lg:col-span-4 space-y-6"
+          >
+            {/* Improvement Suggestions - Medium and Advanced */}
+            <ImprovementSuggestions suggestions={suggestions} />
+            <DashboardPricingPanel />
+            <div className="dashboard-panel p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Monitor size={18} className="text-violet-300" />
+                <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>
+              </div>
+              <ServiceHealth data={data} />
             </div>
-            <ServiceHealth data={data} />
-          </div>
-          <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
-            <div className="flex items-center gap-3 mb-4">
-              <ShieldAlert size={18} className="text-red" />
-              <h3 className="text-sm font-bold text-red">Alertas de inventario</h3>
+            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
+              <div className="flex items-center gap-3 mb-4">
+                <ShieldAlert size={18} className="text-red" />
+                <h3 className="text-sm font-bold text-red">Alertas de inventario</h3>
+              </div>
+              <InventoryAlerts
+                lowStock={data?.inventory?.lowStock || 0}
+                outOfStock={data?.inventory?.outOfStock || 0}
+              />
             </div>
-            <InventoryAlerts
-              lowStock={data?.inventory?.lowStock || 0}
-              outOfStock={data?.inventory?.outOfStock || 0}
-            />
-          </div>
-          <ActivityPanel
-            data={data}
-            activities={liveActivities}
-            onViewActivityLog={onViewActivityLog}
-          />
-        </div>
-      )}
-
-      {isSimple && (
-        <CollapsibleSection
-          title="Salud del servicio e inventario"
-          subtitle="Cocina, barra y alertas"
-          mode="simple"
-        >
-          <div className="space-y-6">
-            <ServiceHealth data={data} />
-            <InventoryAlerts
-              lowStock={data?.inventory?.lowStock || 0}
-              outOfStock={data?.inventory?.outOfStock || 0}
-            />
             <ActivityPanel
               data={data}
               activities={liveActivities}
               onViewActivityLog={onViewActivityLog}
-              compact
             />
-          </div>
-        </CollapsibleSection>
-      )}
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="popLayout">
+        {isSimple && (
+          <motion.div
+            key="simple-health"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+          >
+            <CollapsibleSection
+              title="Salud del servicio e inventario"
+              subtitle="Cocina, barra y alertas"
+              mode="simple"
+            >
+              <div className="space-y-6">
+                <ServiceHealth data={data} />
+                <InventoryAlerts
+                  lowStock={data?.inventory?.lowStock || 0}
+                  outOfStock={data?.inventory?.outOfStock || 0}
+                />
+                <ActivityPanel
+                  data={data}
+                  activities={liveActivities}
+                  onViewActivityLog={onViewActivityLog}
+                  compact
+                />
+              </div>
+            </CollapsibleSection>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

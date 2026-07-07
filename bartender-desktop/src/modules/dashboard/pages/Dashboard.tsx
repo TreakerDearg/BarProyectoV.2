@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { ToastProvider } from "../../../components/shared/ToastProvider";
 import {
   Zap,
@@ -162,7 +163,7 @@ export default function Dashboard() {
 
       {/* Analytics Dashboard Integration */}
       {activeTab === "analytics" && mode === "advanced" && (
-        <AnalyticsDashboardView data={data} onRangeChange={setRange} />
+        <AnalyticsDashboardView data={data} mode={mode} onRangeChange={setRange} />
       )}
 
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
@@ -270,49 +271,48 @@ function ModeToggle({
   mode: "simple" | "medium" | "advanced";
   onChange: (m: "simple" | "medium" | "advanced") => void;
 }) {
+  const modes = [
+    { id: "simple", label: "Simple", icon: <LayoutGrid size={14} />, desc: "Vista esencial para el servicio" },
+    { id: "medium", label: "Medio", icon: <Monitor size={14} />, desc: "Añade reportes y resumen rápido" },
+    { id: "advanced", label: "Avanzado", icon: <BarChart3 size={14} />, desc: "Métricas completas y datos analíticos" },
+  ] as const;
+
   return (
     <div
-      className="flex p-1 rounded-xl border border-white/8 bg-surface-3/30"
+      className="relative flex p-1 rounded-xl border border-white/10 bg-surface-3/40 backdrop-blur-md shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)]"
       role="group"
       aria-label="Modo de visualización"
       data-tutorial="mode-toggle"
     >
-      <button
-        type="button"
-        onClick={() => onChange("simple")}
-        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-          mode === "simple"
-            ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
-            : "text-muted hover:text-ivory"
-        }`}
-      >
-        <span className="flex items-center gap-1.5">
-          <LayoutGrid size={14} />
-          Simple
-        </span>
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("medium")}
-        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-          mode === "medium"
-            ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
-            : "text-muted hover:text-ivory"
-        }`}
-      >
-        Medio
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("advanced")}
-        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-          mode === "advanced"
-            ? "bg-violet-500/25 text-violet-100 border border-violet-400/30"
-            : "text-muted hover:text-ivory"
-        }`}
-      >
-        Avanzado
-      </button>
+      {modes.map((m) => {
+        const isActive = mode === m.id;
+        return (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => onChange(m.id)}
+            className="relative px-3 py-2 text-xs font-semibold rounded-lg group transition-colors z-10"
+            title={m.desc}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="mode-pill"
+                className="absolute inset-0 bg-gradient-to-r from-violet-600/40 to-cyan-600/30 rounded-lg border border-violet-400/30 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                initial={false}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span
+              className={`relative flex items-center gap-1.5 transition-colors duration-200 ${
+                isActive ? "text-ivory" : "text-muted hover:text-white/90"
+              }`}
+            >
+              {m.icon}
+              {m.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
