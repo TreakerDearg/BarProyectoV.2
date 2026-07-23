@@ -14,6 +14,7 @@ interface KpiItem {
   accent?: "gold" | "emerald" | "cyan" | "ember" | "violet";
   comparisonPeriod?: string;
   status?: "good" | "warning" | "critical";
+  onClick?: () => void;
 }
 
 interface Props {
@@ -44,7 +45,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
   const avgMin = data.avgOrderTimeMin;
 
   switch (tab) {
-    case "service":
+    case "operation":
       const activeOrders = data.activeOrdersCount ?? 0;
       return [
         {
@@ -111,18 +112,6 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           accent: "emerald",
           status: "good",
         },
-      ];
-    case "sales":
-      return [
-        {
-          label: "Dinero total",
-          value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
-          hint: "Ventas brutas del periodo",
-          trend: formatTrend(t?.salesPct),
-          comparisonPeriod: "vs ayer",
-          accent: "gold",
-          status: (data.totalSales ?? 0) > 30000 ? "good" : "warning",
-        },
         {
           label: "Descuentos",
           value: `$${(data.discountsGiven ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
@@ -130,14 +119,6 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
           comparisonPeriod: "acumulado",
           accent: "ember",
           status: (data.discountsGiven ?? 0) > 5000 ? "warning" : "good",
-        },
-        {
-          label: "Ruletas",
-          value: String(data.rouletteSpins?.total ?? 0),
-          hint: `${data.rouletteSpins?.accepted ?? 0} aceptados de ${data.rouletteSpins?.total ?? 0}`,
-          comparisonPeriod: "acumulado",
-          accent: "violet",
-          status: "good",
         },
       ];
     case "inventory":
@@ -224,7 +205,7 @@ export default function DashboardKpiStrip({ tab, data, mode, loading = false }: 
   );
 }
 
-const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod, status }: KpiItem) {
+const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gold", comparisonPeriod, status, onClick }: KpiItem) {
   const theme = accentClasses[accent] ?? accentClasses.gold;
   const trendUp = trend?.direction === "up";
   const trendDown = trend?.direction === "down";
@@ -243,7 +224,16 @@ const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gol
 
   return (
     <div
-      className={`rounded-2xl border p-5 transition-all hover:border-white/15 ${theme.split(" ").slice(1).join(" ")} border relative`}
+      className={`rounded-2xl border p-5 transition-all hover:border-white/15 cursor-pointer ${theme.split(" ").slice(1).join(" ")} border relative`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
     >
       {/* Status indicator */}
       {status && status !== "good" && (

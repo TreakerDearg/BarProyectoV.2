@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type DashboardMode = "simple" | "medium" | "advanced";
-export type DashboardTab = "service" | "analytics" | "sales" | "inventory";
+export type DashboardTab = "operation" | "analytics" | "inventory";
 
 const MODE_KEY = "nebula_dashboard_mode";
 

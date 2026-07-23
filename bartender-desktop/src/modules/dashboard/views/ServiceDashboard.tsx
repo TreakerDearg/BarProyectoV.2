@@ -13,7 +13,6 @@ import ServiceHealth from "../components/health/ServiceHealth";
 import InventoryAlerts from "../components/alerts/InventoryAlerts";
 import LiveActivity from "../components/alerts/LiveActivity";
 import DashboardPricingPanel from "../components/DashboardPricingPanel";
-import CollapsibleSection from "../components/CollapsibleSection";
 import ImprovementSuggestions from "../components/ImprovementSuggestions";
 import {
   Activity,
@@ -37,7 +36,6 @@ export default function ServiceDashboard({
   onViewActivityLog,
 }: Props) {
   const isSimple = mode === "simple";
-  const isAdvanced = mode === "advanced";
   const liveActivities = useDashboardStore((s) => s.liveActivities);
 
   // Calculate executive summary
@@ -109,56 +107,42 @@ export default function ServiceDashboard({
         isSimple ? "grid-cols-1" : "grid-cols-12"
       }`}
     >
-      {/* Executive Summary - Medium and Advanced mode */}
-      <AnimatePresence mode="popLayout">
-        {!isSimple && (
-          <motion.div
-            key="executive-summary"
-            layout
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-            className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20"
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
-                  <Activity size={24} className={operationStatus.color} />
-                </div>
-                <div>
-                  <p className="text-xs text-muted uppercase tracking-wider mb-1">Estado actual</p>
-                  <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
-                </div>
-              </div>
-              
-              <AnimatePresence>
-                {isAdvanced && (
-                  <motion.div
-                    key="advanced-stats"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="flex flex-wrap items-center gap-8"
-                  >
-                    <div className="text-center">
-                      <p className="text-xs text-muted mb-1">Pedidos ahora</p>
-                      <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-muted mb-1">Tiempo espera</p>
-                      <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-muted mb-1">Reservas</p>
-                      <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      {/* Executive Summary - All modes, simplified in simple mode */}
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20"
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-xl ${operationStatus.bg} ${operationStatus.border}`}>
+              <Activity size={24} className={operationStatus.color} />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wider mb-1">Estado actual</p>
+              <p className={`text-lg font-bold ${operationStatus.color}`}>{operationStatus.status}</p>
+            </div>
+          </div>
+          
+          {!isSimple && (
+            <div className="flex flex-wrap items-center gap-8">
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Pedidos ahora</p>
+                <p className="text-2xl font-bold text-ivory">{data.activeOrdersCount || 0}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Tiempo espera</p>
+                <p className="text-2xl font-bold text-ivory">{data.avgOrderTimeMin ? `${data.avgOrderTimeMin} min` : "—"}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-muted mb-1">Reservas</p>
+                <p className="text-2xl font-bold text-ivory">{data.reservationsToday || 0}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
 
       <motion.div layout className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
         <motion.div layout className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
@@ -185,7 +169,7 @@ export default function ServiceDashboard({
                   ${data.salesData.reduce((sum, item) => sum + (item.total || 0), 0).toLocaleString("es-MX")}
                 </span>
               </div>
-              {data.trends?.salesPct && (
+              {!isSimple && data.trends?.salesPct && (
                 <div className="flex items-center justify-between text-xs mt-2">
                   <span className="text-muted">vs periodo anterior:</span>
                   <span className={`font-semibold ${data.trends.salesPct > 0 ? "text-emerald-400" : "text-red"}`}>
@@ -197,80 +181,58 @@ export default function ServiceDashboard({
           )}
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          {isSimple ? (
-            <motion.div
-              key="simple-op-details"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
-            >
-              <CollapsibleSection
-                title="Más detalles de operación"
-                subtitle="Bebidas, comida, precios y estado del servicio"
-                mode="simple"
-              >
-                <OperationDetails
-                  data={data}
-                  activities={liveActivities}
-                  onViewActivityLog={onViewActivityLog}
-                />
-              </CollapsibleSection>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="advanced-op-details"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              <div className="dashboard-panel p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gold/10 text-gold">
-                    <Flame size={22} />
-                  </div>
-                  <h3 className="text-base font-bold text-ivory">
-                    Top 5 Bebidas
-                  </h3>
+        {!isSimple && (
+          <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <div className="dashboard-panel p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 rounded-xl bg-gold/10 text-gold">
+                  <Flame size={22} />
                 </div>
-                <TopPerformanceBars
-                  items={data?.topDrinks || []}
-                  color="text-gold"
-                  bgBar="bg-grad-gold shadow-gold-glow"
-                />
+                <h3 className="text-base font-bold text-ivory">
+                  Top 5 Bebidas
+                </h3>
               </div>
-              <div className="dashboard-panel p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-emerald-400/10 text-emerald-400">
-                    <Target size={22} />
-                  </div>
-                  <h3 className="text-base font-bold text-ivory">
-                    Top 5 Comidas
-                  </h3>
+              <TopPerformanceBars
+                items={data?.topDrinks || []}
+                color="text-gold"
+                bgBar="bg-grad-gold shadow-gold-glow"
+              />
+            </div>
+            <div className="dashboard-panel p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2.5 rounded-xl bg-emerald-400/10 text-emerald-400">
+                  <Target size={22} />
                 </div>
-                <TopPerformanceBars
-                  items={data?.topFoods || []}
-                  color="text-emerald-400"
-                  bgBar="bg-emerald-400 shadow-emerald-400/20"
-                />
+                <h3 className="text-base font-bold text-ivory">
+                  Top 5 Comidas
+                </h3>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <TopPerformanceBars
+                items={data?.topFoods || []}
+                color="text-emerald-400"
+                bgBar="bg-emerald-400 shadow-emerald-400/20"
+              />
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       <AnimatePresence mode="popLayout">
         {!isSimple && (
           <motion.div
-            key="advanced-sidebar"
+            key="sidebar"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
             className="col-span-12 lg:col-span-4 space-y-6"
           >
             {/* Improvement Suggestions - Medium and Advanced */}
-            <ImprovementSuggestions suggestions={suggestions} />
+            <ImprovementSuggestions suggestions={suggestions} maxVisible={2} />
             <DashboardPricingPanel />
             <div className="dashboard-panel p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -301,75 +263,33 @@ export default function ServiceDashboard({
       <AnimatePresence mode="popLayout">
         {isSimple && (
           <motion.div
-            key="simple-health"
+            key="simple-sidebar"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
+            className="col-span-12 space-y-6"
           >
-            <CollapsibleSection
-              title="Salud del servicio e inventario"
-              subtitle="Cocina, barra y alertas"
-              mode="simple"
-            >
-              <div className="space-y-6">
-                <ServiceHealth data={data} />
-                <InventoryAlerts
-                  lowStock={data?.inventory?.lowStock || 0}
-                  outOfStock={data?.inventory?.outOfStock || 0}
-                />
-                <ActivityPanel
-                  data={data}
-                  activities={liveActivities}
-                  onViewActivityLog={onViewActivityLog}
-                  compact
-                />
+            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
+              <div className="flex items-center gap-3 mb-4">
+                <ShieldAlert size={18} className="text-red" />
+                <h3 className="text-sm font-bold text-red">Alertas críticas</h3>
               </div>
-            </CollapsibleSection>
+              <InventoryAlerts
+                lowStock={data?.inventory?.lowStock || 0}
+                outOfStock={data?.inventory?.outOfStock || 0}
+              />
+            </div>
+            <div className="dashboard-panel p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Monitor size={18} className="text-violet-300" />
+                <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>
+              </div>
+              <ServiceHealth data={data} />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
-  );
-}
-
-function OperationDetails({
-  data,
-  activities,
-  onViewActivityLog,
-}: {
-  data: DashboardStats;
-  activities: LiveActivityItem[];
-  onViewActivityLog?: () => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <DashboardPricingPanel />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-muted mb-3 font-semibold">Bebidas</p>
-          <TopPerformanceBars
-            items={data?.topDrinks || []}
-            color="text-gold"
-            bgBar="bg-grad-gold"
-          />
-        </div>
-        <div>
-          <p className="text-xs text-muted mb-3 font-semibold">Comida</p>
-          <TopPerformanceBars
-            items={data?.topFoods || []}
-            color="text-emerald-400"
-            bgBar="bg-emerald-400"
-          />
-        </div>
-      </div>
-      <ServiceHealth data={data} />
-      <ActivityPanel
-        data={data}
-        activities={activities}
-        onViewActivityLog={onViewActivityLog}
-        compact
-      />
-    </div>
   );
 }
 

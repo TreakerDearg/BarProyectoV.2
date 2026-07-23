@@ -2,7 +2,6 @@ import type { DashboardStats } from "../services/dashboardService";
 import type { DashboardMode } from "../store/dashboardUiStore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useState } from "react";
-import CollapsibleSection from "../components/CollapsibleSection";
 import ImprovementSuggestions from "../components/ImprovementSuggestions";
 import { Trophy, ArrowUpRight, Sparkles, Info, CheckCircle, AlertTriangle } from "lucide-react";
 
@@ -29,7 +28,6 @@ export default function AnalyticsVersus({
   const radarData = data?.versusStats?.radarData || [];
   const headToHead = data?.versusStats?.headToHead || [];
   const isSimple = mode === "simple";
-  const isMedium = mode === "medium";
 
   const handlePeriodChange = (period: "24H" | "7D" | "30D") => {
     setSelectedPeriod(period);
@@ -269,42 +267,32 @@ export default function AnalyticsVersus({
         )}
       </div>
 
-      {isSimple ? (
-        <CollapsibleSection
-          title="Ranking de productos"
-          subtitle="Comparativa directa de desempeño"
-          mode="simple"
-        >
-          {rankingTable}
-        </CollapsibleSection>
-      ) : (
-        <div className="dashboard-panel overflow-hidden">
-          <div className="p-6 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-violet-500/15 text-violet-300">
-                <Trophy size={20} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-ivory">
-                  Ranking del bar
-                </h3>
-                <p className="text-xs text-muted">Comparativa de ventas</p>
-              </div>
+      <div className="dashboard-panel overflow-hidden">
+        <div className="p-6 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-violet-500/15 text-violet-300">
+              <Trophy size={20} />
             </div>
-            {onViewReport && (
-              <button
-                type="button"
-                onClick={onViewReport}
-                className="px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold hover:border-violet-400/30 flex items-center gap-2 text-muted hover:text-violet-200"
-              >
-                Ver reporte completo
-                <ArrowUpRight size={14} />
-              </button>
-            )}
+            <div>
+              <h3 className="text-base font-bold text-ivory">
+                Ranking del bar
+              </h3>
+              <p className="text-xs text-muted">Comparativa de ventas</p>
+            </div>
           </div>
-          {rankingTable}
+          {onViewReport && (
+            <button
+              type="button"
+              onClick={onViewReport}
+              className="px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold hover:border-violet-400/30 flex items-center gap-2 text-muted hover:text-violet-200"
+            >
+              Ver reporte completo
+              <ArrowUpRight size={14} />
+            </button>
+          )}
         </div>
-      )}
+        {rankingTable}
+      </div>
     </div>
   );
 }

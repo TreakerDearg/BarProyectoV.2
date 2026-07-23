@@ -8,98 +8,132 @@ export default {
     extend: {
 
       /* ============================================================
-         COLORES — Bartender System v2.0
-         Rojo · Dorado · Naranja · Verde · Obsidian
+         COLORES UNIFICADOS — Bartender Dashboard v3.0
+         Sistema unificado para consistencia visual
       ============================================================ */
       colors: {
-
-        /* Backgrounds Obsidian & Nebula Space */
-        void:    "#030207",
-        obsidian: {
-          DEFAULT: "#0D0F14",
-          light:   "#12151C",
-          dark:    "#08090C",
-        },
-
-        bg: {
-          DEFAULT: "#08090C",
-          deep:    "#050608",
-        },
-        surface: {
-          DEFAULT: "#0D0F14",
-          2:       "#12151C",
-          3:       "#171B24",
-          4:       "#1E232E",
-        },
-
-        /* Dorado — Primary */
+        /* Primary - Gold */
         gold: {
           DEFAULT: "#D4A340",
-          light:   "#E8BC5A",
-          dark:    "#A87C28",
-          50:      "rgba(212,163,64,0.05)",
-          100:     "rgba(212,163,64,0.10)",
-          200:     "rgba(212,163,64,0.20)",
-          300:     "rgba(212,163,64,0.30)",
+          light: "#E8BC5A",
+          dark: "#A87C28",
+          50: "rgba(212,163,64,0.05)",
+          100: "rgba(212,163,64,0.10)",
+          200: "rgba(212,163,64,0.20)",
+          300: "rgba(212,163,64,0.30)",
         },
 
-        /* Rojo — Danger / Brand */
-        brand: {
+        /* Danger - Red */
+        red: {
           DEFAULT: "#C83228",
-          light:   "#E05444",
-          dark:    "#981E16",
-          50:      "rgba(200,50,40,0.05)",
-          100:     "rgba(200,50,40,0.12)",
-          300:     "rgba(200,50,40,0.30)",
+          light: "#E05444",
+          dark: "#981E16",
+          50: "rgba(200,50,40,0.05)",
+          100: "rgba(200,50,40,0.12)",
+          200: "rgba(200,50,40,0.20)",
+          300: "rgba(200,50,40,0.30)",
         },
 
-        /* Naranja — Warning / Preparing */
-        ember: {
+        /* Warning - Orange */
+        warning: {
           DEFAULT: "#E07828",
-          light:   "#F09040",
-          dark:    "#B05A18",
-          50:      "rgba(224,120,40,0.05)",
-          100:     "rgba(224,120,40,0.12)",
-          300:     "rgba(224,120,40,0.28)",
+          light: "#F09040",
+          dark: "#B05A18",
+          50: "rgba(224,120,40,0.05)",
+          100: "rgba(224,120,40,0.12)",
+          200: "rgba(224,120,40,0.20)",
+          300: "rgba(224,120,40,0.30)",
         },
 
-        /* Verde — Success / Available */
-        lime: {
+        /* Success - Green */
+        emerald: {
           DEFAULT: "#34B964",
-          light:   "#4AD07C",
-          dark:    "#228A46",
-          50:      "rgba(52,185,100,0.05)",
-          100:     "rgba(52,185,100,0.12)",
-          300:     "rgba(52,185,100,0.28)",
+          light: "#4AD07C",
+          dark: "#228A46",
+          50: "rgba(52,185,100,0.05)",
+          100: "rgba(52,185,100,0.12)",
+          200: "rgba(52,185,100,0.20)",
+          300: "rgba(52,185,100,0.30)",
         },
 
-        /* Neutral */
+        /* Neutral - Gray */
         neutral: {
           DEFAULT: "#3D4150",
-          light:   "#565D70",
-          dark:    "#252830",
+          light: "#565D70",
+          dark: "#252830",
+        },
+
+        /* Backgrounds */
+        bg: {
+          DEFAULT: "#08090C",
+          deep: "#050608",
+        },
+
+        /* Surfaces */
+        surface: {
+          DEFAULT: "#0D0F14",
+          2: "#12151C",
+          3: "#171B24",
+          4: "#1E232E",
         },
 
         /* Text */
-        ivory:  "#F5F0E8",
+        ivory: "#F5F0E8",
+        muted: "rgba(255,255,255,0.6)",
+
+        /* Legacy aliases for backward compatibility */
+        brand: {
+          DEFAULT: "#C83228",
+          light: "#E05444",
+          dark: "#981E16",
+        },
+        ember: {
+          DEFAULT: "#E07828",
+          light: "#F09040",
+          dark: "#B05A18",
+        },
+        lime: {
+          DEFAULT: "#34B964",
+          light: "#4AD07C",
+          dark: "#228A46",
+        },
+        obsidian: {
+          DEFAULT: "#0D0F14",
+          light: "#12151C",
+          dark: "#08090C",
+        },
+        void: "#030207",
       },
 
       /* ============================================================
-         FUENTES
+         FUENTES UNIFICADAS
       ============================================================ */
       fontFamily: {
-        sans:    ["Outfit", "Inter", "system-ui", "sans-serif"],
-        display: ["Outfit", "sans-serif"],
-        mono:    ["JetBrains Mono", "Fira Code", "monospace"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
 
       fontWeight: {
-        thin:       "300",
-        normal:     "400",
-        medium:     "500",
-        semibold:   "600",
-        bold:       "700",
-        extrabold:  "800",
+        normal: "400",
+        medium: "500",
+        semibold: "600",
+        bold: "700",
+      },
+
+      /* ============================================================
+         ESPACIADO UNIFICADO (Base 4px)
+      ============================================================ */
+      spacing: {
+        1: "4px",
+        2: "8px",
+        3: "12px",
+        4: "16px",
+        5: "20px",
+        6: "24px",
+        8: "32px",
+        10: "40px",
+        12: "48px",
       },
 
       /* ============================================================
@@ -116,15 +150,15 @@ export default {
       },
 
       /* ============================================================
-         BORDER RADIUS
+         BORDER RADIUS UNIFICADO
       ============================================================ */
       borderRadius: {
-        sm:   "6px",
-        DEFAULT: "10px",
-        md:   "14px",
-        lg:   "20px",
-        xl:   "28px",
-        "2xl": "36px",
+        sm: "8px",
+        DEFAULT: "12px",
+        md: "12px",
+        lg: "16px",
+        xl: "24px",
+        "2xl": "32px",
       },
 
       /* ============================================================

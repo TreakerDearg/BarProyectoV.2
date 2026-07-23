@@ -7,7 +7,6 @@ import {
   Zap,
   ShieldCheck,
   BarChart3,
-  DollarSign,
   PackageSearch,
   Monitor,
   X,
@@ -19,15 +18,16 @@ import {
 } from "lucide-react";
 import { useDashboard } from "../hooks/useDashboard";
 import { useDashboardTutorial } from "../hooks/useDashboardTutorial";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import DashboardTutorial from "../components/tutorial/DashboardTutorial";
 import DashboardAlertsBanner from "../components/DashboardAlertsBanner";
 import ServiceDashboard from "../views/ServiceDashboard";
 import AnalyticsVersus from "../views/AnalyticsVersus";
-import SalesDiscounts from "../views/SalesDiscounts";
 import InventoryDashboard from "../views/InventoryDashboard";
 import RealTimeDiscountAlert from "../components/RealTimeDiscountAlert";
 import DashboardKpiStrip from "../components/DashboardKpiStrip";
 import AnalyticsDashboardView from "../views/AnalyticsDashboardView";
+import QuickActionsPanel from "../components/QuickActionsPanel";
 import {
   useDashboardUiStore,
   type DashboardTab,
@@ -35,17 +35,20 @@ import {
 import "../../../styles/dashboard-theme.css";
 
 const TABS: { id: DashboardTab; label: string; icon: ReactNode }[] = [
-  { id: "service", label: "Hoy", icon: <Zap size={18} /> },
-  { id: "analytics", label: "Datos", icon: <BarChart3 size={18} /> },
-  { id: "sales", label: "Dinero", icon: <DollarSign size={18} /> },
-  { id: "inventory", label: "Stock", icon: <PackageSearch size={18} /> },
+  { id: "operation", label: "Operación", icon: <Zap size={18} /> },
+  { id: "analytics", label: "Análisis", icon: <BarChart3 size={18} /> },
+  { id: "inventory", label: "Inventario", icon: <PackageSearch size={18} /> },
 ];
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>("service");
+  const [activeTab, setActiveTab] = useState<DashboardTab>("operation");
   const [range, setRange] = useState("7");
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showAnalyticsReport, setShowAnalyticsReport] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts();
   const {
     data,
     loading,
@@ -167,7 +170,7 @@ export default function Dashboard() {
       )}
 
       <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
-        {activeTab === "service" && (
+        {activeTab === "operation" && (
           <ServiceDashboard
             data={data}
             mode={mode}
@@ -181,9 +184,6 @@ export default function Dashboard() {
             onRangeChange={setRange}
             onViewReport={() => setShowAnalyticsReport(true)}
           />
-        )}
-        {activeTab === "sales" && (
-          <SalesDiscounts data={data} mode={mode} onRangeChange={setRange} />
         )}
         {activeTab === "inventory" && (
           <InventoryDashboard data={data} mode={mode} />
@@ -259,6 +259,12 @@ export default function Dashboard() {
           </p>
         </Modal>
       )}
+
+      <QuickActionsPanel
+        isOpen={showQuickActions}
+        onClose={() => setShowQuickActions(false)}
+        context={activeTab}
+      />
     </div>
     </ToastProvider>
   );
