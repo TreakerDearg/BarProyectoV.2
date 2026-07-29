@@ -48,7 +48,15 @@
 
 /* 🧠 HEADER */
 .pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   text-align: center;
+}
+
+.headerContent {
+  flex: 1;
 }
 
 .pageIcon {

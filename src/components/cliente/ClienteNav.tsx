@@ -12,15 +12,17 @@ import {
   CalendarDays,
   Menu,
   X,
+  ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
 import styles from "./ClienteNav.module.css";
+import { useClienteStore } from "@/stores/useClienteStore";
+import { CartDrawer } from "./CartDrawer";
 
 const links = [
   { href: "/cliente", label: "Inicio", icon: Home, exact: true },
   { href: "/cliente/carta", label: "Carta", icon: ChefHat },
-  { href: "/cliente/pedido", label: "Pedido", icon: ClipboardList },
   { href: "/cliente/ruleta", label: "Ruleta", icon: Sparkles },
   { href: "/cliente/reservas", label: "Reservas", icon: CalendarDays },
   { href: "/cliente/cuenta", label: "Cuenta", icon: UserCircle },
@@ -29,6 +31,11 @@ const links = [
 export function ClienteNav() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  // Obtener cantidad de items en carrito del Zustand store
+  const cartItemCount = useClienteStore((state) => 
+    state.cart.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   return (
     <>
@@ -62,6 +69,9 @@ export function ClienteNav() {
               );
             })}
           </nav>
+
+          {/* Cart Drawer (Desktop) */}
+          <CartDrawer />
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -124,6 +134,11 @@ export function ClienteNav() {
               </Link>
             );
           })}
+          
+          {/* Cart Drawer (Mobile Dock) */}
+          <div className={clsx(styles.dockLink, pathname === "/cliente/pedido" && styles.dockLinkActive)}>
+            <CartDrawer />
+          </div>
         </div>
       </nav>
     </>

@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
+      required: false, // Permitir null para usuarios OAuth
       minlength: 6,
       select: false,
     },
@@ -85,6 +85,34 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
       select: false,
+    },
+
+    /* ================= OAUTH / IDENTITY PROVIDERS ================= */
+    googleId: {
+      type: String,
+      sparse: true, // Permite múltiples valores null
+      index: true,
+    },
+
+    provider: {
+      type: String,
+      enum: ['local', 'google', 'apple', 'github', 'microsoft', 'facebook'],
+      default: 'local',
+    },
+
+    providerVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    avatar: {
+      type: String,
+      default: null,
+    },
+
+    lastProviderLogin: {
+      type: Date,
+      default: null,
     },
 
     /* ================= SCHEDULE & AVAILABILITY ================= */

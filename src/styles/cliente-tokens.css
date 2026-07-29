@@ -181,6 +181,14 @@
   --duration:  220ms;
   --duration-fast: 140ms;
   --duration-slow: 380ms;
+
+  /* ===============================================================
+     BREAKPOINTS (Standardized)
+  =============================================================== */
+  --breakpoint-sm: 640px;   /* Small tablets */
+  --breakpoint-md: 768px;   /* Tablets */
+  --breakpoint-lg: 1024px;  /* Small laptops */
+  --breakpoint-xl: 1280px;  /* Desktops */
 }
 
 /* ===============================================================
@@ -520,6 +528,7 @@ input, button, textarea, select { outline: none; }
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-16px); }
   to   { opacity: 1; transform: translateX(0); }
+}
 
 @keyframes cardSlideIn {
   from { opacity: 0; transform: translateY(16px) scale(0.98); }
@@ -529,7 +538,6 @@ input, button, textarea, select { outline: none; }
 .animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
 .animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
 .animate-card-in { animation: cardSlideIn var(--duration) var(--ease-out) both; }
-}
 
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(16px); }
@@ -608,6 +616,7 @@ input, button, textarea, select { outline: none; }
 .truncate-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

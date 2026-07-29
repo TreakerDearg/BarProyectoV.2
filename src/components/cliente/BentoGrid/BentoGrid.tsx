@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import clsx from "clsx";
+import { memo } from "react";
 import styles from "./BentoGrid.module.css";
 
 interface BentoGridProps {
@@ -16,7 +17,7 @@ interface BentoGridProps {
   };
 }
 
-export function BentoGrid({
+export const BentoGrid = memo(function BentoGrid({
   children,
   variant = "default",
   columns = { default: 1, sm: 2, lg: 3 },
@@ -40,7 +41,7 @@ export function BentoGrid({
       {children}
     </div>
   );
-}
+});
 
 interface BentoItemProps {
   children: React.ReactNode;

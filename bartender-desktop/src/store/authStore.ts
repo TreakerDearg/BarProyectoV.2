@@ -9,6 +9,7 @@ import { setAuthToken } from "../services/api";
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   loading: boolean;
 
@@ -20,6 +21,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   loading: true,
 
@@ -29,12 +31,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     const response = await loginService({ email, password });
 
-    saveToken(response.token);
+    saveToken(response.refreshToken || response.token);
     setAuthToken(response.token);
 
     set({
       user: response.user,
       token: response.token,
+      refreshToken: response.refreshToken || null,
       isAuthenticated: true,
     });
   },
@@ -49,6 +52,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       user: null,
       token: null,
+      refreshToken: null,
       isAuthenticated: false,
     });
   },
@@ -72,6 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({
         token,
+        refreshToken: token, // Asumimos que el token guardado es el refresh token
         user,
         isAuthenticated: true,
         loading: false,
@@ -83,6 +88,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({
         token: null,
+        refreshToken: null,
         user: null,
         isAuthenticated: false,
         loading: false,

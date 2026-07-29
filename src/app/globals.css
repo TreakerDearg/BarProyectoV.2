@@ -147,76 +147,17 @@ body {
 }
 
 /* === DESKTOP UTILITIES === */
-.glass {
-  background: rgba(13, 15, 20, 0.60);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-}
-
-.glass-gold {
-  background: rgba(13, 15, 20, 0.65);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid var(--gold-border);
-  box-shadow: var(--shadow), var(--gold-glow);
-}
-
-.glass-red {
-  background: rgba(13, 15, 20, 0.65);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid var(--red-border);
-  box-shadow: var(--shadow), var(--red-glow);
-}
+/* Glass system moved to cliente-tokens.css */
 
 /* ===============================================================
    ─── CARD SYSTEM ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.card {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--duration) var(--ease),
-              box-shadow var(--duration) var(--ease),
-              transform var(--duration) var(--ease);
-}
-
-.card:hover {
-  border-color: var(--border-gold);
-  box-shadow: var(--shadow), var(--gold-glow);
-  transform: translateY(-2px);
-}
-
-.card-flat {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
 
 /* ===============================================================
    ─── BADGE SYSTEM ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
-}
-
-.badge-gold    { color: var(--gold);    background: var(--gold-soft);    border-color: var(--gold-border);    }
-.badge-red     { color: var(--red-light);     background: var(--red-soft);     border-color: var(--red-border);     }
-.badge-orange  { color: var(--orange-light);  background: var(--orange-soft);  border-color: var(--orange-border);  }
-.badge-green   { color: var(--green-light);   background: var(--green-soft);   border-color: var(--green-border);   }
-.badge-neutral { color: var(--neutral-light); background: rgba(61, 65, 80, 0.25); border-color: rgba(61,65,80,0.4); }
 
 /* ===============================================================
    ─── STATE SYSTEM (Order / Table statuses) ───
@@ -252,107 +193,13 @@ body {
 
 /* ===============================================================
    ─── BUTTONS ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 20px;
-  border-radius: var(--radius);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all var(--duration) var(--ease);
-  white-space: nowrap;
-  user-select: none;
-}
-
-.btn:active { transform: scale(0.97); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
-
-/* Gold — acción principal */
-.btn-gold {
-  background: var(--grad-gold);
-  color: #0D0F14;
-  border-color: var(--gold-dark);
-  box-shadow: var(--shadow-gold);
-}
-.btn-gold:hover {
-  filter: brightness(1.10);
-  box-shadow: var(--shadow-gold), var(--gold-glow);
-}
-
-/* Red — acción peligrosa */
-.btn-red {
-  background: var(--grad-red);
-  color: #fff;
-  border-color: var(--red-dark);
-  box-shadow: var(--shadow-red);
-}
-.btn-red:hover {
-  filter: brightness(1.12);
-  box-shadow: var(--shadow-red), var(--red-glow);
-}
-
-/* Orange — warning action */
-.btn-orange {
-  background: var(--grad-orange);
-  color: #0D0F14;
-  border-color: var(--orange-dark);
-}
-.btn-orange:hover { filter: brightness(1.12); }
-
-/* Green — confirmar */
-.btn-green {
-  background: var(--grad-green);
-  color: #0D0F14;
-  border-color: var(--green-dark);
-}
-.btn-green:hover { filter: brightness(1.10); }
-
-/* Ghost */
-.btn-ghost {
-  background: transparent;
-  color: var(--text-dim);
-  border-color: var(--border-strong);
-}
-.btn-ghost:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
-  border-color: var(--gold-border);
-}
 
 /* ===============================================================
    ─── INPUT SYSTEM ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.input {
-  width: 100%;
-  background: var(--surface-3);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 14px;
-  transition: border-color var(--duration) var(--ease),
-              box-shadow var(--duration) var(--ease);
-}
-
-.input::placeholder { color: var(--text-muted); }
-
-.input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(212, 163, 64, 0.15);
-  outline: none;
-}
-
-.input:focus:invalid {
-  border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(200, 50, 40, 0.15);
-}
 
 /* ===============================================================
    ─── TABLE SYSTEM ───
@@ -400,78 +247,28 @@ body {
 
 /* ===============================================================
    ─── SPINNER ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(212, 163, 64, 0.2);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===============================================================
    ─── DIVIDER ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.divider {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--gold-border),
-    var(--red-border),
-    transparent
-  );
-}
 
 /* ===============================================================
    ─── GLOW EFFECTS ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.glow-gold   { box-shadow: var(--gold-glow);   }
-.glow-red    { box-shadow: var(--red-glow);    }
-.glow-orange { box-shadow: var(--orange-glow); }
-.glow-green  { box-shadow: var(--green-glow);  }
 
 /* ===============================================================
    ─── GRADIENT TEXT ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-.text-grad-gold {
-  background: var(--grad-gold);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.text-grad-brand {
-  background: var(--grad-brand);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 /* ===============================================================
    ─── ANIMATIONS ───
+   Moved to cliente-tokens.css to avoid duplication
 =============================================================== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 163, 64, 0); }
-  50%       { box-shadow: 0 0 0 6px rgba(212, 163, 64, 0.15); }
-}
-
-.animate-fade-in    { animation: fadeIn var(--duration-slow) var(--ease-out) both; }
-.animate-slide-left { animation: slideInLeft var(--duration-slow) var(--ease-out) both; }
-.animate-pulse-gold { animation: pulse-gold 2s ease infinite; }
 
 /* ===============================================================
    ROYALE UI UTILITIES — Casino Edition

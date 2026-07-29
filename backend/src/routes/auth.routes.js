@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, registerUser, getProfile } from "../controllers/auth.controller.js";
+import { loginUser, registerUser, getProfile, refreshToken, getSessions, revokeSession, logout, googleAuth, googleCallback } from "../controllers/auth.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.js";
 import { loginSchema, registerSchema } from "../utils/schemas.js";
@@ -11,15 +11,21 @@ const router = express.Router();
 ========================================================= */
 router.post("/register", validate(registerSchema), registerUser);
 router.post("/login", validate(loginSchema), loginUser);
+router.post("/refresh", refreshToken);
+
+/* =========================================================
+   OAUTH ROUTES
+========================================================= */
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
 
 /* =========================================================
    PRIVATE ROUTES
 ========================================================= */
 router.get("/me", protect, getProfile);
-
-router.post("/logout", protect, (req, res) => {
-  res.json({ success: true, message: "Logout OK" });
-});
+router.get("/sessions", protect, getSessions);
+router.delete("/sessions/:sessionId", protect, revokeSession);
+router.post("/logout", protect, logout);
 
 /* =========================================================
    TEST ADMIN

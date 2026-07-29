@@ -1,0 +1,263 @@
+/* ============================================
+   NEBULA LANDING PAGE - GLOBAL STYLES
+   Sistema de estilos independiente para Landing
+   ============================================ */
+
+/* CSS Custom Properties / Design Tokens */
+:root {
+  /* Colors - Premium Dark Theme */
+  --landing-bg-primary: #030303;
+  --landing-bg-secondary: #0a0a0a;
+  --landing-bg-tertiary: #121212;
+  
+  /* Accent Colors - Premium Palette */
+  --landing-accent-gold: #c9a227;
+  --landing-accent-gold-light: #dfb84b;
+  --landing-accent-copper: #b87333;
+  --landing-accent-purple: #5a2d7a;
+  --landing-accent-purple-light: #7a4a9a;
+  --landing-accent-wine: #722f37;
+  --landing-accent-emerald: #1a4d2e;
+  --landing-accent-blue: #2c4a6e;
+  
+  /* Text Colors */
+  --landing-text-primary: #ffffff;
+  --landing-text-secondary: rgba(255, 255, 255, 0.7);
+  --landing-text-tertiary: rgba(255, 255, 255, 0.5);
+  
+  /* Border Colors */
+  --landing-border-primary: rgba(255, 255, 255, 0.1);
+  --landing-border-secondary: rgba(255, 255, 255, 0.05);
+  
+  /* Spacing */
+  --landing-spacing-xs: 0.5rem;
+  --landing-spacing-sm: 1rem;
+  --landing-spacing-md: 1.5rem;
+  --landing-spacing-lg: 2rem;
+  --landing-spacing-xl: 3rem;
+  --landing-spacing-2xl: 4rem;
+  --landing-spacing-3xl: 6rem;
+  
+  /* Border Radius */
+  --landing-radius-sm: 0.5rem;
+  --landing-radius-md: 0.75rem;
+  --landing-radius-lg: 1rem;
+  --landing-radius-xl: 1.5rem;
+  --landing-radius-2xl: 2rem;
+  --landing-radius-full: 9999px;
+  
+  /* Typography */
+  --landing-font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --landing-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  /* Font Sizes */
+  --landing-text-xs: 0.75rem;
+  --landing-text-sm: 0.875rem;
+  --landing-text-base: 1rem;
+  --landing-text-lg: 1.125rem;
+  --landing-text-xl: 1.25rem;
+  --landing-text-2xl: 1.5rem;
+  --landing-text-3xl: 2rem;
+  --landing-text-4xl: 2.5rem;
+  --landing-text-5xl: 3rem;
+  --landing-text-6xl: 4rem;
+  --landing-text-7xl: 5rem;
+  --landing-text-8xl: 6rem;
+  
+  /* Line Heights */
+  --landing-leading-tight: 1.1;
+  --landing-leading-snug: 1.25;
+  --landing-leading-normal: 1.5;
+  --landing-leading-relaxed: 1.75;
+  
+  /* Letter Spacing */
+  --landing-tracking-tight: -0.025em;
+  --landing-tracking-normal: 0;
+  --landing-tracking-wide: 0.025em;
+  --landing-tracking-wider: 0.05em;
+  --landing-tracking-widest: 0.1em;
+  
+  /* Transitions */
+  --landing-transition-fast: 150ms;
+  --landing-transition-base: 300ms;
+  --landing-transition-slow: 500ms;
+  --landing-transition-slower: 700ms;
+  
+  /* Easing */
+  --landing-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --landing-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --landing-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --landing-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Shadows */
+  --landing-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --landing-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --landing-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --landing-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  --landing-shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  
+  /* Z-Index Scale */
+  --landing-z-dropdown: 1000;
+  --landing-z-sticky: 1020;
+  --landing-z-fixed: 1030;
+  --landing-z-modal-backdrop: 1040;
+  --landing-z-modal: 1050;
+  --landing-z-popover: 1060;
+  --landing-z-tooltip: 1070;
+}
+
+/* Reset & Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--landing-font-body);
+  font-size: var(--landing-text-base);
+  line-height: var(--landing-leading-normal);
+  color: var(--landing-text-primary);
+  background-color: var(--landing-bg-primary);
+  overflow-x: hidden;
+  min-width: 320px;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--landing-font-display);
+  font-weight: 600;
+  line-height: var(--landing-leading-tight);
+  letter-spacing: var(--landing-tracking-tight);
+  color: var(--landing-text-primary);
+}
+
+h1 {
+  font-size: var(--landing-text-6xl);
+}
+
+h2 {
+  font-size: var(--landing-text-5xl);
+}
+
+h3 {
+  font-size: var(--landing-text-4xl);
+}
+
+h4 {
+  font-size: var(--landing-text-3xl);
+}
+
+h5 {
+  font-size: var(--landing-text-2xl);
+}
+
+h6 {
+  font-size: var(--landing-text-xl);
+}
+
+p {
+  color: var(--landing-text-secondary);
+  line-height: var(--landing-leading-relaxed);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--landing-transition-fast) var(--landing-ease-default);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Utility Classes */
+.landing-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--landing-spacing-md);
+}
+
+@media (min-width: 640px) {
+  .landing-container {
+    padding-inline: var(--landing-spacing-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-container {
+    padding-inline: var(--landing-spacing-xl);
+  }
+}
+
+.landing-section {
+  padding-block: var(--landing-spacing-2xl);
+}
+
+@media (min-width: 640px) {
+  .landing-section {
+    padding-block: var(--landing-spacing-3xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-section {
+    padding-block: var(--landing-spacing-2xl);
+  }
+}
+
+/* Glassmorphism */
+.landing-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--landing-border-primary);
+}
+
+/* Gradient Text */
+.landing-gradient-text {
+  background: linear-gradient(135deg, var(--landing-accent-gold), var(--landing-accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus Styles */
+.landing-focus-visible:focus-visible {
+  outline: 2px solid var(--landing-accent-gold);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --landing-border-primary: rgba(255, 255, 255, 0.3);
+  }
+}

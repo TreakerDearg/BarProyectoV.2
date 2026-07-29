@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Clock } from "lucide-react";
 import clsx from "clsx";
 import { checkReservationAvailability } from "@/lib/api/bartender";
+import ui from "../../cliente-ui.module.css";
 
 type AvailabilityMap = Record<string, boolean | "loading">;
 
@@ -76,23 +79,23 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
      RENDER
   ========================= */
   return (
-    <div className="space-y-5">
+    <div className={ui.timeSelector}>
 
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-medium text-sm">
-          Horarios disponibles
-        </h3>
-
-        <span className="text-xs text-white/40">
-          actualización automática
-        </span>
+      <div className={ui.timeSelectorHeader}>
+        <Clock className={ui.timeSelectorIcon} />
+        <div>
+          <h3 className={ui.timeSelectorTitle}>Horarios Disponibles</h3>
+          <p className={ui.timeSelectorSubtitle}>
+            Seleccioná el horario para tu reserva
+          </p>
+        </div>
       </div>
 
       {/* GRID */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className={ui.timeSelectorGrid}>
 
-        {slots.map((time) => {
+        {slots.map((time, index) => {
           const state = available[time];
 
           const isLoading = state === "loading";
@@ -101,7 +104,7 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
           const isSelected = selected === time;
 
           return (
-            <button
+            <motion.button
               key={time}
               disabled={!isAvailable}
               onClick={() => {
@@ -113,76 +116,51 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
                 onSelect(start.toISOString(), end.toISOString());
               }}
               className={clsx(
-                "relative p-3 rounded-xl text-sm font-semibold transition-all duration-200",
-                "border backdrop-blur-md overflow-hidden",
-
-                /* =========================
-                   BASE
-                ========================= */
-                "flex items-center justify-center",
-
-                /* =========================
-                   LOADING (skeleton)
-                ========================= */
-                isLoading &&
-                  "bg-white/5 border-white/10 animate-pulse text-transparent",
-
-                /* =========================
-                   AVAILABLE (verde tipo booking)
-                ========================= */
-                isAvailable &&
-                  "bg-emerald-500/10 text-emerald-300 border-emerald-400/20 hover:bg-emerald-500/20",
-
-                /* =========================
-                   UNAVAILABLE
-                ========================= */
-                isUnavailable &&
-                  "bg-white/5 text-white/30 border-white/5 cursor-not-allowed",
-
-                /* =========================
-                   SELECTED (gold premium)
-                ========================= */
-                isSelected &&
-                  "bg-gradient-to-r from-yellow-400 to-amber-500 text-black border-yellow-400 shadow-lg shadow-yellow-400/30 scale-[1.03]"
+                ui.timeSlot,
+                isLoading && ui.timeSlotLoading,
+                isAvailable && ui.timeSlotAvailable,
+                isUnavailable && ui.timeSlotUnavailable,
+                isSelected && ui.timeSlotSelected
               )}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={isAvailable ? { scale: 1.05 } : {}}
+              whileTap={isAvailable ? { scale: 0.95 } : {}}
             >
               {/* shimmer loading */}
               {isLoading && (
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_1.5s_infinite]" />
+                <span className={ui.timeSlotShimmer} />
               )}
 
-              {/* label */}
-              <span className={clsx(isLoading && "opacity-0")}>
+              {/* time label */}
+              <span className={ui.timeSlotLabel}>
                 {time}
               </span>
 
-              {/* dot indicator */}
+              {/* availability indicator */}
               {isAvailable && !isSelected && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-400 rounded-full" />
+                <span className={ui.timeSlotIndicator} />
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
-      {/* FOOTER INFO */}
-      <div className="flex justify-center gap-4 text-xs text-white/40">
-
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-          Disponible
+      {/* LEGEND */}
+      <div className={ui.timeSelectorLegend}>
+        <div className={ui.timeSelectorLegendItem}>
+          <span className={ui.timeSelectorLegendDot} />
+          <span className={ui.timeSelectorLegendText}>Disponible</span>
         </div>
-
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-yellow-400 rounded-full" />
-          Seleccionado
+        <div className={ui.timeSelectorLegendItem}>
+          <span className={`${ui.timeSelectorLegendDot} ${ui.timeSelectorLegendDotSelected}`} />
+          <span className={ui.timeSelectorLegendText}>Seleccionado</span>
         </div>
-
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 bg-white/30 rounded-full" />
-          No disponible
+        <div className={ui.timeSelectorLegendItem}>
+          <span className={`${ui.timeSelectorLegendDot} ${ui.timeSelectorLegendDotUnavailable}`} />
+          <span className={ui.timeSelectorLegendText}>No disponible</span>
         </div>
-
       </div>
     </div>
   );

@@ -90,25 +90,96 @@ api.interceptors.request.use(
 /* =========================================================
    RESPONSE INTERCEPTOR
    - Manejo global de auth expirado
+   - Renovación automática de tokens
    - Estandarización de respuestas
 ========================================================= */
+
+// Flag para evitar múltiples refresh simultáneos
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+
+/**
+ * Suscribe una petición pendiente al refresh de token
+ */
+function subscribeTokenRefresh(callback: (token: string) => void) {
+  refreshSubscribers.push(callback);
+}
+
+/**
+ * Notifica a todas las peticiones pendientes que el token fue renovado
+ */
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(callback => callback(token));
+  refreshSubscribers = [];
+}
+
 api.interceptors.response.use(
   (response) => {
     // Si el backend usa { success, data, message }, devolvemos data directo si se prefiere,
     // o simplemente devolvemos response.data para tener todo (es mejor para tener el message)
     return response.data;
   },
-  (error) => {
+  async (error) => {
     const status = error?.response?.status;
     const backendData = error?.response?.data;
+    const originalRequest = error.config;
 
     /* =========================
        TOKEN EXPIRADO O INVÁLIDO
     ========================= */
-    if (status === 401) {
-      removeToken();
-      delete api.defaults.headers.common.Authorization;
-      window.dispatchEvent(new Event("auth:logout"));
+    if (status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Si ya estamos refrescando, suscribir esta petición
+        return new Promise((resolve) => {
+          subscribeTokenRefresh((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = getToken();
+        
+        if (!refreshToken) {
+          // No hay refresh token, limpiar todo
+          removeToken();
+          delete api.defaults.headers.common.Authorization;
+          window.dispatchEvent(new Event("auth:logout"));
+          return Promise.reject(error);
+        }
+
+        // Intentar renovar el token
+        const response = await api.post('/auth/refresh', {
+          refreshToken,
+        });
+
+        const { token, refreshToken: newRefreshToken } = response;
+
+        // Guardar nuevos tokens
+        saveToken(newRefreshToken);
+        setAuthToken(token);
+
+        // Actualizar header de la petición original
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+
+        // Notificar a todas las peticiones pendientes
+        onTokenRefreshed(token);
+
+        // Reintentar la petición original
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Error al renovar, limpiar todo
+        removeToken();
+        delete api.defaults.headers.common.Authorization;
+        window.dispatchEvent(new Event("auth:logout"));
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     // Normalizar el error para el frontend usando el response estándar del backend

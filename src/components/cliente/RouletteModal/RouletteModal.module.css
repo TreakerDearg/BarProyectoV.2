@@ -1,0 +1,324 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 8, 0.8);
+  backdrop-filter: var(--blur-xl);
+  -webkit-backdrop-filter: var(--blur-xl);
+  z-index: var(--z-modal);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-gold);
+  z-index: var(--z-modal);
+  overflow-y: auto;
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Close button */
+.closeButton {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  z-index: 10;
+}
+
+.closeButton:hover {
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-gold);
+}
+
+.closeButtonIcon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Celebration header */
+.celebrationHeader {
+  text-align: center;
+}
+
+.celebrationBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  box-shadow: var(--shadow-gold-strong);
+  margin-bottom: var(--space-4);
+}
+
+.celebrationIcon {
+  width: 32px;
+  height: 32px;
+  color: var(--bg-primary);
+}
+
+.celebrationTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--gold);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-2);
+}
+
+.celebrationSubtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+}
+
+/* Drink content */
+.drinkContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.drinkImage {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-gold);
+  box-shadow: var(--shadow-gold);
+}
+
+.drinkImageImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drinkImagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface-2);
+}
+
+.drinkImageIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--gold-soft);
+}
+
+.drinkInfo {
+  text-align: center;
+  width: 100%;
+}
+
+.drinkName {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-2);
+}
+
+.drinkRarity {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--gold-soft);
+  border: 1px solid var(--border-gold);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--gold);
+  margin-bottom: var(--space-3);
+}
+
+.drinkDescription {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-3);
+}
+
+.drinkPrice {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-extrabold);
+  color: var(--gold-light);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-2);
+}
+
+.drinkCategory {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-dark);
+  color: var(--bg-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  box-shadow: var(--shadow-gold);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.primaryAction:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--shadow-gold-strong);
+  transform: translateY(-2px);
+}
+
+.primaryAction:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.primaryAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primaryActionIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-xl);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.secondaryAction:hover:not(:disabled) {
+  background: var(--bg-surface);
+  border-color: var(--border-gold);
+  color: var(--text-primary);
+}
+
+.secondaryAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryActionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive */
+@media (min-width: var(--bp-sm)) {
+  .modal {
+    padding: var(--space-10);
+  }
+
+  .drinkContent {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .drinkImage {
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+  }
+
+  .drinkInfo {
+    text-align: left;
+  }
+
+  .actions {
+    flex-direction: row;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    flex: 1;
+  }
+}
+
+@media (max-width: var(--bp-sm)) {
+  .modal {
+    padding: var(--space-6);
+  }
+
+  .celebrationBadge {
+    width: 56px;
+    height: 56px;
+  }
+
+  .celebrationIcon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .celebrationTitle {
+    font-size: var(--text-2xl);
+  }
+
+  .drinkImage {
+    width: 160px;
+    height: 160px;
+  }
+
+  .drinkName {
+    font-size: var(--text-xl);
+  }
+
+  .drinkPrice {
+    font-size: var(--text-2xl);
+  }
+}

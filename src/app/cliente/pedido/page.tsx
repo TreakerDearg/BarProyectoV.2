@@ -11,12 +11,14 @@ import {
 } from "@/lib/api/bartender";
 
 import type { TableRow, ProductBrief } from "@/lib/types/api";
+import { useClienteStore } from "@/stores/useClienteStore";
 
 import { PedidoHeader } from "./components/PedidoHeader";
 import { PedidoMesa } from "./components/PedidoMesa";
 import { PedidoProductos } from "./components/PedidoProductos";
 import { PedidoCarrito } from "./components/PedidoCarrito";
 import { PedidoStatus } from "./components/PedidoStatus";
+import { CartDrawer } from "@/components/cliente/CartDrawer";
 
 export default function PedidoPage() {
   /* =========================
@@ -24,10 +26,17 @@ export default function PedidoPage() {
   ========================= */
   const [tables, setTables] = useState<TableRow[]>([]);
   const [products, setProducts] = useState<ProductBrief[]>([]);
-  const [cart, setCart] = useState<any[]>([]);
+  
+  // Usar Zustand store para carrito (persistencia global)
+  const cart = useClienteStore((state) => state.cart);
+  const addToCart = useClienteStore((state) => state.addToCart);
+  const removeFromCart = useClienteStore((state) => state.removeFromCart);
+  const setLineQty = useClienteStore((state) => state.setLineQty);
+  const clearCart = useClienteStore((state) => state.clearCart);
 
   const [pickTable, setPickTable] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [skipTable, setSkipTable] = useState(false); // Opción de saltar selección de mesa
 
   const [loadingTables, setLoadingTables] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -93,49 +102,23 @@ export default function PedidoPage() {
   }
 
   /* =========================
-     CART
+     CART (usando Zustand store)
   ========================= */
-  function addToCart(product: ProductBrief) {
-    setCart((prev) => {
-      const exists = prev.find((p) => p.productId === product._id);
-
-      if (exists) {
-        return prev.map((p) =>
-          p.productId === product._id
-            ? { ...p, quantity: p.quantity + 1 }
-            : p
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          productId: product._id,
-          name: product.name,
-          quantity: 1,
-        },
-      ];
+  function handleAddToCart(product: ProductBrief) {
+    addToCart({
+      productId: product._id,
+      name: product.name,
+      quantity: 1,
+      notes: "",
     });
-  }
-
-  function removeFromCart(id: string) {
-    setCart((prev) => prev.filter((p) => p.productId !== id));
-  }
-
-  function setLineQty(id: string, qty: number) {
-    setCart((prev) =>
-      prev.map((p) =>
-        p.productId === id ? { ...p, quantity: qty } : p
-      )
-    );
   }
 
   /* =========================
      ORDER
   ========================= */
   async function handleSubmit() {
-    if (!sessionId) {
-      setMsg("Primero activá la mesa");
+    if (!skipTable && !sessionId) {
+      setMsg("Primero activá la mesa o saltá este paso");
       return;
     }
 
@@ -148,15 +131,15 @@ export default function PedidoPage() {
       setSubmitting(true);
 
       await createOrder({
-        table: pickTable,
-        sessionId,
+        table: skipTable ? "" : pickTable,
+        sessionId: skipTable ? "" : sessionId || "",
         items: cart.map((c) => ({
           product: c.productId,
           quantity: c.quantity,
         })),
       });
 
-      setCart([]);
+      clearCart();
       setMsg("Pedido enviado correctamente");
     } catch (e: any) {
       setMsg(e.message);
@@ -177,7 +160,10 @@ export default function PedidoPage() {
   ========================= */
   return (
     <div className={ui.container}>
-      <PedidoHeader />
+      <div className={ui.headerWithCart}>
+        <PedidoHeader />
+        <CartDrawer />
+      </div>
 
       <PedidoMesa
         tables={tables}
@@ -185,11 +171,13 @@ export default function PedidoPage() {
         setPickTable={setPickTable}
         handleOpenSession={handleOpenSession}
         loading={opening || loadingTables}
+        skipTable={skipTable}
+        setSkipTable={setSkipTable}
       />
 
       <PedidoProductos
         products={products}
-        addToCart={addToCart}
+        addToCart={handleAddToCart}
         priceOf={priceOf}
         loading={loadingProducts}
       />

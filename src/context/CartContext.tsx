@@ -29,6 +29,7 @@ type CartContextType = {
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   getItemQty: (productId: string) => number;
+  getItemTotal: (productId: string) => number;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -47,6 +48,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
 
+  // Total calculado basado en precio (nota: requiere que CartLine tenga price o pasar productos)
+  // Por ahora, itemCount funciona como proxy hasta que agreguemos precios al store
   const total = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
@@ -101,6 +104,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [cart],
   );
 
+  const getItemTotal = useCallback(
+    (productId: string): number => {
+      const item = cart.find((l) => l.productId === productId);
+      // Nota: CartLine no tiene price actualmente, retorna 0
+      // Se necesita agregar price al tipo CartLine o pasar mapa de precios
+      return 0;
+    },
+    [cart],
+  );
+
   const value = useMemo(
     () => ({
       cart,
@@ -114,6 +127,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isCartOpen,
       setIsCartOpen,
       getItemQty,
+      getItemTotal,
     }),
     [
       cart,
@@ -126,6 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       isCartOpen,
       getItemQty,
+      getItemTotal,
     ],
   );
 

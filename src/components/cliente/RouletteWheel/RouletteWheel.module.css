@@ -1,0 +1,241 @@
+.wheelContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+/* Glow effect */
+.wheelGlow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(
+    circle at center,
+    var(--gold-soft) 0%,
+    transparent 50%
+  );
+  opacity: 0.3;
+  filter: blur(40px);
+  z-index: 0;
+}
+
+/* Wheel wrapper */
+.wheelWrapper {
+  position: relative;
+  z-index: 1;
+}
+
+/* Main wheel */
+.wheel {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 4px solid var(--border-gold);
+  box-shadow:
+    0 0 0 6px var(--bg-surface),
+    0 0 0 8px var(--border-gold),
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    inset 0 0 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  will-change: transform;
+}
+
+/* Wheel segments */
+.wheelSegment {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+}
+
+.segmentName {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+/* Center hub */
+.wheelCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 3px solid var(--border-gold);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 2px 10px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.wheelCenterInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--grad-gold);
+  box-shadow: var(--shadow-gold);
+}
+
+.wheelCenterIcon {
+  width: 28px;
+  height: 28px;
+  color: var(--bg-primary);
+}
+
+/* Pointer */
+.wheelPointer {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 32px solid var(--gold);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  z-index: 20;
+}
+
+.wheelPointer::after {
+  content: "";
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-top: 24px solid var(--gold-light);
+}
+
+/* Decorative rings */
+.wheelRing {
+  position: absolute;
+  inset: -12px;
+  border: 2px solid var(--border-gold);
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.wheelRingSecondary {
+  position: absolute;
+  inset: -24px;
+  border: 1px solid var(--border-gold);
+  border-radius: 50%;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+/* Responsive */
+@media (min-width: var(--bp-sm)) {
+  .wheel {
+    width: 340px;
+    height: 340px;
+  }
+
+  .wheelCenter {
+    width: 100px;
+    height: 100px;
+  }
+
+  .wheelCenterInner {
+    width: 80px;
+    height: 80px;
+  }
+
+  .wheelCenterIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .segmentName {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: var(--bp-lg)) {
+  .wheel {
+    width: 400px;
+    height: 400px;
+  }
+
+  .wheelCenter {
+    width: 120px;
+    height: 120px;
+  }
+
+  .wheelCenterInner {
+    width: 100px;
+    height: 100px;
+  }
+
+  .wheelCenterIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .segmentName {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: var(--bp-sm)) {
+  .wheel {
+    width: 240px;
+    height: 240px;
+  }
+
+  .wheelCenter {
+    width: 70px;
+    height: 70px;
+  }
+
+  .wheelCenterInner {
+    width: 50px;
+    height: 50px;
+  }
+
+  .wheelCenterIcon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .segmentName {
+    font-size: 9px;
+  }
+
+  .wheelPointer {
+    border-left-width: 16px;
+    border-right-width: 16px;
+    border-top-width: 24px;
+  }
+
+  .wheelPointer::after {
+    border-left-width: 12px;
+    border-right-width: 12px;
+    border-top-width: 18px;
+  }
+}
