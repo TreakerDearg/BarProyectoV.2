@@ -15,6 +15,11 @@ interface UseAuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  destination: string | null;
+  identityStatus: string | null;
+  canAccess: boolean | null;
+  blockMessage: any | null;
+  desktopAccessMessage: any | null;
 }
 
 interface UseAuthActions {
@@ -36,6 +41,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
     isAuthenticated: false,
     loading: true,
     error: null,
+    destination: null,
+    identityStatus: null,
+    canAccess: null,
+    blockMessage: null,
+    desktopAccessMessage: null,
   });
 
   // Escuchar evento de logout global
@@ -48,6 +58,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
         isAuthenticated: false,
         loading: false,
         error: null,
+        destination: null,
+        identityStatus: null,
+        canAccess: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
       });
     };
 
@@ -73,6 +88,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           isAuthenticated: true,
           loading: false,
           error: null,
+          destination: response.destination || null,
+          identityStatus: response.identityStatus || null,
+          canAccess: response.canAccess ?? true,
+          blockMessage: response.blockMessage || null,
+          desktopAccessMessage: response.desktopAccessMessage || null,
         });
       } else {
         setState({
@@ -82,6 +102,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           isAuthenticated: false,
           loading: false,
           error: response.message || 'Error de autenticación',
+          destination: null,
+          identityStatus: null,
+          canAccess: null,
+          blockMessage: null,
+          desktopAccessMessage: null,
         });
       }
     } catch (error: any) {
@@ -92,6 +117,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
         isAuthenticated: false,
         loading: false,
         error: error.message || 'Error de autenticación',
+        destination: null,
+        identityStatus: null,
+        canAccess: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
       });
     }
   }, []);
@@ -114,6 +144,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           isAuthenticated: true,
           loading: false,
           error: null,
+          destination: response.destination || null,
+          identityStatus: response.identityStatus || null,
+          canAccess: response.canAccess ?? true,
+          blockMessage: response.blockMessage || null,
+          desktopAccessMessage: response.desktopAccessMessage || null,
         });
       } else {
         setState({
@@ -123,6 +158,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           isAuthenticated: false,
           loading: false,
           error: response.message || 'Error de registro',
+          destination: null,
+          identityStatus: null,
+          canAccess: null,
+          blockMessage: null,
+          desktopAccessMessage: null,
         });
       }
     } catch (error: any) {
@@ -133,6 +173,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
         isAuthenticated: false,
         loading: false,
         error: error.message || 'Error de registro',
+        destination: null,
+        identityStatus: null,
+        canAccess: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
       });
     }
   }, []);
@@ -155,6 +200,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
         isAuthenticated: false,
         loading: false,
         error: null,
+        destination: null,
+        identityStatus: null,
+        canAccess: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
       });
     }
   }, []);

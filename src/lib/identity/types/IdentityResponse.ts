@@ -34,18 +34,78 @@ export interface IdentityMetadata {
 }
 
 /**
- * Respuesta de identidad estandarizada
+ * Información del turno del empleado
+ */
+export interface ShiftInfo {
+  active: boolean;
+  scheduled: boolean;
+  withinSchedule: boolean;
+  onBreak: boolean;
+  isLate: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
+  breakStart: string | null;
+  breakEnd: string | null;
+  minutesUntilStart: number | null;
+  minutesUntilEnd: number | null;
+  attendanceStatus: string;
+  message: string;
+}
+
+/**
+ * Mensaje de bloqueo
+ */
+export interface BlockMessage {
+  title: string;
+  message: string;
+  unlockAt?: string;
+  minutesLeft?: number;
+  contactAdmin?: boolean;
+  requiresVerification?: boolean;
+}
+
+/**
+ * Mensaje de acceso a Desktop
+ */
+export interface DesktopAccessMessage {
+  title: string;
+  message: string;
+  canAccess: boolean;
+  shiftStart?: string;
+  shiftEnd?: string;
+  breakEnd?: string;
+  minutesUntilStart?: number;
+}
+
+/**
+ * Respuesta de identidad estandarizada con Decision Engine
  */
 export interface IdentityResponse {
   success: boolean;
   user: IdentityUser | null;
   role: string | null;
   roleLabel: string | null;
-  status: IdentityStatus | null;
-  permissions: Record<string, boolean>;
+  isEmployee: boolean | null;
+  isAdmin: boolean | null;
+  identityStatus: string | null;
+  identityStatusLabel: string | null;
+  permissions: string[] | null;
+  hasCustomPermissions: boolean | null;
+  shift: ShiftInfo | null;
   destination: string | null;
+  destinationReason: string | null;
+  canAccess: boolean | null;
+  requiresAction: string | null;
+  blockMessage: BlockMessage | null;
+  desktopAccessMessage: DesktopAccessMessage | null;
   token: string | null;
   refreshToken: string | null;
+  tokenExpiresIn?: number;
+  session?: any;
+  provider: string | null;
+  providerVerified: boolean | null;
+  lastLogin: Date | null;
+  context?: any;
   metadata: IdentityMetadata;
   message: string | null;
 }

@@ -5,8 +5,10 @@ import {
   ok, created, badRequest,
   unauthorized, forbidden, conflict, serverError, locked,
 } from "../utils/response.js";
-import identityService from "../identity/services/IdentityService.js";
-import refreshTokenService from "../identity/services/RefreshTokenService.js";
+import identityService from "../services/identityService.js";
+import refreshTokenService from "../services/refreshTokenService.js";
+import { canLogin, executeLoginDecision } from "../identity/decision/IdentityDecisionEngine.js";
+import { initializeSession, terminateSession, refreshSession } from "../ecosystem/EcosystemService.js";
 
 /* =========================================================
    TOKEN GENERATOR (LEGACY - MIGRADO A IdentityService)
@@ -67,7 +69,7 @@ export const registerUser = async (req, res, next) => {
 
 /* =========================================================
    LOGIN
-   NOTA: En futura fase, migrar a identityService.authenticate()
+   Usa Identity Decision Engine para determinar destino
 ========================================================= */
 export const loginUser = async (req, res, next) => {
   try {
@@ -84,16 +86,6 @@ export const loginUser = async (req, res, next) => {
       return unauthorized(res, "Credenciales inválidas");
     }
 
-    /* ─── Verificar estado ─── */
-    if (!user.isActive) {
-      return forbidden(res, "Usuario desactivado");
-    }
-
-    if (user.lockUntil && user.lockUntil > Date.now()) {
-      const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
-      return locked(res, `Cuenta bloqueada. Intenta en ${minutesLeft} minuto(s)`);
-    }
-
     /* ─── Verificar contraseña ─── */
     const isMatch = await user.comparePassword(password);
 
@@ -103,19 +95,62 @@ export const loginUser = async (req, res, next) => {
       return unauthorized(res, "Credenciales inválidas");
     }
 
+    /* ─── Verificar si puede hacer login con Decision Engine ─── */
+    const loginCheck = canLogin(user);
+    if (!loginCheck.canLogin) {
+      if (loginCheck.blockMessage?.unlockAt) {
+        const minutesLeft = Math.ceil((new Date(loginCheck.blockMessage.unlockAt) - new Date()) / 60000);
+        return locked(res, loginCheck.blockMessage.message || `Cuenta bloqueada. Intenta en ${minutesLeft} minuto(s)`);
+      }
+      return forbidden(res, loginCheck.reason || "No puedes hacer login en este momento");
+    }
+
     /* ─── Reset intentos + actualizar lastLogin ─── */
     await user.resetLoginAttempts?.();
     user.lastLogin = new Date();
     await user.save();
 
-    logger.info(`[Auth] Login exitoso: ${email} (${user.role})`);
+    /* ─── Generar tokens ─── */
+    const tokens = await identityService.authenticate(user);
+    
+    /* ─── Crear sesión ─── */
+    const sessionInfo = {
+      platform: req.headers['x-platform'] || 'web',
+      userAgent: req.headers['user-agent'],
+      ipAddress: req.ip,
+    };
+    const session = await refreshTokenService.createRefreshToken(user._id, sessionInfo);
 
-    return ok(res, {
-      token: generateToken(user),
-      user:  userPayload(user),
-    }, "Login exitoso");
+    /* ─── Ejecutar Decision Engine ─── */
+    const identityDecision = await executeLoginDecision(user, session, {
+      accessToken: tokens.accessToken,
+      refreshToken: session.refreshToken,
+      expiresIn: tokens.expiresIn,
+    });
+
+    /* ─── Inicializar sesión en Ecosystem (SSO) ─── */
+    const ecosystemResult = await initializeSession(user, {
+      sessionId: session.sessionId,
+      refreshTokenId: session._id.toString(),
+      tokenExpiresAt: new Date(Date.now() + tokens.expiresIn * 1000),
+      refreshTokenExpiresAt: session.expiresAt,
+    }, {
+      platform: sessionInfo.platform,
+      userAgent: sessionInfo.userAgent,
+      ipAddress: sessionInfo.ipAddress,
+      socketId: req.socket?.id,
+    });
+
+    if (!ecosystemResult.success) {
+      logger.warn(`[Auth] Ecosystem login falló: ${ecosystemResult.reason}`);
+    }
+
+    logger.info(`[Auth] Login exitoso: ${email} (${user.role}) -> ${identityDecision.destination}`);
+
+    return ok(res, identityDecision, "Login exitoso");
 
   } catch (error) {
+    logger.error("[Auth] Error en loginUser:", error);
     throw error;
   }
 };
@@ -158,6 +193,9 @@ export const refreshToken = async (req, res, next) => {
     );
 
     if (!user || !user.isActive) {
+      // Invalidar refresh token si el usuario no existe o está inactivo
+      const { invalidateRefreshToken } = await import("../ecosystem/EcosystemService.js");
+      await invalidateRefreshToken(tokenData._id.toString(), 'user_inactive');
       return unauthorized(res, "Usuario no encontrado o inactivo");
     }
 
@@ -167,7 +205,10 @@ export const refreshToken = async (req, res, next) => {
     // Generar nuevo access token
     const newAccessToken = identityService.generateToken(user);
 
-    logger.info(`[Auth] Refresh token renovado para usuario ${user.email}`);
+    // Refrescar sesión en Ecosystem
+    await refreshSession(user._id.toString(), newRefreshTokenData.sessionId, newRefreshTokenData.expiresAt);
+
+    logger.info(`[Auth] Refresh token renovado para usuario ${user.email} via Ecosystem`);
 
     return ok(res, {
       token: newAccessToken,
@@ -207,19 +248,26 @@ export const revokeSession = async (req, res, next) => {
     const { revokeAll } = req.body;
 
     if (revokeAll === true) {
-      // Revocar todas las sesiones excepto la actual
+      // Revocar todas las sesiones excepto la actual (Logout Global)
       const currentRefreshToken = req.headers.authorization?.replace('Bearer ', '');
       const currentSession = await refreshTokenService.verifyRefreshToken(currentRefreshToken);
-      const count = await refreshTokenService.revokeAllUserTokens(req.user.id, currentSession.sessionId);
+      
+      // Usar Ecosystem para cerrar todas las otras sesiones
+      const { closeAllOtherSessions } = await import("../ecosystem/EcosystemService.js");
+      await closeAllOtherSessions(req.user.id, currentSession.sessionId, 'global_logout');
 
-      logger.info(`[Auth] Revocadas ${count} sesiones del usuario ${req.user.email} (excepto actual)`);
+      logger.info(`[Auth] Revocadas todas las sesiones del usuario ${req.user.email} (excepto actual) via Ecosystem`);
 
-      return ok(res, { revokedCount: count }, "Sesiones revocadas exitosamente");
+      return ok(res, { revokedCount: -1 }, "Sesiones revocadas exitosamente");
     } else {
       // Revocar sesión específica
       const session = await refreshTokenService.revokeSession(sessionId, req.user.id);
+      
+      // Usar Ecosystem para cerrar la sesión específica
+      const { closeSession } = await import("../ecosystem/EcosystemService.js");
+      await closeSession(req.user.id, sessionId, 'user_action');
 
-      logger.info(`[Auth] Sesión revocada: ${sessionId} por usuario ${req.user.email}`);
+      logger.info(`[Auth] Sesión revocada: ${sessionId} por usuario ${req.user.email} via Ecosystem`);
 
       return ok(res, { sessionId: session._id }, "Sesión revocada exitosamente");
     }
@@ -236,10 +284,20 @@ export const revokeSession = async (req, res, next) => {
 export const logout = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
+    const userId = req.user.id;
 
     if (refreshToken) {
+      // Obtener sessionId del refresh token
+      const session = await refreshTokenService.verifyRefreshToken(refreshToken);
+      
       // Revocar el refresh token específico
       await refreshTokenService.revokeRefreshToken(refreshToken);
+      
+      // Terminar sesión en Ecosystem
+      if (session) {
+        await terminateSession(userId, session.sessionId, req.socket?.id, 'user_logout');
+      }
+      
       logger.info(`[Auth] Logout exitoso para usuario ${req.user.email}`);
     } else {
       // Si no hay refresh token, solo loggear
@@ -285,7 +343,7 @@ export const googleAuth = async (req, res, next) => {
 
 /* =========================================================
    GOOGLE OAUTH CALLBACK
-   Procesa el callback de Google OAuth
+   Procesa el callback de Google OAuth con Decision Engine
 ========================================================= */
 export const googleCallback = async (req, res, next) => {
   try {
@@ -308,10 +366,37 @@ export const googleCallback = async (req, res, next) => {
       return badRequest(res, response.message);
     }
 
-    // Para Web, redirigir con tokens en URL (o usar cookie)
-    // Para Desktop, redirigir con tokens en URL
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?token=${response.token}&refreshToken=${response.refreshToken}`;
+    // Verificar si el usuario puede hacer login
+    const user = await User.findById(response.user._id);
+    const loginCheck = canLogin(user);
+    
+    if (!loginCheck.canLogin) {
+      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=${loginCheck.reason}`;
+      return res.redirect(errorUrl);
+    }
 
+    // Crear sesión
+    const session = await refreshTokenService.createRefreshToken(user._id, sessionInfo);
+
+    // Ejecutar Decision Engine
+    const identityDecision = await executeLoginDecision(user, session, {
+      accessToken: response.token,
+      refreshToken: session.refreshToken,
+      expiresIn: response.expiresIn,
+    });
+
+    logger.info(`[Auth] Google OAuth exitoso: ${user.email} (${user.role}) -> ${identityDecision.destination}`);
+
+    // Redirigir con toda la información de decisión
+    const params = new URLSearchParams({
+      token: response.token,
+      refreshToken: session.refreshToken,
+      destination: identityDecision.destination,
+      canAccess: identityDecision.canAccess.toString(),
+      identityStatus: identityDecision.identityStatus,
+    });
+
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?${params.toString()}`;
     return res.redirect(redirectUrl);
   } catch (error) {
     logger.error("[Auth] Error en googleCallback:", error);

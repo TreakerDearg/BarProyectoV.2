@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const ACTIVITY_TYPES = [
   "login",
   "logout",
+  "identity_decision",
   "order_created",
   "order_completed",
   "order_cancelled",
@@ -107,6 +108,36 @@ activityLogSchema.index({ shift: 1, timestamp: -1 });
 activityLogSchema.index({ timestamp: -1 }); // Para consultas de tiempo real
 
 /* ================= METHODS ================= */
+// Registrar decisión de identidad del Decision Engine
+activityLogSchema.statics.logIdentityDecision = async function (decision) {
+  try {
+    await this.create({
+      userId: decision.user.id,
+      userName: decision.user.name,
+      userRole: decision.role,
+      activityType: 'identity_decision',
+      description: `Login exitoso - Destino: ${decision.destination}`,
+      metadata: {
+        identityStatus: decision.identityStatus,
+        identityStatusLabel: decision.identityStatusLabel,
+        destination: decision.destination,
+        destinationReason: decision.destinationReason,
+        canAccess: decision.canAccess,
+        requiresAction: decision.requiresAction,
+        provider: decision.provider,
+        providerVerified: decision.providerVerified,
+        shift: decision.shift,
+        permissions: decision.permissions,
+        isEmployee: decision.isEmployee,
+        isAdmin: decision.isAdmin,
+      },
+      sessionId: decision.session?.sessionId || null,
+    });
+  } catch (error) {
+    console.error('Error al registrar decisión de identidad:', error);
+  }
+};
+
 // Calcular métricas de actividad para un usuario
 activityLogSchema.statics.calculateMetrics = async function (userId, startDate, endDate) {
   const match = {

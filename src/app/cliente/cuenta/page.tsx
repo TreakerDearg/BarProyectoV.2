@@ -51,6 +51,9 @@ export default function CuentaPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenParam = urlParams.get('token');
     const refreshTokenParam = urlParams.get('refreshToken');
+    const destinationParam = urlParams.get('destination');
+    const canAccessParam = urlParams.get('canAccess');
+    const identityStatusParam = urlParams.get('identityStatus');
     const errorParam = urlParams.get('error');
 
     if (tokenParam && refreshTokenParam) {
@@ -67,7 +70,18 @@ export default function CuentaPage() {
         .then(data => {
           if (data.success) {
             setAuth(tokenParam, data.data);
-            router.push(destinationAfterLogin(data.data.role));
+            
+            // Usar destination del Decision Engine
+            const destination = destinationParam || destinationAfterLogin(data.data.role);
+            const canAccess = canAccessParam === 'true';
+            
+            if (canAccess) {
+              router.push(destination);
+            } else if (identityStatusParam === 'EMPLOYEE_OFF_SHIFT') {
+              router.push('/auth/off-shift');
+            } else {
+              router.push(destination);
+            }
           }
         })
         .catch(err => {
@@ -87,9 +101,37 @@ export default function CuentaPage() {
     setLoading(true);
     setMessage(null);
     try {
-      const { token: t, user: u } = await loginRequest(email, password);
-      setAuth(t, u);
-      router.push(destinationAfterLogin(u.role));
+      // Usar el nuevo endpoint que usa Decision Engine
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Platform': 'web',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        saveAccessToken(data.token);
+        saveRefreshToken(data.refreshToken);
+        setAuth(data.token, data.user);
+        
+        // Usar destination del Decision Engine
+        const destination = data.destination || destinationAfterLogin(data.user.role);
+        
+        if (data.canAccess) {
+          router.push(destination);
+        } else if (data.identityStatus === 'EMPLOYEE_OFF_SHIFT') {
+          router.push('/auth/off-shift');
+        } else if (data.blockMessage) {
+          setMessage(data.blockMessage.message || 'No puedes acceder en este momento');
+        } else {
+          router.push(destination);
+        }
+      } else {
+        setMessage(data.message || 'Error al iniciar sesión');
+      }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Error al iniciar sesión");
     } finally {

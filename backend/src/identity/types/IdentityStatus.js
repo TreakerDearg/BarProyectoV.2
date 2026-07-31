@@ -30,9 +30,11 @@ export const IdentityStatus = Object.freeze({
 /**
  * Determina el estado de identidad basado en el usuario
  * @param {Object} user - Usuario del modelo User
+ * @param {Object} shiftInfo - Información de turno (opcional)
  * @returns {string} Estado de identidad
  */
-export const determineIdentityStatus = (user) => {
+export const determineIdentityStatus = (user, shiftInfo = null) => {
+  // Primero verificar estados de cuenta bloqueados
   if (!user.isActive) {
     return IdentityStatus.INACTIVE;
   }
@@ -41,22 +43,43 @@ export const determineIdentityStatus = (user) => {
     return IdentityStatus.LOCKED;
   }
 
-  if (!user.isEmployee) {
+  // Verificar si está pendiente de verificación (OAuth)
+  if (user.provider !== 'local' && !user.providerVerified) {
+    return IdentityStatus.PENDING_VERIFICATION;
+  }
+
+  // Roles de administración
+  if (user.role === 'admin') {
+    return IdentityStatus.ADMIN;
+  }
+
+  if (user.role === 'owner') {
+    return IdentityStatus.OWNER;
+  }
+
+  // Clientes
+  if (!user.isEmployee || user.role === 'client') {
     return IdentityStatus.CLIENT;
   }
 
-  // Lógica de empleados basada en turno y asistencia
+  // Empleados - verificar estado laboral basado en asistencia y turno
   const attendanceStatus = user.attendance?.currentStatus;
+  const hasActiveShift = shiftInfo?.active || false;
   
-  if (attendanceStatus === 'checked-in') {
+  if (attendanceStatus === 'checked-in' && hasActiveShift) {
     return IdentityStatus.EMPLOYEE_WORKING;
   }
 
-  if (attendanceStatus === 'break') {
+  if (attendanceStatus === 'break' && hasActiveShift) {
     return IdentityStatus.EMPLOYEE_BREAK;
   }
 
-  if (attendanceStatus === 'checked-out' || attendanceStatus === 'absent') {
+  // Si está checked-in pero sin turno activo, considerar fuera de turno
+  if (attendanceStatus === 'checked-in' && !hasActiveShift) {
+    return IdentityStatus.EMPLOYEE_OFF_SHIFT;
+  }
+
+  if (attendanceStatus === 'checked-out' || attendanceStatus === 'absent' || attendanceStatus === 'late') {
     return IdentityStatus.EMPLOYEE_OFF_SHIFT;
   }
 
