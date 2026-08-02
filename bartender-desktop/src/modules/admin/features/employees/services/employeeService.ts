@@ -4,7 +4,7 @@
  * Lógica de negocio y cache
  */
 
-import api from "../../../../services/api";
+import api from "@/services/api";
 import type {
   Employee,
   EmployeeFormData,
