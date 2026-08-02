@@ -6,11 +6,21 @@ import EmployeeActivityTrackingPage from "../modules/admin/pages/EmployeeActivit
 import ShiftManagementPage from "../modules/admin/pages/ShiftManagementPage";
 import ShiftMetricsPage from "../modules/admin/pages/ShiftMetricsPage";
 import SettingsPage from "../modules/admin/pages/SettingsPage";
+import WorkforceDashboardPage from "../modules/admin/features/employees/pages/WorkforceDashboardPage";
+import EmployeeDetailPage from "../modules/admin/features/employees/pages/EmployeeDetailPage";
 
 export const adminRoutes = [
   {
     path: "/employees",
     element: EmployeesPage,
+  },
+  {
+    path: "/employees/dashboard",
+    element: WorkforceDashboardPage,
+  },
+  {
+    path: "/employees/:id",
+    element: EmployeeDetailPage,
   },
   {
     path: "/employees/roles",
