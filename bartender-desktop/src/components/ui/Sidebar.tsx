@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -16,6 +17,13 @@ import {
   Percent,
   ChevronLeft,
   Settings,
+  ChevronRight,
+  BarChart3,
+  Shield,
+  Clock,
+  Activity,
+  Calendar,
+  TrendingUp,
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
@@ -34,6 +42,13 @@ const PATHS = {
   INVENTORY: "/inventory",
   RECIPES: "/recipes",
   EMPLOYEES: "/employees",
+  EMPLOYEES_DASHBOARD: "/employees/dashboard",
+  EMPLOYEES_ROLES: "/employees/roles",
+  EMPLOYEES_PERMISSIONS: "/employees/permissions",
+  EMPLOYEES_SHIFTS: "/employees/shifts",
+  EMPLOYEES_ACTIVITY: "/employees/activity",
+  EMPLOYEES_SHIFT_MANAGEMENT: "/employees/shift-management",
+  EMPLOYEES_SHIFT_METRICS: "/employees/shift-metrics",
   ROULETTE: "/roulette",
   SETTINGS: "/settings",
 };
@@ -45,6 +60,7 @@ export default function Sidebar() {
 
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggle = useUIStore((s) => s.toggleSidebar);
+  const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -79,7 +95,21 @@ export default function Sidebar() {
     {
       title: "Sistema",
       items: [
-        { name: "Empleados", path: PATHS.EMPLOYEES, icon: Users },
+        { 
+          name: "Empleados", 
+          path: PATHS.EMPLOYEES, 
+          icon: Users,
+          submenu: [
+            { name: "Lista", path: PATHS.EMPLOYEES, icon: Users },
+            { name: "Dashboard", path: PATHS.EMPLOYEES_DASHBOARD, icon: BarChart3 },
+            { name: "Roles", path: PATHS.EMPLOYEES_ROLES, icon: Shield },
+            { name: "Permisos", path: PATHS.EMPLOYEES_PERMISSIONS, icon: Shield },
+            { name: "Turnos", path: PATHS.EMPLOYEES_SHIFTS, icon: Clock },
+            { name: "Actividad", path: PATHS.EMPLOYEES_ACTIVITY, icon: Activity },
+            { name: "Gestión Turnos", path: PATHS.EMPLOYEES_SHIFT_MANAGEMENT, icon: Calendar },
+            { name: "Métricas Turnos", path: PATHS.EMPLOYEES_SHIFT_METRICS, icon: TrendingUp },
+          ],
+        },
         { name: "Ruleta", path: PATHS.ROULETTE, icon: Dices },
         { name: "Configuracion", path: PATHS.SETTINGS, icon: Settings },
       ],
@@ -145,69 +175,172 @@ export default function Sidebar() {
             )}
 
             <div className="space-y-1">
-              {section.items.map(({ name, path, icon: Icon }) => (
-                <NavLink
-                  key={name}
-                  to={path}
-                  className={({ isActive }) =>
-                    `
-                    group relative flex items-center
-                    ${collapsed ? "justify-center" : "gap-3"}
-                    px-3 py-2 rounded-lg text-xs font-bold tracking-wider
-                    transition-all duration-300
-
-                    ${
-                      isActive
-                        ? "text-cyan-400"
-                        : "text-gray-400 hover:text-white"
-                    }
-                  `
-                  }
-                >
-                  {({ isActive }) => (
+              {section.items.map(({ name, path, icon: Icon, submenu }) => (
+                <div key={name}>
+                  {submenu ? (
                     <>
-                      {/* ACTIVE BAR */}
-                      {isActive && (
-                        <div className="absolute left-0 top-0 h-full w-[3px] bg-cyan-400 shadow-[0_0_10px_#00FFFF]" />
-                      )}
-
-                      {/* ICON */}
-                      <Icon
-                        size={18}
-                        className={`
-                          transition-all
-                          ${
-                            isActive
-                              ? "text-cyan-400 drop-shadow-[0_0_6px_#00FFFF]"
-                              : "text-gray-500 group-hover:text-white"
+                      {/* SUBMENU TRIGGER */}
+                      <button
+                        onClick={() => {
+                          if (!collapsed) {
+                            setExpandedSubmenu(expandedSubmenu === name ? null : name);
+                          } else {
+                            navigate(path);
                           }
+                        }}
+                        className={`
+                          group relative flex items-center justify-between w-full
+                          ${collapsed ? "justify-center" : "gap-3"}
+                          px-3 py-2 rounded-lg text-xs font-bold tracking-wider
+                          transition-all duration-300
+                          ${expandedSubmenu === name ? "text-cyan-400" : "text-gray-400 hover:text-white"}
                         `}
-                      />
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon
+                            size={18}
+                            className={`
+                              transition-all
+                              ${
+                                expandedSubmenu === name
+                                  ? "text-cyan-400 drop-shadow-[0_0_6px_#00FFFF]"
+                                  : "text-gray-500 group-hover:text-white"
+                              }
+                            `}
+                          />
+                          {!collapsed && <span className="mt-[1px]">{name}</span>}
+                        </div>
+                        {!collapsed && (
+                          <ChevronRight
+                            size={14}
+                            className={`transition-transform ${expandedSubmenu === name ? "rotate-90" : ""}`}
+                          />
+                        )}
+                        {collapsed && (
+                          <span
+                            className="
+                            absolute left-full ml-3 px-3 py-1.5 text-[10px]
+                            bg-[#020617] border border-cyan-400/20
+                            rounded-lg shadow-[0_0_12px_rgba(0,255,255,0.2)]
+                            opacity-0 group-hover:opacity-100
+                            translate-x-2 group-hover:translate-x-0
+                            transition-all duration-200
+                            whitespace-nowrap pointer-events-none
+                          "
+                          >
+                            {name}
+                          </span>
+                        )}
+                      </button>
 
-                      {/* TEXT */}
-                      {!collapsed && (
-                        <span className="mt-[1px]">{name}</span>
-                      )}
-
-                      {/* TOOLTIP PRO */}
-                      {collapsed && (
-                        <span
-                          className="
-                          absolute left-full ml-3 px-3 py-1.5 text-[10px]
-                          bg-[#020617] border border-cyan-400/20
-                          rounded-lg shadow-[0_0_12px_rgba(0,255,255,0.2)]
-                          opacity-0 group-hover:opacity-100
-                          translate-x-2 group-hover:translate-x-0
-                          transition-all duration-200
-                          whitespace-nowrap pointer-events-none
-                        "
-                        >
-                          {name}
-                        </span>
+                      {/* SUBMENU ITEMS */}
+                      {!collapsed && expandedSubmenu === name && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {submenu.map((subItem) => (
+                            <NavLink
+                              key={subItem.name}
+                              to={subItem.path}
+                              className={({ isActive }) =>
+                                `
+                                group relative flex items-center gap-3
+                                px-3 py-2 rounded-lg text-xs font-bold tracking-wider
+                                transition-all duration-300
+                                ${
+                                  isActive
+                                    ? "text-cyan-400"
+                                    : "text-gray-400 hover:text-white"
+                                }
+                              `
+                              }
+                            >
+                              {({ isActive }) => (
+                                <>
+                                  {isActive && (
+                                    <div className="absolute left-0 top-0 h-full w-[3px] bg-cyan-400 shadow-[0_0_10px_#00FFFF]" />
+                                  )}
+                                  <subItem.icon
+                                    size={16}
+                                    className={`
+                                      transition-all
+                                      ${
+                                        isActive
+                                          ? "text-cyan-400 drop-shadow-[0_0_6px_#00FFFF]"
+                                          : "text-gray-500 group-hover:text-white"
+                                      }
+                                    `}
+                                  />
+                                  <span className="mt-[1px]">{subItem.name}</span>
+                                </>
+                              )}
+                            </NavLink>
+                          ))}
+                        </div>
                       )}
                     </>
+                  ) : (
+                    <NavLink
+                      to={path}
+                      className={({ isActive }) =>
+                        `
+                        group relative flex items-center
+                        ${collapsed ? "justify-center" : "gap-3"}
+                        px-3 py-2 rounded-lg text-xs font-bold tracking-wider
+                        transition-all duration-300
+
+                        ${
+                          isActive
+                            ? "text-cyan-400"
+                            : "text-gray-400 hover:text-white"
+                        }
+                      `
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {/* ACTIVE BAR */}
+                          {isActive && (
+                            <div className="absolute left-0 top-0 h-full w-[3px] bg-cyan-400 shadow-[0_0_10px_#00FFFF]" />
+                          )}
+
+                          {/* ICON */}
+                          <Icon
+                            size={18}
+                            className={`
+                              transition-all
+                              ${
+                                isActive
+                                  ? "text-cyan-400 drop-shadow-[0_0_6px_#00FFFF]"
+                                  : "text-gray-500 group-hover:text-white"
+                              }
+                            `}
+                          />
+
+                          {/* TEXT */}
+                          {!collapsed && (
+                            <span className="mt-[1px]">{name}</span>
+                          )}
+
+                          {/* TOOLTIP PRO */}
+                          {collapsed && (
+                            <span
+                              className="
+                              absolute left-full ml-3 px-3 py-1.5 text-[10px]
+                              bg-[#020617] border border-cyan-400/20
+                              rounded-lg shadow-[0_0_12px_rgba(0,255,255,0.2)]
+                              opacity-0 group-hover:opacity-100
+                              translate-x-2 group-hover:translate-x-0
+                              transition-all duration-200
+                              whitespace-nowrap pointer-events-none
+                            "
+                            >
+                              {name}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
                   )}
-                </NavLink>
+                </div>
               ))}
             </div>
           </div>
