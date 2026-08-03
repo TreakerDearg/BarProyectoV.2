@@ -15,8 +15,9 @@ import { RecipeWarnings } from "../components/intelligence/RecipeWarnings";
 import { FormulaSuggestions } from "../components/intelligence/FormulaSuggestions";
 import { TechniqueCard } from "../components/builder/TechniqueCard";
 import { DecorationCard } from "../components/builder/DecorationCard";
+import { Dashboard } from "../components/dashboard";
 
-type StudioMode = 'library' | 'builder' | 'studio' | 'variants' | 'techniques' | 'decorations' | 'collections' | 'analytics' | 'timeline' | 'versions' | 'warnings' | 'suggestions' | 'trash';
+type StudioMode = 'dashboard' | 'library' | 'builder' | 'studio' | 'variants' | 'techniques' | 'decorations' | 'collections' | 'analytics' | 'timeline' | 'versions' | 'warnings' | 'suggestions' | 'trash';
 
 /**
  * NebulaRecipeStudio - Página principal del sistema de recetas
@@ -24,11 +25,11 @@ type StudioMode = 'library' | 'builder' | 'studio' | 'variants' | 'techniques' |
  * Integra Library, Builder, Inspector y Preview en un entorno unificado
  */
 export default function NebulaRecipeStudio() {
-  const [mode, setMode] = useState<StudioMode>('library');
+  const [mode, setMode] = useState<StudioMode>('dashboard');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [navigationHistory, setNavigationHistory] = useState<StudioMode[]>(['library']);
+  const [navigationHistory, setNavigationHistory] = useState<StudioMode[]>(['dashboard']);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -73,8 +74,8 @@ export default function NebulaRecipeStudio() {
       setNavigationHistory(newHistory);
       setMode(previousMode);
     } else {
-      setMode('library');
-      setNavigationHistory(['library']);
+      setMode('dashboard');
+      setNavigationHistory(['dashboard']);
     }
   };
 
@@ -85,16 +86,26 @@ export default function NebulaRecipeStudio() {
   return (
     <RecipeStudioProvider recipe={selectedRecipe || recipes[0]} inventoryItems={[]} allRecipes={recipes}>
       <div className="nebula-recipe-studio">
-        <StudioHeader mode={mode} onModeChange={handleModeChange} navigationHistory={navigationHistory} />
+        {mode === 'dashboard' && (
+          <Dashboard
+            recipes={recipes}
+            collections={[]}
+            onNavigate={handleModeChange}
+          />
+        )}
         
-        <div className="studio-content">
-          {mode === 'library' && (
-            <RecipeLibrary 
-              recipes={recipes}
-              onRecipeSelect={handleRecipeSelect}
-              onRecipeEdit={handleRecipeEdit}
-            />
-          )}
+        {mode !== 'dashboard' && (
+          <>
+            <StudioHeader mode={mode} onModeChange={handleModeChange} navigationHistory={navigationHistory} />
+            
+            <div className="studio-content">
+              {mode === 'library' && (
+                <RecipeLibrary 
+                  recipes={recipes}
+                  onRecipeSelect={handleRecipeSelect}
+                  onRecipeEdit={handleRecipeEdit}
+                />
+              )}
           
           {mode === 'builder' && selectedRecipe && (
             <div className="builder-wrapper">
@@ -195,7 +206,9 @@ export default function NebulaRecipeStudio() {
               </div>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </RecipeStudioProvider>
   );

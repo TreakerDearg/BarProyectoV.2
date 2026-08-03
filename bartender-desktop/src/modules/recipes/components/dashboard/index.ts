@@ -1,0 +1,12 @@
+export { StudioCard } from './StudioCard';
+export { StudioHeader } from './StudioHeader';
+export { QuickActions } from './QuickActions';
+export { StudioSidebar } from './StudioSidebar';
+export { RecipeStats } from './RecipeStats';
+export { RecentRecipes } from './RecentRecipes';
+export { CollectionGrid } from './CollectionGrid';
+export { ActivityTimeline } from './ActivityTimeline';
+export { WarningPanel } from './WarningPanel';
+export { SuggestionPanel } from './SuggestionPanel';
+export { EmptyState } from './EmptyState';
+export { Dashboard } from './Dashboard';

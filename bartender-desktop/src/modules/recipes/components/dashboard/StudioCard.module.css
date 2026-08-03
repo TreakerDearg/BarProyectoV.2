@@ -1,0 +1,101 @@
+.studioCard {
+  background: rgba(11, 18, 32, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.studioCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.studioCard.hoverable:hover {
+  background: rgba(17, 24, 39, 0.7);
+  border-color: rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+}
+
+.studioCard.clickable {
+  cursor: pointer;
+}
+
+.studioCard.clickable:active {
+  transform: translateY(0);
+}
+
+.studioCard.interactive:focus {
+  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+}
+
+.studioCard.glow {
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.2);
+}
+
+.studioCard.glow:hover {
+  box-shadow: 0 0 32px rgba(139, 92, 246, 0.3);
+}
+
+/* Variant: Stat */
+.studioCard.stat {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(11, 18, 32, 0.6) 100%);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.studioCard.stat:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
+}
+
+/* Variant: Recipe */
+.studioCard.recipe {
+  background: rgba(11, 18, 32, 0.8);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.studioCard.recipe:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Variant: Collection */
+.studioCard.collection {
+  background: rgba(11, 18, 32, 0.7);
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.studioCard.collection:hover {
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+/* Variant: Warning */
+.studioCard.warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(11, 18, 32, 0.6) 100%);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.studioCard.warning:hover {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Variant: Suggestion */
+.studioCard.suggestion {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(11, 18, 32, 0.6) 100%);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.studioCard.suggestion:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(17, 24, 39, 0.7) 100%);
+  border-color: rgba(6, 182, 212, 0.5);
+}

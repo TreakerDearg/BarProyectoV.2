@@ -1,0 +1,124 @@
+.warningPanel {
+  padding: 24px 32px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.warningCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.warningGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.warningCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.warningCard.high {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.warningCard.medium {
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.warningCard.low {
+  border-color: rgba(96, 165, 250, 0.4);
+}
+
+.warningIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.warningCard.medium .warningIcon {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.warningCard.low .warningIcon {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.warningContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.warningTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.2px;
+}
+
+.warningDescription {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.severityIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .warningGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .warningPanel {
+    padding: 16px;
+  }
+
+  .warningGrid {
+    grid-template-columns: 1fr;
+  }
+}

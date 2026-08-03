@@ -1,0 +1,166 @@
+.activityTimeline {
+  padding: 24px 32px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.viewAll {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8b5cf6;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.viewAll:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #c4b5fd;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.3) 0%, rgba(139, 92, 246, 0.1) 100%);
+}
+
+.timelineItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding-left: 44px;
+  position: relative;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  width: 2px;
+  height: calc(100% + 16px);
+  background: rgba(139, 92, 246, 0.2);
+}
+
+.timelineItem:last-child .timelineLine {
+  display: none;
+}
+
+.timelineDot {
+  position: absolute;
+  left: 12px;
+  top: 20px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid rgba(5, 8, 22, 0.8);
+  box-shadow: 0 0 12px currentColor;
+  z-index: 1;
+}
+
+.activityCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  width: 100%;
+}
+
+.activityIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.activityContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.activityTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.2px;
+}
+
+.activityDescription {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0 0 6px 0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.activityTimestamp {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .activityTimeline {
+    padding: 16px;
+  }
+
+  .timeline::before {
+    left: 16px;
+  }
+
+  .timelineItem {
+    padding-left: 36px;
+  }
+
+  .timelineLine {
+    left: 16px;
+  }
+
+  .timelineDot {
+    left: 8px;
+  }
+
+  .activityCard {
+    padding: 12px;
+  }
+
+  .activityIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
