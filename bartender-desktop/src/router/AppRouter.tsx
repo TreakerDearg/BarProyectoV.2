@@ -15,7 +15,7 @@ import Dashboard from "../modules/dashboard/pages/Dashboard";
 import ProductsPage from "../modules/products/pages/ProductsPage";
 import MenusPage from "../modules/menus/pages/MenusPage";
 import InventoryPage from "../modules/inventory/pages/InventoryPage";
-import RecipesPage from "../modules/recipes/pages/RecipesPage";
+import NebulaRecipeStudio from "../modules/recipes/pages/NebulaRecipeStudio";
 import TablesPage from "../modules/tables/pages/TablesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
@@ -96,7 +96,10 @@ export default function AppRouter() {
               <Route path="/inventory" element={<InventoryPage />} />
             </Route>
             <Route element={<RoleRoute path="/recipes" />}>
-              <Route path="/recipes" element={<RecipesPage />} />
+              <Route path="/recipes" element={<NebulaRecipeStudio />} />
+              <Route path="/recipes/new" element={<NebulaRecipeStudio />} />
+              <Route path="/recipes/:id" element={<NebulaRecipeStudio />} />
+              <Route path="/recipes/edit/:id" element={<NebulaRecipeStudio />} />
             </Route>
             <Route element={<RoleRoute path="/roulette" />}>
               <Route path="/roulette" element={<RoulettePage />} />

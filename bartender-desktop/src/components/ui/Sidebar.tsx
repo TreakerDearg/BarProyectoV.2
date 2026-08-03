@@ -41,6 +41,10 @@ const PATHS = {
   MENUS: "/menus",
   INVENTORY: "/inventory",
   RECIPES: "/recipes",
+  RECIPES_LIBRARY: "/recipes",
+  RECIPES_BUILDER: "/recipes/new",
+  RECIPES_STUDIO: "/recipes/:id",
+  RECIPES_EDIT: "/recipes/edit/:id",
   EMPLOYEES: "/employees",
   EMPLOYEES_DASHBOARD: "/employees/dashboard",
   EMPLOYEES_ROLES: "/employees/roles",
@@ -89,7 +93,16 @@ export default function Sidebar() {
         { name: "Productos", path: PATHS.PRODUCTS, icon: Wine },
         { name: "Menús", path: PATHS.MENUS, icon: UtensilsCrossed },
         { name: "Inventario", path: PATHS.INVENTORY, icon: Package },
-        { name: "Recetas", path: PATHS.RECIPES, icon: BookOpen },
+        { 
+          name: "Nebula Recipe Studio", 
+          path: PATHS.RECIPES, 
+          icon: BookOpen,
+          submenu: [
+            { name: "Library", path: PATHS.RECIPES_LIBRARY, icon: BookOpen },
+            { name: "Builder", path: PATHS.RECIPES_BUILDER, icon: Package },
+            { name: "Studio", path: PATHS.RECIPES_STUDIO, icon: Activity },
+          ],
+        },
       ],
     },
     {

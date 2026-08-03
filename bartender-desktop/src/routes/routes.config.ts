@@ -81,7 +81,25 @@ export const routesConfig = [
       },
       {
         path: "/recipes",
-        name: "Recetas",
+        name: "Nebula Recipe Studio",
+        children: [
+          {
+            path: "/recipes",
+            name: "Library",
+          },
+          {
+            path: "/recipes/new",
+            name: "Builder",
+          },
+          {
+            path: "/recipes/:id",
+            name: "Studio",
+          },
+          {
+            path: "/recipes/edit/:id",
+            name: "Edit",
+          },
+        ],
       },
       {
         path: "/menus",

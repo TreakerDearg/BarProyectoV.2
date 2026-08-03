@@ -34,7 +34,7 @@ export interface FormulaIssue {
 }
 
 export interface FormulaSuggestion {
-  type: 'ingredient' | 'technique' | 'decoration' | 'cost' | 'production';
+  type: 'ingredient' | 'technique' | 'decoration' | 'cost' | 'production' | 'presentation' | 'stock' | 'margin' | 'complexity';
   message: string;
   action?: string;
   priority: 'low' | 'medium' | 'high';
