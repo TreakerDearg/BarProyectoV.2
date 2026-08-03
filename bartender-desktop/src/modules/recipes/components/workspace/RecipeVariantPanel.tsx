@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Recipe, InheritanceSettings } from '../../types';
 import { useRecipeInheritance, createVariantFromMaster } from '../../hooks';
+import styles from './RecipeVariantPanel.module.css';
 
 interface RecipeVariantPanelProps {
   currentRecipe: Recipe;
@@ -53,23 +54,23 @@ export function RecipeVariantPanel({
   };
 
   return (
-    <div className="recipe-variant-panel">
-      <h3 className="panel-title">Configuración de Variante</h3>
+    <div className={styles.recipeVariantPanel}>
+      <h3 className={styles.panelTitle}>Configuración de Variante</h3>
 
       {/* Información de la variante */}
       {currentRecipe.parentId && (
-        <div className="variant-info">
-          <span className="variant-label">Variante de:</span>
-          <span className="variant-master">{masterRecipe?.product?.name || 'Receta base'}</span>
+        <div className={styles.variantInfo}>
+          <span className={styles.variantLabel}>Variante de:</span>
+          <span className={styles.variantMaster}>{masterRecipe?.product?.name || 'Receta base'}</span>
         </div>
       )}
 
       {/* Configuración de herencia */}
-      <div className="inheritance-settings">
-        <h4 className="settings-title">Herencia de Campos</h4>
+      <div className={styles.inheritanceSettings}>
+        <h4 className={styles.settingsTitle}>Herencia de Campos</h4>
         
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritIngredients}
@@ -77,13 +78,13 @@ export function RecipeVariantPanel({
             />
             <span>Ingredientes</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('ingredients') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('ingredients') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
 
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritSteps}
@@ -91,13 +92,13 @@ export function RecipeVariantPanel({
             />
             <span>Pasos de preparación</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('steps') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('steps') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
 
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritMethod}
@@ -105,13 +106,13 @@ export function RecipeVariantPanel({
             />
             <span>Método</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('method') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('method') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
 
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritSpecifications}
@@ -119,13 +120,13 @@ export function RecipeVariantPanel({
             />
             <span>Especificaciones (vaso, hielo)</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('specifications') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('specifications') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
 
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritCategory}
@@ -133,13 +134,13 @@ export function RecipeVariantPanel({
             />
             <span>Categoría</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('category') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('category') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
 
-        <div className="setting-item">
-          <label className="setting-label">
+        <div className={styles.settingItem}>
+          <label className={styles.settingLabel}>
             <input
               type="checkbox"
               checked={inheritanceSettings.inheritDrinkStyle}
@@ -147,7 +148,7 @@ export function RecipeVariantPanel({
             />
             <span>Estilo de bebida</span>
           </label>
-          <span className="setting-status">
+          <span className={styles.settingStatus} data-status={inheritedFields.includes('drinkStyle') ? 'inherited' : 'overridden'}>
             {inheritedFields.includes('drinkStyle') ? 'Heredado' : 'Sobrescrito'}
           </span>
         </div>
@@ -155,20 +156,20 @@ export function RecipeVariantPanel({
 
       {/* Crear nueva variante */}
       {masterRecipe && (
-        <div className="create-variant">
-          <h4 className="create-title">Crear Nueva Variante</h4>
-          <div className="create-form">
+        <div className={styles.createVariant}>
+          <h4 className={styles.createTitle}>Crear Nueva Variante</h4>
+          <div className={styles.createForm}>
             <input
               type="text"
               placeholder="Nombre de la variante (ej. Premium, Sin Alcohol)"
               value={newVariantName}
               onChange={(e) => setNewVariantName(e.target.value)}
-              className="variant-input"
+              className={styles.variantInput}
             />
             <button
               onClick={handleCreateVariant}
               disabled={!newVariantName.trim()}
-              className="btn-create-variant"
+              className={styles.btnCreateVariant}
             >
               Crear Variante
             </button>
@@ -178,11 +179,11 @@ export function RecipeVariantPanel({
 
       {/* Resumen de cambios */}
       {overriddenFields.length > 0 && (
-        <div className="override-summary">
-          <h4 className="summary-title">Campos Sobrescritos</h4>
-          <ul className="summary-list">
+        <div className={styles.overrideSummary}>
+          <h4 className={styles.summaryTitle}>Campos Sobrescritos</h4>
+          <ul className={styles.summaryList}>
             {overriddenFields.map((field) => (
-              <li key={field} className="summary-item">
+              <li key={field} className={styles.summaryItem}>
                 {translateFieldName(field)}
               </li>
             ))}

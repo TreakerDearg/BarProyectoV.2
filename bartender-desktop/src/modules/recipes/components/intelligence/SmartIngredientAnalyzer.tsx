@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { IngredientAnalysis } from '../../types';
+import styles from './SmartIngredientAnalyzer.module.css';
 
 interface SmartIngredientAnalyzerProps {
   ingredientId: string;
@@ -63,12 +64,12 @@ export function SmartIngredientAnalyzer({ ingredientId, ingredientName, inventor
     };
   }, [ingredientId, ingredientName, inventoryItems, allRecipes]);
 
-  const getStockStatusColor = (status: string): string => {
+  const getStockStatusClass = (status: string): string => {
     switch (status) {
-      case 'normal': return 'success';
-      case 'low': return 'warning';
-      case 'critical': return 'danger';
-      default: return 'info';
+      case 'normal': return styles.success;
+      case 'low': return styles.warning;
+      case 'critical': return styles.danger;
+      default: return styles.info;
     }
   };
 
@@ -82,17 +83,17 @@ export function SmartIngredientAnalyzer({ ingredientId, ingredientName, inventor
   };
 
   return (
-    <div className="smart-ingredient-analyzer">
-      <div className="analyzer-header">
-        <h3 className="analyzer-title">{analysis.name}</h3>
-        <span className={`analyzer-stock-status ${getStockStatusColor(analysis.stockStatus)}`}>
+    <div className={styles.smartIngredientAnalyzer}>
+      <div className={styles.analyzerHeader}>
+        <h3 className={styles.analyzerTitle}>{analysis.name}</h3>
+        <span className={`${styles.analyzerStockStatus} ${getStockStatusClass(analysis.stockStatus)}`}>
           {analysis.stockStatus === 'normal' && '✓ Stock Normal'}
           {analysis.stockStatus === 'low' && '⚠ Stock Bajo'}
           {analysis.stockStatus === 'critical' && '✗ Stock Crítico'}
         </span>
       </div>
 
-      <div className="analyzer-grid">
+      <div className={styles.analyzerGrid}>
         <AnalyzerItem label="Proveedor" value={analysis.supplier} icon="🏢" />
         <AnalyzerItem label="Stock" value={analysis.stock} icon="📦" />
         <AnalyzerItem label="Costo" value={`$${analysis.averageCost.toFixed(2)}`} icon="💰" />
@@ -101,21 +102,21 @@ export function SmartIngredientAnalyzer({ ingredientId, ingredientName, inventor
         <AnalyzerItem label="Popularidad" value={getPopularityIcon(analysis.popularity)} icon="⭐" />
       </div>
 
-      <div className="analyzer-usage">
-        <h4 className="usage-title">Gráfico de Utilización</h4>
-        <div className="usage-bar">
+      <div className={styles.analyzerUsage}>
+        <h4 className={styles.usageTitle}>Gráfico de Utilización</h4>
+        <div className={styles.usageBar}>
           <div
-            className="usage-fill"
+            className={styles.usageFill}
             style={{ width: `${Math.min(analysis.usedByRecipes * 5, 100)}%` }}
           />
         </div>
-        <span className="usage-label">{analysis.usedByRecipes} recetas</span>
+        <span className={styles.usageLabel}>{analysis.usedByRecipes} recetas</span>
       </div>
 
       {analysis.stockStatus !== 'normal' && (
-        <div className="analyzer-alert">
-          <span className="alert-icon">⚠️</span>
-          <span className="alert-message">
+        <div className={styles.analyzerAlert}>
+          <span className={styles.alertIcon}>⚠️</span>
+          <span className={styles.alertMessage}>
             {analysis.stockStatus === 'critical' 
               ? 'Stock crítico: Considera reponer urgentemente' 
               : 'Stock bajo: Considera reponer pronto'}
@@ -128,11 +129,11 @@ export function SmartIngredientAnalyzer({ ingredientId, ingredientName, inventor
 
 function AnalyzerItem({ label, value, icon }: { label: string; value: string | number; icon: string }) {
   return (
-    <div className="analyzer-item">
-      <span className="analyzer-item-icon">{icon}</span>
-      <div className="analyzer-item-info">
-        <span className="analyzer-item-label">{label}</span>
-        <span className="analyzer-item-value">{value}</span>
+    <div className={styles.analyzerItem}>
+      <span className={styles.analyzerItemIcon}>{icon}</span>
+      <div className={styles.analyzerItemInfo}>
+        <span className={styles.analyzerItemLabel}>{label}</span>
+        <span className={styles.analyzerItemValue}>{value}</span>
       </div>
     </div>
   );

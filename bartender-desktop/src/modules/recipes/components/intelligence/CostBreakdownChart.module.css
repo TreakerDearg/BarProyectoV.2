@@ -1,0 +1,248 @@
+.costBreakdownChart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--nebula-spacing-sm);
+}
+
+.chartTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0;
+}
+
+.chartTotal {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nebula-accent-primary);
+}
+
+.chartControls {
+  display: flex;
+  gap: var(--nebula-spacing-xs);
+  margin-bottom: var(--nebula-spacing-md);
+}
+
+.chartBtn {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-secondary);
+  cursor: pointer;
+  transition: all var(--nebula-transition-fast);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.chartBtn:hover {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-text-primary);
+}
+
+.chartBtn.active {
+  background: var(--nebula-gradient-subtle);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-accent-primary);
+}
+
+.chartContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+/* Horizontal Bars */
+.horizontalBars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+.horizontalBarItem {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: var(--nebula-spacing-sm);
+  align-items: center;
+  padding: var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.barLabel {
+  font-size: 12px;
+  color: var(--nebula-text-primary);
+  font-weight: 500;
+}
+
+.barContainer {
+  width: 100%;
+  height: 8px;
+  background-color: var(--nebula-bg-tertiary);
+  border-radius: var(--nebula-radius-sm);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--nebula-gradient-primary);
+  transition: width var(--nebula-transition-normal);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.barPercentage {
+  font-size: 12px;
+  color: var(--nebula-accent-primary);
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
+.barCost {
+  font-size: 12px;
+  color: var(--nebula-text-secondary);
+  font-weight: 500;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Stacked Bars */
+.stackedBars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+.stackedBarContainer {
+  width: 100%;
+  height: 24px;
+  display: flex;
+  border-radius: var(--nebula-radius-sm);
+  overflow: hidden;
+  background-color: var(--nebula-bg-tertiary);
+}
+
+.stackedBarSegment {
+  height: 100%;
+  transition: width var(--nebula-transition-normal);
+}
+
+.stackedLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--nebula-spacing-sm);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-xs);
+  padding: var(--nebula-spacing-xs);
+  background-color: var(--nebula-panel-tertiary);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--nebula-radius-sm);
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-size: 11px;
+  color: var(--nebula-text-secondary);
+  flex: 1;
+}
+
+.legendValue {
+  font-size: 11px;
+  color: var(--nebula-text-primary);
+  font-weight: 600;
+}
+
+/* Pie Chart */
+.pieChart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+  align-items: center;
+}
+
+.pieChartContainer {
+  width: 200px;
+  height: 200px;
+}
+
+.pieSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.pieSegment {
+  transition: opacity var(--nebula-transition-fast);
+}
+
+.pieSegment:hover {
+  opacity: 0.8;
+}
+
+.pieLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--nebula-spacing-sm);
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chartHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nebula-spacing-sm);
+  }
+  
+  .chartControls {
+    flex-wrap: wrap;
+  }
+  
+  .chartBtn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .horizontalBarItem {
+    grid-template-columns: 1fr;
+    gap: var(--nebula-spacing-xs);
+  }
+  
+  .barContainer {
+    order: 1;
+  }
+  
+  .barPercentage {
+    order: 2;
+  }
+  
+  .barCost {
+    order: 3;
+  }
+  
+  .stackedLegend,
+  .pieLegend {
+    grid-template-columns: 1fr;
+  }
+  
+  .pieChartContainer {
+    width: 150px;
+    height: 150px;
+  }
+}

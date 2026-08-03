@@ -7,6 +7,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===============================================================
+   NEBULA DESIGN SYSTEM - Phase 10
+   Professional dark theme inspired by Figma, Obsidian, VSCode
+   Recipe Studio CSS Variables
+=============================================================== */
+:root {
+  /* Background Layers */
+  --nebula-bg-primary: #070B16;
+  --nebula-bg-secondary: #0B1220;
+  --nebula-bg-tertiary: #111827;
+
+  /* Panel Colors */
+  --nebula-panel-primary: #151C2E;
+  --nebula-panel-secondary: #182234;
+  --nebula-panel-tertiary: #1B2537;
+
+  /* Hover */
+  --nebula-hover: #202E46;
+
+  /* Accent Colors - Violet/Indigo */
+  --nebula-accent-primary: #6366F1;
+  --nebula-accent-secondary: #7C3AED;
+  --nebula-accent-tertiary: #8B5CF6;
+
+  /* Status Colors */
+  --nebula-success: #10B981;
+  --nebula-warning: #F59E0B;
+  --nebula-danger: #EF4444;
+
+  /* Text Colors */
+  --nebula-text-primary: #FFFFFF;
+  --nebula-text-secondary: #D1D5DB;
+  --nebula-text-tertiary: #9CA3AF;
+
+  /* Border Colors */
+  --nebula-border-primary: rgba(99, 102, 241, 0.3);
+  --nebula-border-secondary: rgba(255, 255, 255, 0.1);
+  --nebula-border-tertiary: rgba(255, 255, 255, 0.05);
+
+  /* Border Radius */
+  --nebula-radius-sm: 6px;
+  --nebula-radius-md: 8px;
+  --nebula-radius-lg: 12px;
+
+  /* Spacing */
+  --nebula-spacing-xs: 4px;
+  --nebula-spacing-sm: 8px;
+  --nebula-spacing-md: 12px;
+  --nebula-spacing-lg: 16px;
+  --nebula-spacing-xl: 24px;
+  --nebula-spacing-2xl: 32px;
+
+  /* Transitions */
+  --nebula-transition-fast: 150ms ease;
+  --nebula-transition-normal: 250ms ease;
+  --nebula-transition-slow: 350ms ease;
+
+  /* Shadows */
+  --nebula-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --nebula-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --nebula-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --nebula-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+
+  /* Glow Effects */
+  --nebula-glow-primary: 0 0 20px rgba(99, 102, 241, 0.15);
+  --nebula-glow-secondary: 0 0 20px rgba(124, 58, 237, 0.15);
+  --nebula-glow-tertiary: 0 0 20px rgba(139, 92, 246, 0.15);
+
+  /* Gradients */
+  --nebula-gradient-primary: linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
+  --nebula-gradient-secondary: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+  --nebula-gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+}
+
 
 /* ===============================================================
    BARTENDER SYSTEM — DESIGN SYSTEM v2.0

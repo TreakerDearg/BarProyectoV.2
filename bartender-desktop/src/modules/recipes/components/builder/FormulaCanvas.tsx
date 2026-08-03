@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RecipeIngredient, RecipeStep } from '../../types';
 import { IngredientCard } from './IngredientCard';
 import { RecipeStepCard } from './RecipeStepCard';
+import styles from './FormulaCanvas.module.css';
 
 interface FormulaCanvasProps {
   recipe: any;
@@ -53,23 +54,23 @@ export function FormulaCanvas({
   };
 
   return (
-    <div className="formula-canvas" onDrop={handleDrop} onDragOver={handleDragOver}>
-      <div className="canvas-header">
-        <div className="canvas-tabs">
+    <div className={styles.formulaCanvas} onDrop={handleDrop} onDragOver={handleDragOver}>
+      <div className={styles.canvasHeader}>
+        <div className={styles.canvasTabs}>
           <button
-            className={`canvas-tab ${activeSection === 'ingredients' ? 'active' : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'ingredients' ? styles.active : ''}`}
             onClick={() => setActiveSection('ingredients')}
           >
             🥗 Ingredientes ({ingredients.length})
           </button>
           <button
-            className={`canvas-tab ${activeSection === 'steps' ? 'active' : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'steps' ? styles.active : ''}`}
             onClick={() => setActiveSection('steps')}
           >
             📝 Pasos ({steps.length})
           </button>
           <button
-            className={`canvas-tab ${activeSection === 'presentation' ? 'active' : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'presentation' ? styles.active : ''}`}
             onClick={() => setActiveSection('presentation')}
           >
             ✨ Presentación
@@ -77,14 +78,14 @@ export function FormulaCanvas({
         </div>
       </div>
 
-      <div className="canvas-content">
+      <div className={styles.canvasContent}>
         {activeSection === 'ingredients' && (
-          <div className="canvas-section">
-            <div className="section-header">
+          <div className={styles.canvasSection}>
+            <div className={styles.sectionHeader}>
               <h3>Ingredientes</h3>
-              <button className="add-button">+ Agregar Ingrediente</button>
+              <button className={styles.addButton}>+ Agregar Ingrediente</button>
             </div>
-            <div className="ingredients-grid">
+            <div className={styles.ingredientsGrid}>
               {ingredients.map((ingredient, index) => {
                 const inventoryItem = inventoryItems.find(
                   (item) => item._id === ingredient.inventoryItem._id
@@ -104,10 +105,10 @@ export function FormulaCanvas({
         )}
 
         {activeSection === 'steps' && (
-          <div className="canvas-section">
-            <div className="section-header">
+          <div className={styles.canvasSection}>
+            <div className={styles.sectionHeader}>
               <h3>Pasos de Preparación</h3>
-              <button className="add-button" onClick={() => onStepAdd({
+              <button className={styles.addButton} onClick={() => onStepAdd({
                 stepNumber: steps.length + 1,
                 instruction: '',
                 duration: 0,
@@ -116,7 +117,7 @@ export function FormulaCanvas({
                 + Agregar Paso
               </button>
             </div>
-            <div className="steps-list">
+            <div className={styles.stepsList}>
               {steps.map((step, index) => (
                 <RecipeStepCard
                   key={index}
@@ -133,24 +134,24 @@ export function FormulaCanvas({
         )}
 
         {activeSection === 'presentation' && (
-          <div className="canvas-section">
-            <div className="section-header">
+          <div className={styles.canvasSection}>
+            <div className={styles.sectionHeader}>
               <h3>Presentación</h3>
             </div>
-            <div className="presentation-grid">
-              <div className="presentation-card">
+            <div className={styles.presentationGrid}>
+              <div className={styles.presentationCard}>
                 <h4>Cristalería</h4>
                 <p>{recipe.specifications?.glass || 'No especificado'}</p>
               </div>
-              <div className="presentation-card">
+              <div className={styles.presentationCard}>
                 <h4>Hielo</h4>
                 <p>{recipe.specifications?.ice || 'No especificado'}</p>
               </div>
-              <div className="presentation-card">
+              <div className={styles.presentationCard}>
                 <h4>Decoración</h4>
                 <p>{recipe.decorationIds?.length || 0} decoraciones</p>
               </div>
-              <div className="presentation-card">
+              <div className={styles.presentationCard}>
                 <h4>Técnica</h4>
                 <p>{recipe.method || 'No especificado'}</p>
               </div>

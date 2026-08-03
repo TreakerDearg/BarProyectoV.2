@@ -12,7 +12,66 @@ export default {
          Sistema unificado para consistencia visual
       ============================================================ */
       colors: {
-        /* Primary - Gold */
+        /* ============================================================
+           NEBULA DESIGN SYSTEM - Phase 10
+           Professional dark theme inspired by Figma, Obsidian, VSCode
+        ============================================================ */
+
+        /* Background Layers */
+        nebula: {
+          bg: {
+            DEFAULT: "#070B16",
+            1: "#0B1220",
+            2: "#111827",
+          },
+          panel: {
+            DEFAULT: "#151C2E",
+            1: "#182234",
+            2: "#1B2537",
+          },
+          hover: "#202E46",
+        },
+
+        /* Accent Colors - Violet/Indigo */
+        accent: {
+          DEFAULT: "#6366F1",
+          1: "#7C3AED",
+          2: "#8B5CF6",
+          50: "rgba(99,102,241,0.05)",
+          100: "rgba(99,102,241,0.10)",
+          200: "rgba(99,102,241,0.20)",
+          300: "rgba(99,102,241,0.30)",
+        },
+
+        /* Semantic Colors */
+        success: {
+          DEFAULT: "#10B981",
+          50: "rgba(16,185,129,0.05)",
+          100: "rgba(16,185,129,0.10)",
+          200: "rgba(16,185,129,0.20)",
+        },
+        warning: {
+          DEFAULT: "#F59E0B",
+          50: "rgba(245,158,11,0.05)",
+          100: "rgba(245,158,11,0.10)",
+          200: "rgba(245,158,11,0.20)",
+        },
+        danger: {
+          DEFAULT: "#EF4444",
+          50: "rgba(239,68,68,0.05)",
+          100: "rgba(239,68,68,0.10)",
+          200: "rgba(239,68,68,0.20)",
+        },
+
+        /* Text Colors */
+        text: {
+          DEFAULT: "#FFFFFF",
+          1: "#D1D5DB",
+          2: "#9CA3AF",
+          3: "#6B7280",
+        },
+
+        /* Legacy colors for backward compatibility */
         gold: {
           DEFAULT: "#D4A340",
           light: "#E8BC5A",
@@ -22,8 +81,6 @@ export default {
           200: "rgba(212,163,64,0.20)",
           300: "rgba(212,163,64,0.30)",
         },
-
-        /* Danger - Red */
         red: {
           DEFAULT: "#C83228",
           light: "#E05444",
@@ -33,19 +90,6 @@ export default {
           200: "rgba(200,50,40,0.20)",
           300: "rgba(200,50,40,0.30)",
         },
-
-        /* Warning - Orange */
-        warning: {
-          DEFAULT: "#E07828",
-          light: "#F09040",
-          dark: "#B05A18",
-          50: "rgba(224,120,40,0.05)",
-          100: "rgba(224,120,40,0.12)",
-          200: "rgba(224,120,40,0.20)",
-          300: "rgba(224,120,40,0.30)",
-        },
-
-        /* Success - Green */
         emerald: {
           DEFAULT: "#34B964",
           light: "#4AD07C",
@@ -55,33 +99,23 @@ export default {
           200: "rgba(52,185,100,0.20)",
           300: "rgba(52,185,100,0.30)",
         },
-
-        /* Neutral - Gray */
         neutral: {
           DEFAULT: "#3D4150",
           light: "#565D70",
           dark: "#252830",
         },
-
-        /* Backgrounds */
         bg: {
           DEFAULT: "#08090C",
           deep: "#050608",
         },
-
-        /* Surfaces */
         surface: {
           DEFAULT: "#0D0F14",
           2: "#12151C",
           3: "#171B24",
           4: "#1E232E",
         },
-
-        /* Text */
         ivory: "#F5F0E8",
         muted: "rgba(255,255,255,0.6)",
-
-        /* Legacy aliases for backward compatibility */
         brand: {
           DEFAULT: "#C83228",
           light: "#E05444",

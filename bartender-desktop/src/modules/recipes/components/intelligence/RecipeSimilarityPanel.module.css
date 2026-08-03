@@ -1,0 +1,183 @@
+.recipeSimilarityPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+.similarityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--nebula-spacing-sm);
+}
+
+.similarityTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0;
+}
+
+.similarityFilters {
+  display: flex;
+  gap: var(--nebula-spacing-xs);
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-secondary);
+  cursor: pointer;
+  transition: all var(--nebula-transition-fast);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.filterBtn:hover {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-text-primary);
+}
+
+.filterBtn.active {
+  background: var(--nebula-gradient-subtle);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-accent-primary);
+}
+
+.similarityList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--nebula-spacing-sm);
+}
+
+.similarityEmpty {
+  font-size: 13px;
+  color: var(--nebula-text-tertiary);
+  text-align: center;
+  padding: var(--nebula-spacing-lg);
+  grid-column: 1 / -1;
+}
+
+.similarityCard {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-md);
+  padding: var(--nebula-spacing-sm);
+  transition: all var(--nebula-transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+.similarityCard:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-md);
+  transform: translateY(-2px);
+}
+
+.similarityCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+}
+
+.similarityIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.similarityName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.similarityType {
+  font-size: 10px;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.similarityCardBody {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nebula-spacing-sm);
+  background-color: var(--nebula-bg-tertiary);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.similarityScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--nebula-spacing-xs);
+}
+
+.scoreValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+}
+
+.similarityScore.high .scoreValue {
+  color: var(--nebula-success);
+}
+
+.similarityScore.medium .scoreValue {
+  color: var(--nebula-warning);
+}
+
+.similarityScore.low .scoreValue {
+  color: var(--nebula-danger);
+}
+
+.scoreLabel {
+  font-size: 10px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .similarityList {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .similarityHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nebula-spacing-sm);
+  }
+  
+  .similarityFilters {
+    width: 100%;
+  }
+  
+  .filterBtn {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .similarityList {
+    grid-template-columns: 1fr;
+  }
+}

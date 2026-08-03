@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormulaSuggestion } from '../../types';
+import styles from './FormulaSuggestions.module.css';
 
 interface FormulaSuggestionsProps {
   suggestions: FormulaSuggestion[];
@@ -23,8 +24,8 @@ export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsP
 
   if (suggestions.length === 0) {
     return (
-      <div className="formula-suggestions empty">
-        <span className="suggestions-empty">✓ Sin sugerencias</span>
+      <div className={`${styles.formulaSuggestions} ${styles.empty}`}>
+        <span className={styles.suggestionsEmpty}>✓ Sin sugerencias</span>
       </div>
     );
   }
@@ -44,12 +45,12 @@ export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsP
     }
   };
 
-  const getPriorityColor = (priority: string): string => {
+  const getPriorityClass = (priority: string): string => {
     switch (priority) {
-      case 'high': return 'danger';
-      case 'medium': return 'warning';
-      case 'low': return 'info';
-      default: return 'info';
+      case 'high': return styles.priorityHigh;
+      case 'medium': return styles.priorityMedium;
+      case 'low': return styles.priorityLow;
+      default: return styles.priorityLow;
     }
   };
 
@@ -68,42 +69,42 @@ export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsP
   };
 
   return (
-    <div className="formula-suggestions">
-      <div className="suggestions-header">
-        <h3 className="suggestions-title">Sugerencias Inteligentes</h3>
-        <div className="suggestions-filters">
+    <div className={styles.formulaSuggestions}>
+      <div className={styles.suggestionsHeader}>
+        <h3 className={styles.suggestionsTitle}>Sugerencias Inteligentes</h3>
+        <div className={styles.suggestionsFilters}>
           <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
             onClick={() => setFilter('all')}
           >
             Todas ({suggestions.length})
           </button>
           <button
-            className={`filter-btn ${filter === 'production' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'production' ? styles.active : ''}`}
             onClick={() => setFilter('production')}
           >
             Producción ({suggestions.filter(s => s.type === 'production').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'cost' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'cost' ? styles.active : ''}`}
             onClick={() => setFilter('cost')}
           >
             Costo ({suggestions.filter(s => s.type === 'cost').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'decoration' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'decoration' ? styles.active : ''}`}
             onClick={() => setFilter('decoration')}
           >
             Decoración ({suggestions.filter(s => s.type === 'decoration').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'presentation' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'presentation' ? styles.active : ''}`}
             onClick={() => setFilter('presentation')}
           >
             Presentación ({suggestions.filter(s => s.type === 'presentation').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'technique' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'technique' ? styles.active : ''}`}
             onClick={() => setFilter('technique')}
           >
             Técnicas ({suggestions.filter(s => s.type === 'technique').length})
@@ -111,25 +112,25 @@ export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsP
         </div>
       </div>
 
-      <div className="suggestions-list">
+      <div className={styles.suggestionsList}>
         {filteredSuggestions.map((suggestion, index) => (
           <div
             key={index}
-            className={`suggestion-item priority-${getPriorityColor(suggestion.priority)}`}
+            className={`${styles.suggestionItem} ${getPriorityClass(suggestion.priority)}`}
           >
-            <div className="suggestion-header">
-              <span className="suggestion-icon">{getSuggestionIcon(suggestion.type)}</span>
-              <div className="suggestion-content">
-                <span className="suggestion-message">{suggestion.message}</span>
-                <span className="suggestion-type">{getFilterLabel(suggestion.type as SuggestionFilter)}</span>
+            <div className={styles.suggestionHeader}>
+              <span className={styles.suggestionIcon}>{getSuggestionIcon(suggestion.type)}</span>
+              <div className={styles.suggestionContent}>
+                <span className={styles.suggestionMessage}>{suggestion.message}</span>
+                <span className={styles.suggestionType}>{getFilterLabel(suggestion.type as SuggestionFilter)}</span>
               </div>
             </div>
             {suggestion.action && (
-              <div className="suggestion-footer">
-                <span className="suggestion-action">{suggestion.action}</span>
+              <div className={styles.suggestionFooter}>
+                <span className={styles.suggestionAction}>{suggestion.action}</span>
                 {onApply && (
                   <button
-                    className="suggestion-apply"
+                    className={styles.suggestionApply}
                     onClick={() => onApply(suggestion)}
                   >
                     Aplicar

@@ -1,0 +1,229 @@
+.recipeStepCard {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  padding: var(--nebula-spacing-md);
+  transition: all var(--nebula-transition-normal);
+  position: relative;
+}
+
+.recipeStepCard:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.recipeStepCard.draggable {
+  cursor: move;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--nebula-spacing-md);
+  padding-bottom: var(--nebula-spacing-sm);
+  border-bottom: 1px solid var(--nebula-border-tertiary);
+}
+
+.stepNumber {
+  width: 32px;
+  height: 32px;
+  background: var(--nebula-gradient-primary);
+  border-radius: var(--nebula-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  box-shadow: var(--nebula-glow-primary);
+}
+
+.stepActions {
+  display: flex;
+  gap: var(--nebula-spacing-xs);
+}
+
+.stepAction {
+  width: 28px;
+  height: 28px;
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--nebula-transition-fast);
+  font-size: 14px;
+}
+
+.stepAction:hover {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-text-primary);
+}
+
+.stepAction.danger:hover {
+  background-color: var(--nebula-danger);
+  border-color: var(--nebula-danger);
+  color: var(--nebula-text-primary);
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+.stepInstruction {
+  width: 100%;
+  background-color: var(--nebula-bg-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: all var(--nebula-transition-fast);
+  line-height: 1.5;
+}
+
+.stepInstruction:focus {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  outline: none;
+}
+
+.stepInstruction::placeholder {
+  color: var(--nebula-text-tertiary);
+}
+
+.stepDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--nebula-spacing-md);
+}
+
+.stepDetail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.detailLabel {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.detailInput {
+  background-color: var(--nebula-bg-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-sm);
+  border-radius: var(--nebula-radius-md);
+  font-size: 14px;
+  transition: all var(--nebula-transition-fast);
+}
+
+.detailInput:focus {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  outline: none;
+}
+
+.detailInput::placeholder {
+  color: var(--nebula-text-tertiary);
+}
+
+.stepTechnique {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+}
+
+.techniqueBadge {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background: var(--nebula-gradient-subtle);
+  border: 1px solid var(--nebula-border-primary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-accent-primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stepUtensils {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.utensilsLabel {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.utensilsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nebula-spacing-xs);
+}
+
+.utensilTag {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-secondary);
+  font-size: 12px;
+}
+
+.stepNotes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+  padding: var(--nebula-spacing-sm);
+  background-color: var(--nebula-bg-tertiary);
+  border-radius: var(--nebula-radius-md);
+  border-left: 3px solid var(--nebula-accent-secondary);
+}
+
+.notesLabel {
+  font-size: 11px;
+  color: var(--nebula-accent-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.notesText {
+  font-size: 13px;
+  color: var(--nebula-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stepHeader {
+    gap: var(--nebula-spacing-sm);
+  }
+  
+  .stepDetails {
+    grid-template-columns: 1fr;
+  }
+  
+  .stepInstruction {
+    font-size: 13px;
+  }
+}

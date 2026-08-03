@@ -1,0 +1,71 @@
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.label {
+  color: var(--nebula-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  position: absolute;
+  left: var(--nebula-spacing-md);
+  color: var(--nebula-text-tertiary);
+  pointer-events: none;
+}
+
+.nebulaInput {
+  width: 100%;
+  background-color: var(--nebula-bg-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-md);
+  transition: all var(--nebula-transition-fast);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.nebulaInput:focus {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  outline: none;
+}
+
+.nebulaInput.error {
+  border-color: var(--nebula-danger);
+}
+
+.nebulaInput.error:focus {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.nebulaInput::placeholder {
+  color: var(--nebula-text-tertiary);
+}
+
+.nebulaInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nebulaInput.withIcon {
+  padding-left: calc(var(--nebula-spacing-md) * 2 + 16px);
+}
+
+.errorText {
+  color: var(--nebula-danger);
+  font-size: 12px;
+  margin-top: var(--nebula-spacing-xs);
+}

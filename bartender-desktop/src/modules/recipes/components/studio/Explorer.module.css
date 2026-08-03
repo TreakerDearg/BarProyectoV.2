@@ -1,0 +1,145 @@
+.explorer {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--nebula-panel-primary);
+  border-right: 1px solid var(--nebula-border-secondary);
+  width: 240px;
+  min-width: 240px;
+  height: 100%;
+}
+
+.explorerHeader {
+  padding: var(--nebula-spacing-md);
+  border-bottom: 1px solid var(--nebula-border-tertiary);
+}
+
+.explorerTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--nebula-text-tertiary);
+  margin: 0;
+}
+
+.explorerSections {
+  display: flex;
+  flex-direction: column;
+  padding: var(--nebula-spacing-sm);
+  gap: var(--nebula-spacing-xs);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.explorerSection {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nebula-radius-md);
+  color: var(--nebula-text-secondary);
+  cursor: pointer;
+  transition: all var(--nebula-transition-fast);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+}
+
+.explorerSection:hover {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-tertiary);
+  color: var(--nebula-text-primary);
+}
+
+.explorerSection.active {
+  background: var(--nebula-gradient-subtle);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-text-primary);
+  box-shadow: var(--nebula-glow-primary);
+}
+
+.sectionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nebula-text-tertiary);
+  transition: color var(--nebula-transition-fast);
+}
+
+.explorerSection:hover .sectionIcon,
+.explorerSection.active .sectionIcon {
+  color: var(--nebula-accent-primary);
+}
+
+.sectionName {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sectionCount {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  background-color: var(--nebula-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--nebula-radius-sm);
+  font-weight: 500;
+}
+
+.sectionBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--nebula-danger);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+/* Scrollbar */
+.explorerSections::-webkit-scrollbar {
+  width: 6px;
+}
+
+.explorerSections::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.explorerSections::-webkit-scrollbar-thumb {
+  background: var(--nebula-panel-tertiary);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.explorerSections::-webkit-scrollbar-thumb:hover {
+  background: var(--nebula-hover);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .explorer {
+    width: 200px;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .explorer {
+    width: 180px;
+    min-width: 180px;
+  }
+  
+  .explorerSection {
+    padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+    font-size: 12px;
+  }
+  
+  .sectionIcon svg {
+    width: 16px;
+    height: 16px;
+  }
+}

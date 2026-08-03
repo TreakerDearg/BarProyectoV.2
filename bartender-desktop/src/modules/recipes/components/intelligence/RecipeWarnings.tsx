@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { RecipeWarning } from '../../types';
+import styles from './RecipeWarnings.module.css';
 
 interface RecipeWarningsProps {
   warnings: RecipeWarning[];
@@ -24,37 +25,37 @@ export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarning
 
   if (warnings.length === 0) {
     return (
-      <div className="recipe-warnings empty">
-        <span className="warnings-empty">✓ Sin advertencias</span>
+      <div className={`${styles.recipeWarnings} ${styles.empty}`}>
+        <span className={styles.warningsEmpty}>✓ Sin advertencias</span>
       </div>
     );
   }
 
   return (
-    <div className="recipe-warnings">
-      <div className="warnings-header">
-        <h3 className="warnings-title">Advertencias</h3>
-        <div className="warnings-filters">
+    <div className={styles.recipeWarnings}>
+      <div className={styles.warningsHeader}>
+        <h3 className={styles.warningsTitle}>Advertencias</h3>
+        <div className={styles.warningsFilters}>
           <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
             onClick={() => setFilter('all')}
           >
             Todas ({warnings.length})
           </button>
           <button
-            className={`filter-btn ${filter === 'high' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'high' ? styles.active : ''}`}
             onClick={() => setFilter('high')}
           >
             Alta ({warnings.filter(w => w.severity === 'high').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'medium' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'medium' ? styles.active : ''}`}
             onClick={() => setFilter('medium')}
           >
             Media ({warnings.filter(w => w.severity === 'medium').length})
           </button>
           <button
-            className={`filter-btn ${filter === 'low' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'low' ? styles.active : ''}`}
             onClick={() => setFilter('low')}
           >
             Baja ({warnings.filter(w => w.severity === 'low').length})
@@ -62,21 +63,21 @@ export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarning
         </div>
       </div>
 
-      <div className="warnings-list">
+      <div className={styles.warningsList}>
         {filteredWarnings.map((warning) => (
           <div
             key={warning.id}
-            className={`warning-item severity-${warning.severity} ${expandedWarning === warning.id ? 'expanded' : ''}`}
+            className={`${styles.warningItem} ${warning.severity === 'high' ? styles.severityHigh : warning.severity === 'medium' ? styles.severityMedium : styles.severityLow} ${expandedWarning === warning.id ? styles.expanded : ''}`}
           >
-            <div className="warning-content">
-              <span className="warning-icon">
+            <div className={styles.warningContent}>
+              <span className={styles.warningIcon}>
                 {warning.severity === 'high' && '⚠️'}
                 {warning.severity === 'medium' && '⚡'}
                 {warning.severity === 'low' && 'ℹ️'}
               </span>
-              <span className="warning-message">{warning.message}</span>
+              <span className={styles.warningMessage}>{warning.message}</span>
               <button
-                className="warning-expand"
+                className={styles.warningExpand}
                 onClick={() => setExpandedWarning(expandedWarning === warning.id ? null : warning.id)}
               >
                 {expandedWarning === warning.id ? '▼' : '▶'}
@@ -84,23 +85,23 @@ export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarning
             </div>
             
             {expandedWarning === warning.id && (
-              <div className="warning-details">
+              <div className={styles.warningDetails}>
                 {warning.field && (
-                  <div className="warning-field">
-                    <span className="field-label">Campo:</span>
-                    <span className="field-value">{warning.field}</span>
+                  <div className={styles.warningField}>
+                    <span className={styles.fieldLabel}>Campo:</span>
+                    <span className={styles.fieldValue}>{warning.field}</span>
                   </div>
                 )}
                 {warning.suggestion && (
-                  <div className="warning-suggestion">
-                    <span className="suggestion-label">Sugerencia:</span>
-                    <span className="suggestion-value">{warning.suggestion}</span>
+                  <div className={styles.warningSuggestion}>
+                    <span className={styles.suggestionLabel}>Sugerencia:</span>
+                    <span className={styles.suggestionValue}>{warning.suggestion}</span>
                   </div>
                 )}
-                <div className="warning-actions">
+                <div className={styles.warningActions}>
                   {onResolve && (
                     <button
-                      className="warning-resolve"
+                      className={styles.warningResolve}
                       onClick={() => onResolve(warning.id)}
                     >
                       Resolver
@@ -108,7 +109,7 @@ export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarning
                   )}
                   {onDismiss && (
                     <button
-                      className="warning-dismiss"
+                      className={styles.warningDismiss}
                       onClick={() => onDismiss(warning.id)}
                     >
                       Descartar

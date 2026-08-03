@@ -1,4 +1,5 @@
 import type { Decoration } from '../../types';
+import styles from './DecorationCard.module.css';
 
 interface DecorationCardProps {
   decoration: Decoration;
@@ -7,25 +8,25 @@ interface DecorationCardProps {
 }
 
 /**
- * DecorationCard - Card visual para decoraciones reutilizables
+ * DecorationCard - Card visual para decoraciones reutilizables (Grid visual)
  */
 export function DecorationCard({ decoration, onSelect, isSelected }: DecorationCardProps) {
   return (
     <div
-      className={`decoration-card ${isSelected ? 'selected' : ''}`}
+      className={`${styles.decorationCard} ${isSelected ? styles.selected : ''}`}
       onClick={onSelect}
     >
-      <div className="decoration-icon">{decoration.icon}</div>
-      <div className="decoration-info">
-        <h4 className="decoration-name">{decoration.name}</h4>
-        <span className="decoration-type">{decoration.type}</span>
+      <div className={styles.decorationIcon}>{decoration.icon}</div>
+      <div className={styles.decorationInfo}>
+        <h4 className={styles.decorationName}>{decoration.name}</h4>
+        <span className={styles.decorationType}>{decoration.type}</span>
         {decoration.category && (
-          <span className="decoration-category">{decoration.category}</span>
+          <span className={styles.decorationCategory}>{decoration.category}</span>
         )}
       </div>
       {decoration.cost !== undefined && (
-        <div className="decoration-cost">
-          <span className="cost-value">${decoration.cost.toFixed(2)}</span>
+        <div className={styles.decorationCost}>
+          <span className={styles.costValue}>${decoration.cost.toFixed(2)}</span>
         </div>
       )}
     </div>

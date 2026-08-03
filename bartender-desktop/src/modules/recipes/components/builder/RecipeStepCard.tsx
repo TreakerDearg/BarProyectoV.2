@@ -1,4 +1,5 @@
 import type { RecipeStep } from '../../types';
+import styles from './RecipeStepCard.module.css';
 
 interface RecipeStepCardProps {
   step: RecipeStep;
@@ -43,73 +44,73 @@ export function RecipeStepCard({
 
   return (
     <div
-      className={`recipe-step-card ${isDraggable ? 'draggable' : ''}`}
+      className={`${styles.recipeStepCard} ${isDraggable ? styles.draggable : ''}`}
       draggable={isDraggable}
     >
-      <div className="step-header">
-        <div className="step-number">{stepNumber}</div>
-        <div className="step-actions">
-          {onMoveUp && <button className="step-action" onClick={onMoveUp}>↑</button>}
-          {onMoveDown && <button className="step-action" onClick={onMoveDown}>↓</button>}
-          {onRemove && <button className="step-action danger" onClick={onRemove}>✕</button>}
+      <div className={styles.stepHeader}>
+        <div className={styles.stepNumber}>{stepNumber}</div>
+        <div className={styles.stepActions}>
+          {onMoveUp && <button className={styles.stepAction} onClick={onMoveUp}>↑</button>}
+          {onMoveDown && <button className={styles.stepAction} onClick={onMoveDown}>↓</button>}
+          {onRemove && <button className={`${styles.stepAction} ${styles.danger}`} onClick={onRemove}>✕</button>}
         </div>
       </div>
 
-      <div className="step-content">
+      <div className={styles.stepContent}>
         <textarea
           value={step.instruction}
           onChange={(e) => handleInstructionChange(e.target.value)}
           placeholder="Describe este paso..."
-          className="step-instruction"
+          className={styles.stepInstruction}
           rows={3}
         />
 
-        <div className="step-details">
-          <div className="step-detail">
-            <label className="detail-label">Duración (min)</label>
+        <div className={styles.stepDetails}>
+          <div className={styles.stepDetail}>
+            <label className={styles.detailLabel}>Duración (min)</label>
             <input
               type="number"
               value={step.duration || 0}
               onChange={(e) => handleDurationChange(Number(e.target.value))}
-              className="detail-input"
+              className={styles.detailInput}
               min="0"
               step="0.5"
             />
           </div>
 
-          <div className="step-detail">
-            <label className="detail-label">Temperatura (°C)</label>
+          <div className={styles.stepDetail}>
+            <label className={styles.detailLabel}>Temperatura (°C)</label>
             <input
               type="number"
               value={step.temperature || ''}
               onChange={(e) => handleTemperatureChange(e.target.value ? Number(e.target.value) : null)}
-              className="detail-input"
+              className={styles.detailInput}
               placeholder="Opcional"
             />
           </div>
         </div>
 
         {step.technique && (
-          <div className="step-technique">
-            <span className="technique-badge">{step.technique}</span>
+          <div className={styles.stepTechnique}>
+            <span className={styles.techniqueBadge}>{step.technique}</span>
           </div>
         )}
 
         {step.utensils && step.utensils.length > 0 && (
-          <div className="step-utensils">
-            <span className="utensils-label">Utensilios:</span>
-            <div className="utensils-list">
+          <div className={styles.stepUtensils}>
+            <span className={styles.utensilsLabel}>Utensilios:</span>
+            <div className={styles.utensilsList}>
               {step.utensils.map((utensil, index) => (
-                <span key={index} className="utensil-tag">{utensil}</span>
+                <span key={index} className={styles.utensilTag}>{utensil}</span>
               ))}
             </div>
           </div>
         )}
 
         {step.notes && (
-          <div className="step-notes">
-            <span className="notes-label">Notas:</span>
-            <p className="notes-text">{step.notes}</p>
+          <div className={styles.stepNotes}>
+            <span className={styles.notesLabel}>Notas:</span>
+            <p className={styles.notesText}>{step.notes}</p>
           </div>
         )}
       </div>

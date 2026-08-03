@@ -1,4 +1,5 @@
 import { useRecipeStudio } from '../../contexts/RecipeStudioContext';
+import styles from './RecipeAnalyticsMini.module.css';
 
 /**
  * RecipeAnalyticsMini - Mini widgets inspirados en Steam, GitHub Insights, Figma Analytics
@@ -9,9 +10,9 @@ export function RecipeAnalyticsMini() {
   const { analytics, healthScore, versions } = useRecipeStudio();
 
   return (
-    <div className="recipe-analytics-mini">
-      <h3 className="analytics-title">Analytics</h3>
-      <div className="analytics-grid">
+    <div className={styles.recipeAnalyticsMini}>
+      <h3 className={styles.analyticsTitle}>Analytics</h3>
+      <div className={styles.analyticsGrid}>
         <MiniWidget
           label="Popularidad"
           value={analytics.popularity}
@@ -116,18 +117,28 @@ function MiniWidget({ label, value, icon, color, type }: MiniWidgetProps) {
     return 0;
   };
 
+  const getColorClass = (color: string): string => {
+    switch (color) {
+      case 'success': return styles.colorSuccess;
+      case 'warning': return styles.colorWarning;
+      case 'danger': return styles.colorDanger;
+      case 'info': return styles.colorInfo;
+      default: return styles.colorInfo;
+    }
+  };
+
   return (
-    <div className={`mini-widget color-${color}`}>
-      <div className="widget-header">
-        <span className="widget-icon">{icon}</span>
-        <span className="widget-label">{label}</span>
+    <div className={`${styles.miniWidget} ${getColorClass(color)}`}>
+      <div className={styles.widgetHeader}>
+        <span className={styles.widgetIcon}>{icon}</span>
+        <span className={styles.widgetLabel}>{label}</span>
       </div>
-      <div className="widget-body">
-        <span className="widget-value">{formatValue(value)}</span>
+      <div className={styles.widgetBody}>
+        <span className={styles.widgetValue}>{formatValue(value)}</span>
         {(type === 'percentage' || type === 'score') && (
-          <div className="widget-progress">
+          <div className={styles.widgetProgress}>
             <div
-              className="widget-progress-fill"
+              className={styles.widgetProgressFill}
               style={{ width: `${getProgress(value)}%` }}
             />
           </div>

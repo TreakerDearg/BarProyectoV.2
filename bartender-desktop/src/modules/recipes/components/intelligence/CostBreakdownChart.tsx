@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRecipeStudio } from '../../contexts/RecipeStudioContext';
+import styles from './CostBreakdownChart.module.css';
 
 type ChartType = 'horizontal' | 'stacked' | 'pie';
 
@@ -20,34 +21,34 @@ export function CostBreakdownChart() {
   })).sort((a, b) => b.percentage - a.percentage);
 
   return (
-    <div className="cost-breakdown-chart">
-      <div className="chart-header">
-        <h3 className="chart-title">Desglose de Costos</h3>
-        <span className="chart-total">${totalCost.toFixed(2)}</span>
+    <div className={styles.costBreakdownChart}>
+      <div className={styles.chartHeader}>
+        <h3 className={styles.chartTitle}>Desglose de Costos</h3>
+        <span className={styles.chartTotal}>${totalCost.toFixed(2)}</span>
       </div>
 
-      <div className="chart-controls">
+      <div className={styles.chartControls}>
         <button
-          className={`chart-btn ${chartType === 'horizontal' ? 'active' : ''}`}
+          className={`${styles.chartBtn} ${chartType === 'horizontal' ? styles.active : ''}`}
           onClick={() => setChartType('horizontal')}
         >
           Barras Horizontales
         </button>
         <button
-          className={`chart-btn ${chartType === 'stacked' ? 'active' : ''}`}
+          className={`${styles.chartBtn} ${chartType === 'stacked' ? styles.active : ''}`}
           onClick={() => setChartType('stacked')}
         >
           Stacked
         </button>
         <button
-          className={`chart-btn ${chartType === 'pie' ? 'active' : ''}`}
+          className={`${styles.chartBtn} ${chartType === 'pie' ? styles.active : ''}`}
           onClick={() => setChartType('pie')}
         >
           Pie
         </button>
       </div>
 
-      <div className="chart-content">
+      <div className={styles.chartContent}>
         {chartType === 'horizontal' && <HorizontalBars ingredients={ingredients} />}
         {chartType === 'stacked' && <StackedBars ingredients={ingredients} />}
         {chartType === 'pie' && <PieChart ingredients={ingredients} />}
@@ -58,18 +59,18 @@ export function CostBreakdownChart() {
 
 function HorizontalBars({ ingredients }: { ingredients: Array<{ id: string; name: string; cost: number; percentage: number }> }) {
   return (
-    <div className="horizontal-bars">
+    <div className={styles.horizontalBars}>
       {ingredients.map((ingredient) => (
-        <div key={ingredient.id} className="horizontal-bar-item">
-          <span className="bar-label">{ingredient.name}</span>
-          <div className="bar-container">
+        <div key={ingredient.id} className={styles.horizontalBarItem}>
+          <span className={styles.barLabel}>{ingredient.name}</span>
+          <div className={styles.barContainer}>
             <div
-              className="bar-fill"
+              className={styles.barFill}
               style={{ width: `${ingredient.percentage}%` }}
             />
           </div>
-          <span className="bar-percentage">{ingredient.percentage.toFixed(0)}%</span>
-          <span className="bar-cost">${ingredient.cost.toFixed(2)}</span>
+          <span className={styles.barPercentage}>{ingredient.percentage.toFixed(0)}%</span>
+          <span className={styles.barCost}>${ingredient.cost.toFixed(2)}</span>
         </div>
       ))}
     </div>
@@ -80,12 +81,12 @@ function StackedBars({ ingredients }: { ingredients: Array<{ id: string; name: s
   const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'];
 
   return (
-    <div className="stacked-bars">
-      <div className="stacked-bar-container">
+    <div className={styles.stackedBars}>
+      <div className={styles.stackedBarContainer}>
         {ingredients.map((ingredient, index) => (
           <div
             key={ingredient.id}
-            className="stacked-bar-segment"
+            className={styles.stackedBarSegment}
             style={{
               width: `${ingredient.percentage}%`,
               backgroundColor: colors[index % colors.length],
@@ -94,15 +95,15 @@ function StackedBars({ ingredients }: { ingredients: Array<{ id: string; name: s
           />
         ))}
       </div>
-      <div className="stacked-legend">
+      <div className={styles.stackedLegend}>
         {ingredients.map((ingredient, index) => (
-          <div key={ingredient.id} className="legend-item">
+          <div key={ingredient.id} className={styles.legendItem}>
             <div
-              className="legend-color"
+              className={styles.legendColor}
               style={{ backgroundColor: colors[index % colors.length] }}
             />
-            <span className="legend-label">{ingredient.name}</span>
-            <span className="legend-value">{ingredient.percentage.toFixed(0)}%</span>
+            <span className={styles.legendLabel}>{ingredient.name}</span>
+            <span className={styles.legendValue}>{ingredient.percentage.toFixed(0)}%</span>
           </div>
         ))}
       </div>
@@ -126,9 +127,9 @@ function PieChart({ ingredients }: { ingredients: Array<{ id: string; name: stri
   });
 
   return (
-    <div className="pie-chart">
-      <div className="pie-chart-container">
-        <svg viewBox="0 0 100 100" className="pie-svg">
+    <div className={styles.pieChart}>
+      <div className={styles.pieChartContainer}>
+        <svg viewBox="0 0 100 100" className={styles.pieSvg}>
           {segments.map((segment) => {
             const startAngle = (segment.startPercentage / 100) * 360;
             const endAngle = (segment.endPercentage / 100) * 360;
@@ -146,7 +147,7 @@ function PieChart({ ingredients }: { ingredients: Array<{ id: string; name: stri
                 key={segment.id}
                 d={pathData}
                 fill={segment.color}
-                className="pie-segment"
+                className={styles.pieSegment}
               >
                 <title>{`${segment.name}: ${segment.percentage.toFixed(0)}%`}</title>
               </path>
@@ -154,15 +155,15 @@ function PieChart({ ingredients }: { ingredients: Array<{ id: string; name: stri
           })}
         </svg>
       </div>
-      <div className="pie-legend">
+      <div className={styles.pieLegend}>
         {segments.map((segment) => (
-          <div key={segment.id} className="legend-item">
+          <div key={segment.id} className={styles.legendItem}>
             <div
-              className="legend-color"
+              className={styles.legendColor}
               style={{ backgroundColor: segment.color }}
             />
-            <span className="legend-label">{segment.name}</span>
-            <span className="legend-value">{segment.percentage.toFixed(0)}%</span>
+            <span className={styles.legendLabel}>{segment.name}</span>
+            <span className={styles.legendValue}>{segment.percentage.toFixed(0)}%</span>
           </div>
         ))}
       </div>

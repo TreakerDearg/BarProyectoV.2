@@ -1,4 +1,5 @@
 import type { RecipeIngredient } from '../../types';
+import styles from './IngredientCard.module.css';
 
 interface IngredientCardProps {
   ingredient: RecipeIngredient;
@@ -42,41 +43,41 @@ export function IngredientCard({
 
   return (
     <div
-      className={`ingredient-card ${isCritical ? 'critical' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`}
+      className={`${styles.ingredientCard} ${isCritical ? styles.critical : ''} ${isOutOfStock ? styles.outOfStock : ''}`}
       draggable={isDraggable}
     >
-      <div className="card-header">
-        <div className="card-image">
+      <div className={styles.cardHeader}>
+        <div className={styles.cardImage}>
           {inventoryItem?.image ? (
             <img src={inventoryItem.image} alt={inventoryItem.name} />
           ) : (
-            <div className="image-placeholder">🥗</div>
+            <div className={styles.imagePlaceholder}>🥗</div>
           )}
         </div>
-        <div className="card-info">
-          <h4 className="ingredient-name">{inventoryItem?.name || ingredient.inventoryItem.name}</h4>
-          <span className="ingredient-supplier">{supplier}</span>
+        <div className={styles.cardInfo}>
+          <h4 className={styles.ingredientName}>{inventoryItem?.name || ingredient.inventoryItem.name}</h4>
+          <span className={styles.ingredientSupplier}>{supplier}</span>
         </div>
         {onRemove && (
-          <button className="card-remove" onClick={onRemove}>
+          <button className={styles.cardRemove} onClick={onRemove}>
             ✕
           </button>
         )}
       </div>
 
-      <div className="card-quantity">
+      <div className={styles.cardQuantity}>
         <input
           type="number"
           value={ingredient.quantity}
           onChange={(e) => handleQuantityChange(Number(e.target.value))}
-          className="quantity-input"
+          className={styles.quantityInput}
           min="0"
           step="0.1"
         />
         <select
           value={ingredient.unit}
           onChange={(e) => handleUnitChange(e.target.value)}
-          className="unit-select"
+          className={styles.unitSelect}
         >
           <option value="ml">ml</option>
           <option value="oz">oz</option>
@@ -90,31 +91,31 @@ export function IngredientCard({
         </select>
       </div>
 
-      <div className="card-stats">
-        <div className="stat">
-          <span className="stat-label">Stock</span>
-          <span className={`stat-value ${isOutOfStock ? 'danger' : isLowStock ? 'warning' : 'success'}`}>
+      <div className={styles.cardStats}>
+        <div className={styles.stat}>
+          <span className={styles.statLabel}>Stock</span>
+          <span className={`${styles.statValue} ${isOutOfStock ? styles.danger : isLowStock ? styles.warning : styles.success}`}>
             {stock} {ingredient.unit}
           </span>
         </div>
-        <div className="stat">
-          <span className="stat-label">Costo</span>
-          <span className="stat-value">${(cost * ingredient.quantity).toFixed(2)}</span>
+        <div className={styles.stat}>
+          <span className={styles.statLabel}>Costo</span>
+          <span className={styles.statValue}>${(cost * ingredient.quantity).toFixed(2)}</span>
         </div>
       </div>
 
       {showSubstitutions && (
-        <div className="card-substitutions">
-          <span className="substitutions-label">Sustituciones disponibles</span>
-          <div className="substitutions-list">
-            <button className="substitution-item">Alternativa 1</button>
-            <button className="substitution-item">Alternativa 2</button>
+        <div className={styles.cardSubstitutions}>
+          <span className={styles.substitutionsLabel}>Sustituciones disponibles</span>
+          <div className={styles.substitutionsList}>
+            <button className={styles.substitutionItem}>Alternativa 1</button>
+            <button className={styles.substitutionItem}>Alternativa 2</button>
           </div>
         </div>
       )}
 
       {isCritical && (
-        <div className="card-warning">
+        <div className={styles.cardWarning}>
           {isOutOfStock ? '⚠️ Agotado' : '⚠️ Stock bajo'}
         </div>
       )}

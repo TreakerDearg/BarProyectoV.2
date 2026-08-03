@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRecipeStudio } from '../../contexts/RecipeStudioContext';
 import type { RecipeRelation } from '../../types';
+import styles from './RecipeSimilarityPanel.module.css';
 
 type SimilarityFilter = 'all' | 'variant' | 'ingredient' | 'technique' | 'family';
 
@@ -19,36 +20,36 @@ export function RecipeSimilarityPanel() {
   });
 
   return (
-    <div className="recipe-similarity-panel">
-      <div className="similarity-header">
-        <h3 className="similarity-title">Recetas Similares</h3>
-        <div className="similarity-filters">
+    <div className={styles.recipeSimilarityPanel}>
+      <div className={styles.similarityHeader}>
+        <h3 className={styles.similarityTitle}>Recetas Similares</h3>
+        <div className={styles.similarityFilters}>
           <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
             onClick={() => setFilter('all')}
           >
             Todas
           </button>
           <button
-            className={`filter-btn ${filter === 'variant' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'variant' ? styles.active : ''}`}
             onClick={() => setFilter('variant')}
           >
             Variantes
           </button>
           <button
-            className={`filter-btn ${filter === 'ingredient' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'ingredient' ? styles.active : ''}`}
             onClick={() => setFilter('ingredient')}
           >
             Ingredientes
           </button>
           <button
-            className={`filter-btn ${filter === 'technique' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'technique' ? styles.active : ''}`}
             onClick={() => setFilter('technique')}
           >
             Técnicas
           </button>
           <button
-            className={`filter-btn ${filter === 'family' ? 'active' : ''}`}
+            className={`${styles.filterBtn} ${filter === 'family' ? styles.active : ''}`}
             onClick={() => setFilter('family')}
           >
             Familia
@@ -56,9 +57,9 @@ export function RecipeSimilarityPanel() {
         </div>
       </div>
 
-      <div className="similarity-list">
+      <div className={styles.similarityList}>
         {filteredRelations.length === 0 ? (
-          <span className="similarity-empty">Sin recetas similares</span>
+          <span className={styles.similarityEmpty}>Sin recetas similares</span>
         ) : (
           filteredRelations.map((relation) => (
             <SimilarityCard key={relation.recipeId} relation={relation} />
@@ -90,23 +91,23 @@ function SimilarityCard({ relation }: { relation: RecipeRelation }) {
     }
   };
 
-  const getSimilarityColor = (similarity: number): string => {
-    if (similarity >= 80) return 'high';
-    if (similarity >= 60) return 'medium';
-    return 'low';
+  const getSimilarityClass = (similarity: number): string => {
+    if (similarity >= 80) return styles.high;
+    if (similarity >= 60) return styles.medium;
+    return styles.low;
   };
 
   return (
-    <div className="similarity-card">
-      <div className="similarity-card-header">
-        <span className="similarity-icon">{getRelationIcon(relation.relationType)}</span>
-        <span className="similarity-name">{relation.recipeName}</span>
-        <span className="similarity-type">{getRelationLabel(relation.relationType)}</span>
+    <div className={styles.similarityCard}>
+      <div className={styles.similarityCardHeader}>
+        <span className={styles.similarityIcon}>{getRelationIcon(relation.relationType)}</span>
+        <span className={styles.similarityName}>{relation.recipeName}</span>
+        <span className={styles.similarityType}>{getRelationLabel(relation.relationType)}</span>
       </div>
-      <div className="similarity-card-body">
-        <div className={`similarity-score ${getSimilarityColor(relation.similarity)}`}>
-          <span className="score-value">{relation.similarity}%</span>
-          <span className="score-label">Similitud</span>
+      <div className={styles.similarityCardBody}>
+        <div className={`${styles.similarityScore} ${getSimilarityClass(relation.similarity)}`}>
+          <span className={styles.scoreValue}>{relation.similarity}%</span>
+          <span className={styles.scoreLabel}>Similitud</span>
         </div>
       </div>
     </div>

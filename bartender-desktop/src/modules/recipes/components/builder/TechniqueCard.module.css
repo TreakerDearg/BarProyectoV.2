@@ -1,0 +1,116 @@
+.techniqueCard {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  padding: var(--nebula-spacing-md);
+  cursor: pointer;
+  transition: all var(--nebula-transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.techniqueCard:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.techniqueCard.selected {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  background: var(--nebula-gradient-subtle);
+}
+
+.techniqueIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--nebula-radius-md);
+  background-color: var(--nebula-panel-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: var(--nebula-spacing-sm);
+}
+
+.techniqueInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.techniqueName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0;
+}
+
+.techniqueCategory {
+  font-size: 12px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.techniqueDifficulty {
+  font-size: 11px;
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  border-radius: var(--nebula-radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  display: inline-block;
+  width: fit-content;
+}
+
+.techniqueDifficulty.easy {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--nebula-success);
+}
+
+.techniqueDifficulty.medium {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--nebula-warning);
+}
+
+.techniqueDifficulty.hard {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--nebula-danger);
+}
+
+.techniqueTime {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: var(--nebula-spacing-sm);
+  border-top: 1px solid var(--nebula-border-tertiary);
+  margin-top: var(--nebula-spacing-sm);
+}
+
+.timeValue {
+  font-size: 12px;
+  color: var(--nebula-text-secondary);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .techniqueCard {
+    padding: var(--nebula-spacing-sm);
+  }
+  
+  .techniqueIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .techniqueName {
+    font-size: 13px;
+  }
+}

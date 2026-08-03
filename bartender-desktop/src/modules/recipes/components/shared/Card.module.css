@@ -1,0 +1,27 @@
+.nebulaCard {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  padding: var(--nebula-spacing-md);
+  transition: all var(--nebula-transition-normal);
+}
+
+.nebulaCard.hoverable:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.nebulaCard.glow {
+  box-shadow: var(--nebula-glow-primary);
+}
+
+.nebulaCard.clickable {
+  cursor: pointer;
+}
+
+.nebulaCard.clickable:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  transform: translateY(-2px);
+}

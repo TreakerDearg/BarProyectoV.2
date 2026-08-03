@@ -1,0 +1,255 @@
+.ingredientCard {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  padding: var(--nebula-spacing-md);
+  transition: all var(--nebula-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.ingredientCard:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.ingredientCard.critical {
+  border-color: var(--nebula-warning);
+}
+
+.ingredientCard.outOfStock {
+  border-color: var(--nebula-danger);
+  opacity: 0.7;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nebula-spacing-md);
+  margin-bottom: var(--nebula-spacing-md);
+}
+
+.cardImage {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--nebula-radius-md);
+  overflow: hidden;
+  background-color: var(--nebula-panel-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.ingredientName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0 0 var(--nebula-spacing-xs) 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ingredientSupplier {
+  font-size: 12px;
+  color: var(--nebula-text-tertiary);
+  margin: 0;
+}
+
+.cardRemove {
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--nebula-transition-fast);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.cardRemove:hover {
+  background-color: var(--nebula-danger);
+  color: var(--nebula-text-primary);
+}
+
+.cardQuantity {
+  display: flex;
+  gap: var(--nebula-spacing-sm);
+  margin-bottom: var(--nebula-spacing-md);
+}
+
+.quantityInput {
+  flex: 1;
+  background-color: var(--nebula-bg-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-sm);
+  border-radius: var(--nebula-radius-md);
+  font-size: 14px;
+  transition: all var(--nebula-transition-fast);
+}
+
+.quantityInput:focus {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  outline: none;
+}
+
+.unitSelect {
+  background-color: var(--nebula-bg-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-sm);
+  border-radius: var(--nebula-radius-md);
+  font-size: 14px;
+  transition: all var(--nebula-transition-fast);
+  cursor: pointer;
+}
+
+.unitSelect:focus {
+  border-color: var(--nebula-accent-primary);
+  box-shadow: var(--nebula-glow-primary);
+  outline: none;
+}
+
+.unitSelect option {
+  background-color: var(--nebula-panel-primary);
+  color: var(--nebula-text-primary);
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nebula-spacing-sm);
+  margin-bottom: var(--nebula-spacing-md);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+}
+
+.statValue.success {
+  color: var(--nebula-success);
+}
+
+.statValue.warning {
+  color: var(--nebula-warning);
+}
+
+.statValue.danger {
+  color: var(--nebula-danger);
+}
+
+.cardSubstitutions {
+  padding: var(--nebula-spacing-sm);
+  background-color: var(--nebula-bg-tertiary);
+  border-radius: var(--nebula-radius-md);
+  margin-bottom: var(--nebula-spacing-md);
+}
+
+.substitutionsLabel {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: var(--nebula-spacing-sm);
+}
+
+.substitutionsList {
+  display: flex;
+  gap: var(--nebula-spacing-xs);
+  flex-wrap: wrap;
+}
+
+.substitutionItem {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-sm);
+  color: var(--nebula-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--nebula-transition-fast);
+}
+
+.substitutionItem:hover {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-primary);
+  color: var(--nebula-text-primary);
+}
+
+.cardWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+  padding: var(--nebula-spacing-sm);
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--nebula-warning);
+  border-radius: var(--nebula-radius-md);
+  font-size: 12px;
+  color: var(--nebula-warning);
+  font-weight: 500;
+}
+
+.ingredientCard.outOfStock .cardWarning {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--nebula-danger);
+  color: var(--nebula-danger);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cardHeader {
+    gap: var(--nebula-spacing-sm);
+  }
+  
+  .cardImage {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .cardStats {
+    grid-template-columns: 1fr;
+  }
+}

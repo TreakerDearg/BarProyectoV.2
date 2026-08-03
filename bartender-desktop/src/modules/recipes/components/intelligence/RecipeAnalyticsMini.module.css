@@ -1,0 +1,145 @@
+.recipeAnalyticsMini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+}
+
+.analyticsTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+  margin: 0;
+}
+
+.analyticsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--nebula-spacing-sm);
+}
+
+.miniWidget {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-md);
+  padding: var(--nebula-spacing-sm);
+  transition: all var(--nebula-transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+.miniWidget:hover {
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-shadow-md);
+  transform: translateY(-2px);
+}
+
+.miniWidget.colorSuccess {
+  border-left: 3px solid var(--nebula-success);
+}
+
+.miniWidget.colorWarning {
+  border-left: 3px solid var(--nebula-warning);
+}
+
+.miniWidget.colorDanger {
+  border-left: 3px solid var(--nebula-danger);
+}
+
+.miniWidget.colorInfo {
+  border-left: 3px solid var(--nebula-accent-primary);
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+}
+
+.widgetIcon {
+  font-size: 16px;
+}
+
+.widgetLabel {
+  font-size: 11px;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.widgetBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+.widgetValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--nebula-text-primary);
+}
+
+.miniWidget.colorSuccess .widgetValue {
+  color: var(--nebula-success);
+}
+
+.miniWidget.colorWarning .widgetValue {
+  color: var(--nebula-warning);
+}
+
+.miniWidget.colorDanger .widgetValue {
+  color: var(--nebula-danger);
+}
+
+.miniWidget.colorInfo .widgetValue {
+  color: var(--nebula-accent-primary);
+}
+
+.widgetProgress {
+  width: 100%;
+  height: 4px;
+  background-color: var(--nebula-bg-tertiary);
+  border-radius: var(--nebula-radius-sm);
+  overflow: hidden;
+}
+
+.widgetProgressFill {
+  height: 100%;
+  background: var(--nebula-gradient-primary);
+  transition: width var(--nebula-transition-normal);
+  border-radius: var(--nebula-radius-sm);
+}
+
+.miniWidget.colorSuccess .widgetProgressFill {
+  background: linear-gradient(135deg, var(--nebula-success) 0%, #059669 100%);
+}
+
+.miniWidget.colorWarning .widgetProgressFill {
+  background: linear-gradient(135deg, var(--nebula-warning) 0%, #d97706 100%);
+}
+
+.miniWidget.colorDanger .widgetProgressFill {
+  background: linear-gradient(135deg, var(--nebula-danger) 0%, #dc2626 100%);
+}
+
+.miniWidget.colorInfo .widgetProgressFill {
+  background: var(--nebula-gradient-primary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .analyticsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .analyticsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .widgetValue {
+    font-size: 16px;
+  }
+}

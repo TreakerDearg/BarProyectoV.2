@@ -1,0 +1,88 @@
+.nebulaButton {
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+  color: var(--nebula-text-primary);
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-md);
+  cursor: pointer;
+  transition: all var(--nebula-transition-fast);
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+  font-family: inherit;
+}
+
+.nebulaButton:hover:not(:disabled) {
+  background-color: var(--nebula-hover);
+  border-color: var(--nebula-border-primary);
+  box-shadow: var(--nebula-glow-primary);
+  transform: translateY(-1px);
+}
+
+.nebulaButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.nebulaButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nebulaButton.primary {
+  background: var(--nebula-gradient-primary);
+  border: none;
+  color: var(--nebula-text-primary);
+}
+
+.nebulaButton.primary:hover:not(:disabled) {
+  box-shadow: var(--nebula-glow-primary);
+}
+
+.nebulaButton.secondary {
+  background-color: var(--nebula-panel-tertiary);
+  border: 1px solid var(--nebula-border-secondary);
+}
+
+.nebulaButton.ghost {
+  background-color: transparent;
+  border: 1px solid transparent;
+  color: var(--nebula-text-secondary);
+}
+
+.nebulaButton.ghost:hover:not(:disabled) {
+  background-color: var(--nebula-hover);
+  color: var(--nebula-text-primary);
+}
+
+.nebulaButton.danger {
+  background-color: var(--nebula-danger);
+  border: none;
+  color: var(--nebula-text-primary);
+}
+
+.nebulaButton.danger:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.nebulaButton.sm {
+  padding: var(--nebula-spacing-xs) var(--nebula-spacing-sm);
+  font-size: 12px;
+}
+
+.nebulaButton.md {
+  padding: var(--nebula-spacing-sm) var(--nebula-spacing-md);
+  font-size: 14px;
+}
+
+.nebulaButton.lg {
+  padding: var(--nebula-spacing-md) var(--nebula-spacing-lg);
+  font-size: 16px;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
