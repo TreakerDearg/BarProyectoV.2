@@ -105,35 +105,33 @@ export const loginUser = async (req, res, next) => {
       return forbidden(res, loginCheck.reason || "No puedes hacer login en este momento");
     }
 
-    /* ─── Reset intentos + actualizar lastLogin ─── */
-    await user.resetLoginAttempts?.();
-    user.lastLogin = new Date();
-    await user.save();
-
-    /* ─── Generar tokens ─── */
-    const tokens = await identityService.authenticate(user);
-    
     /* ─── Crear sesión ─── */
     const sessionInfo = {
       platform: req.headers['x-platform'] || 'web',
       userAgent: req.headers['user-agent'],
       ipAddress: req.ip,
     };
-    const session = await refreshTokenService.createRefreshToken(user._id, sessionInfo);
+
+    /* ─── Generar tokens usando IdentityService ─── */
+    const identityResult = await identityService.authenticate(email, password, sessionInfo);
+    
+    if (!identityResult.success) {
+      return unauthorized(res, identityResult.message || "Error de autenticación");
+    }
 
     /* ─── Ejecutar Decision Engine ─── */
-    const identityDecision = await executeLoginDecision(user, session, {
-      accessToken: tokens.accessToken,
-      refreshToken: session.refreshToken,
-      expiresIn: tokens.expiresIn,
+    const identityDecision = await executeLoginDecision(user, identityResult.metadata.session, {
+      accessToken: identityResult.token,
+      refreshToken: identityResult.refreshToken,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '30m',
     });
 
     /* ─── Inicializar sesión en Ecosystem (SSO) ─── */
     const ecosystemResult = await initializeSession(user, {
-      sessionId: session.sessionId,
-      refreshTokenId: session._id.toString(),
-      tokenExpiresAt: new Date(Date.now() + tokens.expiresIn * 1000),
-      refreshTokenExpiresAt: session.expiresAt,
+      sessionId: identityResult.metadata.session.sessionId,
+      refreshTokenId: identityResult.metadata.session.sessionId,
+      tokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+      refreshTokenExpiresAt: identityResult.metadata.session.expiresAt,
     }, {
       platform: sessionInfo.platform,
       userAgent: sessionInfo.userAgent,
@@ -141,8 +139,8 @@ export const loginUser = async (req, res, next) => {
       socketId: req.socket?.id,
     });
 
-    if (!ecosystemResult.success) {
-      logger.warn(`[Auth] Ecosystem login falló: ${ecosystemResult.reason}`);
+    if (!ecosystemResult?.success) {
+      logger.warn(`[Auth] Ecosystem login falló: ${ecosystemResult?.reason || 'unknown error'}`);
     }
 
     logger.info(`[Auth] Login exitoso: ${email} (${user.role}) -> ${identityDecision.destination}`);

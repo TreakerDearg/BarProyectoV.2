@@ -28042,3 +28042,21 @@
 {"level":"info","message":"❤️ Health check: /health","timestamp":"2026-07-29 15:04:38"}
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-07-29 15:04:39"}
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-07-29 15:04:39"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-08-04 17:19:42"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-04 17:19:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-04 17:19:43"}
+{"ip":"::1","level":"info","message":"[Request] Incoming","method":"GET","path":"/","requestId":"0f7e4191-1f67-4dfc-a0ec-31e4ff453c00","timestamp":"2026-08-04 17:20:02","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome"}
+{"level":"info","message":"[200] GET / 18.01ms","request":{"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7","id":"0f7e4191-1f67-4dfc-a0ec-31e4ff453c00","ip":"::1","method":"GET","params":{},"path":"/","query":{},"url":"/","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36"},"response":{"duration":"18.01ms","durationMs":18.0061,"status":200},"timestamp":"2026-08-04 17:20:02"}
+{"ip":"::1","level":"info","message":"[Request] Incoming","method":"GET","path":"/metrics","requestId":"e554c179-14e9-4b9b-83b9-311c6c8ef13f","timestamp":"2026-08-04 17:20:14","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome"}
+{"level":"info","message":"[200] GET /metrics 17.23ms","request":{"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7","id":"e554c179-14e9-4b9b-83b9-311c6c8ef13f","ip":"::1","method":"GET","params":{},"path":"/metrics","query":{},"url":"/metrics","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36"},"response":{"duration":"17.23ms","durationMs":17.2291,"status":200},"timestamp":"2026-08-04 17:20:14"}
+{"ip":"::1","level":"info","message":"[Request] Incoming","method":"GET","path":"/health","requestId":"1103e14d-a15b-43ce-b7f7-fb94ccd767d1","timestamp":"2026-08-04 17:20:31","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome"}
+{"level":"info","message":"[200] GET /health 2.26ms","request":{"accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7","id":"1103e14d-a15b-43ce-b7f7-fb94ccd767d1","ip":"::1","method":"GET","params":{},"path":"/health","query":{},"url":"/health","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.131.0 Chrome/148.0.7778.280 Electron/42.7.0 Safari/537.36"},"response":{"duration":"2.26ms","durationMs":2.2598,"status":200},"timestamp":"2026-08-04 17:20:31"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-08-04 17:21:30"}
