@@ -6,7 +6,7 @@ import {
   unauthorized, forbidden, conflict, serverError, locked,
 } from "../utils/response.js";
 import identityService from "../identity/services/IdentityService.js";
-import refreshTokenService from "../services/refreshTokenService.js";
+import refreshTokenService from "../identity/services/RefreshTokenService.js";
 import { canLogin, executeLoginDecision } from "../identity/decision/IdentityDecisionEngine.js";
 import { initializeSession, terminateSession, refreshSession } from "../ecosystem/EcosystemService.js";
 

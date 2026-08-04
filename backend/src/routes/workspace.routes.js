@@ -4,7 +4,7 @@
  */
 
 import express from "express";
-import { authenticate } from "../middleware/auth.js";
+import { protect } from "../middlewares/auth.middleware.js";
 import {
   getWorkspace,
   getWorkspaceNavigation,
@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 // Todas las rutas requieren autenticación
-router.use(authenticate);
+router.use(protect);
 
 /**
  * @route   GET /workspace
