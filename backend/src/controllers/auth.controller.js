@@ -5,7 +5,7 @@ import {
   ok, created, badRequest,
   unauthorized, forbidden, conflict, serverError, locked,
 } from "../utils/response.js";
-import identityService from "../services/identityService.js";
+import identityService from "../identity/services/IdentityService.js";
 import refreshTokenService from "../services/refreshTokenService.js";
 import { canLogin, executeLoginDecision } from "../identity/decision/IdentityDecisionEngine.js";
 import { initializeSession, terminateSession, refreshSession } from "../ecosystem/EcosystemService.js";
