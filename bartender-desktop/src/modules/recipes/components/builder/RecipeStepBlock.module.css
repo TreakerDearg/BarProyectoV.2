@@ -1,0 +1,288 @@
+.stepBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(12, 18, 36, 0.8);
+  border: 1px solid rgba(120, 120, 255, 0.12);
+  border-left-width: 4px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
+.stepBlock:hover {
+  background: rgba(18, 27, 51, 0.9);
+  border-color: rgba(120, 120, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.2), 0 4px 8px -2px rgba(168, 85, 247, 0.15);
+}
+
+.stepBlock.hovered {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.25), 0 6px 12px -4px rgba(168, 85, 247, 0.2);
+}
+
+.stepBlock.collapsed {
+  padding: 12px 16px;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stepNumber {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.stepInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stepTitle {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  padding: 4px 0;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.stepTitle::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.stepTitle:focus {
+  border-bottom-color: rgba(99, 102, 241, 0.5);
+}
+
+.stepMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.metaTag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.metaIcon {
+  font-size: 12px;
+}
+
+.expandBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.expandBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: clamp(32px, 4vw, 56px);
+}
+
+.stepDescription {
+  width: 100%;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.stepDescription::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.stepDescription:focus {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.utensilsSection,
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.utensilsList {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.utensilTag {
+  padding: 4px 10px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.notesText {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(99, 102, 241, 0.03);
+  border-radius: 8px;
+}
+
+.stepActions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s ease;
+}
+
+.stepBlock.hovered .stepActions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.actionBtn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stepBlock {
+    padding: 12px;
+  }
+  
+  .stepNumber {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .stepTitle {
+    font-size: 14px;
+  }
+  
+  .stepContent {
+    padding-left: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stepBlock {
+    padding: 10px;
+    gap: 8px;
+  }
+  
+  .stepNumber {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  
+  .stepTitle {
+    font-size: 13px;
+  }
+  
+  .stepMeta {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .stepContent {
+    padding-left: 32px;
+  }
+  
+  .stepActions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

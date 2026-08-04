@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { RecipeIngredient, RecipeStep } from '../../types';
-import { IngredientCard } from './IngredientCard';
-import { RecipeStepCard } from './RecipeStepCard';
+import { PremiumIngredientCard } from './PremiumIngredientCard';
+import { RecipeStepBlock } from './RecipeStepBlock';
+import { PresentationSection } from './PresentationSection';
 import styles from './FormulaCanvas.module.css';
 
 interface FormulaCanvasProps {
@@ -82,7 +83,7 @@ export function FormulaCanvas({
         {activeSection === 'ingredients' && (
           <div className={styles.canvasSection}>
             <div className={styles.sectionHeader}>
-              <h3>Ingredientes</h3>
+              <h3 className={styles.sectionTitle}>Ingredientes</h3>
               <button className={styles.addButton}>+ Agregar Ingrediente</button>
             </div>
             <div className={styles.ingredientsGrid}>
@@ -91,12 +92,15 @@ export function FormulaCanvas({
                   (item) => item._id === ingredient.inventoryItem._id
                 );
                 return (
-                  <IngredientCard
+                  <PremiumIngredientCard
                     key={index}
                     ingredient={ingredient}
-                    inventoryItem={inventoryItem}
                     onUpdate={(updated) => onIngredientUpdate(index, updated)}
                     onRemove={() => onIngredientRemove(index)}
+                    onDuplicate={() => console.log('Duplicate')}
+                    onChangeIngredient={() => console.log('Change')}
+                    onMoveUp={() => index > 0 && console.log('Move up')}
+                    onMoveDown={() => index < ingredients.length - 1 && console.log('Move down')}
                   />
                 );
               })}
@@ -107,26 +111,31 @@ export function FormulaCanvas({
         {activeSection === 'steps' && (
           <div className={styles.canvasSection}>
             <div className={styles.sectionHeader}>
-              <h3>Pasos de Preparación</h3>
+              <h3 className={styles.sectionTitle}>Pasos de Preparación</h3>
               <button className={styles.addButton} onClick={() => onStepAdd({
-                stepNumber: steps.length + 1,
-                instruction: '',
-                duration: 0,
+                title: '',
+                description: '',
+                time: 0,
                 temperature: null,
+                technique: '',
+                utensils: [],
+                notes: '',
               })}>
                 + Agregar Paso
               </button>
             </div>
             <div className={styles.stepsList}>
               {steps.map((step, index) => (
-                <RecipeStepCard
+                <RecipeStepBlock
                   key={index}
                   step={step}
-                  stepNumber={index + 1}
+                  index={index}
                   onUpdate={(updated) => onStepUpdate(index, updated)}
                   onRemove={() => onStepRemove(index)}
+                  onDuplicate={() => console.log('Duplicate')}
                   onMoveUp={() => index > 0 && onStepReorder(index, index - 1)}
                   onMoveDown={() => index < steps.length - 1 && onStepReorder(index, index + 1)}
+                  onToggleExpand={() => console.log('Toggle expand')}
                 />
               ))}
             </div>
@@ -135,27 +144,7 @@ export function FormulaCanvas({
 
         {activeSection === 'presentation' && (
           <div className={styles.canvasSection}>
-            <div className={styles.sectionHeader}>
-              <h3>Presentación</h3>
-            </div>
-            <div className={styles.presentationGrid}>
-              <div className={styles.presentationCard}>
-                <h4>Cristalería</h4>
-                <p>{recipe.specifications?.glass || 'No especificado'}</p>
-              </div>
-              <div className={styles.presentationCard}>
-                <h4>Hielo</h4>
-                <p>{recipe.specifications?.ice || 'No especificado'}</p>
-              </div>
-              <div className={styles.presentationCard}>
-                <h4>Decoración</h4>
-                <p>{recipe.decorationIds?.length || 0} decoraciones</p>
-              </div>
-              <div className={styles.presentationCard}>
-                <h4>Técnica</h4>
-                <p>{recipe.method || 'No especificado'}</p>
-              </div>
-            </div>
+            <PresentationSection recipe={recipe} />
           </div>
         )}
       </div>

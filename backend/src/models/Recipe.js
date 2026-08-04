@@ -267,10 +267,20 @@ recipeSchema.post("save", async function (doc) {
   try {
     isUpdatingProduct = true;
     const Product = mongoose.model("Product");
+    const InventoryItem = mongoose.model("InventoryItem");
+
+    // Update Product
     await Product.findByIdAndUpdate(doc.product, {
       hasRecipe: true,
       cost: doc.totalCost
     });
+
+    // Update InventoryItem references
+    const inventoryIds = doc.ingredients.map(i => i.inventoryItem);
+    await InventoryItem.updateMany(
+      { _id: { $in: inventoryIds } },
+      { $addToSet: { usedInRecipes: doc._id } }
+    );
   } finally {
     isUpdatingProduct = false;
   }
@@ -285,12 +295,49 @@ recipeSchema.post("findOneAndUpdate", async function (doc) {
   try {
     isUpdatingProduct = true;
     const Product = mongoose.model("Product");
+    const InventoryItem = mongoose.model("InventoryItem");
+
+    // Update Product
     await Product.findByIdAndUpdate(doc.product, {
       hasRecipe: true,
       cost: doc.totalCost
     });
+
+    // Update InventoryItem references
+    const inventoryIds = doc.ingredients.map(i => i.inventoryItem);
+    await InventoryItem.updateMany(
+      { _id: { $in: inventoryIds } },
+      { $addToSet: { usedInRecipes: doc._id } }
+    );
   } finally {
     isUpdatingProduct = false;
+  }
+});
+
+/* ==============================
+   CLEANUP ON DELETE
+============================== */
+recipeSchema.post("findOneAndDelete", async function (doc) {
+  if (!doc) return;
+
+  try {
+    const Product = mongoose.model("Product");
+    const InventoryItem = mongoose.model("InventoryItem");
+
+    // Update Product
+    await Product.findByIdAndUpdate(doc.product, {
+      hasRecipe: false,
+      cost: 0
+    });
+
+    // Remove from InventoryItem references
+    const inventoryIds = doc.ingredients.map(i => i.inventoryItem);
+    await InventoryItem.updateMany(
+      { _id: { $in: inventoryIds } },
+      { $pull: { usedInRecipes: doc._id } }
+    );
+  } catch (error) {
+    console.error("[Recipe] Error cleaning up references:", error);
   }
 });
 

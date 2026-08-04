@@ -81,8 +81,8 @@ function OverviewTab() {
         <StatItem label="Health Score" value={healthScore.overall} icon="❤️" />
         <StatItem label="Popularidad" value={analytics.popularity} icon="⭐" />
         <StatItem label="Tiempo" value={`${analytics.time} min`} icon="⏱️" />
-        <StatItem label="Costo" value={`$${analytics.cost.toFixed(2)}`} icon="💰" />
-        <StatItem label="Margen" value={`${analytics.margin.toFixed(0)}%`} icon="📊" />
+        <StatItem label="Costo" value={`$${(analytics.cost || 0).toFixed(2)}`} icon="💰" />
+        <StatItem label="Margen" value={`${(analytics.margin || 0).toFixed(0)}%`} icon="📊" />
         <StatItem label="Complejidad" value={analytics.complexity} icon="🎯" />
       </div>
 
@@ -98,6 +98,14 @@ function OverviewTab() {
 
 function InventoryTab() {
   const { recipe, inventoryItems, isAvailable, missingIngredients } = useRecipeStudio();
+
+  if (!recipe.ingredients || recipe.ingredients.length === 0) {
+    return (
+      <div className={`${styles.inspectorTabContent} ${styles.inventoryTab}`}>
+        <span className={styles.inventoryEmpty}>Sin ingredientes</span>
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.inspectorTabContent} ${styles.inventoryTab}`}>
@@ -129,12 +137,20 @@ function InventoryTab() {
 function CostTab() {
   const { totalCost, ingredientCosts, ingredientPercentages, productionAnalysis, recipe } = useRecipeStudio();
 
+  if (!recipe.ingredients || recipe.ingredients.length === 0) {
+    return (
+      <div className={`${styles.inspectorTabContent} ${styles.costTab}`}>
+        <span className={styles.costEmpty}>Sin ingredientes para calcular costo</span>
+      </div>
+    );
+  }
+
   return (
     <div className={`${styles.inspectorTabContent} ${styles.costTab}`}>
       <div className={styles.costSummary}>
         <h3 className={styles.costTitle}>Costo Total</h3>
-        <span className={styles.costValue}>${totalCost.toFixed(2)}</span>
-        <span className={styles.costMargin}>Margen: {productionAnalysis.margin.toFixed(0)}%</span>
+        <span className={styles.costValue}>${(totalCost || 0).toFixed(2)}</span>
+        <span className={styles.costMargin}>Margen: {(productionAnalysis?.margin || 0).toFixed(0)}%</span>
       </div>
 
       <div className={styles.costBreakdown}>
@@ -152,8 +168,8 @@ function CostTab() {
                   style={{ width: `${percentage}%` }}
                 />
               </div>
-              <span className={styles.breakdownPercentage}>{percentage.toFixed(0)}%</span>
-              <span className={styles.breakdownValue}>${cost.toFixed(2)}</span>
+              <span className={styles.breakdownPercentage}>{(percentage || 0).toFixed(0)}%</span>
+              <span className={styles.breakdownValue}>${(cost || 0).toFixed(2)}</span>
             </div>
           );
         })}
@@ -203,8 +219,8 @@ function AnalyticsTab() {
       <h3 className={styles.analyticsTitle}>Analytics</h3>
       <div className={styles.analyticsGrid}>
         <AnalyticsItem label="Popularidad" value={analytics.popularity} icon="⭐" />
-        <AnalyticsItem label="Margen" value={`${analytics.margin.toFixed(0)}%`} icon="📊" />
-        <AnalyticsItem label="Costo" value={`$${analytics.cost.toFixed(2)}`} icon="💰" />
+        <AnalyticsItem label="Margen" value={`${(analytics.margin || 0).toFixed(0)}%`} icon="📊" />
+        <AnalyticsItem label="Costo" value={`$${(analytics.cost || 0).toFixed(2)}`} icon="💰" />
         <AnalyticsItem label="Tiempo" value={`${analytics.time} min`} icon="⏱️" />
         <AnalyticsItem label="Complejidad" value={analytics.complexity} icon="🎯" />
         <AnalyticsItem label="Health Score" value={healthScore.overall} icon="❤️" />

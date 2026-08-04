@@ -45,6 +45,12 @@ const normalizeRecipe = (r: Recipe) => ({
   method: r.method || "",
   category: r.category || "general",
   image: r.image || "",
+  imagePublicId: r.imagePublicId || "",
+
+  // Variant fields
+  isPrimary: r.isPrimary !== undefined ? r.isPrimary : true,
+  variantName: r.variantName || "",
+  parentId: r.parentId || null,
 
   ingredients: Array.isArray(r.ingredients)
     ? r.ingredients
@@ -58,6 +64,7 @@ const normalizeRecipe = (r: Recipe) => ({
           quantity: Number(i.quantity),
           unit: i.unit || "ml",
           order: i.order ?? 0,
+          baseUnitMultiplier: i.baseUnitMultiplier || 1,
         }))
     : [],
 
@@ -160,5 +167,18 @@ export const checkRecipeAvailability = async (id: string) => {
 ========================= */
 export const getRecipesByProduct = async (productId: string) => {
   const { data } = await api.get(`/recipes/product/${productId}`);
+  return data;
+};
+
+/* =========================
+   DRINK PRODUCTS WITH RECIPES AND VARIANTS
+========================= */
+export const getDrinkProductsWithRecipes = async (params?: { category?: string; available?: boolean }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.category) queryParams.append('category', params.category);
+  if (params?.available !== undefined) queryParams.append('available', params.available.toString());
+  
+  const url = `/recipes/drinks/with-recipes${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const { data } = await api.get(url);
   return data;
 };

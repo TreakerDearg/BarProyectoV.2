@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { FormulaSuggestion } from '../../types';
 import styles from './FormulaSuggestions.module.css';
 
@@ -13,22 +13,23 @@ type SuggestionFilter = 'all' | 'production' | 'cost' | 'decoration' | 'presenta
  * FormulaSuggestions - Panel inteligente mejorado
  * Clasificado por tipo (Producción, Costo, Decoración, Presentación, Técnicas, Stock, Margen, Complejidad)
  * Preparado para IA futura
+ * Optimizado con React.memo
  */
-export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsProps) {
+export const FormulaSuggestions = memo(function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsProps) {
   const [filter, setFilter] = useState<SuggestionFilter>('all');
 
-  const filteredSuggestions = suggestions.filter(suggestion => {
-    if (filter === 'all') return true;
-    return suggestion.type === filter;
-  });
-
-  if (suggestions.length === 0) {
+  if (!suggestions || suggestions.length === 0) {
     return (
       <div className={`${styles.formulaSuggestions} ${styles.empty}`}>
         <span className={styles.suggestionsEmpty}>✓ Sin sugerencias</span>
       </div>
     );
   }
+
+  const filteredSuggestions = suggestions.filter(suggestion => {
+    if (filter === 'all') return true;
+    return suggestion.type === filter;
+  });
 
   const getSuggestionIcon = (type: string): string => {
     switch (type) {
@@ -143,4 +144,4 @@ export function FormulaSuggestions({ suggestions, onApply }: FormulaSuggestionsP
       </div>
     </div>
   );
-}
+});

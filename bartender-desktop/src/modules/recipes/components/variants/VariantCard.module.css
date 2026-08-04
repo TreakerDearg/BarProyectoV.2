@@ -1,0 +1,383 @@
+/* VariantCard - Large card replacing table rows */
+
+.variantCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.variantCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.variantCard:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.variantCard:hover::before {
+  opacity: 1;
+}
+
+.variantCard.selected {
+  border-color: #6366f1;
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.variantCard.selected::before {
+  opacity: 1;
+}
+
+.variantCard.master {
+  border-left: 4px solid #6366f1;
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cardImage {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.variantCard:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(99, 102, 241, 0.4);
+}
+
+.imagePlaceholder svg {
+  width: 32px;
+  height: 32px;
+}
+
+.cardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.masterBadge {
+  padding: 4px 10px;
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardSubtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.cardBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardMenu {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cardMenu:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.menuIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Card Metrics */
+.cardMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+.metricCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  transition: all 0.2s ease;
+}
+
+.metricCard:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.metricIcon {
+  width: 20px;
+  height: 20px;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.metricInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.metricLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricTrend {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metricTrend.up {
+  color: #10b981;
+}
+
+.metricTrend.down {
+  color: #ef4444;
+}
+
+.metricTrend.neutral {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Card Content */
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contentSection h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ingredientsPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ingredientTag {
+  padding: 4px 10px;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ingredientMore {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.relationItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.relationLabel {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.relationValue {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+/* Card Footer */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.cardDate {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.cardArrow {
+  width: 16px;
+  height: 16px;
+  color: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.variantCard:hover .cardArrow {
+  color: #6366f1;
+  transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .cardMetrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .variantCard {
+    padding: 16px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+  }
+
+  .cardImage {
+    width: 100%;
+    height: 120px;
+  }
+
+  .cardMetrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .cardTitle {
+    font-size: 16px;
+  }
+}
+
+/* Animations */
+@keyframes cardGlow {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+  }
+}
+
+.variantCard.master {
+  animation: cardGlow 3s ease-in-out infinite;
+}
+
+.variantCard.master:hover {
+  animation: none;
+}

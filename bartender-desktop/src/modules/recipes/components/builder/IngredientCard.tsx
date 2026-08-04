@@ -1,27 +1,19 @@
-import type { RecipeIngredient } from '../../types';
+import { memo } from 'react';
+import type { RecipeIngredient, InventoryItem } from '../../types';
 import styles from './IngredientCard.module.css';
 
 interface IngredientCardProps {
   ingredient: RecipeIngredient;
-  inventoryItem?: any;
-  onUpdate?: (updated: RecipeIngredient) => void;
-  onRemove?: () => void;
-  isDraggable?: boolean;
-  showSubstitutions?: boolean;
+  inventoryItem?: InventoryItem;
+  onUpdate: (updated: RecipeIngredient) => void;
+  onRemove: () => void;
 }
 
 /**
- * IngredientCard - Card inteligente para ingredientes
- * Muestra imagen, nombre, unidad, cantidad, stock, costo, proveedor, estado
+ * IngredientCard - Tarjeta de ingrediente con información completa
+ * Optimizado con React.memo para evitar renders innecesarios
  */
-export function IngredientCard({
-  ingredient,
-  inventoryItem,
-  onUpdate,
-  onRemove,
-  isDraggable = true,
-  showSubstitutions = false,
-}: IngredientCardProps) {
+export const IngredientCard = memo(function IngredientCard({ ingredient, inventoryItem, onUpdate, onRemove }: IngredientCardProps) {
   const stock = inventoryItem?.stock || 0;
   const cost = inventoryItem?.cost || 0;
   const supplier = inventoryItem?.supplier || 'N/A';
@@ -44,7 +36,6 @@ export function IngredientCard({
   return (
     <div
       className={`${styles.ingredientCard} ${isCritical ? styles.critical : ''} ${isOutOfStock ? styles.outOfStock : ''}`}
-      draggable={isDraggable}
     >
       <div className={styles.cardHeader}>
         <div className={styles.cardImage}>
@@ -100,7 +91,7 @@ export function IngredientCard({
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Costo</span>
-          <span className={styles.statValue}>${(cost * ingredient.quantity).toFixed(2)}</span>
+          <span className={styles.statValue}>${((cost || 0) * (ingredient.quantity || 0)).toFixed(2)}</span>
         </div>
       </div>
 
@@ -121,4 +112,4 @@ export function IngredientCard({
       )}
     </div>
   );
-}
+});

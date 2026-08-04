@@ -1,20 +1,20 @@
-import type { Decoration } from '../../types';
+import { memo } from 'react';
+import type { RecipeDecoration } from '../../types';
 import styles from './DecorationCard.module.css';
 
 interface DecorationCardProps {
-  decoration: Decoration;
-  onSelect?: () => void;
-  isSelected?: boolean;
+  decoration: RecipeDecoration;
+  onRemove?: () => void;
 }
 
 /**
- * DecorationCard - Card visual para decoraciones reutilizables (Grid visual)
+ * DecorationCard - Tarjeta de decoración
+ * Optimizado con React.memo para evitar renders innecesarios
  */
-export function DecorationCard({ decoration, onSelect, isSelected }: DecorationCardProps) {
+export const DecorationCard = memo(function DecorationCard({ decoration, onRemove }: DecorationCardProps) {
   return (
     <div
-      className={`${styles.decorationCard} ${isSelected ? styles.selected : ''}`}
-      onClick={onSelect}
+      className={styles.decorationCard}
     >
       <div className={styles.decorationIcon}>{decoration.icon}</div>
       <div className={styles.decorationInfo}>
@@ -26,9 +26,9 @@ export function DecorationCard({ decoration, onSelect, isSelected }: DecorationC
       </div>
       {decoration.cost !== undefined && (
         <div className={styles.decorationCost}>
-          <span className={styles.costValue}>${decoration.cost.toFixed(2)}</span>
+          <span className={styles.costValue}>${(decoration.cost || 0).toFixed(2)}</span>
         </div>
       )}
     </div>
   );
-}
+});

@@ -1,0 +1,160 @@
+.studioNavigation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(7, 11, 24, 0.98));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.navigationContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.navBar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 10px;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.navBar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.navBar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navBar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 2px;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.navBtn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.navBtn.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+  font-weight: 700;
+}
+
+.navBtnIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.navBtnLabel {
+  font-size: 13px;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.backBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateX(-2px);
+}
+
+.backIcon {
+  font-size: 16px;
+}
+
+.backLabel {
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .studioNavigation {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .navBar {
+    gap: 2px;
+  }
+  
+  .navBtn {
+    padding: 8px 12px;
+  }
+  
+  .navBtnLabel {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .studioNavigation {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .navigationContent {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .navBar {
+    overflow-x: auto;
+  }
+  
+  .navBtn {
+    padding: 8px 10px;
+  }
+  
+  .navBtnLabel {
+    display: none;
+  }
+  
+  .backBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .backLabel {
+    display: none;
+  }
+}

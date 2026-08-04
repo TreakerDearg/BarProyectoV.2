@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { RecipeHealthScore } from '../../types';
 
 interface RecipeHealthScoreProps {
@@ -7,8 +8,9 @@ interface RecipeHealthScoreProps {
 /**
  * RecipeHealthScore - Puntaje de salud de receta
  * Desglosado en Costo, Disponibilidad, Tiempo, Complejidad, Rentabilidad, Consistencia, Presentación, Producción
+ * Optimizado con React.memo
  */
-export function RecipeHealthScore({ healthScore }: RecipeHealthScoreProps) {
+export const RecipeHealthScore = memo(function RecipeHealthScore({ healthScore }: RecipeHealthScoreProps) {
   const getScoreColor = (score: number): string => {
     if (score >= 80) return 'success';
     if (score >= 60) return 'warning';
@@ -103,6 +105,7 @@ interface ScoreItemProps {
 }
 
 function ScoreItem({ label, score, color, icon }: ScoreItemProps) {
+  const safeScore = score || 0;
   return (
     <div className="score-item">
       <span className="score-icon">{icon}</span>
@@ -111,10 +114,10 @@ function ScoreItem({ label, score, color, icon }: ScoreItemProps) {
         <div className="score-bar">
           <div
             className={`score-bar-fill ${color}`}
-            style={{ width: `${score}%` }}
+            style={{ width: `${safeScore}%` }}
           />
         </div>
-        <span className={`score-value ${color}`}>{score}</span>
+        <span className={`score-value ${color}`}>{safeScore}</span>
       </div>
     </div>
   );

@@ -276,6 +276,13 @@
   color: var(--nebula-text-tertiary);
 }
 
+.inventoryEmpty {
+  font-size: 13px;
+  color: var(--nebula-text-tertiary);
+  text-align: center;
+  padding: var(--nebula-spacing-lg);
+}
+
 /* Cost Tab */
 .costSummary {
   display: flex;
@@ -367,6 +374,13 @@
   font-weight: 500;
   min-width: 40px;
   text-align: right;
+}
+
+.costEmpty {
+  font-size: 13px;
+  color: var(--nebula-text-tertiary);
+  text-align: center;
+  padding: var(--nebula-spacing-lg);
 }
 
 /* Relations Tab */

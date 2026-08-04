@@ -34,6 +34,17 @@ export function useRecipeAvailability({ ingredients, inventoryItems }: UseRecipe
     );
 
     const ingredientAvailability: IngredientAvailability[] = ingredients.map((ingredient) => {
+      if (!ingredient.inventoryItem || !ingredient.inventoryItem._id) {
+        return {
+          inventoryItemId: ingredient.inventoryItem?._id || '',
+          name: ingredient.inventoryItem?.name || 'Desconocido',
+          required: ingredient.quantity,
+          available: 0,
+          unit: ingredient.unit,
+          isAvailable: false,
+        };
+      }
+      
       const inventoryItem = inventoryMap.get(ingredient.inventoryItem._id);
       
       if (!inventoryItem) {

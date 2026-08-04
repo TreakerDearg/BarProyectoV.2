@@ -1,0 +1,251 @@
+.collectionCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(15, 23, 42, 0.95));
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
+.collectionCard:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px -5px rgba(99, 102, 241, 0.3), 0 10px 20px -5px rgba(168, 85, 247, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.collectionIcon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.iconEmoji {
+  font-size: 28px;
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.collectionName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nebula-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.recipeCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nebula-text-tertiary);
+}
+
+.cardStats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nebula-text-tertiary);
+  text-transform: uppercase;
+}
+
+.statValue {
+  display: flex;
+  align-items: center;
+}
+
+.statNumber {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.statText {
+  font-size: 12px;
+  color: var(--nebula-text-secondary);
+}
+
+.progressBar {
+  height: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collectionDescription {
+  font-size: 14px;
+  color: var(--nebula-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.collectionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 6px 12px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nebula-text-secondary);
+}
+
+.moreTags {
+  padding: 6px 12px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nebula-accent-primary);
+}
+
+.cardFooter {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.footerBtn {
+  flex: 1;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footerBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.footerBtnSecondary {
+  padding: 10px 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  color: var(--nebula-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.footerBtnSecondary:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--nebula-text-primary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .collectionCard {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .collectionIcon {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .iconEmoji {
+    font-size: 24px;
+  }
+  
+  .collectionName {
+    font-size: 16px;
+  }
+  
+  .cardStats {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .collectionCard {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .collectionIcon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .iconEmoji {
+    font-size: 20px;
+  }
+  
+  .collectionName {
+    font-size: 14px;
+  }
+  
+  .cardStats {
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .statNumber {
+    font-size: 14px;
+  }
+  
+  .cardFooter {
+    flex-direction: column;
+  }
+  
+  .footerBtn {
+    width: 100%;
+  }
+}

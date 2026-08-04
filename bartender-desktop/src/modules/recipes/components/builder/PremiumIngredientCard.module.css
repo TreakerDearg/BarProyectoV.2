@@ -1,0 +1,329 @@
+.ingredientCard {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.5vw, 20px);
+  padding: clamp(12px, 1.5vw, 20px);
+  background: rgba(12, 18, 36, 0.8);
+  border: 1px solid rgba(120, 120, 255, 0.12);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
+.ingredientCard:hover {
+  background: rgba(18, 27, 51, 0.9);
+  border-color: rgba(120, 120, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.2), 0 4px 8px -2px rgba(168, 85, 247, 0.15);
+}
+
+.ingredientCard.hovered {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.25), 0 6px 12px -4px rgba(168, 85, 247, 0.2);
+}
+
+.ingredientCard.expanded {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 12px);
+  flex-shrink: 0;
+}
+
+.ingredientImage {
+  width: clamp(40px, 5vw, 56px);
+  height: clamp(40px, 5vw, 56px);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  flex-shrink: 0;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.dragHandle {
+  width: 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: grab;
+  font-size: 12px;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.cardCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ingredientHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ingredientName {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusBadge {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.statusBadge.available {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.statusBadge.unavailable {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.ingredientMeta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.metaIcon {
+  font-size: 14px;
+}
+
+.expandedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(120, 120, 255, 0.08);
+}
+
+.expandedRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.expandedLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.expandedValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cardRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.quantityBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quantityBtn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.quantityInput {
+  width: 60px;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.quantityInput:focus {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.quantityUnit {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  padding-right: 4px;
+}
+
+.totalCost {
+  font-size: 16px;
+  font-weight: 800;
+  color: #6366f1;
+}
+
+.cardActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s ease;
+}
+
+.ingredientCard.hovered .cardActions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.actionBtn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .ingredientCard {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .ingredientImage {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .ingredientName {
+    font-size: 14px;
+  }
+  
+  .quantityInput {
+    width: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ingredientCard {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .ingredientImage {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .imagePlaceholder {
+    font-size: 20px;
+  }
+  
+  .ingredientName {
+    font-size: 13px;
+  }
+  
+  .ingredientMeta {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .cardRight {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .quantityControl {
+    flex-wrap: wrap;
+  }
+  
+  .cardActions {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

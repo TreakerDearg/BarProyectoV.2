@@ -61,6 +61,7 @@ export const createRecipe = async (req, res, next) => {
     const {
       product, ingredients = [], type, method = "",
       steps = [], category = "general", image = "", imagePublicId = "",
+      isPrimary = true, variantName = "", parentId = null,
     } = req.body;
 
     if (!product || !type) {
@@ -84,8 +85,30 @@ export const createRecipe = async (req, res, next) => {
       return badRequest(res, "El tipo de receta debe coincidir con el tipo del producto");
     }
 
-    const exists = await Recipe.findOne({ product });
-    if (exists) return conflict(res, "Ya existe una receta para este producto");
+    // Si es una variante, verificar que parentId existe y es válido
+    if (parentId) {
+      if (!isValidId(parentId)) {
+        return badRequest(res, "parentId inválido");
+      }
+      const parentRecipe = await Recipe.findById(parentId);
+      if (!parentRecipe) {
+        return badRequest(res, "Receta padre no encontrada");
+      }
+      if (parentRecipe.product.toString() !== product.toString()) {
+        return badRequest(res, "La variante debe pertenecer al mismo producto que la receta padre");
+      }
+    }
+
+    // Si no es primaria y no tiene parentId, es una variante sin padre (no permitido)
+    if (!isPrimary && !parentId) {
+      return badRequest(res, "Las variantes deben tener una receta padre (parentId)");
+    }
+
+    // Si es primaria, verificar que no exista otra receta primaria para este producto
+    if (isPrimary) {
+      const exists = await Recipe.findOne({ product, isPrimary: true });
+      if (exists) return conflict(res, "Ya existe una receta primaria para este producto");
+    }
 
     /* Limpiar y validar ingredientes */
     const cleanIngredients = ingredients
@@ -125,6 +148,7 @@ export const createRecipe = async (req, res, next) => {
     const recipe = await Recipe.create({
       product, ingredients: cleanIngredients, type, method,
       steps: cleanSteps, category, image: imageUrl, imagePublicId: imagePublicIdFinal,
+      isPrimary, variantName, parentId,
     });
 
     if (!productDoc.hasRecipe) {
@@ -138,17 +162,17 @@ export const createRecipe = async (req, res, next) => {
     try {
       const io = getIO();
       if (io) {
-        io.emit("recipe:created", { recipeId: recipe._id, productId: recipe.product });
+        io.emit("recipe:created", { recipeId: recipe._id, productId: recipe.product, isPrimary, parentId });
       }
     } catch (socketError) {
       logger.error("[Recipe] Error emitting recipe:created event:", socketError);
     }
 
-    logger.info(`[Recipe] Creada para producto: ${product}`);
+    logger.info(`[Recipe] Creada para producto: ${product} (isPrimary: ${isPrimary}, parentId: ${parentId})`);
 
     emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
 
-    return created(res, populated, "Receta creada correctamente");
+    return created(res, populated, isPrimary ? "Receta creada correctamente" : "Variante creada correctamente");
   } catch (error) {
     logger.error("[Recipe] Error creando receta:", error);
     throw error;
@@ -371,5 +395,70 @@ export const getRecipesWithVariants = async (req, res, next) => {
       variants,
       all: recipes
     });
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   DRINK PRODUCTS WITH RECIPES AND VARIANTS
+========================================================= */
+export const getDrinkProductsWithRecipes = async (req, res, next) => {
+  try {
+    const { category, available } = req.query;
+
+    const productFilter = { type: "drink" };
+    if (category) productFilter.category = category;
+    if (available !== undefined) productFilter.available = available === "true";
+
+    const products = await Product.find(productFilter).sort({ name: 1 }).lean();
+
+    const productIds = products.map(p => p._id);
+    
+    // Get all recipes for these products (primary and variants)
+    const recipes = await populateRecipe(
+      Recipe.find({ product: { $in: productIds } }).sort({ isPrimary: -1, createdAt: -1 })
+    ).lean();
+
+    // Group recipes by product
+    const recipeMap = new Map();
+    recipes.forEach(recipe => {
+      const productId = recipe.product.toString();
+      if (!recipeMap.has(productId)) {
+        recipeMap.set(productId, {
+          primary: null,
+          variants: [],
+          all: []
+        });
+      }
+      const productRecipes = recipeMap.get(productId);
+      if (recipe.isPrimary) {
+        productRecipes.primary = recipe;
+      } else {
+        productRecipes.variants.push(recipe);
+      }
+      productRecipes.all.push(recipe);
+    });
+
+    // Combine products with their recipes
+    const productsWithRecipes = products.map(product => {
+      const productRecipes = recipeMap.get(product._id.toString()) || {
+        primary: null,
+        variants: [],
+        all: []
+      };
+
+      return {
+        ...product,
+        hasRecipe: !!productRecipes.primary,
+        primaryRecipe: productRecipes.primary,
+        variants: productRecipes.variants,
+        allRecipes: productRecipes.all,
+        totalVariants: productRecipes.variants.length
+      };
+    });
+
+    // Filter to only include products that have at least a primary recipe
+    const productsWithPrimaryRecipes = productsWithRecipes.filter(p => p.hasRecipe);
+
+    return ok(res, productsWithPrimaryRecipes);
   } catch (error) { throw error; }
 };

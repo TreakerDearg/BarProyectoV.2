@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getRecipes, getRecipe, createRecipe, updateRecipe, deleteRecipe,
   getRecipeProtocol, getRecipesByProduct, checkRecipeAvailability,
-  getRecipesWithVariants
+  getRecipesWithVariants, getDrinkProductsWithRecipes
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { uploadSingle } from "../middlewares/upload.js";
@@ -18,6 +18,7 @@ router.use(protect);
 router.get("/", getRecipes);
 router.get("/product/:productId", getRecipesByProduct);
 router.get("/product/:productId/with-variants", getRecipesWithVariants);
+router.get("/drinks/with-recipes", getDrinkProductsWithRecipes);
 
 /* =========================================================
    OPERACIONES ESPECÍFICAS

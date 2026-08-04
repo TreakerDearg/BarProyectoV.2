@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useRecipeStudio } from '../../contexts/RecipeStudioContext';
 import styles from './CostBreakdownChart.module.css';
 
@@ -8,10 +8,25 @@ type ChartType = 'horizontal' | 'stacked' | 'pie';
  * CostBreakdownChart - Visualización de costos
  * Consume useRecipeCost sin duplicar lógica
  * Muestra barras horizontales, stacked bars, pie
+ * Optimizado con React.memo
  */
-export function CostBreakdownChart() {
+export const CostBreakdownChart = memo(function CostBreakdownChart() {
   const { totalCost, ingredientCosts, ingredientPercentages, recipe } = useRecipeStudio();
   const [chartType, setChartType] = useState<ChartType>('horizontal');
+
+  if (!recipe.ingredients || recipe.ingredients.length === 0) {
+    return (
+      <div className={styles.costBreakdownChart}>
+        <div className={styles.chartHeader}>
+          <h3 className={styles.chartTitle}>Desglose de Costos</h3>
+          <span className={styles.chartTotal}>${(totalCost || 0).toFixed(2)}</span>
+        </div>
+        <div className={styles.chartEmpty}>
+          <span className={styles.emptyMessage}>Sin ingredientes para mostrar desglose</span>
+        </div>
+      </div>
+    );
+  }
 
   const ingredients = recipe.ingredients.map(ingredient => ({
     id: ingredient.inventoryItem._id,
@@ -24,7 +39,7 @@ export function CostBreakdownChart() {
     <div className={styles.costBreakdownChart}>
       <div className={styles.chartHeader}>
         <h3 className={styles.chartTitle}>Desglose de Costos</h3>
-        <span className={styles.chartTotal}>${totalCost.toFixed(2)}</span>
+        <span className={styles.chartTotal}>${(totalCost || 0).toFixed(2)}</span>
       </div>
 
       <div className={styles.chartControls}>
@@ -69,8 +84,8 @@ function HorizontalBars({ ingredients }: { ingredients: Array<{ id: string; name
               style={{ width: `${ingredient.percentage}%` }}
             />
           </div>
-          <span className={styles.barPercentage}>{ingredient.percentage.toFixed(0)}%</span>
-          <span className={styles.barCost}>${ingredient.cost.toFixed(2)}</span>
+          <span className={styles.barPercentage}>{(ingredient.percentage || 0).toFixed(0)}%</span>
+          <span className={styles.barCost}>${(ingredient.cost || 0).toFixed(2)}</span>
         </div>
       ))}
     </div>
@@ -91,7 +106,7 @@ function StackedBars({ ingredients }: { ingredients: Array<{ id: string; name: s
               width: `${ingredient.percentage}%`,
               backgroundColor: colors[index % colors.length],
             }}
-            title={`${ingredient.name}: ${ingredient.percentage.toFixed(0)}%`}
+            title={`${ingredient.name}: ${(ingredient.percentage || 0).toFixed(0)}%`}
           />
         ))}
       </div>
@@ -103,7 +118,7 @@ function StackedBars({ ingredients }: { ingredients: Array<{ id: string; name: s
               style={{ backgroundColor: colors[index % colors.length] }}
             />
             <span className={styles.legendLabel}>{ingredient.name}</span>
-            <span className={styles.legendValue}>{ingredient.percentage.toFixed(0)}%</span>
+            <span className={styles.legendValue}>{(ingredient.percentage || 0).toFixed(0)}%</span>
           </div>
         ))}
       </div>
@@ -149,7 +164,7 @@ function PieChart({ ingredients }: { ingredients: Array<{ id: string; name: stri
                 fill={segment.color}
                 className={styles.pieSegment}
               >
-                <title>{`${segment.name}: ${segment.percentage.toFixed(0)}%`}</title>
+                <title>{`${segment.name}: ${(segment.percentage || 0).toFixed(0)}%`}</title>
               </path>
             );
           })}
@@ -163,7 +178,7 @@ function PieChart({ ingredients }: { ingredients: Array<{ id: string; name: stri
               style={{ backgroundColor: segment.color }}
             />
             <span className={styles.legendLabel}>{segment.name}</span>
-            <span className={styles.legendValue}>{segment.percentage.toFixed(0)}%</span>
+            <span className={styles.legendValue}>{(segment.percentage || 0).toFixed(0)}%</span>
           </div>
         ))}
       </div>

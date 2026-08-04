@@ -1,0 +1,373 @@
+.builderExplorer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 240px;
+  max-width: 360px;
+  background: linear-gradient(180deg, #0C1224, #050816);
+  border-right: 1px solid rgba(120, 120, 255, 0.12);
+  backdrop-filter: blur(20px);
+  height: 100%;
+  overflow: hidden;
+  resize: horizontal;
+  overflow-x: hidden;
+}
+
+.explorerTabs {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 2px;
+  border-bottom: 1px solid rgba(120, 120, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.tab.active {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.tabIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.tabLabel {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: left;
+}
+
+.tab.active .tabLabel {
+  color: #6366f1;
+}
+
+.tabCount {
+  padding: 2px 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tab.active .tabCount {
+  background: rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+}
+
+.tabIndicator {
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  border-radius: 1px;
+}
+
+.explorerSearch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(120, 120, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.explorerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.explorerContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.explorerContent::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.explorerContent::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 3px;
+}
+
+.explorerContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 16px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  opacity: 0.3;
+  margin-bottom: 8px;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.emptyAction {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  color: #6366f1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emptyAction:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.itemsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.itemCard {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.03);
+  border: 1px solid rgba(99, 102, 241, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itemCard:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.itemCard.selected {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.itemImage {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.itemPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.itemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemProvider {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.itemMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemStatus {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.itemStatus.available {
+  color: #22c55e;
+}
+
+.itemStatus.unavailable {
+  color: #ef4444;
+}
+
+.itemStock {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.itemCost {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  color: #6366f1;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .builderExplorer {
+    width: 240px;
+    min-width: 240px;
+  }
+  
+  .tab {
+    padding: 8px 10px;
+  }
+  
+  .tabLabel {
+    font-size: 12px;
+  }
+  
+  .itemCard {
+    padding: 10px;
+  }
+  
+  .itemImage {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .builderExplorer {
+    width: 200px;
+    min-width: 200px;
+  }
+  
+  .tab {
+    padding: 8px;
+  }
+  
+  .tabLabel {
+    font-size: 11px;
+  }
+  
+  .tabIcon {
+    font-size: 14px;
+  }
+  
+  .itemCard {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .itemImage {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .itemPlaceholder {
+    font-size: 20px;
+  }
+  
+  .itemName {
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,236 @@
+.recipeLibrary {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #070B18, #0F172A);
+  overflow: hidden;
+}
+
+.libraryMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.libraryContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Recipe Grid Layouts */
+.recipeGrid {
+  flex: 1;
+  overflow-y: auto;
+  padding: clamp(12px, 2vw, 24px);
+  display: grid;
+  gap: clamp(16px, 1.5vw, 24px);
+}
+
+.recipeGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.recipeGrid::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.recipeGrid::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+}
+
+.recipeGrid::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* Gallery View */
+.recipeGrid.gallery {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: min-content;
+}
+
+.recipeGrid.gallery > *:first-child {
+  grid-column: 1 / -1;
+}
+
+/* Masonry View - True Masonry con CSS Grid */
+.recipeGrid.masonry {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-auto-rows: 10px;
+  grid-auto-flow: dense;
+}
+
+.recipeGrid.masonry > * {
+  grid-row-end: span auto;
+}
+
+/* Compact View */
+.recipeGrid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(12px, 1.5vw, 16px);
+  padding: clamp(12px, 1.5vw, 16px);
+}
+
+/* Grid View */
+.recipeGrid.grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* List View */
+.recipeGrid.list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1vw, 12px);
+  padding: clamp(12px, 1.5vw, 16px);
+}
+
+/* Collections Grid */
+.collectionsGrid {
+  flex: 1;
+  overflow-y: auto;
+  padding: clamp(12px, 2vw, 24px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: clamp(16px, 1.5vw, 24px);
+}
+
+.collectionsGrid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.collectionsGrid::-webkit-scrollbar-track {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.collectionsGrid::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+}
+
+.collectionsGrid::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* No Results */
+.noResults {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px;
+  gap: 20px;
+  text-align: center;
+}
+
+.noResultsIcon {
+  font-size: 80px;
+  opacity: 0.3;
+  margin-bottom: 8px;
+}
+
+.noResultsText {
+  font-size: 16px;
+  color: var(--nebula-text-tertiary);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.noResultsAction {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  color: #6366f1;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.noResultsAction:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .recipeGrid {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .recipeGrid.gallery {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .recipeGrid.masonry {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  .recipeGrid.compact {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .recipeGrid.grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+  
+  .collectionsGrid {
+    padding: 16px;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .recipeGrid {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .recipeGrid.gallery {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  .recipeGrid.masonry {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .recipeGrid.compact {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  
+  .recipeGrid.grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  
+  .recipeGrid.list {
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .collectionsGrid {
+    padding: 12px;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+  
+  .noResults {
+    padding: 40px 20px;
+  }
+  
+  .noResultsIcon {
+    font-size: 48px;
+  }
+  
+  .noResultsText {
+    font-size: 14px;
+  }
+}

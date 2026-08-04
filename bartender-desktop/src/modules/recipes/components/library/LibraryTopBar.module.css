@@ -1,0 +1,310 @@
+.libraryTopBar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(7, 11, 24, 0.98));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.topBarMain {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.topBarTitle {
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--nebula-text-primary);
+  margin: 0;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.searchContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.searchContainer:focus-within {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.searchIcon {
+  font-size: 18px;
+  color: var(--nebula-text-tertiary);
+}
+
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--nebula-text-primary);
+  font-weight: 500;
+}
+
+.searchInput::placeholder {
+  color: var(--nebula-text-tertiary);
+}
+
+.searchShortcuts {
+  display: flex;
+  gap: 4px;
+}
+
+.kbd {
+  padding: 4px 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nebula-text-tertiary);
+  font-family: monospace;
+}
+
+.topBarActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 10px;
+  color: var(--nebula-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--nebula-text-primary);
+  transform: translateY(-2px);
+}
+
+.actionIcon {
+  font-size: 16px;
+}
+
+.actionLabel {
+  font-size: 13px;
+}
+
+/* Quick Filters */
+.quickFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterChip {
+  padding: 8px 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 20px;
+  color: var(--nebula-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterChip:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: var(--nebula-text-primary);
+}
+
+.filterChip.active {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Top Bar Controls */
+.topBarControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.viewToggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+}
+
+.viewBtn {
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--nebula-text-tertiary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewBtn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--nebula-text-secondary);
+}
+
+.viewBtn.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--nebula-accent-primary);
+  font-weight: 600;
+}
+
+.sortControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sortSelect {
+  padding: 8px 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+  color: var(--nebula-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.sortSelect:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.sortSelect:focus {
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.sortSelect option {
+  background: rgba(15, 23, 42, 0.95);
+  color: var(--nebula-text-primary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .libraryTopBar {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .topBarMain {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .topBarActions {
+    justify-content: flex-start;
+  }
+  
+  .quickFilters {
+    gap: 6px;
+  }
+  
+  .filterChip {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .libraryTopBar {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .searchContainer {
+    padding: 10px 12px;
+  }
+  
+  .searchInput {
+    font-size: 13px;
+  }
+  
+  .searchShortcuts {
+    display: none;
+  }
+  
+  .actionBtn {
+    padding: 8px 12px;
+  }
+  
+  .actionLabel {
+    display: none;
+  }
+  
+  .quickFilters {
+    gap: 4px;
+  }
+  
+  .filterChip {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .topBarControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .viewToggle {
+    justify-content: center;
+  }
+  
+  .sortControl {
+    justify-content: center;
+  }
+}

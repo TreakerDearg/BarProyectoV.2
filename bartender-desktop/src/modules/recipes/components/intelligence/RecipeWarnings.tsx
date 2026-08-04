@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { RecipeWarning } from '../../types';
 import styles from './RecipeWarnings.module.css';
 
@@ -13,23 +13,24 @@ type WarningFilter = 'all' | 'high' | 'medium' | 'low';
 /**
  * RecipeWarnings - Sistema de advertencias mejorado
  * Componente completo con filtros, prioridad, descartar, resolver, expandir información, acción sugerida
+ * Optimizado con React.memo
  */
-export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarningsProps) {
+export const RecipeWarnings = memo(function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarningsProps) {
   const [filter, setFilter] = useState<WarningFilter>('all');
   const [expandedWarning, setExpandedWarning] = useState<string | null>(null);
 
-  const filteredWarnings = warnings.filter(warning => {
-    if (filter === 'all') return true;
-    return warning.severity === filter;
-  });
-
-  if (warnings.length === 0) {
+  if (!warnings || warnings.length === 0) {
     return (
       <div className={`${styles.recipeWarnings} ${styles.empty}`}>
         <span className={styles.warningsEmpty}>✓ Sin advertencias</span>
       </div>
     );
   }
+
+  const filteredWarnings = warnings.filter(warning => {
+    if (filter === 'all') return true;
+    return warning.severity === filter;
+  });
 
   return (
     <div className={styles.recipeWarnings}>
@@ -123,4 +124,4 @@ export function RecipeWarnings({ warnings, onDismiss, onResolve }: RecipeWarning
       </div>
     </div>
   );
-}
+});

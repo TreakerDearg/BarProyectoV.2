@@ -1,0 +1,217 @@
+.contextBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #050816, #0C1224);
+  border-top: 1px solid rgba(120, 120, 255, 0.12);
+  backdrop-filter: blur(20px);
+  min-height: 48px;
+  flex-shrink: 0;
+}
+
+.contextLeft {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.statusIcon.autosave {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.statusIcon.connection {
+  color: #22c55e;
+}
+
+.statusIcon.availability {
+  font-size: 14px;
+}
+
+.statusLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.statusValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.statusValue.online {
+  color: #22c55e;
+}
+
+.statusValue.available {
+  color: #22c55e;
+}
+
+.statusValue.unavailable {
+  color: #ef4444;
+}
+
+.contextCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  min-width: 0;
+  padding: 0 32px;
+}
+
+.metricItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.metricIcon {
+  font-size: 14px;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metricValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.contextRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.zoomControl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.zoomBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zoomBtn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.zoomValue {
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 48px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .contextBar {
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+  
+  .contextLeft {
+    gap: 16px;
+  }
+  
+  .statusLabel {
+    display: none;
+  }
+  
+  .contextCenter {
+    gap: 16px;
+    padding: 0 16px;
+  }
+  
+  .metricLabel {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .contextBar {
+    padding: 8px 12px;
+    min-height: 40px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .contextLeft,
+  .contextCenter,
+  .contextRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .contextCenter {
+    order: 2;
+    gap: 8px;
+    padding: 0;
+  }
+  
+  .metricItem {
+    padding: 4px 8px;
+  }
+  
+  .contextRight {
+    order: 3;
+    justify-content: center;
+  }
+}

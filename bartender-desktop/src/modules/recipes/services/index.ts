@@ -7,5 +7,6 @@ export {
   getRecipeProtocol,
   checkRecipeAvailability,
   getRecipesByProduct,
-  validateImageData,
+  getDrinkProductsWithRecipes,
+  validateImageData
 } from './recipeService';

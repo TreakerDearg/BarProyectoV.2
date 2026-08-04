@@ -1,0 +1,190 @@
+.skeletonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--nebula-panel-tertiary) 0%,
+    var(--nebula-panel-secondary) 50%,
+    var(--nebula-panel-tertiary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--nebula-radius-md);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton.text {
+  height: 16px;
+  border-radius: var(--nebula-radius-sm);
+}
+
+.skeleton.circle {
+  border-radius: 50%;
+}
+
+.skeleton.rect {
+  border-radius: var(--nebula-radius-md);
+}
+
+.skeleton.card {
+  padding: var(--nebula-spacing-md);
+  border-radius: var(--nebula-radius-lg);
+}
+
+.skeleton.list {
+  height: 48px;
+  border-radius: var(--nebula-radius-md);
+}
+
+/* Recipe Skeleton */
+.recipeSkeleton {
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipeSkeleton .recipeImage {
+  border-radius: 0;
+  height: clamp(140px, 20vw, 200px);
+}
+
+.recipeContent {
+  padding: var(--nebula-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+.recipeStats {
+  display: flex;
+  gap: var(--nebula-spacing-md);
+  margin-top: var(--nebula-spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* Library Skeleton */
+.librarySkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-lg);
+  padding: var(--nebula-spacing-lg);
+}
+
+.libraryHeader {
+  margin-bottom: var(--nebula-spacing-md);
+  width: clamp(150px, 20vw, 200px);
+}
+
+.libraryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--nebula-spacing-md);
+}
+
+/* Chart Skeleton */
+.chartSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+  padding: var(--nebula-spacing-md);
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+}
+
+.chartTitle {
+  margin-bottom: var(--nebula-spacing-sm);
+  height: clamp(20px, 3vw, 24px);
+}
+
+.chartArea {
+  min-height: clamp(150px, 25vw, 200px);
+}
+
+/* Inspector Skeleton */
+.inspectorSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+  padding: var(--nebula-spacing-md);
+}
+
+.inspectorSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+/* Ingredient Skeleton */
+.ingredientSkeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--nebula-spacing-sm);
+  padding: var(--nebula-spacing-sm);
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-md);
+}
+
+.ingredientContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-xs);
+}
+
+/* Preview Skeleton */
+.previewSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-md);
+  background-color: var(--nebula-panel-primary);
+  border: 1px solid var(--nebula-border-secondary);
+  border-radius: var(--nebula-radius-lg);
+  overflow: hidden;
+}
+
+.previewImage {
+  border-radius: 0;
+  height: clamp(160px, 25vw, 200px);
+}
+
+.previewContent {
+  padding: var(--nebula-spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nebula-spacing-sm);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .libraryGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .libraryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipeStats {
+    flex-direction: column;
+    gap: var(--nebula-spacing-xs);
+  }
+}

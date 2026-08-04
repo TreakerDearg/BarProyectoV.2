@@ -1,0 +1,550 @@
+/* Base Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(99, 102, 241, 0.05) 0%,
+    rgba(99, 102, 241, 0.15) 50%,
+    rgba(99, 102, 241, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Premium Recipe Card Skeleton */
+.skeletonCard {
+  position: relative;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.skeletonCard.hero {
+  min-height: 400px;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.skeletonCard.hero .skeletonImage {
+  height: 250px;
+}
+
+.skeletonContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonLine {
+  height: 12px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+.skeletonLine.title {
+  height: 20px;
+  width: 70%;
+}
+
+.skeletonLine.category {
+  height: 14px;
+  width: 30%;
+}
+
+.skeletonLine.description {
+  height: 14px;
+  width: 100%;
+}
+
+.skeletonLine.small {
+  height: 12px;
+  width: 40px;
+}
+
+.skeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonRating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeletonStars {
+  width: 80px;
+  height: 14px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+.skeletonQuickStats {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skeletonStat {
+  width: 60px;
+  height: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+.skeletonMiniAnalytics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.skeletonMiniStat {
+  height: 40px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.skeletonIngredients {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonLine.label {
+  height: 11px;
+  width: 80px;
+}
+
+.skeletonTags {
+  display: flex;
+  gap: 8px;
+}
+
+.skeletonTag {
+  width: 60px;
+  height: 24px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+/* Collection Card Skeleton */
+.skeletonCollection {
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(15, 23, 42, 0.95));
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeletonCollectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skeletonCollectionIcon {
+  width: 56px;
+  height: 56px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+.skeletonCollectionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeletonLine.collectionTitle {
+  height: 18px;
+  width: 60%;
+}
+
+.skeletonLine.collectionCount {
+  height: 13px;
+  width: 30%;
+}
+
+.skeletonCollectionStats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 10px;
+}
+
+.skeletonStatRow {
+  height: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+.skeletonProgressBar {
+  height: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skeletonCollectionTags {
+  display: flex;
+  gap: 8px;
+}
+
+/* Navigator Skeleton */
+.skeletonNavigator {
+  width: 280px;
+  min-width: 280px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(7, 11, 24, 0.98));
+  border-right: 1px solid rgba(99, 102, 241, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.skeletonNavigatorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skeletonLine.navTitle {
+  height: 16px;
+  width: 100px;
+}
+
+.skeletonCollapseBtn {
+  width: 32px;
+  height: 32px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.skeletonNavigatorContent {
+  flex: 1;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeletonNavSection {
+  margin-bottom: 4px;
+}
+
+.skeletonNavSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+}
+
+.skeletonNavIcon {
+  width: 20px;
+  height: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 4px;
+}
+
+.skeletonLine.navLabel {
+  height: 14px;
+  width: 80px;
+  flex: 1;
+}
+
+.skeletonNavCount {
+  width: 30px;
+  height: 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+}
+
+.skeletonNavigatorFooter {
+  padding: 16px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonFooterBtn {
+  height: 36px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+/* Top Bar Skeleton */
+.skeletonTopBar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(7, 11, 24, 0.98));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skeletonTopBarMain {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.skeletonTopBarTitle {
+  flex-shrink: 0;
+}
+
+.skeletonSearch {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+}
+
+.skeletonSearchIcon {
+  width: 18px;
+  height: 18px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 4px;
+}
+
+.skeletonLine.searchInput {
+  height: 14px;
+  width: 100%;
+  flex: 1;
+}
+
+.skeletonTopBarActions {
+  display: flex;
+  gap: 8px;
+}
+
+.skeletonActionBtn {
+  width: 100px;
+  height: 36px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 10px;
+}
+
+.skeletonQuickFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skeletonFilterChip {
+  width: 80px;
+  height: 32px;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 20px;
+}
+
+.skeletonTopBarControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skeletonViewToggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+}
+
+.skeletonViewBtn {
+  width: 32px;
+  height: 32px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+}
+
+.skeletonSortSelect {
+  width: 120px;
+  height: 36px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 8px;
+}
+
+/* Preview Skeleton */
+.skeletonPreview {
+  width: 380px;
+  min-width: 380px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(7, 11, 24, 0.98));
+  border-left: 1px solid rgba(99, 102, 241, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.skeletonPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.skeletonLine.previewTitle {
+  height: 16px;
+  width: 120px;
+}
+
+.skeletonCloseBtn {
+  width: 32px;
+  height: 32px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 8px;
+}
+
+.skeletonPreviewContent {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.skeletonPreviewImage {
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.skeletonPreviewInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonLine.recipeName {
+  height: 24px;
+  width: 80%;
+}
+
+.skeletonLine.recipeCategory {
+  height: 14px;
+  width: 40%;
+}
+
+.skeletonPreviewStats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 12px;
+}
+
+.skeletonPreviewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonLine.sectionTitle {
+  height: 14px;
+  width: 100px;
+}
+
+.skeletonIngredientsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonIngredientItem {
+  height: 36px;
+  background: rgba(99, 102, 241, 0.05);
+  border-radius: 8px;
+}
+
+.skeletonPreviewActions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .skeletonNavigator {
+    width: 240px;
+    min-width: 240px;
+  }
+  
+  .skeletonPreview {
+    width: 320px;
+    min-width: 320px;
+  }
+  
+  .skeletonTopBar {
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .skeletonTopBarMain {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .skeletonNavigator {
+    width: 200px;
+    min-width: 200px;
+  }
+  
+  .skeletonPreview {
+    width: 280px;
+    min-width: 280px;
+  }
+  
+  .skeletonTopBar {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .skeletonQuickFilters {
+    gap: 4px;
+  }
+  
+  .skeletonFilterChip {
+    width: 60px;
+  }
+}

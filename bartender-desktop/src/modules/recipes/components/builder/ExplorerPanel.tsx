@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Recipe } from '../../types';
 import { useRecipeTechniques } from '../../hooks';
+import styles from './ExplorerPanel.module.css';
 
 interface ExplorerPanelProps {
   activeTab: 'ingredients' | 'techniques' | 'decorations' | 'variants';
@@ -35,51 +36,51 @@ export function ExplorerPanel({ activeTab, onTabChange, inventoryItems, onIngred
   };
 
   return (
-    <div className="explorer-panel">
-      <div className="explorer-tabs">
+    <div className={styles.explorerPanel}>
+      <div className={styles.explorerTabs}>
         <button
-          className={`explorer-tab ${activeTab === 'ingredients' ? 'active' : ''}`}
+          className={`${styles.explorerTab} ${activeTab === 'ingredients' ? styles.active : ''}`}
           onClick={() => onTabChange('ingredients')}
         >
           🥗 Ingredientes
         </button>
         <button
-          className={`explorer-tab ${activeTab === 'techniques' ? 'active' : ''}`}
+          className={`${styles.explorerTab} ${activeTab === 'techniques' ? styles.active : ''}`}
           onClick={() => onTabChange('techniques')}
         >
           🎯 Técnicas
         </button>
         <button
-          className={`explorer-tab ${activeTab === 'decorations' ? 'active' : ''}`}
+          className={`${styles.explorerTab} ${activeTab === 'decorations' ? styles.active : ''}`}
           onClick={() => onTabChange('decorations')}
         >
           ✨ Decoraciones
         </button>
         <button
-          className={`explorer-tab ${activeTab === 'variants' ? 'active' : ''}`}
+          className={`${styles.explorerTab} ${activeTab === 'variants' ? styles.active : ''}`}
           onClick={() => onTabChange('variants')}
         >
           🔀 Variantes
         </button>
       </div>
 
-      <div className="explorer-search">
+      <div className={styles.explorerSearch}>
         <input
           type="text"
           placeholder="Buscar..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
+          className={styles.searchInput}
         />
       </div>
 
-      <div className="explorer-content">
+      <div className={styles.explorerContent}>
         {activeTab === 'ingredients' && (
-          <div className="explorer-list">
+          <div className={styles.explorerList}>
             {filteredInventory.map((item) => (
               <div
                 key={item._id}
-                className="explorer-item"
+                className={styles.explorerItem}
                 draggable
                 onDragStart={(e) => handleDragStart(e, item, 'ingredient')}
                 onClick={() => onIngredientAdd({
@@ -88,10 +89,10 @@ export function ExplorerPanel({ activeTab, onTabChange, inventoryItems, onIngred
                   unit: item.unit || 'ml',
                 })}
               >
-                <div className="item-icon">{item.image ? <img src={item.image} alt={item.name} /> : '🥗'}</div>
-                <div className="item-info">
-                  <span className="item-name">{item.name}</span>
-                  <span className="item-stock">Stock: {item.stock}</span>
+                <div className={styles.itemIcon}>{item.image ? <img src={item.image} alt={item.name} /> : '🥗'}</div>
+                <div className={styles.itemInfo}>
+                  <span className={styles.itemName}>{item.name}</span>
+                  <span className={styles.itemStock}>Stock: {item.stock}</span>
                 </div>
               </div>
             ))}
@@ -99,18 +100,18 @@ export function ExplorerPanel({ activeTab, onTabChange, inventoryItems, onIngred
         )}
 
         {activeTab === 'techniques' && (
-          <div className="explorer-list">
+          <div className={styles.explorerList}>
             {filteredTechniques.map((tech) => (
               <div
                 key={tech._id || tech.name}
-                className="explorer-item"
+                className={styles.explorerItem}
                 draggable
                 onDragStart={(e) => handleDragStart(e, tech, 'technique')}
               >
-                <div className="item-icon">{tech.icon}</div>
-                <div className="item-info">
-                  <span className="item-name">{tech.name}</span>
-                  <span className="item-category">{tech.category}</span>
+                <div className={styles.itemIcon}>{tech.icon}</div>
+                <div className={styles.itemInfo}>
+                  <span className={styles.itemName}>{tech.name}</span>
+                  <span className={styles.itemCategory}>{tech.category}</span>
                 </div>
               </div>
             ))}
@@ -118,18 +119,18 @@ export function ExplorerPanel({ activeTab, onTabChange, inventoryItems, onIngred
         )}
 
         {activeTab === 'decorations' && (
-          <div className="explorer-list">
+          <div className={styles.explorerList}>
             {filteredDecorations.map((dec) => (
               <div
                 key={dec._id || dec.name}
-                className="explorer-item"
+                className={styles.explorerItem}
                 draggable
                 onDragStart={(e) => handleDragStart(e, dec, 'decoration')}
               >
-                <div className="item-icon">{dec.icon}</div>
-                <div className="item-info">
-                  <span className="item-name">{dec.name}</span>
-                  <span className="item-type">{dec.type}</span>
+                <div className={styles.itemIcon}>{dec.icon}</div>
+                <div className={styles.itemInfo}>
+                  <span className={styles.itemName}>{dec.name}</span>
+                  <span className={styles.itemType}>{dec.type}</span>
                 </div>
               </div>
             ))}
@@ -137,8 +138,8 @@ export function ExplorerPanel({ activeTab, onTabChange, inventoryItems, onIngred
         )}
 
         {activeTab === 'variants' && (
-          <div className="explorer-list">
-            <p className="explorer-empty">Crear variantes desde el panel de variantes</p>
+          <div className={styles.explorerList}>
+            <p className={styles.explorerEmpty}>Crear variantes desde el panel de variantes</p>
           </div>
         )}
       </div>

@@ -83,7 +83,7 @@ export const RecentRecipes: React.FC<RecentRecipesProps> = ({ recipes, onRecipeC
                 <div className={styles.recipeMeta}>
                   <div className={styles.metaItem}>
                     <span className={styles.metaIcon}>💰</span>
-                    <span className={styles.metaValue}>${recipe.cost.toFixed(2)}</span>
+                    <span className={styles.metaValue}>${(recipe.cost || 0).toFixed(2)}</span>
                   </div>
                   <div className={styles.metaItem}>
                     <span className={styles.metaIcon}>⏱️</span>

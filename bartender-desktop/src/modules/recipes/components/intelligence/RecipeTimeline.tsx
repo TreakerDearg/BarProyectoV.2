@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useRecipeStudio } from '../../contexts/RecipeStudioContext';
 import styles from './RecipeTimeline.module.css';
 
@@ -5,9 +6,19 @@ import styles from './RecipeTimeline.module.css';
  * RecipeTimeline - Timeline tipo Git
  * Consume el historial de versiones sin implementar un sistema paralelo
  * Muestra versiones, cambios, autor, fecha, colores por tipo
+ * Optimizado con React.memo
  */
-export function RecipeTimeline() {
+export const RecipeTimeline = memo(function RecipeTimeline() {
   const { versions } = useRecipeStudio();
+
+  if (!versions || versions.length === 0) {
+    return (
+      <div className={styles.recipeTimeline}>
+        <h3 className={styles.timelineTitle}>Timeline</h3>
+        <span className={styles.timelineEmpty}>Sin versiones</span>
+      </div>
+    );
+  }
 
   const getEventTypeClass = (type: string): string => {
     switch (type) {
@@ -51,12 +62,9 @@ export function RecipeTimeline() {
   return (
     <div className={styles.recipeTimeline}>
       <h3 className={styles.timelineTitle}>Timeline</h3>
-      {versions.length === 0 ? (
-        <span className={styles.timelineEmpty}>Sin versiones</span>
-      ) : (
-        <div className={styles.timelineList}>
-          {versions.map((version, index) => (
-            <div key={version._id || index} className={styles.timelineItem}>
+      <div className={styles.timelineList}>
+        {versions.map((version, index) => (
+          <div key={version._id || index} className={styles.timelineItem}>
               <div className={styles.timelineMarker}>
                 <span className={styles.timelineIcon}>{getEventIcon('version_created')}</span>
               </div>
@@ -85,7 +93,6 @@ export function RecipeTimeline() {
             </div>
           ))}
         </div>
-      )}
     </div>
   );
-}
+});

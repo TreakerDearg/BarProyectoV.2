@@ -1,0 +1,158 @@
+/* VariantAnalytics - Small charts for variant analytics */
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.emptyAnalytics {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.3;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.metricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.metricCard:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metricIcon {
+  width: 20px;
+  height: 20px;
+  color: #6366f1;
+}
+
+.metricTrend {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.metricTrend.up {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.metricTrend.down {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.metricTrend.neutral {
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.metricValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.metricLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Sparkline */
+.sparkline {
+  width: 100%;
+  height: 30px;
+  margin-top: 4px;
+}
+
+.sparklineSvg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Analytics Charts */
+.analyticsCharts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.chartCard {
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chartCard h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chartCard .sparkline {
+  height: 40px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .analyticsCharts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .analyticsCharts {
+    grid-template-columns: 1fr;
+  }
+}

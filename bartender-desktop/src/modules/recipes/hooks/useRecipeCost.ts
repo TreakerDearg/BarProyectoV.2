@@ -30,6 +30,8 @@ export function useRecipeCost({ ingredients, inventoryItems }: UseRecipeCostProp
     );
 
     for (const ingredient of ingredients) {
+      if (!ingredient.inventoryItem || !ingredient.inventoryItem._id) continue;
+      
       const inventoryItem = inventoryMap.get(ingredient.inventoryItem._id);
       if (!inventoryItem) continue;
 

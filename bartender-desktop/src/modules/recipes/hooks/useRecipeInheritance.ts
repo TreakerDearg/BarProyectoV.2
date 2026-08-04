@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import type { Recipe, InheritanceSettings } from '../types';
 
 interface UseRecipeInheritanceProps {
-  variant: Recipe;
-  masterRecipe: Recipe;
+  variant?: Recipe;
+  masterRecipe?: Recipe;
   inheritanceSettings?: InheritanceSettings;
 }
 
@@ -33,19 +33,33 @@ export function useRecipeInheritance({
     const inheritedFields: string[] = [];
     const overriddenFields: string[] = [];
 
+    // Verificar que variant existe
+    if (!variant) {
+      return {
+        ingredients: [],
+        steps: [],
+        method: undefined,
+        specifications: undefined,
+        category: undefined,
+        drinkStyle: undefined,
+        inheritedFields,
+        overriddenFields,
+      };
+    }
+
     // Ingredientes
-    let ingredients = variant.ingredients;
-    if (settings.inheritIngredients && (!variant.ingredients || variant.ingredients.length === 0)) {
-      ingredients = masterRecipe.ingredients;
+    let ingredients = variant.ingredients || [];
+    if (masterRecipe && settings.inheritIngredients && (!variant.ingredients || variant.ingredients.length === 0)) {
+      ingredients = masterRecipe.ingredients || [];
       inheritedFields.push('ingredients');
     } else if (variant.ingredients && variant.ingredients.length > 0) {
       overriddenFields.push('ingredients');
     }
 
     // Pasos
-    let steps = variant.steps;
-    if (settings.inheritSteps && (!variant.steps || variant.steps.length === 0)) {
-      steps = masterRecipe.steps;
+    let steps = variant.steps || [];
+    if (masterRecipe && settings.inheritSteps && (!variant.steps || variant.steps.length === 0)) {
+      steps = masterRecipe.steps || [];
       inheritedFields.push('steps');
     } else if (variant.steps && variant.steps.length > 0) {
       overriddenFields.push('steps');
@@ -53,7 +67,7 @@ export function useRecipeInheritance({
 
     // Método
     let method = variant.method;
-    if (settings.inheritMethod && !variant.method) {
+    if (masterRecipe && settings.inheritMethod && !variant.method) {
       method = masterRecipe.method;
       inheritedFields.push('method');
     } else if (variant.method) {
@@ -62,7 +76,7 @@ export function useRecipeInheritance({
 
     // Especificaciones
     let specifications = variant.specifications;
-    if (settings.inheritSpecifications && !variant.specifications) {
+    if (masterRecipe && settings.inheritSpecifications && !variant.specifications) {
       specifications = masterRecipe.specifications;
       inheritedFields.push('specifications');
     } else if (variant.specifications) {
@@ -71,7 +85,7 @@ export function useRecipeInheritance({
 
     // Categoría
     let category = variant.category;
-    if (settings.inheritCategory && !variant.category) {
+    if (masterRecipe && settings.inheritCategory && !variant.category) {
       category = masterRecipe.category;
       inheritedFields.push('category');
     } else if (variant.category) {
@@ -80,7 +94,7 @@ export function useRecipeInheritance({
 
     // Drink Style
     let drinkStyle = variant.drinkStyle;
-    if (settings.inheritDrinkStyle && !variant.drinkStyle) {
+    if (masterRecipe && settings.inheritDrinkStyle && !variant.drinkStyle) {
       drinkStyle = masterRecipe.drinkStyle;
       inheritedFields.push('drinkStyle');
     } else if (variant.drinkStyle) {
