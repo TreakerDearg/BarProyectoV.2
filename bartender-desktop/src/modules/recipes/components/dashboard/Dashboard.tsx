@@ -84,12 +84,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         ]);
 
         setDashboardData({
-          stats: statsResponse.data,
-          warnings: warningsResponse.data,
-          suggestions: suggestionsResponse.data,
+          stats: statsResponse, // El interceptor ya devuelve response.data
+          warnings: warningsResponse,
+          suggestions: suggestionsResponse,
           recentActivity: {
-            recentRecipesCount: recentResponse.data.length,
-            recentRecipes: recentResponse.data,
+            recentRecipesCount: recentResponse.length,
+            recentRecipes: recentResponse,
           },
         });
       } catch (err) {
@@ -142,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       id: 'avg-cost',
       label: 'Costo promedio',
-      value: `$${dashboardData.stats.avgCost.toFixed(2)}`,
+      value: dashboardData.stats.avgCost != null ? `$${dashboardData.stats.avgCost.toFixed(2)}` : '$0.00',
       icon: <span>💰</span>,
       trend: { value: 3, direction: 'down' as const },
       color: 'amber' as const,
@@ -150,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       id: 'avg-margin',
       label: 'Margen promedio',
-      value: `${dashboardData.stats.avgMargin.toFixed(0)}%`,
+      value: dashboardData.stats.avgMargin != null ? `${dashboardData.stats.avgMargin.toFixed(0)}%` : '0%',
       icon: <span>❤️</span>,
       trend: { value: 5, direction: 'up' as const },
       color: 'pink' as const,

@@ -96,7 +96,7 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
         },
         {
           label: "Promedio cuenta",
-          value: `$${(data.avgTicket ?? 0).toFixed(2)}`,
+          value: data.avgTicket != null ? `$${data.avgTicket.toFixed(2)}` : "$0.00",
           hint: "Valor promedio por cuenta",
           trend: formatTrend(t?.ticketPct),
           comparisonPeriod: "vs ayer",

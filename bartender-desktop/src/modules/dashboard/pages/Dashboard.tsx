@@ -245,7 +245,7 @@ export default function Dashboard() {
             />
             <ReportStat
               label="Ticket promedio"
-              value={`$${data.avgTicket?.toFixed(2) ?? "0.00"}`}
+              value={data.avgTicket != null ? `$${data.avgTicket.toFixed(2)}` : "$0.00"}
               accent="lime"
             />
             <ReportStat

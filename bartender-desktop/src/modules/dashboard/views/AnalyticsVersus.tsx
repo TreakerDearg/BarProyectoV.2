@@ -244,7 +244,7 @@ export default function AnalyticsVersus({
                   border: "1px solid rgba(139,92,246,0.25)",
                   borderRadius: "12px",
                 }}
-                formatter={(value: number) => `${value} pts`}
+                formatter={(value: any) => `${value != null ? value : 0} pts`}
               />
               <Bar dataKey="autor" fill="#FFD700" name="Autor" radius={[0, 4, 4, 0]} />
               <Bar dataKey="clasico" fill="#34D399" name="Clásico" radius={[0, 4, 4, 0]} />
@@ -258,7 +258,7 @@ export default function AnalyticsVersus({
               <div>
                 <p className="text-xs font-semibold text-violet-200 mb-1">Resumen del análisis</p>
                 <p className="text-xs text-muted">
-                  Los cócteles de autor tienen un promedio de {authorAvg.toFixed(0)} puntos vs {classicAvg.toFixed(0)} de los clásicos.
+                  Los cócteles de autor tienen un promedio de {authorAvg != null ? authorAvg.toFixed(0) : '0'} puntos vs {classicAvg != null ? classicAvg.toFixed(0) : '0'} de los clásicos.
                   {authorWins > radarData.length / 2 && " Destacan en " + authorWins + " de " + radarData.length + " atributos evaluados."}
                 </p>
               </div>
