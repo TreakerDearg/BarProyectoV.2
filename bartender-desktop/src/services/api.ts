@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, removeToken } from "../utils/tokenStorage";
+import { getToken, removeToken, saveToken } from "../utils/tokenStorage";
 
 /* =========================================================
    NORMALIZER GLOBAL
@@ -153,11 +153,18 @@ api.interceptors.response.use(
         }
 
         // Intentar renovar el token
-        const response = await api.post('/auth/refresh', {
+        const response: any = await api.post('/auth/refresh', {
           refreshToken,
         });
 
-        const { token, refreshToken: newRefreshToken } = response;
+        // El backend responde con { success: true, data: { token, refreshToken } }
+        const payload = response?.data || response;
+        const token = payload?.token;
+        const newRefreshToken = payload?.refreshToken || refreshToken;
+
+        if (!token) {
+          throw new Error("No se obtuvo un nuevo token de acceso");
+        }
 
         // Guardar nuevos tokens
         saveToken(newRefreshToken);

@@ -9,6 +9,7 @@ import {
 } from "../utils/response.js";
 import { emitRecipeEvent, RECIPE_EVENTS } from "../utils/socketEvents.js";
 import { getIO } from "../socket/index.js";
+import { toRecipeDashboardDTO, toRecipeAnalyticsDTO } from "../dto/recipe.dto.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -462,3 +463,258 @@ export const getDrinkProductsWithRecipes = async (req, res, next) => {
     return ok(res, productsWithPrimaryRecipes);
   } catch (error) { throw error; }
 };
+
+/* =========================================================
+   DASHBOARD STATS
+========================================================= */
+export const getDashboardStats = async (req, res, next) => {
+  try {
+    const { type, category } = req.query;
+
+    const filter = {};
+    if (type) filter.type = type;
+    if (category) filter.category = category;
+
+    const recipes = await Recipe.find(filter)
+      .populate("product", "name price")
+      .lean();
+
+    const dashboardData = await toRecipeDashboardDTO(recipes);
+
+    return ok(res, dashboardData);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   DASHBOARD RECENT RECIPES
+========================================================= */
+export const getDashboardRecent = async (req, res, next) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const recentRecipes = await Recipe.find()
+      .populate("product", "name price category type image")
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .lean();
+
+    const enrichedRecipes = recentRecipes.map(r => ({
+      _id: r._id,
+      name: r.product?.name || "Sin nombre",
+      image: r.image || r.product?.image || "",
+      category: r.category,
+      type: r.type,
+      price: r.product?.price || 0,
+      totalCost: r.totalCost,
+      margin: calculateMargin(r.product?.price, r.totalCost),
+      createdAt: r.createdAt,
+    }));
+
+    return ok(res, enrichedRecipes);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   DASHBOARD WARNINGS
+========================================================= */
+export const getDashboardWarnings = async (req, res, next) => {
+  try {
+    const recipes = await Recipe.find()
+      .populate("product", "name price")
+      .populate("ingredients.inventoryItem", "name stock minStock")
+      .lean();
+
+    const warnings = [];
+
+    // Recetas sin imagen
+    const recipesWithoutImage = recipes.filter(r => !r.image && !r.product?.image);
+    if (recipesWithoutImage.length > 0) {
+      warnings.push({
+        id: 'no-image',
+        type: 'no-image',
+        title: 'Recetas sin imagen',
+        description: `${recipesWithoutImage.length} recetas sin fotografía`,
+        severity: 'medium',
+        count: recipesWithoutImage.length,
+        items: recipesWithoutImage.slice(0, 5).map(r => ({
+          _id: r._id,
+          name: r.product?.name || "Sin nombre",
+        })),
+      });
+    }
+
+    // Recetas con bajo margen
+    const lowMarginRecipes = recipes.filter(r => calculateMargin(r.product?.price, r.totalCost) < 30);
+    if (lowMarginRecipes.length > 0) {
+      warnings.push({
+        id: 'low-margin',
+        type: 'low-margin',
+        title: 'Margen bajo',
+        description: `${lowMarginRecipes.length} recetas con margen < 30%`,
+        severity: 'medium',
+        count: lowMarginRecipes.length,
+        items: lowMarginRecipes.slice(0, 5).map(r => ({
+          _id: r._id,
+          name: r.product?.name || "Sin nombre",
+          margin: calculateMargin(r.product?.price, r.totalCost),
+        })),
+      });
+    }
+
+    // Ingredientes con stock crítico
+    const lowStockIngredients = [];
+    recipes.forEach(r => {
+      r.ingredients.forEach(ing => {
+        if (ing.inventoryItem && ing.inventoryItem.stock <= ing.inventoryItem.minStock) {
+          lowStockIngredients.push({
+            recipeId: r._id,
+            recipeName: r.product?.name || "Sin nombre",
+            ingredientName: ing.inventoryItem.name,
+            required: ing.quantity,
+            available: ing.inventoryItem.stock,
+            unit: ing.unit,
+          });
+        }
+      });
+    });
+
+    if (lowStockIngredients.length > 0) {
+      warnings.push({
+        id: 'low-stock',
+        type: 'low-stock',
+        title: 'Stock bajo',
+        description: `${lowStockIngredients.length} ingredientes con stock crítico`,
+        severity: 'high',
+        count: lowStockIngredients.length,
+        items: lowStockIngredients.slice(0, 5),
+      });
+    }
+
+    return ok(res, warnings);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   DASHBOARD SUGGESTIONS
+========================================================= */
+export const getDashboardSuggestions = async (req, res, next) => {
+  try {
+    const suggestions = [];
+
+    // Recetas populares sin variantes
+    const recipesWithoutVariants = await Recipe.find({ isPrimary: true })
+      .populate("product", "name price")
+      .lean();
+
+    for (const recipe of recipesWithoutVariants) {
+      const variantCount = await Recipe.countDocuments({ parentId: recipe._id });
+      if (variantCount === 0 && recipe.product?.price > 10) {
+        suggestions.push({
+          id: 'create-variant',
+          type: 'create-variant',
+          title: 'Crear variante',
+          description: `${recipe.product?.name} tiene potencial para variante sin alcohol`,
+          recipeId: recipe._id,
+          recipeName: recipe.product?.name,
+        });
+      }
+    }
+
+    // Recetas sin decoración
+    const recipesWithoutDecoration = await Recipe.find({ 
+      $or: [
+        { decorationIds: { $exists: false } },
+        { decorationIds: { $size: 0 } }
+      ]
+    }).populate("product", "name").lean();
+
+    recipesWithoutDecoration.slice(0, 3).forEach(r => {
+      suggestions.push({
+        id: 'add-decoration',
+        type: 'add-decoration',
+        title: 'Agregar decoración',
+        description: `${r.product?.name} podría usar decoración para mejorar presentación`,
+        recipeId: r._id,
+        recipeName: r.product?.name,
+      });
+    });
+
+    return ok(res, suggestions);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   RECIPE ANALYTICS
+========================================================= */
+export const getRecipeAnalytics = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const analyticsData = await toRecipeAnalyticsDTO(id);
+    if (!analyticsData) return notFound(res, "Receta no encontrada");
+
+    return ok(res, analyticsData);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   RECIPE TIMELINE
+========================================================= */
+export const getRecipeTimeline = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const recipe = await Recipe.findById(id).lean();
+    if (!recipe) return notFound(res, "Receta no encontrada");
+
+    // Generar timeline basado en timestamps y cambios
+    const timeline = [
+      {
+        _id: `${recipe._id}-created`,
+        version: '1.0',
+        type: 'created',
+        date: recipe.createdAt,
+        author: 'System',
+        description: 'Receta creada',
+        changes: [],
+      },
+    ];
+
+    if (recipe.updatedAt && recipe.updatedAt.getTime() !== recipe.createdAt.getTime()) {
+      timeline.push({
+        _id: `${recipe._id}-updated`,
+        version: '1.1',
+        type: 'updated',
+        date: recipe.updatedAt,
+        author: 'System',
+        description: 'Receta actualizada',
+        changes: ['Ingredientes modificados', 'Pasos actualizados'],
+      });
+    }
+
+    // Agregar eventos de variantes
+    if (recipe.parentId) {
+      timeline.push({
+        _id: `${recipe._id}-variant`,
+        version: '2.0',
+        type: 'variant_created',
+        date: recipe.createdAt,
+        author: 'System',
+        description: `Variante creada desde receta padre`,
+        changes: [`Variante: ${recipe.variantName || 'Sin nombre'}`],
+      });
+    }
+
+    return ok(res, timeline.sort((a, b) => new Date(b.date) - new Date(a.date)));
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   HELPER FUNCTIONS
+========================================================= */
+function calculateMargin(price, cost) {
+  if (!price || price === 0) return 0;
+  return Number(((price - cost) / price * 100).toFixed(2));
+}

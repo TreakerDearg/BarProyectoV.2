@@ -4,6 +4,7 @@
    Responsable de toda la lógica de autenticación y autorización
 ========================================================= */
 
+import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import { logger } from '../../config/logger.js';
 import {
@@ -54,13 +55,13 @@ class IdentityService {
       const isMatch = await user.comparePassword(password);
 
       if (!isMatch) {
-        await user.incrementLoginAttempts?.();
+        await user.incrementLoginAttempts();
         logger.warn(`[IdentityService] Contraseña incorrecta: ${email}`);
         return createIdentityError('Credenciales inválidas', IdentityErrorCodes.INVALID_CREDENTIALS);
       }
 
       // Reset intentos + actualizar lastLogin
-      await user.resetLoginAttempts?.();
+      await user.resetLoginAttempts();
       user.lastLogin = new Date();
       await user.save();
 
@@ -68,7 +69,7 @@ class IdentityService {
       const identityUser = createIdentityUser(user);
 
       // Generar access token (JWT de corta duración)
-      const token = this.generateToken(user);
+      const token = await this.generateToken(user);
 
       // Generar refresh token y crear sesión
       const refreshTokenData = await refreshTokenService.generateRefreshToken(
@@ -132,7 +133,7 @@ class IdentityService {
       const identityUser = createIdentityUser(user);
 
       // Generar access token (JWT de corta duración)
-      const token = this.generateToken(user);
+      const token = await this.generateToken(user);
 
       // Generar refresh token y crear sesión
       const refreshTokenData = await refreshTokenService.generateRefreshToken(
@@ -194,7 +195,6 @@ class IdentityService {
    */
   async validateToken(token) {
     try {
-      const jwt = await import('jsonwebtoken');
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Buscar usuario para verificar que existe y está activo
@@ -224,10 +224,9 @@ class IdentityService {
   /**
    * Genera un token JWT (Access Token de corta duración)
    * @param {Object} user - Usuario del modelo
-   * @returns {string} Token JWT
+   * @returns {Promise<string>} Token JWT
    */
-  generateToken(user) {
-    const jwt = require('jsonwebtoken');
+  async generateToken(user) {
     // Access token expira en 15-30 minutos (configurable)
     const accessTokenExpiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || '30m';
     return jwt.sign(

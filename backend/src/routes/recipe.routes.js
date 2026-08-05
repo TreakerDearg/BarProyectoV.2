@@ -2,7 +2,9 @@ import { Router } from "express";
 import {
   getRecipes, getRecipe, createRecipe, updateRecipe, deleteRecipe,
   getRecipeProtocol, getRecipesByProduct, checkRecipeAvailability,
-  getRecipesWithVariants, getDrinkProductsWithRecipes
+  getRecipesWithVariants, getDrinkProductsWithRecipes,
+  getDashboardStats, getDashboardRecent, getDashboardWarnings,
+  getDashboardSuggestions, getRecipeAnalytics, getRecipeTimeline
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { uploadSingle } from "../middlewares/upload.js";
@@ -21,10 +23,24 @@ router.get("/product/:productId/with-variants", getRecipesWithVariants);
 router.get("/drinks/with-recipes", getDrinkProductsWithRecipes);
 
 /* =========================================================
+   DASHBOARD ENDPOINTS
+========================================================= */
+router.get("/dashboard/stats", getDashboardStats);
+router.get("/dashboard/recent", getDashboardRecent);
+router.get("/dashboard/warnings", getDashboardWarnings);
+router.get("/dashboard/suggestions", getDashboardSuggestions);
+
+/* =========================================================
+   ANALYTICS ENDPOINTS
+========================================================= */
+router.get("/analytics/:id", getRecipeAnalytics);
+
+/* =========================================================
    OPERACIONES ESPECÍFICAS
 ========================================================= */
 router.get("/:id/protocol", getRecipeProtocol);
 router.get("/:id/availability", checkRecipeAvailability);
+router.get("/:id/timeline", getRecipeTimeline);
 router.get("/:id", getRecipe);
 
 /* =========================================================

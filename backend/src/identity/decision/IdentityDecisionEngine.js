@@ -45,7 +45,7 @@ export const executeIdentityDecision = async (user, context = {}) => {
     desktopAccessMessage = getDesktopAccessMessage(user);
   }
   
-  return {
+  const decision = {
     // Información básica
     user: {
       id: user._id,

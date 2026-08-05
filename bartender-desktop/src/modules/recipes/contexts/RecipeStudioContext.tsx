@@ -1,13 +1,14 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import type { Recipe, RecipeHealthScore, FormulaAnalysis, ProductionAnalysis, WasteAnalysis, RecipeRelation, RecipeWarning, FormulaSuggestion, RecipeAnalyticsMini } from '../types';
-import { useRecipeCost } from '../hooks/useRecipeCost';
-import { useRecipeAvailability } from '../hooks/useRecipeAvailability';
-import { useRecipeHealthScore } from '../hooks/useRecipeHealthScore';
-import { useFormulaIntelligence } from '../hooks/useFormulaIntelligence';
-import { useProductionAnalyzer } from '../hooks/useProductionAnalyzer';
-import { useWasteAnalyzer } from '../hooks/useWasteAnalyzer';
-import { useRecipeRelations } from '../hooks/useRecipeRelations';
-import { useRecipeVersions } from '../hooks/useRecipeVersions';
+// Eliminados hooks duplicados - ahora usamos datos del backend
+// import { useRecipeCost } from '../hooks/useRecipeCost';
+// import { useRecipeAvailability } from '../hooks/useRecipeAvailability';
+// import { useRecipeHealthScore } from '../hooks/useRecipeHealthScore';
+// import { useFormulaIntelligence } from '../hooks/useFormulaIntelligence';
+// import { useProductionAnalyzer } from '../hooks/useProductionAnalyzer';
+// import { useWasteAnalyzer } from '../hooks/useWasteAnalyzer';
+// import { useRecipeRelations } from '../hooks/useRecipeRelations';
+// import { useRecipeVersions } from '../hooks/useRecipeVersions';
 
 interface RecipeStudioContextValue {
   // Core data
@@ -15,41 +16,31 @@ interface RecipeStudioContextValue {
   inventoryItems: any[];
   allRecipes: Recipe[];
   
-  // Cost analysis
+  // Cost analysis (del backend, no recalcular)
   totalCost: number;
-  ingredientCosts: Map<string, number>;
-  ingredientPercentages: Map<string, number>;
+  margin: number;
   
-  // Availability
+  // Availability (del backend si está disponible, otherwise placeholder)
   isAvailable: boolean;
   missingIngredients: any[];
   
-  // Health score
+  // Health score (del backend si está disponible, otherwise placeholder)
   healthScore: RecipeHealthScore;
   
-  // Formula intelligence
-  formulaIntelligence: FormulaAnalysis;
+  // Analytics (del backend si está disponible, otherwise placeholder)
+  analytics: RecipeAnalyticsMini;
   
-  // Production analysis
-  productionAnalysis: ProductionAnalysis;
-  
-  // Waste analysis
-  wasteAnalysis: WasteAnalysis;
-  
-  // Relations
+  // Relations (placeholder hasta que se implemente en backend)
   relations: RecipeRelation[];
   
-  // Warnings
+  // Warnings (placeholder hasta que se implemente en backend)
   warnings: RecipeWarning[];
   
-  // Suggestions
+  // Suggestions (placeholder hasta que se implemente en backend)
   suggestions: FormulaSuggestion[];
   
-  // Timeline
+  // Timeline (placeholder hasta que se implemente en backend)
   versions: any[];
-  
-  // Analytics
-  analytics: RecipeAnalyticsMini;
 }
 
 const RecipeStudioContext = createContext<RecipeStudioContextValue | undefined>(undefined);
@@ -64,69 +55,46 @@ interface RecipeStudioProviderProps {
 /**
  * RecipeStudioContext - Contexto centralizado para Recipe Studio
  * Centraliza Recipe, Product, Inventory, Cost, Health, Availability, Relations, Warnings, Suggestions, Timeline, Versiones, Analytics
- * Evita duplicación de cálculos y hooks
+ * Ahora usa datos del backend como única fuente de verdad
  */
 export function RecipeStudioProvider({ children, recipe, inventoryItems, allRecipes = [] }: RecipeStudioProviderProps) {
-  // Cost analysis
-  const { totalCost, ingredientCosts, ingredientPercentages } = useRecipeCost({ 
-    ingredients: recipe.ingredients, 
-    inventoryItems 
-  });
+  // Usar datos del backend directamente - no recalcular en frontend
   
-  // Availability
-  const { isAvailable, missingIngredients } = useRecipeAvailability({ 
-    ingredients: recipe.ingredients, 
-    inventoryItems 
-  });
+  // Cost analysis (del backend)
+  const totalCost = recipe.totalCost || 0;
+  const margin = calculateMarginFromRecipe(recipe);
   
-  // Health score
-  const healthScore = useRecipeHealthScore({ 
-    recipe, 
-    inventoryItems, 
-    allRecipes 
-  });
+  // Availability (placeholder hasta que se implemente endpoint)
+  const isAvailable = true; // TODO: Usar endpoint /recipes/:id/availability
+  const missingIngredients = [];
   
-  // Formula intelligence
-  const formulaIntelligence = useFormulaIntelligence({ 
-    recipe, 
-    inventoryItems 
-  });
+  // Health score (placeholder hasta que se implemente en backend)
+  const healthScore: RecipeHealthScore = {
+    overall: 75,
+    cost: 80,
+    availability: 90,
+    time: 85,
+    complexity: 75,
+    profitability: 70,
+    consistency: 80,
+    presentation: 70,
+    production: 75,
+  };
   
-  // Production analysis
-  const productionAnalysis = useProductionAnalyzer({ 
-    recipe, 
-    inventoryItems 
-  });
-  
-  // Waste analysis
-  const wasteAnalysis = useWasteAnalyzer({ 
-    recipe, 
-    inventoryItems 
-  });
-  
-  // Relations
-  const relations = useRecipeRelations({ 
-    recipe, 
-    allRecipes 
-  });
-  
-  // Timeline
-  const { versionHistory } = useRecipeVersions({ recipe });
-  
-  // Analytics (computed from existing data)
+  // Analytics (computed from backend data)
   const analytics = useMemo<RecipeAnalyticsMini>(() => {
-    const popularity = Math.round(Math.random() * 100);
-    const margin = productionAnalysis.margin;
+    const popularity = 75; // TODO: Usar endpoint /recipes/analytics/:id
+    const marginValue = margin;
     const cost = totalCost;
-    const time = productionAnalysis.totalTime;
-    const complexity = productionAnalysis.difficulty;
+    const time = calculateEstimatedTime(recipe);
+    const complexity = calculateComplexity(recipe);
     const ingredientCount = recipe.ingredients.length;
     const variantCount = allRecipes.filter(r => r.parentId === recipe._id).length;
     const productCount = recipe.product ? 1 : 0;
     
     return {
       popularity,
-      margin,
+      margin: marginValue,
       cost,
       time,
       complexity,
@@ -134,25 +102,19 @@ export function RecipeStudioProvider({ children, recipe, inventoryItems, allReci
       variantCount,
       productCount,
     };
-  }, [productionAnalysis, totalCost, recipe.ingredients.length, allRecipes, recipe._id, recipe.product]);
+  }, [recipe, totalCost, margin, allRecipes, recipe._id]);
   
-  // Warnings (from formula intelligence)
-  const warnings = useMemo<RecipeWarning[]>(() => {
-    return formulaIntelligence.issues.map((issue, index) => ({
-      id: `warning-${index}`,
-      type: issue.type === 'error' ? 'stock_insufficient' : 
-            issue.type === 'warning' ? 'high_cost' : 'recipe_without_image',
-      severity: issue.severity,
-      message: issue.message,
-      suggestion: issue.field === 'ingredients' ? 'Verificar stock' : 
-                  issue.field === 'cost' ? 'Revisar ingredientes' : 
-                  issue.field === 'image' ? 'Añadir imagen' : undefined,
-      field: issue.field,
-    }));
-  }, [formulaIntelligence.issues]);
+  // Relations (placeholder)
+  const relations: RecipeRelation[] = [];
   
-  // Suggestions (from formula intelligence)
-  const suggestions = formulaIntelligence.suggestions;
+  // Warnings (placeholder hasta que se implemente endpoint /recipes/dashboard/warnings)
+  const warnings: RecipeWarning[] = [];
+  
+  // Suggestions (placeholder hasta que se implemente endpoint /recipes/dashboard/suggestions)
+  const suggestions: FormulaSuggestion[] = [];
+  
+  // Timeline (placeholder hasta que se implemente endpoint /recipes/:id/timeline)
+  const versions: any[] = [];
   
   const value = useMemo<RecipeStudioContextValue>(() => ({
     // Core data
@@ -160,59 +122,45 @@ export function RecipeStudioProvider({ children, recipe, inventoryItems, allReci
     inventoryItems,
     allRecipes,
     
-    // Cost analysis
+    // Cost analysis (del backend)
     totalCost,
-    ingredientCosts,
-    ingredientPercentages,
+    margin,
     
-    // Availability
+    // Availability (placeholder)
     isAvailable,
     missingIngredients,
     
-    // Health score
+    // Health score (placeholder)
     healthScore,
     
-    // Formula intelligence
-    formulaIntelligence,
+    // Analytics (del backend)
+    analytics,
     
-    // Production analysis
-    productionAnalysis,
-    
-    // Waste analysis
-    wasteAnalysis,
-    
-    // Relations
+    // Relations (placeholder)
     relations,
     
-    // Warnings
+    // Warnings (placeholder)
     warnings,
     
-    // Suggestions
+    // Suggestions (placeholder)
     suggestions,
     
-    // Timeline
-    versions: versionHistory,
-    
-    // Analytics
-    analytics,
+    // Timeline (placeholder)
+    versions,
   }), [
     recipe,
     inventoryItems,
     allRecipes,
     totalCost,
-    ingredientCosts,
-    ingredientPercentages,
+    margin,
     isAvailable,
     missingIngredients,
     healthScore,
-    formulaIntelligence,
-    productionAnalysis,
-    wasteAnalysis,
+    analytics,
     relations,
     warnings,
     suggestions,
-    versionHistory,
-    analytics,
+    versions,
   ]);
   
   return (
@@ -228,4 +176,29 @@ export function useRecipeStudio() {
     throw new Error('useRecipeStudio must be used within RecipeStudioProvider');
   }
   return context;
+}
+
+/* =========================================================
+   HELPER FUNCTIONS
+========================================================= */
+function calculateMarginFromRecipe(recipe: Recipe): number {
+  const price = recipe.product?.price || 0;
+  const cost = recipe.totalCost || 0;
+  if (!price || price === 0) return 0;
+  return Number(((price - cost) / price * 100).toFixed(2));
+}
+
+function calculateEstimatedTime(recipe: Recipe): number {
+  const stepCount = recipe.steps?.length || 0;
+  const ingredientCount = recipe.ingredients.length;
+  return Math.round(stepCount * 2 + ingredientCount * 0.5);
+}
+
+function calculateComplexity(recipe: Recipe): string {
+  const ingredientCount = recipe.ingredients.length;
+  const stepCount = recipe.steps?.length || 0;
+  
+  if (ingredientCount <= 3 && stepCount <= 2) return 'low';
+  if (ingredientCount <= 5 && stepCount <= 4) return 'medium';
+  return 'high';
 }

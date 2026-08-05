@@ -15,6 +15,7 @@ import { TechniqueCard } from '../components/builder/TechniqueCard';
 import { DecorationCard } from '../components/builder/DecorationCard';
 import { getDrinkProductsWithRecipes } from '../services';
 import { getInventory } from '../../inventory/services/inventoryService';
+import api from '../../../services/api';
 import type { Recipe } from '../types';
 import styles from './NebulaRecipeStudio.module.css';
 
@@ -127,7 +128,7 @@ export default function NebulaRecipeStudio() {
   }
 
   return (
-    <RecipeStudioProvider recipe={selectedRecipe || (recipes.length > 0 ? recipes[0] : { ingredients: [], product: { name: '' }, category: '' } as any)} inventoryItems={[]} allRecipes={recipes}>
+    <RecipeStudioProvider recipe={selectedRecipe || (recipes.length > 0 ? recipes[0] : { ingredients: [], product: { name: '' }, category: '' } as any)} inventoryItems={inventoryItems} allRecipes={recipes}>
       <div className={styles.nebulaRecipeStudio}>
         {mode === 'dashboard' && (
           <Dashboard

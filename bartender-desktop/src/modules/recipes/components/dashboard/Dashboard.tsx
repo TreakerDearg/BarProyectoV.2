@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StudioHeader,
   QuickActions,
@@ -12,11 +12,51 @@ import {
   EmptyState,
 } from './index';
 import styles from './Dashboard.module.css';
+import api from '../../../../services/api';
 
 interface DashboardProps {
   recipes?: any[];
   collections?: any[];
   onNavigate?: (section: string) => void;
+}
+
+interface DashboardStats {
+  stats: {
+    totalRecipes: number;
+    primaryRecipes: number;
+    variantRecipes: number;
+    drinkRecipes: number;
+    foodRecipes: number;
+    avgCost: number;
+    avgMargin: number;
+    categoryCounts: Record<string, number>;
+  };
+  recentActivity: {
+    recentRecipesCount: number;
+    recentRecipes: Array<{
+      _id: string;
+      name: string;
+      createdAt: string;
+      type: string;
+    }>;
+  };
+  warnings: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    severity: string;
+    count: number;
+    items: any[];
+  }>;
+  suggestions: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    recipeId?: string;
+    recipeName?: string;
+  }>;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -25,6 +65,100 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onNavigate,
 }) => {
   const [activeSection, setActiveSection] = React.useState('dashboard');
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Cargar datos del backend
+        const [statsResponse, warningsResponse, recentResponse, suggestionsResponse] = await Promise.all([
+          api.get('/recipes/dashboard/stats'),
+          api.get('/recipes/dashboard/warnings'),
+          api.get('/recipes/dashboard/recent?limit=10'),
+          api.get('/recipes/dashboard/suggestions'),
+        ]);
+
+        setDashboardData({
+          stats: statsResponse.data,
+          warnings: warningsResponse.data,
+          suggestions: suggestionsResponse.data,
+          recentActivity: {
+            recentRecipesCount: recentResponse.data.length,
+            recentRecipes: recentResponse.data,
+          },
+        });
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+        setError('Error cargando datos del dashboard');
+        // Usar datos de props como fallback
+        setDashboardData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  // Transformar datos del backend al formato esperado por los componentes
+  const stats = dashboardData ? [
+    {
+      id: 'total-recipes',
+      label: 'Total recetas',
+      value: dashboardData.stats.totalRecipes,
+      icon: <span>🍸</span>,
+      trend: { value: 12, direction: 'up' as const },
+      color: 'violet' as const,
+    },
+    {
+      id: 'variants',
+      label: 'Variantes',
+      value: dashboardData.stats.variantRecipes,
+      icon: <span>🔀</span>,
+      trend: { value: 5, direction: 'up' as const },
+      color: 'indigo' as const,
+    },
+    {
+      id: 'collections',
+      label: 'Colecciones',
+      value: collections.length,
+      icon: <span>📁</span>,
+      trend: { value: 2, direction: 'neutral' as const },
+      color: 'cyan' as const,
+    },
+    {
+      id: 'ingredients',
+      label: 'Ingredientes',
+      value: dashboardData.stats.categoryCounts ? Object.values(dashboardData.stats.categoryCounts).reduce((a, b) => a + b, 0) : 0,
+      icon: <span>🥗</span>,
+      trend: { value: 8, direction: 'up' as const },
+      color: 'emerald' as const,
+    },
+    {
+      id: 'avg-cost',
+      label: 'Costo promedio',
+      value: `$${dashboardData.stats.avgCost.toFixed(2)}`,
+      icon: <span>💰</span>,
+      trend: { value: 3, direction: 'down' as const },
+      color: 'amber' as const,
+    },
+    {
+      id: 'avg-margin',
+      label: 'Margen promedio',
+      value: `${dashboardData.stats.avgMargin.toFixed(0)}%`,
+      icon: <span>❤️</span>,
+      trend: { value: 5, direction: 'up' as const },
+      color: 'pink' as const,
+    },
+  ] : [];
+
+  const warnings = dashboardData?.warnings || [];
+  const recentRecipes = dashboardData?.recentActivity?.recentRecipes || [];
 
   const sidebarItems = [
     {
@@ -168,93 +302,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
   ];
 
-  const stats = [
-    {
-      id: 'total-recipes',
-      label: 'Total recetas',
-      value: recipes.length,
-      icon: <span>🍸</span>,
-      trend: { value: 12, direction: 'up' as const },
-      color: 'violet' as const,
-    },
-    {
-      id: 'variants',
-      label: 'Variantes',
-      value: 8,
-      icon: <span>🔀</span>,
-      trend: { value: 5, direction: 'up' as const },
-      color: 'indigo' as const,
-    },
-    {
-      id: 'collections',
-      label: 'Colecciones',
-      value: collections.length,
-      icon: <span>📁</span>,
-      trend: { value: 2, direction: 'neutral' as const },
-      color: 'cyan' as const,
-    },
-    {
-      id: 'ingredients',
-      label: 'Ingredientes',
-      value: 156,
-      icon: <span>🥗</span>,
-      trend: { value: 8, direction: 'up' as const },
-      color: 'emerald' as const,
-    },
-    {
-      id: 'avg-cost',
-      label: 'Costo promedio',
-      value: '$2.45',
-      icon: <span>💰</span>,
-      trend: { value: 3, direction: 'down' as const },
-      color: 'amber' as const,
-    },
-    {
-      id: 'avg-health',
-      label: 'Health promedio',
-      value: '78',
-      icon: <span>❤️</span>,
-      trend: { value: 5, direction: 'up' as const },
-      color: 'pink' as const,
-    },
-  ];
-
-  const warnings = [
-    {
-      id: 'low-stock',
-      type: 'low-stock' as const,
-      title: 'Stock bajo',
-      description: '3 ingredientes con stock crítico',
-      severity: 'high' as const,
-      icon: <span>📦</span>,
-    },
-    {
-      id: 'no-image',
-      type: 'no-image' as const,
-      title: 'Sin imagen',
-      description: '5 recetas sin fotografía',
-      severity: 'medium' as const,
-      icon: <span>📷</span>,
-    },
-    {
-      id: 'low-margin',
-      type: 'low-margin' as const,
-      title: 'Margen bajo',
-      description: '2 recetas con margen < 20%',
-      severity: 'medium' as const,
-      icon: <span>📊</span>,
-    },
-    {
-      id: 'no-recipe',
-      type: 'no-recipe' as const,
-      title: 'Sin receta',
-      description: '1 producto sin receta asociada',
-      severity: 'low' as const,
-      icon: <span>🍸</span>,
-    },
-  ];
-
-  const suggestions = [
+  const suggestions = dashboardData?.suggestions || [
     {
       id: 'create-variant',
       type: 'create-variant' as const,
@@ -289,48 +337,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
   ];
 
-  const activities = [
-    {
-      id: 'activity-1',
-      type: 'recipe-created' as const,
-      title: 'Nueva receta creada',
-      description: 'Mojito Clásico agregada a la biblioteca',
-      timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-      icon: <span>🍸</span>,
-    },
-    {
-      id: 'activity-2',
-      type: 'cost-updated' as const,
-      title: 'Costo actualizado',
-      description: 'Precio de gin actualizado en inventario',
-      timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-      icon: <span>💰</span>,
-    },
-    {
-      id: 'activity-3',
-      type: 'ingredient-added' as const,
-      title: 'Ingrediente agregado',
-      description: 'Menta fresca añadida a inventario',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      icon: <span>🥗</span>,
-    },
-    {
-      id: 'activity-4',
-      type: 'variant-created' as const,
-      title: 'Variante creada',
-      description: 'Mojito Sin Alcohol creada desde Mojito Clásico',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      icon: <span>🔀</span>,
-    },
-    {
-      id: 'activity-5',
-      type: 'version-published' as const,
-      title: 'Versión publicada',
-      description: 'Margarita v2.0 publicada con nuevos ingredientes',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      icon: <span>📝</span>,
-    },
-  ];
+  const activities = recentRecipes.map(recipe => ({
+    id: recipe._id,
+    type: 'recipe-created' as const,
+    title: 'Nueva receta creada',
+    description: `${recipe.name} agregada a la biblioteca`,
+    timestamp: recipe.createdAt,
+    icon: <span>🍸</span>,
+  }));
 
   const hasRecipes = recipes.length > 0;
 
@@ -358,24 +372,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
           ) : (
             <>
-              <RecipeStats stats={stats} />
-
+              {stats.length > 0 ? (
+                <RecipeStats stats={stats} />
+              ) : (
+                <div className={styles.emptyState}>No hay estadísticas disponibles</div>
+              )}
+              
               <div className={styles.dashboardGrid}>
                 <div className={styles.mainColumn}>
-                  <RecentRecipes
-                    recipes={recipes.slice(0, 6)}
-                    onRecipeClick={() => onNavigate?.('studio')}
-                  />
-                  <CollectionGrid
-                    collections={collections.slice(0, 6)}
-                    onCollectionClick={() => {}}
-                  />
+                  {recentRecipes.length > 0 ? (
+                    <RecentRecipes
+                      recipes={recentRecipes.slice(0, 6)}
+                      onRecipeClick={() => onNavigate?.('studio')}
+                    />
+                  ) : (
+                    <div className={styles.emptyState}>No hay recetas recientes</div>
+                  )}
+                  
+                  {collections.length > 0 ? (
+                    <CollectionGrid
+                      collections={collections.slice(0, 6)}
+                      onCollectionClick={() => {}}
+                    />
+                  ) : (
+                    <div className={styles.emptyState}>No hay colecciones</div>
+                  )}
                 </div>
 
                 <div className={styles.sideColumn}>
-                  <ActivityTimeline activities={activities} />
+                  <ActivityTimeline activities={recentRecipes.map(r => ({
+                    id: r._id,
+                    title: `Receta "${r.name}"`,
+                    type: 'recipe_created',
+                    date: r.createdAt,
+                    description: `Nueva receta de tipo ${r.type}`,
+                  }))} />
                   <WarningPanel warnings={warnings} onWarningClick={() => {}} />
-                  <SuggestionPanel suggestions={suggestions} onSuggestionClick={() => {}} />
+                  <SuggestionPanel suggestions={[]} onSuggestionClick={() => {}} />
                 </div>
               </div>
             </>

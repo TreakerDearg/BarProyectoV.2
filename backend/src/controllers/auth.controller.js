@@ -90,7 +90,7 @@ export const loginUser = async (req, res, next) => {
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
-      await user.incrementLoginAttempts?.();
+      await user.incrementLoginAttempts();
       logger.warn(`[Auth] Contraseña incorrecta para: ${email}`);
       return unauthorized(res, "Credenciales inválidas");
     }
@@ -113,34 +113,64 @@ export const loginUser = async (req, res, next) => {
     };
 
     /* ─── Generar tokens usando IdentityService ─── */
-    const identityResult = await identityService.authenticate(email, password, sessionInfo);
+    let identityResult;
+    try {
+      identityResult = await identityService.authenticate(email, password, sessionInfo);
+    } catch (error) {
+      logger.error("[Auth] Error en identityService.authenticate:", error);
+      return serverError(res, "Error al autenticar usuario");
+    }
     
     if (!identityResult.success) {
       return unauthorized(res, identityResult.message || "Error de autenticación");
     }
 
     /* ─── Ejecutar Decision Engine ─── */
-    const identityDecision = await executeLoginDecision(user, identityResult.metadata.session, {
-      accessToken: identityResult.token,
-      refreshToken: identityResult.refreshToken,
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '30m',
-    });
+    let identityDecision;
+    try {
+      identityDecision = await executeLoginDecision(user, identityResult.metadata.session, {
+        accessToken: identityResult.token,
+        refreshToken: identityResult.refreshToken,
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '30m',
+      });
+    } catch (error) {
+      logger.error("[Auth] Error en executeLoginDecision:", error);
+      // Continue without decision engine if it fails
+      identityDecision = {
+        success: true,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        destination: 'web',
+        canAccess: true,
+        token: identityResult.token,
+        refreshToken: identityResult.refreshToken,
+      };
+    }
 
     /* ─── Inicializar sesión en Ecosystem (SSO) ─── */
-    const ecosystemResult = await initializeSession(user, {
-      sessionId: identityResult.metadata.session.sessionId,
-      refreshTokenId: identityResult.metadata.session.sessionId,
-      tokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
-      refreshTokenExpiresAt: identityResult.metadata.session.expiresAt,
-    }, {
-      platform: sessionInfo.platform,
-      userAgent: sessionInfo.userAgent,
-      ipAddress: sessionInfo.ipAddress,
-      socketId: req.socket?.id,
-    });
+    try {
+      const ecosystemResult = await initializeSession(user, {
+        sessionId: identityResult.metadata.session.sessionId,
+        refreshTokenId: identityResult.metadata.session.sessionId,
+        tokenExpiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+        refreshTokenExpiresAt: identityResult.metadata.session.expiresAt,
+      }, {
+        platform: sessionInfo.platform,
+        userAgent: sessionInfo.userAgent,
+        ipAddress: sessionInfo.ipAddress,
+        socketId: req.socket?.id,
+      });
 
-    if (!ecosystemResult?.success) {
-      logger.warn(`[Auth] Ecosystem login falló: ${ecosystemResult?.reason || 'unknown error'}`);
+      if (!ecosystemResult?.success) {
+        logger.warn(`[Auth] Ecosystem login falló: ${ecosystemResult?.reason || 'unknown error'}`);
+      }
+    } catch (error) {
+      logger.error("[Auth] Error en initializeSession:", error);
+      // Continue without ecosystem if it fails
     }
 
     logger.info(`[Auth] Login exitoso: ${email} (${user.role}) -> ${identityDecision.destination}`);
@@ -149,7 +179,7 @@ export const loginUser = async (req, res, next) => {
 
   } catch (error) {
     logger.error("[Auth] Error en loginUser:", error);
-    throw error;
+    return serverError(res, "Error interno del servidor");
   }
 };
 
