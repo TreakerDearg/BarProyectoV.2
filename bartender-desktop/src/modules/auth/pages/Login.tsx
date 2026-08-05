@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
-import { saveToken } from "../../../utils/tokenStorage";
+import { saveTokens } from "../../../utils/tokenStorage";
 import { setAuthToken } from "../../../services/api";
 
 export default function Login() {
@@ -32,7 +32,7 @@ export default function Login() {
     const errorParam = urlParams.get('error');
 
     if (tokenParam && refreshTokenParam) {
-      saveToken(refreshTokenParam);
+      saveTokens(tokenParam, refreshTokenParam);
       setAuthToken(tokenParam);
       
       // Obtener perfil del usuario

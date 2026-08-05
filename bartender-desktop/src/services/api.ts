@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, removeToken, saveToken } from "../utils/tokenStorage";
+import { getAccessToken, getRefreshToken, saveTokens, removeTokens } from "../utils/tokenStorage";
 
 /* =========================================================
    NORMALIZER GLOBAL
@@ -56,7 +56,7 @@ const api = axios.create({
 ========================================================= */
 api.interceptors.request.use(
   (config) => {
-    const token = getToken();
+    const token = getAccessToken(); // Usar access token para peticiones API
 
     // Standardized & Custom headers injection to prevent 400 validation errors
     if (!config.headers) {
@@ -72,7 +72,7 @@ api.interceptors.request.use(
     config.headers['X-Platform'] = 'desktop';
     config.headers['X-Client-Version'] = '1.0.0';
 
-    //  AUTH HEADER SAFE
+    //  AUTH HEADER SAFE - Use access token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -142,11 +142,11 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getToken();
+        const refreshToken = getRefreshToken();
         
         if (!refreshToken) {
           // No hay refresh token, limpiar todo
-          removeToken();
+          removeTokens();
           delete api.defaults.headers.common.Authorization;
           window.dispatchEvent(new Event("auth:logout"));
           return Promise.reject(error);
@@ -166,8 +166,8 @@ api.interceptors.response.use(
           throw new Error("No se obtuvo un nuevo token de acceso");
         }
 
-        // Guardar nuevos tokens
-        saveToken(newRefreshToken);
+        // Guardar nuevos tokens (access y refresh)
+        saveTokens(token, newRefreshToken);
         setAuthToken(token);
 
         // Actualizar header de la petición original
@@ -180,7 +180,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         // Error al renovar, limpiar todo
-        removeToken();
+        removeTokens();
         delete api.defaults.headers.common.Authorization;
         window.dispatchEvent(new Event("auth:logout"));
         return Promise.reject(refreshError);
