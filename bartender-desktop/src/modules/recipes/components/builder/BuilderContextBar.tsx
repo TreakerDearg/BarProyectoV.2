@@ -1,34 +1,23 @@
 import { memo } from 'react';
 import { Save, Link, CheckCircle, AlertTriangle, DollarSign, Clock, Package, FileText, Calendar, Plus, Minus, RotateCcw } from 'lucide-react';
-import type { Recipe } from '../../types';
+import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
 import styles from './BuilderContextBar.module.css';
-
-interface BuilderContextBarProps {
-  recipe: Recipe;
-  totalCost?: number;
-  isAvailable?: boolean;
-  lastModified?: string;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onZoomReset?: () => void;
-  zoom?: number;
-}
 
 /**
  * BuilderContextBar - Barra inferior de contexto
  * Autosave, estado conexión, costo, tiempo, zoom
  */
-export const BuilderContextBar = memo(function BuilderContextBar({
-  recipe,
-  totalCost = 0,
-  isAvailable = true,
-  lastModified,
-  onZoomIn,
-  onZoomOut,
-  onZoomReset,
-  zoom = 100,
-}: BuilderContextBarProps) {
-  const preparationTime = recipe.preparationTime || 0;
+export const BuilderContextBar = memo(function BuilderContextBar() {
+  const {
+    recipe,
+    totalCost,
+    isAvailable,
+    zoom,
+    setZoom,
+  } = useRecipeWorkspace();
+
+  const lastModified = recipe.updatedAt;
+  const preparationTime = 0; // TODO: Calculate from steps
   const ingredientCount = recipe.ingredients.length;
   const stepCount = recipe.steps?.length || 0;
 
@@ -87,14 +76,14 @@ export const BuilderContextBar = memo(function BuilderContextBar({
       {/* Right Section - Zoom */}
       <div className={styles.contextRight}>
         <div className={styles.zoomControl}>
-          <button className={styles.zoomBtn} onClick={onZoomOut}>
+          <button className={styles.zoomBtn} onClick={() => setZoom(Math.max(zoom - 10, 50))}>
             <Minus size={16} />
           </button>
           <span className={styles.zoomValue}>{zoom}%</span>
-          <button className={styles.zoomBtn} onClick={onZoomIn}>
+          <button className={styles.zoomBtn} onClick={() => setZoom(Math.min(zoom + 10, 150))}>
             <Plus size={16} />
           </button>
-          <button className={styles.zoomBtn} onClick={onZoomReset}>
+          <button className={styles.zoomBtn} onClick={() => setZoom(100)}>
             <RotateCcw size={16} />
           </button>
         </div>

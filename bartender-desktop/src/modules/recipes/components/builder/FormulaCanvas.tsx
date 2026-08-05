@@ -1,39 +1,27 @@
 import { useState } from 'react';
-import type { RecipeIngredient, RecipeStep } from '../../types';
+import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
 import { PremiumIngredientCard } from './PremiumIngredientCard';
 import { RecipeStepBlock } from './RecipeStepBlock';
 import { PresentationSection } from './PresentationSection';
 import styles from './FormulaCanvas.module.css';
 
-interface FormulaCanvasProps {
-  recipe: any;
-  ingredients: RecipeIngredient[];
-  steps: RecipeStep[];
-  onIngredientUpdate: (index: number, updated: RecipeIngredient) => void;
-  onIngredientRemove: (index: number) => void;
-  onStepAdd: (step: RecipeStep) => void;
-  onStepUpdate: (index: number, updated: RecipeStep) => void;
-  onStepRemove: (index: number) => void;
-  onStepReorder: (fromIndex: number, toIndex: number) => void;
-  inventoryItems: any[];
-}
-
 /**
  * FormulaCanvas - Espacio central para ver toda la receta como flujo continuo
  * Inspirado en Notion, Milanote, FigJam
  */
-export function FormulaCanvas({
-  recipe,
-  ingredients,
-  steps,
-  onIngredientUpdate,
-  onIngredientRemove,
-  onStepAdd,
-  onStepUpdate,
-  onStepRemove,
-  onStepReorder,
-  inventoryItems,
-}: FormulaCanvasProps) {
+export function FormulaCanvas() {
+  const {
+    recipe,
+    handleIngredientUpdate,
+    handleIngredientRemove,
+    handleStepAdd,
+    handleStepUpdate,
+    handleStepRemove,
+    handleStepReorder,
+  } = useRecipeWorkspace();
+
+  const ingredients = recipe.ingredients || [];
+  const steps = recipe.steps || [];
   const [activeSection, setActiveSection] = useState<'ingredients' | 'steps' | 'presentation'>('ingredients');
 
   const handleDrop = (e: any) => {
@@ -41,12 +29,8 @@ export function FormulaCanvas({
     const data = JSON.parse(e.dataTransfer.getData('application/json'));
     
     if (data.type === 'ingredient') {
-      const newIngredient = {
-        inventoryItem: data.item,
-        quantity: 1,
-        unit: data.item.unit || 'ml',
-      };
-      // Add ingredient logic would go here
+      // TODO: Implement ingredient add via context
+      console.log('Add ingredient:', data.item);
     }
   };
 
@@ -88,15 +72,13 @@ export function FormulaCanvas({
             </div>
             <div className={styles.ingredientsGrid}>
               {ingredients.map((ingredient, index) => {
-                const inventoryItem = inventoryItems.find(
-                  (item) => item._id === ingredient.inventoryItem._id
-                );
                 return (
                   <PremiumIngredientCard
                     key={index}
                     ingredient={ingredient}
-                    onUpdate={(updated) => onIngredientUpdate(index, updated)}
-                    onRemove={() => onIngredientRemove(index)}
+                    index={index}
+                    onUpdate={(updated) => handleIngredientUpdate(index, updated)}
+                    onRemove={() => handleIngredientRemove(index)}
                     onDuplicate={() => console.log('Duplicate')}
                     onChangeIngredient={() => console.log('Change')}
                     onMoveUp={() => index > 0 && console.log('Move up')}
@@ -112,12 +94,12 @@ export function FormulaCanvas({
           <div className={styles.canvasSection}>
             <div className={styles.sectionHeader}>
               <h3 className={styles.sectionTitle}>Pasos de Preparación</h3>
-              <button className={styles.addButton} onClick={() => onStepAdd({
-                title: '',
-                description: '',
-                time: 0,
-                temperature: null,
-                technique: '',
+              <button className={styles.addButton} onClick={() => handleStepAdd({
+                stepNumber: steps.length + 1,
+                instruction: '',
+                time: 30,
+                temperature: '',
+                technique: undefined,
                 utensils: [],
                 notes: '',
               })}>
@@ -130,11 +112,11 @@ export function FormulaCanvas({
                   key={index}
                   step={step}
                   index={index}
-                  onUpdate={(updated) => onStepUpdate(index, updated)}
-                  onRemove={() => onStepRemove(index)}
+                  onUpdate={(updated) => handleStepUpdate(index, updated)}
+                  onRemove={() => handleStepRemove(index)}
                   onDuplicate={() => console.log('Duplicate')}
-                  onMoveUp={() => index > 0 && onStepReorder(index, index - 1)}
-                  onMoveDown={() => index < steps.length - 1 && onStepReorder(index, index + 1)}
+                  onMoveUp={() => index > 0 && handleStepReorder(index, index - 1)}
+                  onMoveDown={() => index < steps.length - 1 && handleStepReorder(index, index + 1)}
                   onToggleExpand={() => console.log('Toggle expand')}
                 />
               ))}

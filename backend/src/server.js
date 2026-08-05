@@ -13,6 +13,8 @@ import apiRoutes        from "./routes/index.js";
 import { initializeSocketEvents } from "./utils/socketEvents.js";
 import { initializeSocketNamespaces } from "./socket/index.js";
 import { initCacheService, closeCacheService } from "./services/menuCacheService.js";
+import { seedTechniquesAndDecorations } from "./migrations/seedTechniquesAndDecorations.js";
+import { seedCollectionsAndTags } from "./migrations/seedCollectionsAndTags.js";
 
 // Importar middlewares mejorados
 import {
@@ -80,7 +82,17 @@ app.use(
 /* =========================================================
    DB CONNECTION
 ========================================================= */
-connectDB();
+connectDB().then(async () => {
+  // Seed techniques and decorations after DB connection
+  try {
+    await seedTechniquesAndDecorations();
+    await seedCollectionsAndTags();
+  } catch (error) {
+    logger.error('[Server] Error seeding data:', error);
+  }
+}).catch((error) => {
+  logger.error('[Server] Error connecting to database:', error);
+});
 
 /* =========================================================
    CACHE SERVICE INITIALIZATION

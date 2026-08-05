@@ -28182,3 +28182,7 @@
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-04 17:47:32"}
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-04 17:47:32"}
 {"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-08-04 18:14:38"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-05 17:08:46"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-05 17:08:46"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-05 17:16:37"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-05 17:16:37"}

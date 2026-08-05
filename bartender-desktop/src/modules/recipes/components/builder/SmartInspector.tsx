@@ -1,22 +1,10 @@
 import { useState, memo } from 'react';
 import { BarChart3, Package, DollarSign, Heart, Link, TrendingUp, Calendar, Bookmark, AlertTriangle, CheckCircle, X, Clock, Target, GitBranch } from 'lucide-react';
+import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
 import type { Recipe } from '../../types';
 import styles from './SmartInspector.module.css';
 
 type InspectorTab = 'overview' | 'inventory' | 'costs' | 'health' | 'relations' | 'analytics' | 'timeline' | 'versions' | 'warnings';
-
-interface SmartInspectorProps {
-  totalCost: number;
-  ingredientCosts: Map<string, number>;
-  ingredientPercentages: Map<string, number>;
-  isAvailable: boolean;
-  missingIngredients: any[];
-  availableIngredients: any[];
-  inheritedFields: any;
-  overriddenFields: any;
-  recipe: Recipe;
-  masterRecipe?: Recipe;
-}
 
 const tabs = [
   { id: 'overview' as InspectorTab, icon: BarChart3, label: 'Overview' },
@@ -34,24 +22,24 @@ const tabs = [
  * SmartInspector - Panel derecho estilo Figma
  * Tabs con Overview, Inventory, Costs, Health, Relations, Analytics, Timeline, Versions, Warnings
  */
-export const SmartInspector = memo(function SmartInspector({
-  totalCost,
-  ingredientCosts,
-  ingredientPercentages,
-  isAvailable,
-  missingIngredients,
-  availableIngredients,
-  inheritedFields,
-  overriddenFields,
-  recipe,
-  masterRecipe,
-}: SmartInspectorProps) {
+export const SmartInspector = memo(function SmartInspector() {
+  const {
+    recipe,
+    masterRecipe,
+    totalCost,
+    ingredientCosts,
+    ingredientPercentages,
+    isAvailable,
+    missingIngredients,
+    availableIngredients,
+    healthScore,
+    margin,
+  } = useRecipeWorkspace();
+
   const [activeTab, setActiveTab] = useState<InspectorTab>('overview');
 
   const complexity = calculateComplexity(recipe);
   const estimatedTime = calculateEstimatedTime(recipe);
-  const margin = calculateMargin(recipe, totalCost);
-  const healthScore = recipe.healthScore?.overall || 0;
 
   return (
     <div className={styles.smartInspector}>
@@ -110,8 +98,8 @@ export const SmartInspector = memo(function SmartInspector({
                 <TrendingUp size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Rentabilidad</span>
-                  <span className={`${styles.overviewValue} ${margin > 0 ? styles.success : styles.danger}`}>
-                    {margin.toFixed(1)}%
+                  <span className={`${styles.overviewValue} ${margin.isProfitable ? styles.success : styles.danger}`}>
+                    {margin.marginPercentage.toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -179,8 +167,8 @@ export const SmartInspector = memo(function SmartInspector({
               </div>
               <div className={styles.costRow}>
                 <span className={styles.costLabel}>Margen</span>
-                <span className={`${styles.costValue} ${margin > 0 ? styles.success : styles.danger}`}>
-                  {margin.toFixed(2)}%
+                <span className={`${styles.costValue} ${margin.isProfitable ? styles.success : styles.danger}`}>
+                  {margin.marginPercentage.toFixed(2)}%
                 </span>
               </div>
             </div>
@@ -212,19 +200,19 @@ export const SmartInspector = memo(function SmartInspector({
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Balance</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${recipe.healthScore?.balance || 0}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
                 </div>
               </div>
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Complexity</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${recipe.healthScore?.complexity || 0}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
                 </div>
               </div>
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Originality</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${recipe.healthScore?.originality || 0}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
                 </div>
               </div>
             </div>
@@ -258,18 +246,18 @@ export const SmartInspector = memo(function SmartInspector({
           <div className={styles.tabContent}>
             <h3 className={styles.tabTitle}>Analytics</h3>
             <div className={styles.analyticsGrid}>
-              <div className={styles.analyticsCard}>
-                <span className={styles.analyticsLabel}>Popularidad</span>
-                <span className={styles.analyticsValue}>{recipe.analytics?.popularity || 0}%</span>
-              </div>
-              <div className={styles.analyticsCard}>
-                <span className={styles.analyticsLabel}>Uso</span>
-                <span className={styles.analyticsValue}>{recipe.analytics?.usage || 0}</span>
-              </div>
-              <div className={styles.analyticsCard}>
-                <span className={styles.analyticsLabel}>Favoritos</span>
-                <span className={styles.analyticsValue}>{recipe.analytics?.favorites || 0}</span>
-              </div>
+                    <div className={styles.healthMetric}>
+                      <span className={styles.healthLabel}>Balance</span>
+                      <span className={styles.healthValue}>{healthScore}/10</span>
+                    </div>
+                    <div className={styles.healthMetric}>
+                      <span className={styles.healthLabel}>Alcohol</span>
+                      <span className={styles.healthValue}>{healthScore}/10</span>
+                    </div>
+                    <div className={styles.healthMetric}>
+                      <span className={styles.healthLabel}>Complexidad</span>
+                      <span className={styles.healthValue}>{healthScore}/10</span>
+                    </div>
             </div>
           </div>
         )}
@@ -306,13 +294,13 @@ export const SmartInspector = memo(function SmartInspector({
                 <span className={styles.warningText}>Faltan ingredientes para preparar esta receta</span>
               </div>
             )}
-            {margin < 0 && (
+            {!margin.isProfitable && (
               <div className={styles.warningCard}>
                 <span className={styles.warningIcon}>💰</span>
                 <span className={styles.warningText}>El margen es negativo, revisa el precio</span>
               </div>
             )}
-            {isAvailable && margin >= 0 && (
+            {isAvailable && margin.isProfitable && (
               <p className={styles.emptyText}>No hay advertencias</p>
             )}
           </div>
@@ -341,10 +329,4 @@ function calculateEstimatedTime(recipe: Recipe): number {
   const stepCount = recipe.steps?.length || 0;
   const ingredientCount = recipe.ingredients.length;
   return stepCount * 2 + ingredientCount * 0.5;
-}
-
-function calculateMargin(recipe: Recipe, totalCost: number): number {
-  const price = recipe.product?.price || 0;
-  if (price === 0) return 0;
-  return ((price - totalCost) / price) * 100;
 }

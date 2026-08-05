@@ -337,14 +337,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
   ];
 
-  const activities = recentRecipes.map(recipe => ({
+  const activities = Array.isArray(recentRecipes) ? recentRecipes.map(recipe => ({
     id: recipe._id,
     type: 'recipe-created' as const,
     title: 'Nueva receta creada',
     description: `${recipe.name} agregada a la biblioteca`,
     timestamp: recipe.createdAt,
     icon: <span>🍸</span>,
-  }));
+  })) : [];
 
   const hasRecipes = recipes.length > 0;
 
@@ -400,13 +400,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className={styles.sideColumn}>
-                  <ActivityTimeline activities={recentRecipes.map(r => ({
+                  <ActivityTimeline activities={Array.isArray(recentRecipes) ? recentRecipes.map(r => ({
                     id: r._id,
                     title: `Receta "${r.name}"`,
                     type: 'recipe_created',
                     date: r.createdAt,
                     description: `Nueva receta de tipo ${r.type}`,
-                  }))} />
+                  })) : []} />
                   <WarningPanel warnings={warnings} onWarningClick={() => {}} />
                   <SuggestionPanel suggestions={[]} onSuggestionClick={() => {}} />
                 </div>

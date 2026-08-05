@@ -1,9 +1,11 @@
+import type { Technique } from './technique';
+
 export interface RecipeStep {
   stepNumber: number;
   instruction: string;
-  duration?: number;
-  temperature?: number | null;
-  technique?: string;
+  technique?: Technique | string;
+  time?: number;
+  temperature?: string;
   utensils?: string[];
   notes?: string;
 }

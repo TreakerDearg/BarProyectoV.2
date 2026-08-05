@@ -161,7 +161,7 @@ export default function ServiceDashboard({
           <motion.div layout className={isSimple ? "h-[260px]" : "h-[320px]"}>
             <RevenueStreamChart data={data.salesData} />
           </motion.div>
-          {data.salesData && data.salesData.length > 0 && (
+          {Array.isArray(data.salesData) && data.salesData.length > 0 && (
             <motion.div layout className="mt-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Total del periodo:</span>

@@ -5,6 +5,7 @@ import styles from './PremiumIngredientCard.module.css';
 
 interface PremiumIngredientCardProps {
   ingredient: RecipeIngredient;
+  index: number;
   onUpdate?: (ingredient: RecipeIngredient) => void;
   onRemove?: () => void;
   onDuplicate?: () => void;

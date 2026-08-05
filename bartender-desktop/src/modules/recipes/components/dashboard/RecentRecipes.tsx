@@ -41,7 +41,7 @@ export const RecentRecipes: React.FC<RecentRecipesProps> = ({ recipes, onRecipeC
         <button className={styles.viewAll}>Ver todas →</button>
       </div>
       <div className={styles.recipesGrid}>
-        {recipes.map((recipe) => {
+        {Array.isArray(recipes) && recipes.map((recipe) => {
           const statusBadge = getStatusBadge(recipe.status);
           return (
             <StudioCard

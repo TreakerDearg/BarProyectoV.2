@@ -38,7 +38,7 @@ export const CollectionGrid: React.FC<CollectionGridProps> = ({ collections, onC
         <button className={styles.viewAll}>Ver todas →</button>
       </div>
       <div className={styles.grid}>
-        {collections.map((collection) => (
+        {Array.isArray(collections) && collections.map((collection) => (
           <StudioCard
             key={collection.id}
             className={`${styles.collectionCard} ${collection.color ? styles[collection.color] : ''}`}

@@ -29,6 +29,10 @@ import alertsRoutes      from "./alerts.routes.js";
 import menuTemplateRoutes from "./menuTemplate.routes.js";
 import workspaceRoutes   from "./workspace.routes.js";
 import ecosystemRoutes   from "./ecosystem.routes.js";
+import techniqueRoutes   from "./technique.routes.js";
+import decorationRoutes  from "./decoration.routes.js";
+import collectionRoutes  from "./collection.routes.js";
+import tagRoutes         from "./tag.routes.js";
 
 const router = Router();
 
@@ -61,5 +65,9 @@ router.use("/alerts",       alertsRoutes);
 router.use("/menu-templates", menuTemplateRoutes);
 router.use("/workspace",    workspaceRoutes);
 router.use("/ecosystem",    ecosystemRoutes);
+router.use("/techniques",   techniqueRoutes);
+router.use("/decorations",  decorationRoutes);
+router.use("/collections",  collectionRoutes);
+router.use("/tags",         tagRoutes);
 
 export default router;

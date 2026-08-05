@@ -57,6 +57,13 @@ const stepSchema = new mongoose.Schema(
   {
     stepNumber: { type: Number, required: true },
     instruction: { type: String, required: true },
+    technique: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Technique",
+      default: null,
+    },
+    time: { type: Number, default: 30 },
+    temperature: { type: String, default: "" },
   },
   { _id: false }
 );
@@ -114,6 +121,12 @@ const recipeSchema = new mongoose.Schema(
 
     method: { type: String, default: "" },
 
+    technique: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Technique",
+      default: null,
+    },
+
     steps: {
       type: [stepSchema],
       default: [],
@@ -137,9 +150,31 @@ const recipeSchema = new mongoose.Schema(
     },
 
     specifications: {
-      glass: { type: String, default: "STANDARD_GLASS" },
-      ice: { type: String, default: "STANDARD_ICE" },
+      glassware: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Decoration",
+        default: null,
+      },
+      ice: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Decoration",
+        default: null,
+      },
+      decorations: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Decoration",
+      }],
     },
+
+    collections: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Collection",
+    }],
+
+    tags: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tag",
+    }],
 
     totalCost: {
       type: Number,
@@ -346,7 +381,14 @@ recipeSchema.post("findOneAndDelete", async function (doc) {
 ============================== */
 recipeSchema.pre(/^find/, function () {
   this.populate("product", "name price")
-      .populate("ingredients.inventoryItem", "name cost unit");
+      .populate("ingredients.inventoryItem", "name cost unit")
+      .populate("technique", "name category icon instructions")
+      .populate("steps.technique", "name category icon instructions")
+      .populate("specifications.glassware", "name type icon")
+      .populate("specifications.ice", "name type icon")
+      .populate("specifications.decorations", "name type icon cost")
+      .populate("collections", "name icon color")
+      .populate("tags", "name category color");
 });
 
 /* ==============================

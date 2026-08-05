@@ -33,7 +33,7 @@ export const WarningPanel: React.FC<WarningPanelProps> = ({ warnings, onWarningC
         <span className={styles.warningCount}>{warnings.length}</span>
       </div>
       <div className={styles.warningGrid}>
-        {warnings.map((warning) => (
+        {Array.isArray(warnings) && warnings.map((warning) => (
           <StudioCard
             key={warning.id}
             className={`${styles.warningCard} ${styles[warning.severity]}`}

@@ -1,17 +1,10 @@
 import { useState, memo } from 'react';
-import { UtensilsCrossed, Palette, Sparkles, GitBranch, Folder, Search, Plus, Wine, Droplets } from 'lucide-react';
-import type { Recipe } from '../../types';
+import { UtensilsCrossed, Palette, Sparkles, GitBranch, Folder, Search, Plus, Wine, Droplets, Loader2 } from 'lucide-react';
+import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
+import { useInventory } from '../../../inventory/hooks/useInventoryQueries';
 import styles from './BuilderExplorer.module.css';
 
 type ExplorerTab = 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections';
-
-interface BuilderExplorerProps {
-  activeTab: ExplorerTab;
-  onTabChange: (tab: ExplorerTab) => void;
-  inventoryItems: any[];
-  onIngredientAdd?: (ingredient: any) => void;
-  recipe: Recipe;
-}
 
 interface InventoryItem {
   _id: string;
@@ -38,85 +31,37 @@ const tabs = [
  * BuilderExplorer - Panel estilo Assets de Figma
  * Tabs, buscador, tarjetas de elementos
  */
-export const BuilderExplorer = memo(function BuilderExplorer({
-  activeTab,
-  onTabChange,
-  inventoryItems,
-  onIngredientAdd,
-  recipe,
-}: BuilderExplorerProps) {
+export const BuilderExplorer = memo(function BuilderExplorer() {
+  const {
+    activeTab,
+    setActiveTab,
+    inventoryItems,
+    handleIngredientAdd,
+  } = useRecipeWorkspace();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-  const mockInventoryItems: InventoryItem[] = [
-    {
-      _id: '1',
-      name: 'Vodka Absolut',
-      type: 'spirit',
-      category: 'Licores',
-      cost: 2.50,
-      stock: 100,
-      unit: 'ml',
-      provider: 'Diageo',
-      isAvailable: true,
-    },
-    {
-      _id: '2',
-      name: 'Gin Tanqueray',
-      type: 'spirit',
-      category: 'Licores',
-      cost: 3.00,
-      stock: 85,
-      unit: 'ml',
-      provider: 'Diageo',
-      isAvailable: true,
-    },
-    {
-      _id: '3',
-      name: 'Ron Bacardi',
-      type: 'spirit',
-      category: 'Licores',
-      cost: 1.80,
-      stock: 120,
-      unit: 'ml',
-      provider: 'Bacardi',
-      isAvailable: true,
-    },
-    {
-      _id: '4',
-      name: 'Jugo de Limón',
-      type: 'mixer',
-      category: 'Mixers',
-      cost: 0.30,
-      stock: 2000,
-      unit: 'ml',
-      provider: 'Local',
-      isAvailable: true,
-    },
-    {
-      _id: '5',
-      name: 'Jarabe de Azúcar',
-      type: 'mixer',
-      category: 'Mixers',
-      cost: 0.20,
-      stock: 1500,
-      unit: 'ml',
-      provider: 'Local',
-      isAvailable: true,
-    },
-  ];
+  // Usar hook de inventario si no se proporcionan items por props
+  const { data: inventoryData, isLoading: inventoryLoading, error: inventoryError } = useInventory();
+  const items = inventoryItems || inventoryData || [];
 
-  const filteredItems = mockInventoryItems.filter(item =>
+  // Load resources based on active tab (TODO: implement content for each tab)
+  // const { data: techniques } = useTechniques();
+  // const { data: decorations } = useDecorations();
+  // const { data: collections } = useCollections();
+
+  const filteredItems = items.filter((item: any) =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleItemClick = (item: InventoryItem) => {
     setSelectedItem(item._id);
-    onIngredientAdd?.({
+    handleIngredientAdd({
       inventoryItem: item,
       quantity: 30,
-      unit: item.unit,
+      unit: item.unit as 'ml' | 'l' | 'g' | 'kg' | 'unit' | 'oz' | 'portion',
     });
   };
 
@@ -130,7 +75,7 @@ export const BuilderExplorer = memo(function BuilderExplorer({
             <button
               key={tab.id}
               className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-              onClick={() => onTabChange(tab.id)}
+              onClick={() => setActiveTab(tab.id)}
             >
               <Icon size={16} className={styles.tabIcon} />
               <span className={styles.tabLabel}>{tab.label}</span>
@@ -155,7 +100,16 @@ export const BuilderExplorer = memo(function BuilderExplorer({
 
       {/* Content */}
       <div className={styles.explorerContent}>
-        {filteredItems.length === 0 ? (
+        {inventoryLoading ? (
+          <div className={styles.loadingState}>
+            <Loader2 size={32} className={styles.loadingIcon} />
+            <p className={styles.loadingText}>Cargando inventario...</p>
+          </div>
+        ) : inventoryError ? (
+          <div className={styles.errorState}>
+            <p className={styles.errorText}>Error al cargar inventario</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className={styles.emptyState}>
             <Search size={48} className={styles.emptyIcon} />
             <p className={styles.emptyText}>No se encontraron resultados</p>
@@ -173,14 +127,14 @@ export const BuilderExplorer = memo(function BuilderExplorer({
                 </div>
                 <div className={styles.itemInfo}>
                   <h4 className={styles.itemName}>{item.name}</h4>
-                  <span className={styles.itemProvider}>{item.provider}</span>
+                  <span className={styles.itemProvider}>{item.provider || 'N/A'}</span>
                   <div className={styles.itemMeta}>
-                    <span className={`${styles.itemStatus} ${item.isAvailable ? styles.available : styles.unavailable}`}>
-                      {item.isAvailable ? 'Disponible' : 'Sin stock'}
+                    <span className={`${styles.itemStatus} ${item.isAvailable !== false ? styles.available : styles.unavailable}`}>
+                      {item.isAvailable !== false ? 'Disponible' : 'Sin stock'}
                     </span>
-                    <span className={styles.itemStock}>{item.stock} {item.unit}</span>
+                    <span className={styles.itemStock}>{item.stock || 0} {item.unit || 'ml'}</span>
                   </div>
-                  <div className={styles.itemCost}>${item.cost.toFixed(2)}/{item.unit}</div>
+                  <div className={styles.itemCost}>${(item.cost || 0).toFixed(2)}/{item.unit || 'ml'}</div>
                 </div>
                 <div className={styles.itemActions}>
                   <button className={styles.actionBtn} title="Añadir">

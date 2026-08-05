@@ -49,7 +49,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ activities }
         <button className={styles.viewAll}>Ver todo →</button>
       </div>
       <div className={styles.timeline}>
-        {activities.map((activity) => (
+        {Array.isArray(activities) && activities.map((activity) => (
           <div key={activity.id} className={styles.timelineItem}>
             <div className={styles.timelineLine} />
             <div

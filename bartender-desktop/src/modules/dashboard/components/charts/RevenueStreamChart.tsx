@@ -8,18 +8,27 @@ interface Props {
 }
 
 export default function RevenueStreamChart({ data }: Props) {
-  const chartData = (data || []).map(d => ({
+  const chartData = Array.isArray(data) && data.length > 0 ? data.map(d => ({
     time: d.date ? new Date(d.date).toLocaleDateString("es-ES", { weekday: 'short' }).toUpperCase() : '?',
     sales: d.total || 0
-  }));
+  })) : [];
 
   // Find peak sales
   const peakSales = chartData.length > 0 ? Math.max(...chartData.map(d => d.sales)) : 0;
   const totalSales = chartData.reduce((sum, d) => sum + d.sales, 0);
 
+  // Si no hay datos, mostrar mensaje
+  if (chartData.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-muted text-sm">
+        No hay datos de ventas disponibles
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-[300px] w-full">
+    <div className="h-full flex flex-col min-h-[300px]">
+      <div className="flex-1 min-h-[300px] w-full" style={{ minHeight: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
             <defs>

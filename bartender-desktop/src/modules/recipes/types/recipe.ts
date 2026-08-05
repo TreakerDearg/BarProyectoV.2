@@ -1,5 +1,7 @@
 import type { RecipeIngredient } from './ingredient';
 import type { RecipeStep } from './step';
+import type { Technique, Decoration } from './technique';
+import type { RecipeCollection, RecipeTag } from './collection';
 
 export interface Recipe {
   _id?: string;
@@ -19,12 +21,23 @@ export interface Recipe {
 
   method?: string;
 
+  technique?: Technique | string;
+
   steps?: RecipeStep[];
 
   category: string;
 
   image?: string;
   imagePublicId?: string;
+
+  specifications?: {
+    glassware?: Decoration | string;
+    ice?: Decoration | string;
+    decorations?: (Decoration | string)[];
+  };
+
+  collections?: (RecipeCollection | string)[];
+  tags?: (RecipeTag | string)[];
 
   totalCost?: number;
 
@@ -36,20 +49,11 @@ export interface Recipe {
   parentId?: string;
   inheritanceSettings?: InheritanceSettings;
 
-  specifications?: {
-    glass?: string;
-    ice?: string;
-  };
-
   // Metadata for Recipe Library
   version?: number;
   popularity?: number;
   author?: string;
-  tags?: string[];
-  collections?: string[];
   isFavorite?: boolean;
-  techniqueId?: string;
-  decorationIds?: string[];
 
   // Versioning
   currentVersion?: RecipeVersion;
@@ -112,31 +116,6 @@ export interface RecipeTag {
   category: 'author' | 'premium' | 'season' | 'event' | 'style' | 'speed' | 'popularity' | 'margin' | 'stock';
   color?: string;
   usageCount?: number;
-}
-
-// Techniques
-export interface Technique {
-  _id?: string;
-  name: string;
-  description: string;
-  category: 'shake' | 'stir' | 'build' | 'blend' | 'smoke' | 'layer' | 'roll' | 'muddle' | 'strain';
-  icon?: string;
-  instructions?: string;
-  equipment?: string[];
-  difficulty?: 'easy' | 'medium' | 'hard';
-  time?: number;
-}
-
-// Decorations
-export interface Decoration {
-  _id?: string;
-  name: string;
-  type: 'garnish' | 'glassware' | 'presentation' | 'aroma' | 'ice';
-  description?: string;
-  image?: string;
-  icon?: string;
-  category?: string;
-  cost?: number;
 }
 
 // History

@@ -183,7 +183,7 @@ export default function AnalyticsDashboardView({ data, mode, onRangeChange }: Pr
       <div className="bg-surface-3 border border-white/10 rounded-2xl p-8">
         <h3 className="text-xl font-bold text-ivory mb-6">Lo más vendido</h3>
         <div className={`grid gap-6 ${isSimple ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}>
-          {topProducts.slice(0, isSimple ? 3 : 6).map((product, idx) => (
+          {Array.isArray(topProducts) && topProducts.slice(0, isSimple ? 3 : 6).map((product, idx) => (
             <div key={idx} className="bg-white/5 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="font-medium text-ivory text-base">{product.name}</span>
