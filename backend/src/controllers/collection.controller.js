@@ -1,4 +1,4 @@
-import Collection from "../models/Collection";
+import Collection from "../models/Collection.js";
 
 /* =========================
    GET ALL COLLECTIONS

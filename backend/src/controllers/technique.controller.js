@@ -1,4 +1,4 @@
-import Technique from "../models/Technique";
+import Technique from "../models/Technique.js";
 
 /* =========================
    GET ALL TECHNIQUES

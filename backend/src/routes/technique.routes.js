@@ -5,7 +5,7 @@ import {
   createTechnique,
   updateTechnique,
   deleteTechnique,
-} from "../controllers/technique.controller";
+} from "../controllers/technique.controller.js";
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
 export { RecipeBuilder } from './RecipeBuilder';
-export { IngredientCard } from './IngredientCard';
+export { PremiumIngredientCard } from './PremiumIngredientCard';
 export { RecipeStepCard } from './RecipeStepCard';
 export { FormulaCanvas } from './FormulaCanvas';
-export { ExplorerPanel } from './ExplorerPanel';
-export { BuilderInspector } from './BuilderInspector';
+export { BuilderExplorer } from './BuilderExplorer';
+export { SmartInspector } from './SmartInspector';
 export { TechniqueCard } from './TechniqueCard';
 export { DecorationCard } from './DecorationCard';
 export { VariantBuilder } from './VariantBuilder';

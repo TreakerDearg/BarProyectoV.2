@@ -1,4 +1,4 @@
-import Decoration from "../models/Decoration";
+import Decoration from "../models/Decoration.js";
 
 /* =========================
    GET ALL DECORATIONS

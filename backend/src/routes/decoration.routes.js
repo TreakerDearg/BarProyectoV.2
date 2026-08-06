@@ -5,7 +5,7 @@ import {
   createDecoration,
   updateDecoration,
   deleteDecoration,
-} from "../controllers/decoration.controller";
+} from "../controllers/decoration.controller.js";
 
 const router = express.Router();
 
