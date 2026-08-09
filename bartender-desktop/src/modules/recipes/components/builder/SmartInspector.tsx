@@ -84,7 +84,7 @@ export const SmartInspector = memo(function SmartInspector() {
                 <Package size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Ingredientes</span>
-                  <span className={styles.overviewValue}>{recipe.ingredients.length}</span>
+                  <span className={styles.overviewValue}>{recipe?.ingredients?.length || 0}</span>
                 </div>
               </div>
               <div className={styles.overviewCard}>
@@ -107,8 +107,8 @@ export const SmartInspector = memo(function SmartInspector() {
                 <Heart size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Health Score</span>
-                  <span className={styles.overviewValue} style={{ color: getHealthColor(healthScore) }}>
-                    {healthScore}
+                  <span className={styles.overviewValue} style={{ color: getHealthColor(healthScore?.overall || 0) }}>
+                    {healthScore?.overall || 0}
                   </span>
                 </div>
               </div>
@@ -191,8 +191,8 @@ export const SmartInspector = memo(function SmartInspector() {
           <div className={styles.tabContent}>
             <h3 className={styles.tabTitle}>Health Score</h3>
             <div className={styles.healthScore}>
-              <span className={styles.healthValue} style={{ color: getHealthColor(healthScore) }}>
-                {healthScore}
+              <span className={styles.healthValue} style={{ color: getHealthColor(healthScore?.overall || 0) }}>
+                {healthScore?.overall || 0}
               </span>
               <span className={styles.healthLabel}>/ 100</span>
             </div>
@@ -200,19 +200,19 @@ export const SmartInspector = memo(function SmartInspector() {
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Balance</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore?.cost || 0}%` }} />
                 </div>
               </div>
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Complexity</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore?.complexity || 0}%` }} />
                 </div>
               </div>
               <div className={styles.metricRow}>
                 <span className={styles.metricLabel}>Originality</span>
                 <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore}%` }} />
+                  <div className={styles.metricFill} style={{ width: `${healthScore?.consistency || 0}%` }} />
                 </div>
               </div>
             </div>
@@ -248,15 +248,15 @@ export const SmartInspector = memo(function SmartInspector() {
             <div className={styles.analyticsGrid}>
                     <div className={styles.healthMetric}>
                       <span className={styles.healthLabel}>Balance</span>
-                      <span className={styles.healthValue}>{healthScore}/10</span>
+                      <span className={styles.healthValue}>{healthScore?.cost || 0}/10</span>
                     </div>
                     <div className={styles.healthMetric}>
                       <span className={styles.healthLabel}>Alcohol</span>
-                      <span className={styles.healthValue}>{healthScore}/10</span>
+                      <span className={styles.healthValue}>{healthScore?.availability || 0}/10</span>
                     </div>
                     <div className={styles.healthMetric}>
                       <span className={styles.healthLabel}>Complexidad</span>
-                      <span className={styles.healthValue}>{healthScore}/10</span>
+                      <span className={styles.healthValue}>{healthScore?.complexity || 0}/10</span>
                     </div>
             </div>
           </div>
@@ -316,8 +316,9 @@ function getHealthColor(score: number): string {
   return '#ef4444';
 }
 
-function calculateComplexity(recipe: Recipe): 'low' | 'medium' | 'high' {
-  const ingredientCount = recipe.ingredients.length;
+function calculateComplexity(recipe: Recipe | null | undefined): 'low' | 'medium' | 'high' {
+  if (!recipe) return 'medium';
+  const ingredientCount = recipe.ingredients?.length || 0;
   const stepCount = recipe.steps?.length || 0;
   
   if (ingredientCount <= 3 && stepCount <= 2) return 'low';
@@ -325,8 +326,9 @@ function calculateComplexity(recipe: Recipe): 'low' | 'medium' | 'high' {
   return 'high';
 }
 
-function calculateEstimatedTime(recipe: Recipe): number {
+function calculateEstimatedTime(recipe: Recipe | null | undefined): number {
+  if (!recipe) return 0;
   const stepCount = recipe.steps?.length || 0;
-  const ingredientCount = recipe.ingredients.length;
+  const ingredientCount = recipe.ingredients?.length || 0;
   return stepCount * 2 + ingredientCount * 0.5;
 }

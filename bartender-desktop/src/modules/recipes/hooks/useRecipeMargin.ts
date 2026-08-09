@@ -12,9 +12,9 @@ interface RecipeMarginData {
  * Hook para calcular el margin de una receta
  * Calcula la diferencia entre el precio del producto y el costo de la receta
  */
-export function useRecipeMargin(recipe: Recipe, totalCost: number): RecipeMarginData {
+export function useRecipeMargin(recipe: Recipe | null | undefined, totalCost: number): RecipeMarginData {
   return useMemo(() => {
-    const price = recipe.product?.price || 0;
+    const price = recipe?.product?.price || 0;
     
     if (price === 0) {
       return {

@@ -14,16 +14,31 @@ interface UseRecipeHealthScoreProps {
  * Analiza Costo, Disponibilidad, Tiempo, Complejidad, Rentabilidad, Consistencia, Presentación, Producción
  */
 export function useRecipeHealthScore({ recipe, inventoryItems, allRecipes = [] }: UseRecipeHealthScoreProps): RecipeHealthScore {
-  const { totalCost, ingredientCosts } = useRecipeCost({ 
-    ingredients: recipe.ingredients, 
+  const { totalCost } = useRecipeCost({ 
+    ingredients: recipe?.ingredients || [], 
     inventoryItems 
   });
   const { isAvailable, missingIngredients } = useRecipeAvailability({ 
-    ingredients: recipe.ingredients, 
+    ingredients: recipe?.ingredients || [], 
     inventoryItems 
   });
 
   return useMemo(() => {
+    // Return default score if recipe is null/undefined
+    if (!recipe) {
+      return {
+        overall: 50,
+        cost: 50,
+        availability: 50,
+        time: 50,
+        complexity: 50,
+        profitability: 50,
+        consistency: 50,
+        presentation: 50,
+        production: 50,
+      };
+    }
+
     const costScore = calculateCostScore(recipe, totalCost);
     const availabilityScore = calculateAvailabilityScore(isAvailable, missingIngredients);
     const timeScore = calculateTimeScore(recipe);
@@ -58,7 +73,8 @@ export function useRecipeHealthScore({ recipe, inventoryItems, allRecipes = [] }
   }, [recipe, totalCost, isAvailable, missingIngredients, allRecipes]);
 }
 
-function calculateCostScore(recipe: Recipe, totalCost: number): number {
+function calculateCostScore(recipe: Recipe | null | undefined, totalCost: number): number {
+  if (!recipe || !recipe.product) return 50;
   const price = recipe.product?.price || 0;
   if (price === 0) return 50;
   
@@ -86,9 +102,10 @@ function calculateAvailabilityScore(isAvailable: boolean, missingIngredients: an
   return Math.max(0, 100 - missingPercentage);
 }
 
-function calculateTimeScore(recipe: Recipe): number {
+function calculateTimeScore(recipe: Recipe | null | undefined): number {
+  if (!recipe) return 50;
   const stepCount = recipe.steps?.length || 0;
-  const ingredientCount = recipe.ingredients.length;
+  const ingredientCount = recipe.ingredients?.length || 0;
   const estimatedTime = stepCount * 2 + ingredientCount * 0.5;
   
   if (estimatedTime <= 3) return 100;
@@ -100,8 +117,9 @@ function calculateTimeScore(recipe: Recipe): number {
   return 30;
 }
 
-function calculateComplexityScore(recipe: Recipe): number {
-  const ingredientCount = recipe.ingredients.length;
+function calculateComplexityScore(recipe: Recipe | null | undefined): number {
+  if (!recipe) return 50;
+  const ingredientCount = recipe.ingredients?.length || 0;
   const stepCount = recipe.steps?.length || 0;
   
   if (ingredientCount <= 3 && stepCount <= 2) return 100;
@@ -112,7 +130,8 @@ function calculateComplexityScore(recipe: Recipe): number {
   return 40;
 }
 
-function calculateProfitabilityScore(recipe: Recipe, totalCost: number): number {
+function calculateProfitabilityScore(recipe: Recipe | null | undefined, totalCost: number): number {
+  if (!recipe || !recipe.product) return 50;
   const price = recipe.product?.price || 0;
   if (price === 0) return 50;
   
@@ -127,8 +146,8 @@ function calculateProfitabilityScore(recipe: Recipe, totalCost: number): number 
   return 30;
 }
 
-function calculateConsistencyScore(recipe: Recipe, allRecipes: Recipe[]): number {
-  if (allRecipes.length === 0) return 100;
+function calculateConsistencyScore(recipe: Recipe | null | undefined, allRecipes: Recipe[]): number {
+  if (!recipe || allRecipes.length === 0) return 100;
   
   const similarRecipes = allRecipes.filter(r => 
     r.category === recipe.category && 
@@ -137,31 +156,33 @@ function calculateConsistencyScore(recipe: Recipe, allRecipes: Recipe[]): number
   
   if (similarRecipes.length === 0) return 100;
   
-  const avgIngredientCount = similarRecipes.reduce((sum, r) => sum + r.ingredients.length, 0) / similarRecipes.length;
+  const avgIngredientCount = similarRecipes.reduce((sum, r) => sum + (r.ingredients?.length || 0), 0) / similarRecipes.length;
   const avgStepCount = similarRecipes.reduce((sum, r) => sum + (r.steps?.length || 0), 0) / similarRecipes.length;
   
-  const ingredientDiff = Math.abs(recipe.ingredients.length - avgIngredientCount);
+  const ingredientDiff = Math.abs((recipe.ingredients?.length || 0) - avgIngredientCount);
   const stepDiff = Math.abs((recipe.steps?.length || 0) - avgStepCount);
   
   const consistencyScore = 100 - (ingredientDiff * 5 + stepDiff * 5);
   return Math.max(0, Math.min(100, consistencyScore));
 }
 
-function calculatePresentationScore(recipe: Recipe): number {
+function calculatePresentationScore(recipe: Recipe | null | undefined): number {
+  if (!recipe) return 50;
   let score = 100;
   
   if (!recipe.image) score -= 20;
-  if (!recipe.specifications?.glass) score -= 15;
+  if (!recipe.specifications?.glassware) score -= 15;
   if (!recipe.specifications?.ice) score -= 10;
-  if (!recipe.decorationIds || recipe.decorationIds.length === 0) score -= 15;
+  if (!recipe.specifications?.decorations || recipe.specifications.decorations.length === 0) score -= 15;
   if (!recipe.method) score -= 10;
   
   return Math.max(0, score);
 }
 
-function calculateProductionScore(recipe: Recipe): number {
+function calculateProductionScore(recipe: Recipe | null | undefined): number {
+  if (!recipe) return 50;
   const stepCount = recipe.steps?.length || 0;
-  const ingredientCount = recipe.ingredients.length;
+  const ingredientCount = recipe.ingredients?.length || 0;
   
   if (stepCount <= 3 && ingredientCount <= 5) return 100;
   if (stepCount <= 5 && ingredientCount <= 8) return 90;

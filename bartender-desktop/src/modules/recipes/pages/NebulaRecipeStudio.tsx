@@ -15,7 +15,6 @@ import { TechniqueCard } from '../components/builder/TechniqueCard';
 import { DecorationCard } from '../components/builder/DecorationCard';
 import { getDrinkProductsWithRecipes } from '../services';
 import { getInventory } from '../../inventory/services/inventoryService';
-import api from '../../../services/api';
 import type { Recipe } from '../types';
 import styles from './NebulaRecipeStudio.module.css';
 
@@ -50,9 +49,8 @@ export default function NebulaRecipeStudio() {
           const allRecipes = await getRecipes();
           
           // Filtrar solo recetas tipo drink y disponibles
-          const drinkRecipes = allRecipes.filter(r => 
-            r.type === 'drink' && 
-            r.product?.available !== false
+          const drinkRecipes = allRecipes.filter((r: Recipe) => 
+            r.type === 'drink'
           );
           
           setRecipes(drinkRecipes);
@@ -63,7 +61,7 @@ export default function NebulaRecipeStudio() {
         
         // Extraer todas las recetas (primarias y variantes) de los productos
         const allRecipes: Recipe[] = [];
-        productsWithRecipes.forEach(product => {
+        productsWithRecipes.forEach((product: any) => {
           if (product.primaryRecipe) {
             allRecipes.push(product.primaryRecipe);
           }
@@ -101,7 +99,7 @@ export default function NebulaRecipeStudio() {
     setMode('builder');
   };
 
-  const handleRecipeChange = (updatedRecipe: Recipe) => {
+  const handleRecipeChange = async (updatedRecipe: Recipe) => {
     setSelectedRecipe(updatedRecipe);
   };
 
@@ -134,7 +132,7 @@ export default function NebulaRecipeStudio() {
           <Dashboard
             recipes={recipes}
             collections={[]}
-            onNavigate={handleModeChange}
+            onNavigate={(section: string) => handleModeChange(section as StudioMode)}
           />
         )}
         
@@ -159,9 +157,10 @@ export default function NebulaRecipeStudio() {
           
           {mode === 'builder' && (
             <RecipeBuilder 
-              recipe={selectedRecipe || { ingredients: [], product: { name: 'Nueva Receta', price: 0 }, category: '', type: 'drink', steps: [] } as any}
-              onRecipeChange={handleRecipeChange}
+              initialRecipe={selectedRecipe || { ingredients: [], product: { name: 'Nueva Receta', price: 0 }, category: '', type: 'drink', steps: [] } as any}
+              onSave={handleRecipeChange}
               inventoryItems={inventoryItems}
+              isNew={!selectedRecipe}
             />
           )}
 
@@ -237,6 +236,6 @@ function RecipeWarningsWrapper() {
 }
 
 function FormulaSuggestionsWrapper() {
-  const { formulaIntelligence } = useRecipeStudio();
-  return <FormulaSuggestions suggestions={formulaIntelligence.suggestions} />;
+  const { formulaIntelligence } = useRecipeStudio() as any;
+  return <FormulaSuggestions suggestions={formulaIntelligence?.suggestions || []} />;
 }

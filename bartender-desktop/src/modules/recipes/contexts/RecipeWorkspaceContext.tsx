@@ -17,7 +17,7 @@ interface RecipeWorkspaceContextValue {
   masterRecipe?: Recipe;
   
   // UI state
-  activeTab: 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections';
+  activeTab: 'products' | 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections';
   zoom: number;
   isSaving: boolean;
   saveError: string | null;
@@ -41,7 +41,7 @@ interface RecipeWorkspaceContextValue {
   
   // Actions
   setRecipe: (recipe: Recipe) => void;
-  setActiveTab: (tab: 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections') => void;
+  setActiveTab: (tab: 'products' | 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections') => void;
   setZoom: (zoom: number) => void;
   
   // Recipe operations
@@ -80,16 +80,25 @@ export function RecipeWorkspaceProvider({
   onSave,
   isNew = false 
 }: RecipeWorkspaceProviderProps) {
-  // Core state
-  const [recipe, setRecipe] = useState<Recipe>(initialRecipe);
-  const [activeTab, setActiveTab] = useState<'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections'>('ingredients');
+  // Core state - initialize with a default recipe if initialRecipe is null/undefined
+  const defaultRecipe: Recipe = {
+    _id: '',
+    product: { _id: '', name: 'Nueva Receta', type: 'drink', price: 0 },
+    ingredients: [],
+    type: 'drink',
+    category: 'General',
+    isActive: true,
+  };
+  
+  const [recipe, setRecipe] = useState<Recipe>(initialRecipe || defaultRecipe);
+  const [activeTab, setActiveTab] = useState<'products' | 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections'>('products');
   const [zoom, setZoom] = useState(100);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Autosave with debounce
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSavedRecipeRef = useRef<Recipe>(initialRecipe);
+  const lastSavedRecipeRef = useRef<Recipe>(initialRecipe || defaultRecipe);
 
   useEffect(() => {
     // Clear previous timeout
@@ -126,28 +135,60 @@ export function RecipeWorkspaceProvider({
     };
   }, [recipe, onSave]);
 
-  // Calculated data using hooks
-  const { totalCost, ingredientCosts, ingredientPercentages } = useRecipeCost({ 
-    ingredients: recipe.ingredients || [], 
-    inventoryItems 
-  });
+  // Calculated data using hooks with error handling
+  let totalCost = 0, ingredientCosts = new Map(), ingredientPercentages = new Map();
+  try {
+    const costData = useRecipeCost({ 
+      ingredients: recipe?.ingredients || [], 
+      inventoryItems 
+    });
+    totalCost = costData.totalCost;
+    ingredientCosts = costData.ingredientCosts;
+    ingredientPercentages = costData.ingredientPercentages;
+  } catch (error) {
+    console.error('[RecipeWorkspace] Error calculating cost:', error);
+  }
   
-  const { isAvailable, missingIngredients, availableIngredients } = useRecipeAvailability({ 
-    ingredients: recipe.ingredients || [], 
-    inventoryItems 
-  });
+  let isAvailable = false, missingIngredients: any[] = [], availableIngredients: any[] = [];
+  try {
+    const availabilityData = useRecipeAvailability({ 
+      ingredients: recipe?.ingredients || [], 
+      inventoryItems 
+    });
+    isAvailable = availabilityData.isAvailable;
+    missingIngredients = availabilityData.missingIngredients;
+    availableIngredients = availabilityData.availableIngredients;
+  } catch (error) {
+    console.error('[RecipeWorkspace] Error calculating availability:', error);
+  }
   
-  const healthScore = useRecipeHealthScore({ 
-    recipe, 
-    inventoryItems 
-  });
+  let healthScore: any = null;
+  try {
+    healthScore = useRecipeHealthScore({ 
+      recipe, 
+      inventoryItems 
+    });
+  } catch (error) {
+    console.error('[RecipeWorkspace] Error calculating health score:', error);
+  }
   
-  const margin = useRecipeMargin(recipe, totalCost);
+  let margin = { margin: 0, marginPercentage: 0, isProfitable: false, suggestedPrice: 0 };
+  try {
+    margin = useRecipeMargin(recipe, totalCost);
+  } catch (error) {
+    console.error('[RecipeWorkspace] Error calculating margin:', error);
+  }
   
-  const inheritanceResult = masterRecipe && recipe
-    ? useRecipeInheritance({ variant: recipe, masterRecipe })
-    : { inheritedFields: [], overriddenFields: [] };
-  const { inheritedFields, overriddenFields } = inheritanceResult;
+  let inheritedFields: any[] = [], overriddenFields: any[] = [];
+  try {
+    const inheritanceResult = masterRecipe && recipe
+      ? useRecipeInheritance({ variant: recipe, masterRecipe })
+      : { inheritedFields: [], overriddenFields: [] };
+    inheritedFields = inheritanceResult.inheritedFields;
+    overriddenFields = inheritanceResult.overriddenFields;
+  } catch (error) {
+    console.error('[RecipeWorkspace] Error calculating inheritance:', error);
+  }
 
   // Recipe operations
   const handleIngredientAdd = useCallback((ingredient: RecipeIngredient) => {
@@ -207,7 +248,7 @@ export function RecipeWorkspaceProvider({
     setRecipe(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSetActiveTab = useCallback((tab: 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections') => {
+  const handleSetActiveTab = useCallback((tab: 'products' | 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections') => {
     setActiveTab(tab);
   }, []);
 

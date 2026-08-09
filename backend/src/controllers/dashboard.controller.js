@@ -25,23 +25,62 @@ export const getDashboardStats = async (req, res) => {
     const prevRangeStart = new Date(rangeStart);
     prevRangeStart.setDate(prevRangeStart.getDate() - days);
 
-    // Common Data
-    const [orders, previousOrders, tables, inventoryCount, reservationsToday, lowStockCount, outOfStockCount, payments] = await Promise.all([
-      Order.find({ createdAt: { $gte: rangeStart } })
+    // Common Data with individual error handling
+    let orders = [], previousOrders = [], tables = [], inventoryCount = 0, reservationsToday = 0, lowStockCount = 0, outOfStockCount = 0, payments = [];
+    
+    try {
+      orders = await Order.find({ createdAt: { $gte: rangeStart } })
         .populate("items.product", "name type category cost")
-        .lean(),
-      Order.find({
+        .lean();
+    } catch (error) {
+      logger.error("[Dashboard] Error fetching orders:", error.message);
+    }
+    
+    try {
+      previousOrders = await Order.find({
         createdAt: { $gte: prevRangeStart, $lt: prevRangeEnd },
       })
         .select("total status createdAt updatedAt")
-        .lean(),
-      Table.find().lean(),
-      InventoryItem.countDocuments(),
-      Reservation.countDocuments({ startTime: { $gte: today }, status: { $ne: "cancelled" } }),
-      InventoryItem.countDocuments({ $expr: { $lte: ["$stock", "$minStock"] } }),
-      InventoryItem.countDocuments({ stock: { $lte: 0 } }),
-      Payment.find({ createdAt: { $gte: rangeStart }, status: "completed" }).lean()
-    ]);
+        .lean();
+    } catch (error) {
+      logger.error("[Dashboard] Error fetching previous orders:", error.message);
+    }
+    
+    try {
+      tables = await Table.find().lean();
+    } catch (error) {
+      logger.error("[Dashboard] Error fetching tables:", error.message);
+    }
+    
+    try {
+      inventoryCount = await InventoryItem.countDocuments();
+    } catch (error) {
+      logger.error("[Dashboard] Error counting inventory:", error.message);
+    }
+    
+    try {
+      reservationsToday = await Reservation.countDocuments({ startTime: { $gte: today }, status: { $ne: "cancelled" } });
+    } catch (error) {
+      logger.error("[Dashboard] Error counting reservations:", error.message);
+    }
+    
+    try {
+      lowStockCount = await InventoryItem.countDocuments({ $expr: { $lte: ["$stock", "$minStock"] } });
+    } catch (error) {
+      logger.error("[Dashboard] Error counting low stock:", error.message);
+    }
+    
+    try {
+      outOfStockCount = await InventoryItem.countDocuments({ stock: { $lte: 0 } });
+    } catch (error) {
+      logger.error("[Dashboard] Error counting out of stock:", error.message);
+    }
+    
+    try {
+      payments = await Payment.find({ createdAt: { $gte: rangeStart }, status: "completed" }).lean();
+    } catch (error) {
+      logger.error("[Dashboard] Error fetching payments:", error.message);
+    }
 
     const stats = {
       kpis: calculateKPIs(orders, reservationsToday, today, previousOrders),
@@ -61,18 +100,23 @@ export const getDashboardStats = async (req, res) => {
     const salesByDay = calculateSalesByDay(orders, days, rangeStart);
 
     if (view === "all" || view === "service") {
+      let recentReservations = [];
+      try {
+        recentReservations = await Reservation.find({ startTime: { $gte: today } })
+          .limit(5)
+          .sort({ startTime: 1 })
+          .select("customerName guests startTime status")
+          .lean();
+      } catch (error) {
+        logger.error("[Dashboard] Error fetching recent reservations:", error.message);
+      }
+      
       stats.service = {
         tables: aggregateTableStatus(tables),
         activeOrdersCount: orders.filter(o => o.status === "in-progress" || o.status === "pending").length,
         kitchenLoad: calculateOperationalLoad(orders, "food"),
         barLoad: calculateOperationalLoad(orders, "drink"),
-        recentReservations: (
-          await Reservation.find({ startTime: { $gte: today } })
-            .limit(5)
-            .sort({ startTime: 1 })
-            .select("customerName guests startTime status")
-            .lean()
-        ).map((r) => ({
+        recentReservations: recentReservations.map((r) => ({
           name: r.customerName,
           partySize: r.guests,
           startTime: r.startTime,
@@ -96,7 +140,13 @@ export const getDashboardStats = async (req, res) => {
     }
 
     if (view === "all" || view === "sales") {
-      const discounts = await Discount.find({ createdAt: { $gte: rangeStart } }).lean();
+      let discounts = [];
+      try {
+        discounts = await Discount.find({ createdAt: { $gte: rangeStart } }).lean();
+      } catch (error) {
+        logger.error("[Dashboard] Error fetching discounts:", error.message);
+      }
+      
       stats.sales = {
         salesData: salesByDay,
         hourlyData: calculateHourlyPerformance(orders, discounts, today),
@@ -110,17 +160,36 @@ export const getDashboardStats = async (req, res) => {
     }
 
     if (view === "all" || view === "inventory") {
-      const lowStockItems = await InventoryItem.find({ $expr: { $lte: ["$stock", "$minStock"] } }).limit(10).lean();
+      let lowStockItems = [];
+      try {
+        lowStockItems = await InventoryItem.find({ $expr: { $lte: ["$stock", "$minStock"] } }).limit(10).lean();
+      } catch (error) {
+        logger.error("[Dashboard] Error fetching low stock items:", error.message);
+      }
+      
+      let stockValue = 0;
+      try {
+        stockValue = await calculateStockValue();
+      } catch (error) {
+        logger.error("[Dashboard] Error calculating stock value:", error.message);
+      }
+      
       stats.inventory = {
         ...stats.inventory,
         totalItems: inventoryCount,
         criticalItems: lowStockItems,
-        stockValue: await calculateStockValue(),
+        stockValue,
       };
     }
 
     if (view === "all" || view === "customer") {
-      const rouletteLogs = await RouletteLog.find({ createdAt: { $gte: rangeStart } }).lean();
+      let rouletteLogs = [];
+      try {
+        rouletteLogs = await RouletteLog.find({ createdAt: { $gte: rangeStart } }).lean();
+      } catch (error) {
+        logger.error("[Dashboard] Error fetching roulette logs:", error.message);
+      }
+      
       stats.customer = {
         rouletteSpins: {
           total: rouletteLogs.length,

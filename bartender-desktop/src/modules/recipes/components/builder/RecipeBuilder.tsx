@@ -5,6 +5,7 @@ import { BuilderExplorer } from './BuilderExplorer';
 import { FormulaCanvas } from './FormulaCanvas';
 import { SmartInspector } from './SmartInspector';
 import { BuilderContextBar } from './BuilderContextBar';
+import { RecipeBuilderErrorBoundary } from './RecipeBuilderErrorBoundary';
 import styles from './RecipeBuilder.module.css';
 
 interface RecipeBuilderProps {
@@ -22,15 +23,17 @@ interface RecipeBuilderProps {
  */
 export function RecipeBuilder({ initialRecipe, inventoryItems, masterRecipe, onSave, isNew = false }: RecipeBuilderProps) {
   return (
-    <RecipeWorkspaceProvider
-      initialRecipe={initialRecipe}
-      inventoryItems={inventoryItems}
-      masterRecipe={masterRecipe}
-      onSave={onSave}
-      isNew={isNew}
-    >
-      <RecipeBuilderContent />
-    </RecipeWorkspaceProvider>
+    <RecipeBuilderErrorBoundary>
+      <RecipeWorkspaceProvider
+        initialRecipe={initialRecipe}
+        inventoryItems={inventoryItems}
+        masterRecipe={masterRecipe}
+        onSave={onSave}
+        isNew={isNew}
+      >
+        <RecipeBuilderContent />
+      </RecipeWorkspaceProvider>
+    </RecipeBuilderErrorBoundary>
   );
 }
 

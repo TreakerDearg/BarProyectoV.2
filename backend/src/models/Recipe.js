@@ -377,18 +377,22 @@ recipeSchema.post("findOneAndDelete", async function (doc) {
 });
 
 /* ==============================
-   POPULATE AUTO (PRO)
+   POPULATE AUTO (PRO) - WITH ERROR HANDLING
 ============================== */
 recipeSchema.pre(/^find/, function () {
-  this.populate("product", "name price")
-      .populate("ingredients.inventoryItem", "name cost unit")
-      .populate("technique", "name category icon instructions")
-      .populate("steps.technique", "name category icon instructions")
-      .populate("specifications.glassware", "name type icon")
-      .populate("specifications.ice", "name type icon")
-      .populate("specifications.decorations", "name type icon cost")
-      .populate("collections", "name icon color")
-      .populate("tags", "name category color");
+  try {
+    this.populate("product", "name price")
+        .populate("ingredients.inventoryItem", "name cost unit")
+        .populate("technique", "name category icon instructions")
+        .populate("steps.technique", "name category icon instructions")
+        .populate("specifications.glassware", "name type icon")
+        .populate("specifications.ice", "name type icon")
+        .populate("specifications.decorations", "name type icon cost")
+        .populate("collections", "name icon color")
+        .populate("tags", "name category color");
+  } catch (error) {
+    console.error("[Recipe] Error in populate hook:", error);
+  }
 });
 
 /* ==============================

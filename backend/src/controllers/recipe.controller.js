@@ -457,10 +457,9 @@ export const getDrinkProductsWithRecipes = async (req, res, next) => {
       };
     });
 
-    // Filter to only include products that have at least a primary recipe
-    const productsWithPrimaryRecipes = productsWithRecipes.filter(p => p.hasRecipe);
-
-    return ok(res, productsWithPrimaryRecipes);
+    // Return all products (with or without recipes) for Recipe Builder
+    // This allows users to select any product to create a new recipe
+    return ok(res, productsWithRecipes);
   } catch (error) { throw error; }
 };
 

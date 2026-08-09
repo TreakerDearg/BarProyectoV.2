@@ -4,7 +4,7 @@ import type { Recipe } from '../../types';
 import styles from './BuilderHeader.module.css';
 
 interface BuilderHeaderProps {
-  recipe: Recipe;
+  recipe: Recipe | null | undefined;
   onSave?: () => void;
   isSaving?: boolean;
   saveError?: string | null;
@@ -34,15 +34,14 @@ export const BuilderHeader = memo(function BuilderHeader({
       <div className={styles.headerLeft}>
         <div className={styles.recipeInfo}>
           <div className={styles.recipeIcon}>
-            {recipe.type === 'drink' ? '🍸' : '🍰'}
+            {recipe?.type === 'drink' ? '🍸' : '🍰'}
           </div>
           <div className={styles.recipeDetails}>
-            <h1 className={styles.recipeName}>{recipe.product?.name || 'Nueva Receta'}</h1>
+            <h1 className={styles.recipeName}>{recipe?.product?.name || 'Nueva Receta'}</h1>
             <div className={styles.recipeMeta}>
-              <span className={styles.recipeCategory}>{recipe.category}</span>
-              {recipe.isExperimental && <span className={`${styles.badge} ${styles.experimental}`}><AlertCircle size={12} /> Experimental</span>}
-              {recipe.isFavorite && <span className={`${styles.badge} ${styles.favorite}`}><Star size={12} /> Favorita</span>}
-              {recipe.isArchived && <span className={`${styles.badge} ${styles.archived}`}><Archive size={12} /> Archivada</span>}
+              <span className={styles.recipeCategory}>{recipe?.category || 'General'}</span>
+              {recipe?.isFavorite && <span className={`${styles.badge} ${styles.favorite}`}><Star size={12} /> Favorita</span>}
+              {recipe?.isActive === false && <span className={`${styles.badge} ${styles.archived}`}><Archive size={12} /> Inactiva</span>}
               {saveError && <span className={`${styles.badge} ${styles.error}`}><AlertCircle size={12} /> {saveError}</span>}
             </div>
           </div>
@@ -60,7 +59,7 @@ export const BuilderHeader = memo(function BuilderHeader({
           </span>
           <ChevronRight size={14} className={styles.breadcrumbSeparator} />
           <span className={`${styles.breadcrumbItem} ${styles.active}`}>
-            {recipe.type === 'drink' ? '🍸' : '🍰'} {recipe.product?.name || 'Nueva Receta'}
+            {recipe?.type === 'drink' ? '🍸' : '🍰'} {recipe?.product?.name || 'Nueva Receta'}
           </span>
         </div>
       </div>

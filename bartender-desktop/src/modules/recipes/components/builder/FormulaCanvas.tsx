@@ -20,8 +20,8 @@ export function FormulaCanvas() {
     handleStepReorder,
   } = useRecipeWorkspace();
 
-  const ingredients = recipe.ingredients || [];
-  const steps = recipe.steps || [];
+  const ingredients = recipe?.ingredients || [];
+  const steps = recipe?.steps || [];
   const [activeSection, setActiveSection] = useState<'ingredients' | 'steps' | 'presentation'>('ingredients');
 
   const handleDrop = (e: any) => {
@@ -126,7 +126,7 @@ export function FormulaCanvas() {
 
         {activeSection === 'presentation' && (
           <div className={styles.canvasSection}>
-            <PresentationSection recipe={recipe} />
+            <PresentationSection recipe={recipe || null} />
           </div>
         )}
       </div>

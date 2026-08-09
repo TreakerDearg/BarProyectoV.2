@@ -28186,3 +28186,133 @@
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-05 17:08:46"}
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-05 17:16:37"}
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-05 17:16:37"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-08-06 15:43:49"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-06 15:44:06"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 15:44:07"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 15:44:07"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:23:15"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:23:15"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:27:18"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:27:18"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:28:39"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:28:39"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:29:16"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:29:16"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:29:49"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:29:49"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:43:56"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:43:56"}
+{"level":"info","message":"[Metrics] Resetting metrics store","previousMetrics":{"errors":{"byType":{},"recent":[],"total":0},"requests":{"byMethod":{},"byPath":{},"byStatus":{},"errorRate":"0%","failed":0,"successRate":"0%","successful":0,"total":0},"responseTime":{"avg":"0.00ms","max":"0.00ms","min":"Infinityms","p50":"0.00ms","p95":"0.00ms","p99":"0.00ms"},"system":{"memory":{"external":"21.80MB","heapTotal":"54.54MB","heapUsed":"51.79MB","rss":"46.39MB"},"uptime":"3640s"},"timestamp":"2026-08-06T19:44:07.583Z","uptime":3640.2814043,"users":{"active":0,"byRole":{},"unique":0}},"timestamp":"2026-08-06 16:44:12"}
+{"level":"info","message":"[Metrics] Resetting metrics store","previousMetrics":{"errors":{"byType":{},"recent":[],"total":0},"requests":{"byMethod":{},"byPath":{},"byStatus":{},"errorRate":"0%","failed":0,"successRate":"0%","successful":0,"total":0},"responseTime":{"avg":"0.00ms","max":"0.00ms","min":"Infinityms","p50":"0.00ms","p95":"0.00ms","p99":"0.00ms"},"system":{"memory":{"external":"21.80MB","heapTotal":"54.54MB","heapUsed":"51.83MB","rss":"47.21MB"},"uptime":"3649s"},"timestamp":"2026-08-06T19:44:16.985Z","uptime":3649.6831835,"users":{"active":0,"byRole":{},"unique":0}},"timestamp":"2026-08-06 16:44:17"}
+{"level":"info","message":"[Metrics] Resetting metrics store","previousMetrics":{"errors":{"byType":{},"recent":[],"total":0},"requests":{"byMethod":{},"byPath":{},"byStatus":{},"errorRate":"0%","failed":0,"successRate":"0%","successful":0,"total":0},"responseTime":{"avg":"0.00ms","max":"0.00ms","min":"Infinityms","p50":"0.00ms","p95":"0.00ms","p99":"0.00ms"},"system":{"memory":{"external":"21.80MB","heapTotal":"54.54MB","heapUsed":"51.86MB","rss":"47.23MB"},"uptime":"3650s"},"timestamp":"2026-08-06T19:44:17.717Z","uptime":3650.415254,"users":{"active":0,"byRole":{},"unique":0}},"timestamp":"2026-08-06 16:44:17"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:45:25"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:45:25"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:47:10"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:47:10"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-08-06 16:53:29"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-06 16:53:38"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-06 16:53:39"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-06 16:53:39"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-08-06 17:04:44"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:32:30"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:32:30"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:37:31"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:37:31"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:39:08"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:39:08"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:41:43"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:41:43"}
+{"level":"warn","message":"[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.","timestamp":"2026-08-09 15:51:49"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 15:52:56"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:53:07"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:53:07"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 15:57:07"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 15:57:07"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 15:57:30"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:57:31"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:57:31"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-08-09 15:58:19"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 15:58:30"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 15:58:31"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 15:58:32"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 15:58:32"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 16:00:05"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 16:00:05"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 16:00:05"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 16:00:05"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 16:00:06"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 16:00:28"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 16:00:29"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 16:00:29"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 16:00:44"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 16:00:45"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 16:00:46"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 16:00:46"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-09 16:52:40"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-09 16:53:15"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-09 16:53:16"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-09 16:53:16"}
+{"level":"info","message":"[Server] Señal SIGINT recibida. Cerrando servidor...","timestamp":"2026-08-09 16:53:29"}

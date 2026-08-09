@@ -56,35 +56,45 @@ const api = axios.create({
 ========================================================= */
 api.interceptors.request.use(
   (config) => {
-    const token = getAccessToken(); // Usar access token para peticiones API
+    try {
+      const token = getAccessToken(); // Usar access token para peticiones API
 
-    // Standardized & Custom headers injection to prevent 400 validation errors
-    if (!config.headers) {
-      config.headers = {} as any;
-    }
-    config.headers['Accept'] = 'application/json, text/plain, */*';
-    
-    // Only set Content-Type for non-multipart requests (FormData sets its own boundary)
-    if (!(config.data instanceof FormData)) {
-      config.headers['Content-Type'] = 'application/json';
-    }
-    
-    config.headers['X-Platform'] = 'desktop';
-    config.headers['X-Client-Version'] = '1.0.0';
+      // Standardized & Custom headers injection to prevent 400 validation errors
+      if (!config.headers) {
+        config.headers = {} as any;
+      }
+      config.headers['Accept'] = 'application/json, text/plain, */*';
+      
+      // Only set Content-Type for non-multipart requests (FormData sets its own boundary)
+      if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+      }
+      
+      config.headers['X-Platform'] = 'desktop';
+      config.headers['X-Client-Version'] = '1.0.0';
 
-    //  AUTH HEADER SAFE - Use access token
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+      //  AUTH HEADER SAFE - Use access token
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        console.warn('[API] No access token available for request:', config.url);
+      }
 
-    //  CLEAN PAYLOAD (only for JSON requests, not FormData)
-    if (config.data && !(config.data instanceof FormData)) {
-      config.data = normalizePayload(config.data);
-    }
+      //  CLEAN PAYLOAD (only for JSON requests, not FormData)
+      if (config.data && !(config.data instanceof FormData)) {
+        config.data = normalizePayload(config.data);
+      }
 
-    return config;
+      return config;
+    } catch (error) {
+      console.error('[API] Error in request interceptor:', error);
+      return config; // Return config even if token retrieval fails
+    }
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('[API] Request interceptor error:', error);
+    return Promise.reject(error);
+  }
 );
 
 /* =========================================================
@@ -145,6 +155,7 @@ api.interceptors.response.use(
         const refreshToken = getRefreshToken();
         
         if (!refreshToken) {
+          console.error('[API] No refresh token available, logging out');
           // No hay refresh token, limpiar todo
           removeTokens();
           delete api.defaults.headers.common.Authorization;
@@ -163,6 +174,7 @@ api.interceptors.response.use(
         const newRefreshToken = payload?.refreshToken || refreshToken;
 
         if (!token) {
+          console.error('[API] No access token received from refresh endpoint');
           throw new Error("No se obtuvo un nuevo token de acceso");
         }
 
@@ -179,6 +191,7 @@ api.interceptors.response.use(
         // Reintentar la petición original
         return api(originalRequest);
       } catch (refreshError) {
+        console.error('[API] Token refresh failed:', refreshError);
         // Error al renovar, limpiar todo
         removeTokens();
         delete api.defaults.headers.common.Authorization;
