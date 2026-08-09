@@ -14,6 +14,7 @@ interface LibraryTopBarProps {
   onNewRecipe?: () => void;
   onImport?: () => void;
   onExport?: () => void;
+  onNavigateToVariants?: () => void;
 }
 
 const quickFilters = [
@@ -43,6 +44,7 @@ export const LibraryTopBar = memo(function LibraryTopBar({
   onNewRecipe,
   onImport,
   onExport,
+  onNavigateToVariants,
 }: LibraryTopBarProps) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
@@ -101,6 +103,12 @@ export const LibraryTopBar = memo(function LibraryTopBar({
             <span className={styles.actionIcon}>📤</span>
             <span className={styles.actionLabel}>Exportar</span>
           </button>
+          {onNavigateToVariants && (
+            <button className={styles.actionBtn} onClick={onNavigateToVariants}>
+              <span className={styles.actionIcon}>🔀</span>
+              <span className={styles.actionLabel}>Variantes</span>
+            </button>
+          )}
         </div>
       </div>
 

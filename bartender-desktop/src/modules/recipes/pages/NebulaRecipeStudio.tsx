@@ -13,7 +13,7 @@ import { RecipeWarnings } from '../components/intelligence/RecipeWarnings';
 import { FormulaSuggestions } from '../components/intelligence/FormulaSuggestions';
 import { TechniqueCard } from '../components/builder/TechniqueCard';
 import { DecorationCard } from '../components/builder/DecorationCard';
-import { getDrinkProductsWithRecipes } from '../services';
+import { getDrinkProductsWithRecipes, getRecipes } from '../services';
 import { getInventory } from '../../inventory/services/inventoryService';
 import type { Recipe } from '../types';
 import styles from './NebulaRecipeStudio.module.css';
@@ -38,45 +38,15 @@ export default function NebulaRecipeStudio() {
       try {
         setLoading(true);
         
-        // Intentar cargar productos tipo drink con sus recetas y variantes
-        let productsWithRecipes;
-        try {
-          productsWithRecipes = await getDrinkProductsWithRecipes({ available: true });
-        } catch (endpointError) {
-          // Fallback: usar el endpoint regular de recetas si el nuevo endpoint no existe
-          console.warn('New endpoint not available, using fallback:', endpointError);
-          const { getRecipes } = await import('../services');
-          const allRecipes = await getRecipes();
-          
-          // Filtrar solo recetas tipo drink y disponibles
-          const drinkRecipes = allRecipes.filter((r: Recipe) => 
-            r.type === 'drink'
-          );
-          
-          setRecipes(drinkRecipes);
-          setInventoryItems([]);
-          setLoading(false);
-          return;
-        }
-        
-        // Extraer todas las recetas (primarias y variantes) de los productos
-        const allRecipes: Recipe[] = [];
-        productsWithRecipes.forEach((product: any) => {
-          if (product.primaryRecipe) {
-            allRecipes.push(product.primaryRecipe);
-          }
-          if (product.variants && Array.isArray(product.variants)) {
-            allRecipes.push(...product.variants);
-          }
-        });
-        
+        // Load all recipes directly for Recipe Library
+        const allRecipes = await getRecipes({ type: 'drink' });
         setRecipes(allRecipes);
         
-        // Cargar items del inventario para el Builder
+        // Load inventory items for Builder
         const inventory = await getInventory();
         setInventoryItems(inventory);
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('[NebulaRecipeStudio] Error loading data:', error);
         setRecipes([]);
         setInventoryItems([]);
       } finally {

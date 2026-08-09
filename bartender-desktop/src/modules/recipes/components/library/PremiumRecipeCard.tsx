@@ -33,6 +33,7 @@ export const PremiumRecipeCard = memo(function PremiumRecipeCard({
   const isFavorite = recipe.isFavorite || false;
   const isVariant = recipe.isPrimary === false;
   const variantName = recipe.variantName || '';
+  const isPrimary = recipe.isPrimary === true;
   
   const getHealthColor = (score: number): string => {
     if (score >= 80) return '#22c55e';
@@ -143,8 +144,9 @@ export const PremiumRecipeCard = memo(function PremiumRecipeCard({
           <div className={styles.imagePlaceholder}>{recipe.type === 'drink' ? '🍸' : '🍰'}</div>
         )}
         <div className={styles.imageOverlay}>
+          {isPrimary && <span className={styles.primaryBadge}>⭐ PRIMARIA</span>}
           {isVariant && <span className={styles.variantBadge}>🔄 {variantName}</span>}
-          {isFavorite && <span className={styles.favoriteBadge}>⭐</span>}
+          {isFavorite && <span className={styles.favoriteBadge}>❤</span>}
           <span className={styles.availabilityBadge} style={{ backgroundColor: availability.color }}>
             {availability.label}
           </span>

@@ -93,6 +93,18 @@ export const getProducts = async (): Promise<Product[]> => {
 };
 
 /* =========================
+   GET BEVERAGE PRODUCTS (for Variants)
+========================= */
+export const getBeverageProducts = async (params?: { category?: string }): Promise<Product[]> => {
+  const queryParams = new URLSearchParams();
+  if (params?.category) queryParams.append('category', params.category);
+  
+  const url = `/products/beverages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const { data } = await api.get(url);
+  return Array.isArray(data) ? data : [];
+};
+
+/* =========================
    CREATE
 ========================= */
 export const createProduct = async (

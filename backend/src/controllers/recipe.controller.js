@@ -457,9 +457,11 @@ export const getDrinkProductsWithRecipes = async (req, res, next) => {
       };
     });
 
-    // Return all products (with or without recipes) for Recipe Builder
-    // This allows users to select any product to create a new recipe
-    return ok(res, productsWithRecipes);
+    // Filter to only include products that have at least a primary recipe
+    // This endpoint's responsibility: products WITH recipes, not all products
+    const productsWithPrimaryRecipes = productsWithRecipes.filter(p => p.hasRecipe);
+
+    return ok(res, productsWithPrimaryRecipes);
   } catch (error) { throw error; }
 };
 
@@ -474,11 +476,65 @@ export const getDashboardStats = async (req, res, next) => {
     if (type) filter.type = type;
     if (category) filter.category = category;
 
+    // Get all recipes
     const recipes = await Recipe.find(filter)
-      .populate("product", "name price")
+      .populate("product", "name price type")
       .lean();
 
-    const dashboardData = await toRecipeDashboardDTO(recipes);
+    // Get all beverage products
+    const beverageProducts = await Product.find({ type: "drink" }).lean();
+    const beverageProductIds = beverageProducts.map(p => p._id);
+
+    // Calculate metrics
+    const totalRecipes = recipes.length;
+    const primaryRecipes = recipes.filter(r => r.isPrimary === true).length;
+    const variantRecipes = recipes.filter(r => r.isPrimary === false).length;
+    const drinkRecipes = recipes.filter(r => r.type === "drink").length;
+    const foodRecipes = recipes.filter(r => r.type === "food").length;
+
+    // Beverage metrics
+    const totalBeverages = beverageProducts.length;
+    const beveragesWithRecipe = beverageProducts.filter(p => p.recipeId).length;
+    const beveragesWithoutRecipe = totalBeverages - beveragesWithRecipe;
+
+    // Calculate coverage percentage
+    const coveragePercentage = totalBeverages > 0 
+      ? Number((beveragesWithRecipe / totalBeverages * 100).toFixed(1))
+      : 0;
+
+    // Calculate average cost and margin
+    const recipesWithCost = recipes.filter(r => r.totalCost && r.totalCost > 0);
+    const avgCost = recipesWithCost.length > 0
+      ? Number((recipesWithCost.reduce((sum, r) => sum + r.totalCost, 0) / recipesWithCost.length).toFixed(2))
+      : 0;
+
+    const recipesWithMargin = recipes.filter(r => r.product?.price && r.totalCost);
+    const avgMargin = recipesWithMargin.length > 0
+      ? Number((recipesWithMargin.reduce((sum, r) => sum + calculateMargin(r.product.price, r.totalCost), 0) / recipesWithMargin.length).toFixed(2))
+      : 0;
+
+    // Category counts
+    const categoryCounts = recipes.reduce((acc, r) => {
+      acc[r.category] = (acc[r.category] || 0) + 1;
+      return acc;
+    }, {});
+
+    const dashboardData = {
+      stats: {
+        totalRecipes,
+        primaryRecipes,
+        variantRecipes,
+        drinkRecipes,
+        foodRecipes,
+        avgCost,
+        avgMargin,
+        categoryCounts,
+        totalBeverages,
+        beveragesWithRecipe,
+        beveragesWithoutRecipe,
+        coveragePercentage
+      }
+    };
 
     return ok(res, dashboardData);
   } catch (error) { throw error; }
@@ -707,6 +763,94 @@ export const getRecipeTimeline = async (req, res, next) => {
     }
 
     return ok(res, timeline.sort((a, b) => new Date(b.date) - new Date(a.date)));
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   CREATE VARIANT FROM RECIPE
+========================================================= */
+export const createRecipeVariant = async (req, res, next) => {
+  try {
+    const { id: parentRecipeId } = req.params;
+    const { productId, variantName } = req.body;
+
+    // Validate IDs
+    if (!isValidId(parentRecipeId)) return badRequest(res, "ID de receta padre inválido");
+    if (!isValidId(productId)) return badRequest(res, "ID de producto inválido");
+
+    // Validate parent recipe exists
+    const parentRecipe = await Recipe.findById(parentRecipeId).lean();
+    if (!parentRecipe) return notFound(res, "Receta padre no encontrada");
+
+    // Validate product exists and is a beverage
+    const product = await Product.findById(productId).lean();
+    if (!product) return notFound(res, "Producto no encontrado");
+    if (product.type !== "drink") {
+      return badRequest(res, "Solo se pueden crear variantes para productos tipo bebida");
+    }
+
+    // Check for duplicate variant (same parent + product + variantName)
+    const existingVariant = await Recipe.findOne({
+      parentId: parentRecipeId,
+      product: productId,
+      variantName: variantName || ''
+    }).lean();
+
+    if (existingVariant) {
+      return badRequest(res, "Ya existe una variante con esta combinación");
+    }
+
+    // Copy ingredients from parent recipe
+    const ingredients = parentRecipe.ingredients.map(ing => ({
+      inventoryItem: ing.inventoryItem,
+      quantity: ing.quantity,
+      unit: ing.unit,
+      order: ing.order,
+      baseUnitMultiplier: ing.baseUnitMultiplier
+    }));
+
+    // Copy steps from parent recipe
+    const steps = parentRecipe.steps.map(step => ({
+      stepNumber: step.stepNumber,
+      instruction: step.instruction,
+      technique: step.technique,
+      time: step.time,
+      temperature: step.temperature
+    }));
+
+    // Create variant recipe
+    const variantRecipe = new Recipe({
+      product: productId,
+      parentId: parentRecipeId,
+      isPrimary: false,
+      variantName: variantName || `${product.name} - Variante`,
+      type: parentRecipe.type,
+      category: parentRecipe.category,
+      drinkStyle: parentRecipe.drinkStyle,
+      ingredients,
+      steps,
+      method: parentRecipe.method,
+      technique: parentRecipe.technique,
+      image: parentRecipe.image,
+      imagePublicId: parentRecipe.imagePublicId,
+      specifications: parentRecipe.specifications,
+      totalCost: parentRecipe.totalCost,
+      isActive: true
+    });
+
+    await variantRecipe.save();
+
+    // Update product's recipeId if it doesn't have one
+    if (!product.recipeId) {
+      await Product.findByIdAndUpdate(productId, { recipeId: variantRecipe._id });
+    }
+
+    // Populate and return
+    const populatedVariant = await populateRecipe(
+      Recipe.findById(variantRecipe._id)
+    ).lean();
+
+    return ok(res, populatedVariant, "Variante creada exitosamente");
   } catch (error) { throw error; }
 };
 

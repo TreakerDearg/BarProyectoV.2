@@ -16,14 +16,15 @@ interface RecipeLibraryProps {
   recipes: Recipe[];
   onRecipeSelect?: (recipe: Recipe) => void;
   onRecipeEdit?: (recipe: Recipe) => void;
-  hideNavigator?: boolean; // Prop para ocultar el sidebar interno cuando se usa navegación compartida
-}
+  hideNavigator?: boolean;
+  onNavigate?: (mode: string) => void;
+} // Prop para ocultar el sidebar interno cuando se usa navegación compartida
 
 /**
  * RecipeLibrary - Componente principal de biblioteca profesional
  * Rediseñado estilo Steam/Spotify con visual premium
  */
-export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSelect, onRecipeEdit, hideNavigator = false }: RecipeLibraryProps) {
+export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSelect, onRecipeEdit, hideNavigator = false, onNavigate }: RecipeLibraryProps) {
   const [activeSection, setActiveSection] = useState('library');
   const [selectedCollection, setSelectedCollection] = useState<string | undefined>();
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
@@ -82,7 +83,6 @@ export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSele
 
     switch (activeSection) {
       case 'library':
-      case 'all':
         return (
           <div className={styles.libraryContent}>
             <LibraryTopBar
@@ -95,22 +95,20 @@ export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSele
               onNewRecipe={handleNewRecipe}
               onImport={handleImport}
               onExport={handleExport}
+              onNavigateToVariants={() => onNavigate?.('variants')}
             />
-            
-            {filteredRecipes.length > 0 && (
-              <div className={`${styles.recipeGrid} ${styles[viewMode]}`}>
-                {filteredRecipes.map((recipe, index) => (
-                  <PremiumRecipeCard
-                    key={recipe._id}
-                    recipe={recipe}
-                    onSelect={() => handleRecipeSelect(recipe)}
-                    onEdit={() => onRecipeEdit?.(recipe)}
-                    onPreview={() => setSelectedRecipe(recipe)}
-                    isHero={index === 0 && viewMode === 'gallery'}
-                  />
-                ))}
-              </div>
-            )}
+            <div className={`${styles.recipeGrid} ${styles[viewMode]}`}>
+              {filteredRecipes.map((recipe, index) => (
+                <PremiumRecipeCard
+                  key={recipe._id}
+                  recipe={recipe}
+                  onSelect={() => handleRecipeSelect(recipe)}
+                  onEdit={() => onRecipeEdit?.(recipe)}
+                  onPreview={() => setSelectedRecipe(recipe)}
+                  isHero={index === 0 && viewMode === 'gallery'}
+                />
+              ))}
+            </div>
             
             {filteredRecipes.length === 0 && (
               <div className={styles.noResults}>

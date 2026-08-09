@@ -85,6 +85,18 @@
   z-index: 2;
 }
 
+.primaryBadge {
+  background: rgba(16, 185, 129, 0.9);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  z-index: 2;
+}
+
 .availabilityBadge {
   padding: 4px 12px;
   border-radius: 20px;

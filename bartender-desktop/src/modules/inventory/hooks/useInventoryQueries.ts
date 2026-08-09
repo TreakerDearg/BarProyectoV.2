@@ -19,16 +19,17 @@ export const inventoryKeys = {
 /* =========================================================
    GET ALL INVENTORY
 ========================================================= */
-export function useInventory(options?: UseQueryOptions<InventoryItem[]>) {
+export const useInventory = () => {
   return useQuery({
-    queryKey: inventoryKeys.list(),
+    queryKey: ['inventory'],
     queryFn: async () => {
-      const { data } = await api.get('/inventory');
-      return data || [];
+      console.log('[useInventory] Fetching inventory...');
+      const data = await getInventory();
+      console.log('[useInventory] Inventory received:', data?.length);
+      return data;
     },
-    ...options,
   });
-}
+};
 
 /* =========================================================
    GET ONE INVENTORY ITEM

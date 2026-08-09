@@ -386,30 +386,42 @@ export const getProductStats = async (req, res, next) => {
 ========================================================= */
 export const getProductsWithRecipes = async (req, res, next) => {
   try {
-    const { type, category, available } = req.query;
+    const { category, available } = req.query;
 
     const filter = {};
-    if (type) filter.type = type;
     if (category) filter.category = category;
     if (available !== undefined) filter.available = available === "true";
 
-    const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
-
-    const productIds = products.map(p => p._id);
-    const recipes = await Recipe.find({ product: { $in: productIds } })
-      .populate("ingredients.inventoryItem", "name unit stock cost")
+    const products = await Product.find(filter)
+      .populate({
+        path: 'recipeId',
+        populate: [
+          { path: 'ingredients.inventoryItem' },
+          { path: 'product' }
+        ]
+      })
+      .sort({ name: 1 })
       .lean();
 
-    const recipeMap = Object.fromEntries(
-      recipes.map(r => [r.product.toString(), r])
-    );
+    return ok(res, products);
+  } catch (error) { throw error; }
+};
 
-    const productsWithRecipes = products.map(p => ({
-      ...p,
-      recipe: recipeMap[p._id.toString()] || null
-    }));
+/* =========================================================
+   GET BEVERAGE PRODUCTS (for Variants)
+========================================================= */
+export const getBeverageProducts = async (req, res, next) => {
+  try {
+    const { category } = req.query;
 
-    return ok(res, productsWithRecipes);
+    const filter = { type: "drink" };
+    if (category) filter.category = category;
+
+    console.log('[getBeverageProducts] Filter:', filter);
+    const products = await Product.find(filter).sort({ name: 1 }).lean();
+    console.log('[getBeverageProducts] Products found:', products.length);
+
+    return ok(res, products);
   } catch (error) { throw error; }
 };
 

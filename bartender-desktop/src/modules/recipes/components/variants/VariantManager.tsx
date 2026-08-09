@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Recipe, RecipeVariant, RecipeTree } from '../../types';
 import { useRecipeVariants, useRecipeInheritance, useRecipeCost, useRecipeHealthScore } from '../../hooks';
-import { GitBranch, GitMerge, Plus, GitCompare, ChevronRight, ChevronDown, Star, Clock, DollarSign, Activity, AlertTriangle, TrendingUp, BarChart3 } from 'lucide-react';
+import { GitBranch, GitMerge, Plus, GitCompare, ChevronRight, ChevronDown, Star, Clock, DollarSign, Activity, AlertTriangle, TrendingUp, BarChart3, Package, CheckCircle, XCircle, X } from 'lucide-react';
 import { DiffViewer, DiffBadge, type DiffItem, type DiffType } from './DiffViewer';
 import { VariantTimeline, type TimelineEvent } from './VariantTimeline';
 import { VariantCard } from './VariantCard';
 import { NewVariantWizard } from './NewVariantWizard';
 import { VariantAnalytics } from './VariantAnalytics';
+import { getBeverageProducts } from '../../../products/services/productService';
+import { getRecipes, createRecipeVariant } from '../../services/recipeService';
 import styles from './VariantManager.module.css';
 
 interface VariantManagerProps {
@@ -16,6 +18,9 @@ interface VariantManagerProps {
   onCreateVariant?: (variant: Partial<Recipe>) => void;
   onCompare?: (recipeA: Recipe, recipeB: Recipe) => void;
 }
+
+type ProductView = 'products' | 'variants';
+type ProductFilter = 'all' | 'with-recipe' | 'without-recipe';
 
 type InspectorTab = 'overview' | 'inheritance' | 'health' | 'costs' | 'relations' | 'versions' | 'warnings' | 'analytics';
 
@@ -41,9 +46,77 @@ export function VariantManager({
   const [compareVariant, setCompareVariant] = useState<Recipe | null>(null);
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>('overview');
   const [showWizard, setShowWizard] = useState(false);
+  
+  // New state for beverage products view
+  const [productView, setProductView] = useState<ProductView>('products');
+  const [productFilter, setProductFilter] = useState<ProductFilter>('all');
+  const [beverageProducts, setBeverageProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [showRecipeSelector, setShowRecipeSelector] = useState(false);
+  const [availableRecipes, setAvailableRecipes] = useState<Recipe[]>([]);
+  const [recipesLoading, setRecipesLoading] = useState(false);
+  const [recipeSearchQuery, setRecipeSearchQuery] = useState('');
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const masterRecipe = recipeTree?.master;
   const variants = recipeTree?.variants || [];
+
+  // Load all beverage products
+  useEffect(() => {
+    const loadBeverageProducts = async () => {
+      setProductsLoading(true);
+      setProductsError(null);
+      try {
+        const products = await getBeverageProducts();
+        setBeverageProducts(products || []);
+      } catch (error) {
+        console.error('[VariantManager] Error loading beverage products:', error);
+        setProductsError('Error al cargar productos bebida');
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+    loadBeverageProducts();
+  }, []);
+
+  // Load available recipes when selector opens
+  useEffect(() => {
+    const loadRecipes = async () => {
+      if (!showRecipeSelector) return;
+      setRecipesLoading(true);
+      try {
+        const recipes = await getRecipes({ type: 'drink' });
+        setAvailableRecipes(recipes || []);
+      } catch (error) {
+        console.error('[VariantManager] Error loading recipes:', error);
+      } finally {
+        setRecipesLoading(false);
+      }
+    };
+    loadRecipes();
+  }, [showRecipeSelector]);
+
+  // Filter products based on recipe assignment
+  const filteredProducts = useMemo(() => {
+    return beverageProducts.filter((product: any) => {
+      const hasRecipe = !!product.recipeId;
+      if (productFilter === 'with-recipe') return hasRecipe;
+      if (productFilter === 'without-recipe') return !hasRecipe;
+      return true; // 'all'
+    });
+  }, [beverageProducts, productFilter]);
+
+  // Filter recipes by search query
+  const filteredRecipes = useMemo(() => {
+    if (!recipeSearchQuery) return availableRecipes;
+    const query = recipeSearchQuery.toLowerCase();
+    return availableRecipes.filter(recipe => 
+      recipe.product?.name?.toLowerCase().includes(query) ||
+      recipe.category?.toLowerCase().includes(query)
+    );
+  }, [availableRecipes, recipeSearchQuery]);
 
   const handleNodeToggle = (nodeId: string) => {
     setExpandedNodes((prev) => {
@@ -66,6 +139,40 @@ export function VariantManager({
     setCompareVariant(variant);
     setCompareMode(true);
     onCompare?.(masterRecipe || recipes[0], variant);
+  };
+
+  const handleProductSelect = (product: any) => {
+    setSelectedProduct(product);
+    if (!product.recipeId) {
+      // Product without recipe - show recipe selector
+      setShowRecipeSelector(true);
+    } else {
+      // Product with recipe - could show variant creation option
+      // For now, just select it
+    }
+  };
+
+  const handleRecipeSelect = async (recipe: Recipe) => {
+    if (!selectedProduct) {
+      console.error('[VariantManager] No product selected');
+      return;
+    }
+
+    try {
+      const variant = await createRecipeVariant(recipe._id, {
+        productId: selectedProduct._id,
+        variantName: `${selectedProduct.name} - Variante`
+      });
+      
+      // Refresh beverage products to update recipe status
+      const products = await getBeverageProducts();
+      setBeverageProducts(products || []);
+      
+      setShowRecipeSelector(false);
+      setSelectedRecipe(null);
+    } catch (error) {
+      console.error('[VariantManager] Error creating variant:', error);
+    }
   };
 
   const inheritedData = useMemo(() => {
@@ -115,6 +222,13 @@ export function VariantManager({
           </div>
         </div>
         <div className={styles.headerActions}>
+          <button 
+            className={styles.actionButton} 
+            onClick={() => setProductView(productView === 'products' ? 'variants' : 'products')}
+          >
+            <Package className={styles.buttonIcon} />
+            {productView === 'products' ? 'View Variants' : 'View Products'}
+          </button>
           <button className={styles.actionButton} onClick={() => setShowWizard(true)}>
             <Plus className={styles.buttonIcon} />
             New Variant
@@ -134,30 +248,148 @@ export function VariantManager({
         </div>
       </header>
 
+      {/* Recipe Selector Modal */}
+      {showRecipeSelector && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>Seleccionar Receta</h2>
+              <button className={styles.closeButton} onClick={() => setShowRecipeSelector(false)}>
+                <X className={styles.closeIcon} />
+              </button>
+            </div>
+            <div className={styles.modalSearch}>
+              <input
+                type="text"
+                placeholder="Buscar receta..."
+                value={recipeSearchQuery}
+                onChange={(e) => setRecipeSearchQuery(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
+            <div className={styles.modalRecipesList}>
+              {recipesLoading ? (
+                <div className={styles.loadingState}>Cargando recetas...</div>
+              ) : filteredRecipes.length === 0 ? (
+                <div className={styles.emptyState}>No se encontraron recetas</div>
+              ) : (
+                filteredRecipes.map((recipe) => (
+                  <div
+                    key={recipe._id}
+                    className={`${styles.recipeItem} ${selectedRecipe?._id === recipe._id ? styles.selected : ''}`}
+                    onClick={() => handleRecipeSelect(recipe)}
+                  >
+                    <div className={styles.recipeItemInfo}>
+                      <div className={styles.recipeItemName}>{recipe.product?.name}</div>
+                      <div className={styles.recipeItemMeta}>
+                        <span className={styles.recipeItemCategory}>{recipe.category}</span>
+                        {recipe.isPrimary && <span className={styles.primaryBadge}>PRIMARIA</span>}
+                        {!recipe.isPrimary && <span className={styles.variantBadge}>VARIANTE</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Layout */}
       <div className={styles.mainLayout}>
+        {/* Products View */}
+        {productView === 'products' && (
+          <aside className={styles.variantTree}>
+            <div className={styles.treeHeader}>
+              <h2>Beverage Products</h2>
+              <div className={styles.filterButtons}>
+                <button 
+                  className={`${styles.filterButton} ${productFilter === 'all' ? styles.active : ''}`}
+                  onClick={() => setProductFilter('all')}
+                >
+                  All ({beverageProducts.length})
+                </button>
+                <button 
+                  className={`${styles.filterButton} ${productFilter === 'with-recipe' ? styles.active : ''}`}
+                  onClick={() => setProductFilter('with-recipe')}
+                >
+                  With Recipe
+                </button>
+                <button 
+                  className={`${styles.filterButton} ${productFilter === 'without-recipe' ? styles.active : ''}`}
+                  onClick={() => setProductFilter('without-recipe')}
+                >
+                  Without Recipe
+                </button>
+              </div>
+            </div>
+            <div className={styles.treeContent}>
+              {productsLoading ? (
+                <div className={styles.loadingState}>Loading beverages...</div>
+              ) : productsError ? (
+                <div className={styles.errorState}>{productsError}</div>
+              ) : filteredProducts.length === 0 ? (
+                <div className={styles.emptyState}>No beverages found</div>
+              ) : (
+                filteredProducts.map((product: any) => (
+                  <div 
+                    key={product._id}
+                    className={`${styles.productItem} ${selectedProduct?._id === product._id ? styles.selected : ''}`}
+                    onClick={() => handleProductSelect(product)}
+                  >
+                    <div className={styles.productInfo}>
+                      <div className={styles.productName}>{product.name}</div>
+                      <div className={styles.productMeta}>
+                        <span className={styles.productCategory}>{product.category}</span>
+                        {product.recipeId ? (
+                          <span className={styles.recipeStatus withRecipe}>
+                            <CheckCircle className={styles.statusIcon} />
+                            Has Recipe
+                          </span>
+                        ) : (
+                          <span className={styles.recipeStatus withoutRecipe}>
+                            <XCircle className={styles.statusIcon} />
+                            No Recipe
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {!product.recipeId && (
+                      <button className={styles.assignButton}>
+                        Assign Recipe
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+        )}
+
         {/* Variant Tree */}
-        <aside className={styles.variantTree}>
-          <div className={styles.treeHeader}>
-            <h2>Variant Tree</h2>
-          </div>
-          <div className={styles.treeContent}>
-            {masterRecipe && (
-              <VariantTreeNode
-                recipe={masterRecipe}
-                variants={variants}
-                variantsByMaster={variantsByMaster}
-                expandedNodes={expandedNodes}
-                onToggle={handleNodeToggle}
-                onSelect={handleVariantSelect}
-                onCompare={handleCompare}
-                selectedId={selectedVariant?._id}
-                depth={0}
-                isMaster
-              />
-            )}
-          </div>
-        </aside>
+        {productView === 'variants' && (
+          <aside className={styles.variantTree}>
+            <div className={styles.treeHeader}>
+              <h2>Variant Tree</h2>
+            </div>
+            <div className={styles.treeContent}>
+              {masterRecipe && (
+                <VariantTreeNode
+                  recipe={masterRecipe}
+                  variants={variants}
+                  variantsByMaster={variantsByMaster}
+                  expandedNodes={expandedNodes}
+                  onToggle={handleNodeToggle}
+                  onSelect={handleVariantSelect}
+                  onCompare={handleCompare}
+                  selectedId={selectedVariant?._id}
+                  depth={0}
+                  isMaster
+                />
+              )}
+            </div>
+          </aside>
+        )}
 
         {/* Variant Workspace */}
         <main className={styles.variantWorkspace}>

@@ -67,13 +67,16 @@ export const BuilderExplorer = memo(function BuilderExplorer() {
   useEffect(() => {
     if (activeTab === 'products') {
       const loadProducts = async () => {
+        console.log('[BuilderExplorer] Loading products...');
         setProductsLoading(true);
         setProductsError(null);
         try {
           const productsData = await getDrinkProductsWithRecipes({ available: true });
+          console.log('[BuilderExplorer] Products received:', productsData?.length);
+          console.log('[BuilderExplorer] Products data:', productsData);
           setProducts(productsData || []);
         } catch (error) {
-          console.error('Error loading products:', error);
+          console.error('[BuilderExplorer] Error loading products:', error);
           setProductsError('Error al cargar productos');
         } finally {
           setProductsLoading(false);
@@ -88,15 +91,21 @@ export const BuilderExplorer = memo(function BuilderExplorer() {
   // const { data: decorations } = useDecorations();
   // const { data: collections } = useCollections();
 
-  const filteredItems = items.filter((item: any) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = items.filter((item: any) => {
+    console.log('[BuilderExplorer] Filtering inventory item:', item.name, 'isActive:', item.isActive);
+    return item.isActive !== false && (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
-  const filteredProducts = products.filter((product: Product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((product: Product) => {
+    console.log('[BuilderExplorer] Filtering product:', product.name, 'type:', product.type);
+    return product.type === 'drink' && (
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   const handleProductSelect = (product: Product) => {
     setSelectedItem(product._id);

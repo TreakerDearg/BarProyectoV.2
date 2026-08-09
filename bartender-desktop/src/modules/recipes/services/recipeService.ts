@@ -182,3 +182,29 @@ export const getDrinkProductsWithRecipes = async (params?: { category?: string; 
   const { data } = await api.get(url);
   return data;
 };
+
+/* =========================
+   GET ALL RECIPES (for Recipe Library)
+========================= */
+export const getRecipes = async (params?: { type?: string; category?: string }): Promise<Recipe[]> => {
+  const queryParams = new URLSearchParams();
+  if (params?.type) queryParams.append('type', params.type);
+  if (params?.category) queryParams.append('category', params.category);
+  
+  const url = `/recipes${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const { data } = await api.get(url);
+  return Array.isArray(data) ? data : [];
+};
+
+/* =========================
+   CREATE VARIANT FROM RECIPE
+========================= */
+export const createRecipeVariant = async (parentRecipeId: string, payload: { productId: string; variantName?: string }): Promise<Recipe> => {
+  try {
+    const { data } = await api.post(`/recipes/${parentRecipeId}/variants`, payload);
+    return data;
+  } catch (error: any) {
+    console.error("CREATE_VARIANT_ERROR:", error?.response?.data || error.message);
+    throw error;
+  }
+};

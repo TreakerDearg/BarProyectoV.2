@@ -4,7 +4,8 @@ import {
   getRecipeProtocol, getRecipesByProduct, checkRecipeAvailability,
   getRecipesWithVariants, getDrinkProductsWithRecipes,
   getDashboardStats, getDashboardRecent, getDashboardWarnings,
-  getDashboardSuggestions, getRecipeAnalytics, getRecipeTimeline
+  getDashboardSuggestions, getRecipeAnalytics, getRecipeTimeline,
+  createRecipeVariant
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { uploadSingle } from "../middlewares/upload.js";
@@ -42,6 +43,11 @@ router.get("/:id/protocol", getRecipeProtocol);
 router.get("/:id/availability", checkRecipeAvailability);
 router.get("/:id/timeline", getRecipeTimeline);
 router.get("/:id", getRecipe);
+
+/* =========================================================
+   VARIANT OPERATIONS
+========================================================= */
+router.post("/:id/variants", ...adminOnly, createRecipeVariant);
 
 /* =========================================================
    ADMIN CRUD
