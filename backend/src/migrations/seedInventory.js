@@ -7,13 +7,11 @@ import InventoryItem from "../models/InventoryItem.js";
 
 const seedInventory = async () => {
   try {
-    console.log("[Seed] Connecting to database...");
     await connectDB();
     
     // Check if inventory items already exist
     const existingItems = await InventoryItem.countDocuments();
     if (existingItems > 0) {
-      console.log(`[Seed] ℹ️  Inventory items already exist (${existingItems} found)`);
       process.exit(0);
     }
     
@@ -152,11 +150,9 @@ const seedInventory = async () => {
     ];
     
     await InventoryItem.insertMany(inventoryData);
-    console.log(`[Seed] ✅ Created ${inventoryData.length} inventory items`);
     
     process.exit(0);
   } catch (error) {
-    console.error("[Seed] ❌ Error creating inventory items:", error);
     process.exit(1);
   }
 };

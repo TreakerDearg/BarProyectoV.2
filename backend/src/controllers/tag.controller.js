@@ -1,4 +1,5 @@
 import Tag from "../models/Tag.js";
+import { logger } from "../config/logger.js";
 
 /* =========================
    GET ALL TAGS
@@ -19,7 +20,7 @@ export const getTags = async (req, res) => {
       total: tags.length,
     });
   } catch (error) {
-    console.error("[Tag] Error fetching tags:", error);
+    logger.error("[Tag] Error fetching tags:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar etiquetas",
@@ -49,7 +50,7 @@ export const getTag = async (req, res) => {
       data: tag,
     });
   } catch (error) {
-    console.error("[Tag] Error fetching tag:", error);
+    logger.error("[Tag] Error fetching tag:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar etiqueta",
@@ -85,7 +86,7 @@ export const createTag = async (req, res) => {
       message: "Etiqueta creada exitosamente",
     });
   } catch (error) {
-    console.error("[Tag] Error creating tag:", error);
+    logger.error("[Tag] Error creating tag:", error);
     res.status(500).json({
       success: false,
       message: "Error al crear etiqueta",
@@ -125,7 +126,7 @@ export const updateTag = async (req, res) => {
       message: "Etiqueta actualizada exitosamente",
     });
   } catch (error) {
-    console.error("[Tag] Error updating tag:", error);
+    logger.error("[Tag] Error updating tag:", error);
     res.status(500).json({
       success: false,
       message: "Error al actualizar etiqueta",
@@ -157,7 +158,7 @@ export const deleteTag = async (req, res) => {
       message: "Etiqueta eliminada exitosamente",
     });
   } catch (error) {
-    console.error("[Tag] Error deleting tag:", error);
+    logger.error("[Tag] Error deleting tag:", error);
     res.status(500).json({
       success: false,
       message: "Error al eliminar etiqueta",

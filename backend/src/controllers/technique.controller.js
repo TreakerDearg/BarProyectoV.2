@@ -1,4 +1,5 @@
 import Technique from "../models/Technique.js";
+import { logger } from "../config/logger.js";
 
 /* =========================
    GET ALL TECHNIQUES
@@ -20,7 +21,7 @@ export const getTechniques = async (req, res) => {
       total: techniques.length,
     });
   } catch (error) {
-    console.error("[Technique] Error fetching techniques:", error);
+    logger.error("[Technique] Error fetching techniques:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar técnicas",
@@ -50,7 +51,7 @@ export const getTechnique = async (req, res) => {
       data: technique,
     });
   } catch (error) {
-    console.error("[Technique] Error fetching technique:", error);
+    logger.error("[Technique] Error fetching technique:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar técnica",
@@ -91,7 +92,7 @@ export const createTechnique = async (req, res) => {
       message: "Técnica creada exitosamente",
     });
   } catch (error) {
-    console.error("[Technique] Error creating technique:", error);
+    logger.error("[Technique] Error creating technique:", error);
     res.status(500).json({
       success: false,
       message: "Error al crear técnica",
@@ -136,7 +137,7 @@ export const updateTechnique = async (req, res) => {
       message: "Técnica actualizada exitosamente",
     });
   } catch (error) {
-    console.error("[Technique] Error updating technique:", error);
+    logger.error("[Technique] Error updating technique:", error);
     res.status(500).json({
       success: false,
       message: "Error al actualizar técnica",
@@ -168,7 +169,7 @@ export const deleteTechnique = async (req, res) => {
       message: "Técnica eliminada exitosamente",
     });
   } catch (error) {
-    console.error("[Technique] Error deleting technique:", error);
+    logger.error("[Technique] Error deleting technique:", error);
     res.status(500).json({
       success: false,
       message: "Error al eliminar técnica",

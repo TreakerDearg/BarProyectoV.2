@@ -1,4 +1,5 @@
 import Decoration from "../models/Decoration.js";
+import { logger } from "../config/logger.js";
 
 /* =========================
    GET ALL DECORATIONS
@@ -20,7 +21,7 @@ export const getDecorations = async (req, res) => {
       total: decorations.length,
     });
   } catch (error) {
-    console.error("[Decoration] Error fetching decorations:", error);
+    logger.error("[Decoration] Error fetching decorations:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar decoraciones",
@@ -50,7 +51,7 @@ export const getDecoration = async (req, res) => {
       data: decoration,
     });
   } catch (error) {
-    console.error("[Decoration] Error fetching decoration:", error);
+    logger.error("[Decoration] Error fetching decoration:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar decoración",
@@ -91,7 +92,7 @@ export const createDecoration = async (req, res) => {
       message: "Decoración creada exitosamente",
     });
   } catch (error) {
-    console.error("[Decoration] Error creating decoration:", error);
+    logger.error("[Decoration] Error creating decoration:", error);
     res.status(500).json({
       success: false,
       message: "Error al crear decoración",
@@ -136,7 +137,7 @@ export const updateDecoration = async (req, res) => {
       message: "Decoración actualizada exitosamente",
     });
   } catch (error) {
-    console.error("[Decoration] Error updating decoration:", error);
+    logger.error("[Decoration] Error updating decoration:", error);
     res.status(500).json({
       success: false,
       message: "Error al actualizar decoración",
@@ -168,7 +169,7 @@ export const deleteDecoration = async (req, res) => {
       message: "Decoración eliminada exitosamente",
     });
   } catch (error) {
-    console.error("[Decoration] Error deleting decoration:", error);
+    logger.error("[Decoration] Error deleting decoration:", error);
     res.status(500).json({
       success: false,
       message: "Error al eliminar decoración",

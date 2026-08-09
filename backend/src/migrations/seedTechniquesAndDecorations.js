@@ -188,29 +188,18 @@ const decorationsData = [
 ========================= */
 export const seedTechniquesAndDecorations = async () => {
   try {
-    console.log("[Seed] Starting techniques and decorations seed...");
-
     // Check if techniques already exist
     const existingTechniques = await Technique.countDocuments();
     if (existingTechniques === 0) {
       await Technique.insertMany(techniquesData);
-      console.log(`[Seed] ✅ Created ${techniquesData.length} techniques`);
-    } else {
-      console.log(`[Seed] ℹ️  Techniques already exist (${existingTechniques} found)`);
     }
 
     // Check if decorations already exist
     const existingDecorations = await Decoration.countDocuments();
     if (existingDecorations === 0) {
       await Decoration.insertMany(decorationsData);
-      console.log(`[Seed] ✅ Created ${decorationsData.length} decorations`);
-    } else {
-      console.log(`[Seed] ℹ️  Decorations already exist (${existingDecorations} found)`);
     }
-
-    console.log("[Seed] Techniques and decorations seed completed");
   } catch (error) {
-    console.error("[Seed] Error seeding techniques and decorations:", error);
     throw error;
   }
 };

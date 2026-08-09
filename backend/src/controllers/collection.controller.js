@@ -1,4 +1,5 @@
 import Collection from "../models/Collection.js";
+import { logger } from "../config/logger.js";
 
 /* =========================
    GET ALL COLLECTIONS
@@ -19,7 +20,7 @@ export const getCollections = async (req, res) => {
       total: collections.length,
     });
   } catch (error) {
-    console.error("[Collection] Error fetching collections:", error);
+    logger.error("[Collection] Error fetching collections:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar colecciones",
@@ -49,7 +50,7 @@ export const getCollection = async (req, res) => {
       data: collection,
     });
   } catch (error) {
-    console.error("[Collection] Error fetching collection:", error);
+    logger.error("[Collection] Error fetching collection:", error);
     res.status(500).json({
       success: false,
       message: "Error al cargar colección",
@@ -88,7 +89,7 @@ export const createCollection = async (req, res) => {
       message: "Colección creada exitosamente",
     });
   } catch (error) {
-    console.error("[Collection] Error creating collection:", error);
+    logger.error("[Collection] Error creating collection:", error);
     res.status(500).json({
       success: false,
       message: "Error al crear colección",
@@ -131,7 +132,7 @@ export const updateCollection = async (req, res) => {
       message: "Colección actualizada exitosamente",
     });
   } catch (error) {
-    console.error("[Collection] Error updating collection:", error);
+    logger.error("[Collection] Error updating collection:", error);
     res.status(500).json({
       success: false,
       message: "Error al actualizar colección",
@@ -170,7 +171,7 @@ export const deleteCollection = async (req, res) => {
       message: "Colección eliminada exitosamente",
     });
   } catch (error) {
-    console.error("[Collection] Error deleting collection:", error);
+    logger.error("[Collection] Error deleting collection:", error);
     res.status(500).json({
       success: false,
       message: "Error al eliminar colección",

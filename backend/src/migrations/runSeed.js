@@ -11,17 +11,13 @@ import { seedCollectionsAndTags } from "./seedCollectionsAndTags.js";
 ========================= */
 const runSeed = async () => {
   try {
-    console.log("[Seed] Connecting to database...");
     await connectDB();
     
-    console.log("[Seed] Running seeds...");
     await seedTechniquesAndDecorations();
     await seedCollectionsAndTags();
     
-    console.log("[Seed] ✅ All seeds completed successfully");
     process.exit(0);
   } catch (error) {
-    console.error("[Seed] ❌ Error running seed:", error);
     process.exit(1);
   }
 };

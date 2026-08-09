@@ -77,14 +77,6 @@ const normalizeRecipe = (r: Recipe) => ({
 });
 
 /* =========================
-   GET ALL
-========================= */
-export const getRecipes = async (): Promise<Recipe[]> => {
-  const { data } = await api.get("/recipes");
-  return data || [];
-};
-
-/* =========================
    GET ONE
 ========================= */
 export const getRecipe = async (id: string): Promise<Recipe> => {

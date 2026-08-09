@@ -82,17 +82,22 @@ app.use(
 /* =========================================================
    DB CONNECTION
 ========================================================= */
-connectDB().then(async () => {
-  // Seed techniques and decorations after DB connection
-  try {
-    await seedTechniquesAndDecorations();
-    await seedCollectionsAndTags();
-  } catch (error) {
-    logger.error('[Server] Error seeding data:', error);
-  }
-}).catch((error) => {
+connectDB().catch((error) => {
   logger.error('[Server] Error connecting to database:', error);
 });
+
+// Seeds already executed - commented out to prevent auto-execution on server start
+// connectDB().then(async () => {
+//   // Seed techniques and decorations after DB connection
+//   try {
+//     await seedTechniquesAndDecorations();
+//     await seedCollectionsAndTags();
+//   } catch (error) {
+//     logger.error('[Server] Error seeding data:', error);
+//   }
+// }).catch((error) => {
+//   logger.error('[Server] Error connecting to database:', error);
+// });
 
 /* =========================================================
    CACHE SERVICE INITIALIZATION
@@ -112,22 +117,18 @@ const middlewareBuilder = MiddlewareBuilder.create(env);
 // Construir cadena de middlewares
 const middlewares = middlewareBuilder.build();
 
-// Aplicar middlewares con validación defensiva y debugging exhaustivo
+// Aplicar middlewares con validación defensiva
 middlewares.forEach((middleware, index) => {
-  console.log("[Middleware Debug]", index, typeof middleware, middleware?.name || 'anonymous');
-
   if (typeof middleware === 'function') {
     // Verificar que tenga la firma correcta de Express
     const paramCount = middleware.length;
-    console.log(`[Middleware Debug] ${index} - Function length (params): ${paramCount}`);
 
     if (paramCount < 2 || paramCount > 4) {
-      console.error(`[Middleware Debug] ${index} - Invalid parameter count: ${paramCount} (expected 2-4)`);
+      logger.error(`[Middleware Debug] ${index} - Invalid parameter count: ${paramCount} (expected 2-4)`);
     }
 
     app.use(middleware);
   } else {
-    console.error("[Middleware inválido detectado]", index, typeof middleware, middleware);
     logger.error("[Server] Middleware inválido detectado", {
       index,
       type: typeof middleware,
@@ -261,14 +262,10 @@ app.use((req, res) => {
 /* =========================================================
    GLOBAL ERROR HANDLER
 ========================================================= */
-console.log("errorHandler:", typeof errorHandler);
-console.log("errorHandler.length:", errorHandler.length);
 if (typeof errorHandler !== 'function') {
-  console.error("[ERROR] errorHandler is not a function!");
+  logger.error("[ERROR] errorHandler is not a function!");
 } else if (errorHandler.length !== 4) {
-  console.error(`[ERROR] errorHandler has ${errorHandler.length} parameters, expected 4 (err, req, res, next)`);
-} else {
-  console.log("[OK] errorHandler is a valid error handler with 4 parameters");
+  logger.error(`[ERROR] errorHandler has ${errorHandler.length} parameters, expected 4 (err, req, res, next)`);
 }
 app.use(errorHandler);
 
@@ -287,7 +284,6 @@ try {
   });
 } catch (error) {
   logger.error('[Server] Error al iniciar el servidor:', error);
-  console.error('Error al iniciar el servidor:', error);
   process.exit(1);
 }
 
@@ -310,13 +306,11 @@ process.on("SIGINT",  () => shutdown("SIGINT"));
 // Global error handlers
 process.on('uncaughtException', (error) => {
   logger.error('[Server] Uncaught Exception:', error);
-  console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('[Server] Unhandled Rejection:', reason);
-  console.error('Unhandled Rejection:', reason);
   process.exit(1);
 });
 

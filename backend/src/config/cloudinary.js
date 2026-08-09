@@ -19,12 +19,6 @@ if (!cloudinaryConfigured) {
   logger.warn('[Cloudinary] Faltan variables de entorno de Cloudinary. La subida de imágenes podría no funcionar.');
 } else {
   logger.info('[Cloudinary] Configuración cargada correctamente');
-  console.log({
-    cloudinaryConfigured: true,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-    apiKeyConfigured: !!process.env.CLOUDINARY_API_KEY,
-    apiSecretConfigured: !!process.env.CLOUDINARY_API_SECRET,
-  });
 }
 
 export const uploadImage = async (file, folder = 'general') => {
@@ -47,7 +41,7 @@ export const uploadImage = async (file, folder = 'general') => {
       format: result.format,
     };
   } catch (error) {
-    console.error('Error uploading to Cloudinary:', error);
+    logger.error('[Cloudinary] Error uploading image:', error);
     throw new Error('Error al subir imagen a Cloudinary');
   }
 };
@@ -57,7 +51,7 @@ export const deleteImage = async (publicId) => {
     await cloudinary.uploader.destroy(publicId);
     return true;
   } catch (error) {
-    console.error('Error deleting from Cloudinary:', error);
+    logger.error('[Cloudinary] Error deleting image:', error);
     throw new Error('Error al eliminar imagen de Cloudinary');
   }
 };
@@ -71,7 +65,7 @@ export const uploadMultipleImages = async (files, folder = 'general') => {
     const results = await Promise.all(uploadPromises);
     return results;
   } catch (error) {
-    console.error('Error uploading multiple images to Cloudinary:', error);
+    logger.error('[Cloudinary] Error uploading multiple images:', error);
     throw new Error('Error al subir múltiples imágenes a Cloudinary');
   }
 };

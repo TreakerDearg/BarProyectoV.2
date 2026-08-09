@@ -28,14 +28,11 @@ export const getInventory = async (req, res, next) => {
     if (search)  filter.$text = { $search: search };
     if (lowStock === "true") filter.$expr = { $lte: ["$stock", "$minStock"] };
 
-    console.log('[getInventory] Filter:', filter);
     const skip  = (Number(page) - 1) * Number(limit);
     const [items, total] = await Promise.all([
       InventoryItem.find(filter).sort({ name: 1 }).skip(skip).limit(Number(limit)).lean(),
       InventoryItem.countDocuments(filter),
     ]);
-
-    console.log('[getInventory] Items found:', items.length);
     return ok(res, items, "OK", {
       total,
       page:       Number(page),

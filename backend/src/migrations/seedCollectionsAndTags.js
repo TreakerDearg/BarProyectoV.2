@@ -113,29 +113,18 @@ const tagsData = [
 ========================= */
 export const seedCollectionsAndTags = async () => {
   try {
-    console.log("[Seed] Starting collections and tags seed...");
-
     // Check if collections already exist
     const existingCollections = await Collection.countDocuments();
     if (existingCollections === 0) {
       await Collection.insertMany(collectionsData);
-      console.log(`[Seed] ✅ Created ${collectionsData.length} collections`);
-    } else {
-      console.log(`[Seed] ℹ️  Collections already exist (${existingCollections} found)`);
     }
 
     // Check if tags already exist
     const existingTags = await Tag.countDocuments();
     if (existingTags === 0) {
       await Tag.insertMany(tagsData);
-      console.log(`[Seed] ✅ Created ${tagsData.length} tags`);
-    } else {
-      console.log(`[Seed] ℹ️  Tags already exist (${existingTags} found)`);
     }
-
-    console.log("[Seed] Collections and tags seed completed");
   } catch (error) {
-    console.error("[Seed] Error seeding collections and tags:", error);
     throw error;
   }
 };

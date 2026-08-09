@@ -417,9 +417,7 @@ export const getBeverageProducts = async (req, res, next) => {
     const filter = { type: "drink" };
     if (category) filter.category = category;
 
-    console.log('[getBeverageProducts] Filter:', filter);
     const products = await Product.find(filter).sort({ name: 1 }).lean();
-    console.log('[getBeverageProducts] Products found:', products.length);
 
     return ok(res, products);
   } catch (error) { throw error; }
