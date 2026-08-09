@@ -342,12 +342,12 @@ export function VariantManager({
                       <div className={styles.productMeta}>
                         <span className={styles.productCategory}>{product.category}</span>
                         {product.recipeId ? (
-                          <span className={styles.recipeStatus withRecipe}>
+                          <span className={`${styles.recipeStatus} ${styles.withRecipe}`}>
                             <CheckCircle className={styles.statusIcon} />
                             Has Recipe
                           </span>
                         ) : (
-                          <span className={styles.recipeStatus withoutRecipe}>
+                          <span className={`${styles.recipeStatus} ${styles.withoutRecipe}`}>
                             <XCircle className={styles.statusIcon} />
                             No Recipe
                           </span>
