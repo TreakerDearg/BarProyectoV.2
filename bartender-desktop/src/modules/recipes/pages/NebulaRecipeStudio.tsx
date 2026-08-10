@@ -13,8 +13,11 @@ import { RecipeWarnings } from '../components/intelligence/RecipeWarnings';
 import { FormulaSuggestions } from '../components/intelligence/FormulaSuggestions';
 import { TechniqueCard } from '../components/builder/TechniqueCard';
 import { DecorationCard } from '../components/builder/DecorationCard';
-import { getDrinkProductsWithRecipes, getRecipes } from '../services';
+import { getRecipes } from '../services';
 import { getInventory } from '../../inventory/services/inventoryService';
+import { getTechniques } from '../services/techniqueService';
+import { getDecorations } from '../services/techniqueService';
+import { getCollections } from '../services/collectionService';
 import type { Recipe } from '../types';
 import styles from './NebulaRecipeStudio.module.css';
 
@@ -30,6 +33,9 @@ export default function NebulaRecipeStudio() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [techniques, setTechniques] = useState<any[]>([]);
+  const [decorations, setDecorations] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [navigationHistory, setNavigationHistory] = useState<StudioMode[]>(['dashboard']);
 
@@ -45,10 +51,25 @@ export default function NebulaRecipeStudio() {
         // Load inventory items for Builder
         const inventory = await getInventory();
         setInventoryItems(inventory);
+        
+        // Load techniques
+        const techniquesData = await getTechniques();
+        setTechniques(techniquesData);
+        
+        // Load decorations
+        const decorationsData = await getDecorations();
+        setDecorations(decorationsData);
+        
+        // Load collections
+        const collectionsData = await getCollections();
+        setCollections(collectionsData);
       } catch (error) {
         console.error('[NebulaRecipeStudio] Error loading data:', error);
         setRecipes([]);
         setInventoryItems([]);
+        setTechniques([]);
+        setDecorations([]);
+        setCollections([]);
       } finally {
         setLoading(false);
       }
@@ -167,22 +188,50 @@ export default function NebulaRecipeStudio() {
 
           {mode === 'techniques' && (
             <div className={styles.techniquesGrid}>
-              <TechniqueCard technique={{ name: 'Shake', description: 'Shake technique', category: 'shake', difficulty: 'easy', time: 30 }} isSelected={false} onSelect={() => {}} />
-              <TechniqueCard technique={{ name: 'Stir', description: 'Stir technique', category: 'stir', difficulty: 'easy', time: 20 }} isSelected={false} onSelect={() => {}} />
-              <TechniqueCard technique={{ name: 'Muddle', description: 'Muddle technique', category: 'muddle', difficulty: 'medium', time: 15 }} isSelected={false} onSelect={() => {}} />
+              {techniques.length > 0 ? (
+                techniques.map((technique) => (
+                  <TechniqueCard 
+                    key={technique._id} 
+                    technique={technique} 
+                    isSelected={false} 
+                    onSelect={() => {}} 
+                  />
+                ))
+              ) : (
+                <p className={styles.emptyText}>No hay técnicas disponibles</p>
+              )}
             </div>
           )}
 
           {mode === 'decorations' && (
             <div className={styles.decorationsGrid}>
-              <DecorationCard decoration={{ name: 'Lemon Twist', type: 'garnish', cost: 0.1 }} />
-              <DecorationCard decoration={{ name: 'Mint Sprig', type: 'garnish', cost: 0.15 }} />
-              <DecorationCard decoration={{ name: 'Cherry', type: 'garnish', cost: 0.2 }} />
+              {decorations.length > 0 ? (
+                decorations.map((decoration) => (
+                  <DecorationCard 
+                    key={decoration._id} 
+                    decoration={decoration} 
+                  />
+                ))
+              ) : (
+                <p className={styles.emptyText}>No hay decoraciones disponibles</p>
+              )}
             </div>
           )}
 
           {mode === 'collections' && (
-            <div>Collections view - to be implemented</div>
+            <div className={styles.collectionsGrid}>
+              {collections.length > 0 ? (
+                collections.map((collection) => (
+                  <div key={collection._id} className={styles.collectionCard}>
+                    <span className={styles.collectionIcon}>{collection.icon}</span>
+                    <h4 className={styles.collectionName}>{collection.name}</h4>
+                    <p className={styles.collectionDescription}>{collection.description}</p>
+                  </div>
+                ))
+              ) : (
+                <p className={styles.emptyText}>No hay colecciones disponibles</p>
+              )}
+            </div>
           )}
 
           {mode === 'versions' && selectedRecipe && (

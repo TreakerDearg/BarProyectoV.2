@@ -41,3 +41,38 @@
     grid-template-rows: auto 1fr;
   }
 }
+
+/* Empty Workspace State */
+.empty-workspace {
+  grid-column: 2 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(5, 8, 22, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border-left: 1px solid rgba(148, 163, 184, 0.1);
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.empty-workspace-content {
+  text-align: center;
+  padding: 3rem;
+  max-width: 400px;
+}
+
+.empty-icon {
+  color: rgba(148, 163, 184, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 0.75rem;
+}
+
+.empty-description {
+  font-size: 0.95rem;
+  color: rgba(148, 163, 184, 0.8);
+  line-height: 1.6;
+}

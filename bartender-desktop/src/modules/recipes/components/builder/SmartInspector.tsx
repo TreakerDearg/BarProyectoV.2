@@ -1,6 +1,7 @@
 import { useState, memo } from 'react';
 import { BarChart3, Package, DollarSign, Heart, Link, TrendingUp, Calendar, Bookmark, AlertTriangle, CheckCircle, X, Clock, Target, GitBranch } from 'lucide-react';
 import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
+import { calculateComplexity, calculateEstimatedTime } from '../../utils/recipeMetrics';
 import type { Recipe } from '../../types';
 import styles from './SmartInspector.module.css';
 
@@ -38,8 +39,8 @@ export const SmartInspector = memo(function SmartInspector() {
 
   const [activeTab, setActiveTab] = useState<InspectorTab>('overview');
 
-  const complexity = calculateComplexity(recipe);
-  const estimatedTime = calculateEstimatedTime(recipe);
+  const complexity = (recipe?.ingredients?.length > 0 || (recipe?.steps?.length ?? 0) > 0) ? calculateComplexity(recipe) : null;
+  const estimatedTime = (recipe?.ingredients?.length > 0 || (recipe?.steps?.length ?? 0) > 0) ? calculateEstimatedTime(recipe) : null;
 
   return (
     <div className={styles.smartInspector}>
@@ -70,14 +71,14 @@ export const SmartInspector = memo(function SmartInspector() {
                 <DollarSign size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Costo</span>
-                  <span className={styles.overviewValue}>${(totalCost || 0).toFixed(2)}</span>
+                  <span className={styles.overviewValue}>{totalCost > 0 ? `$${totalCost.toFixed(2)}` : '—'}</span>
                 </div>
               </div>
               <div className={styles.overviewCard}>
                 <Clock size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Tiempo</span>
-                  <span className={styles.overviewValue}>{estimatedTime} min</span>
+                  <span className={styles.overviewValue}>{estimatedTime ? `${estimatedTime} min` : '—'}</span>
                 </div>
               </div>
               <div className={styles.overviewCard}>
@@ -91,7 +92,7 @@ export const SmartInspector = memo(function SmartInspector() {
                 <Target size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Complejidad</span>
-                  <span className={styles.overviewValue}>{complexity}</span>
+                  <span className={styles.overviewValue}>{complexity || '—'}</span>
                 </div>
               </div>
               <div className={styles.overviewCard}>
@@ -99,7 +100,7 @@ export const SmartInspector = memo(function SmartInspector() {
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Rentabilidad</span>
                   <span className={`${styles.overviewValue} ${margin.isProfitable ? styles.success : styles.danger}`}>
-                    {margin.marginPercentage.toFixed(1)}%
+                    {(recipe as any)?.price ? `${margin.marginPercentage.toFixed(1)}%` : '—'}
                   </span>
                 </div>
               </div>
@@ -107,18 +108,20 @@ export const SmartInspector = memo(function SmartInspector() {
                 <Heart size={20} className={styles.overviewIcon} />
                 <div className={styles.overviewInfo}>
                   <span className={styles.overviewLabel}>Health Score</span>
-                  <span className={styles.overviewValue} style={{ color: getHealthColor(healthScore?.overall || 0) }}>
-                    {healthScore?.overall || 0}
+                  <span className={styles.overviewValue} style={{ color: healthScore?.overall > 0 ? getHealthColor(healthScore.overall) : '#666' }}>
+                    {healthScore?.overall > 0 ? healthScore.overall : '—'}
                   </span>
                 </div>
               </div>
             </div>
-            <div className={styles.statusSection}>
-              <span className={styles.statusLabel}>Estado</span>
-              <span className={`${styles.statusBadge} ${isAvailable ? styles.available : styles.unavailable}`}>
-                {isAvailable ? <CheckCircle size={12} /> : <X size={12} />} {isAvailable ? 'Disponible' : 'Faltan ingredientes'}
-              </span>
-            </div>
+            {recipe?.ingredients?.length > 0 && (
+              <div className={styles.statusSection}>
+                <span className={styles.statusLabel}>Estado</span>
+                <span className={`${styles.statusBadge} ${isAvailable ? styles.available : styles.unavailable}`}>
+                  {isAvailable ? <CheckCircle size={12} /> : <X size={12} />} {isAvailable ? 'Disponible' : 'Faltan ingredientes'}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -190,32 +193,38 @@ export const SmartInspector = memo(function SmartInspector() {
         {activeTab === 'health' && (
           <div className={styles.tabContent}>
             <h3 className={styles.tabTitle}>Health Score</h3>
-            <div className={styles.healthScore}>
-              <span className={styles.healthValue} style={{ color: getHealthColor(healthScore?.overall || 0) }}>
-                {healthScore?.overall || 0}
-              </span>
-              <span className={styles.healthLabel}>/ 100</span>
-            </div>
-            <div className={styles.healthMetrics}>
-              <div className={styles.metricRow}>
-                <span className={styles.metricLabel}>Balance</span>
-                <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore?.cost || 0}%` }} />
+            {healthScore?.overall > 0 ? (
+              <>
+                <div className={styles.healthScore}>
+                  <span className={styles.healthValue} style={{ color: getHealthColor(healthScore.overview) }}>
+                    {healthScore.overall}
+                  </span>
+                  <span className={styles.healthLabel}>/ 100</span>
                 </div>
-              </div>
-              <div className={styles.metricRow}>
-                <span className={styles.metricLabel}>Complexity</span>
-                <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore?.complexity || 0}%` }} />
+                <div className={styles.healthMetrics}>
+                  <div className={styles.metricRow}>
+                    <span className={styles.metricLabel}>Balance</span>
+                    <div className={styles.metricBar}>
+                      <div className={styles.metricFill} style={{ width: `${healthScore.cost || 0}%` }} />
+                    </div>
+                  </div>
+                  <div className={styles.metricRow}>
+                    <span className={styles.metricLabel}>Complexity</span>
+                    <div className={styles.metricBar}>
+                      <div className={styles.metricFill} style={{ width: `${healthScore.complexity || 0}%` }} />
+                    </div>
+                  </div>
+                  <div className={styles.metricRow}>
+                    <span className={styles.metricLabel}>Originality</span>
+                    <div className={styles.metricBar}>
+                      <div className={styles.metricFill} style={{ width: `${healthScore.consistency || 0}%` }} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className={styles.metricRow}>
-                <span className={styles.metricLabel}>Originality</span>
-                <div className={styles.metricBar}>
-                  <div className={styles.metricFill} style={{ width: `${healthScore?.consistency || 0}%` }} />
-                </div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <p className={styles.emptyText}>Health Score no disponible para recetas vacías</p>
+            )}
           </div>
         )}
 
@@ -265,16 +274,24 @@ export const SmartInspector = memo(function SmartInspector() {
         {activeTab === 'timeline' && (
           <div className={styles.tabContent}>
             <h3 className={styles.tabTitle}>Timeline</h3>
-            <div className={styles.timelineList}>
-              <div className={styles.timelineItem}>
-                <span className={styles.timelineDate}>{recipe.createdAt || 'Hoy'}</span>
-                <span className={styles.timelineEvent}>Receta creada</span>
+            {recipe?.createdAt || recipe?.updatedAt ? (
+              <div className={styles.timelineList}>
+                {recipe.createdAt && (
+                  <div className={styles.timelineItem}>
+                    <span className={styles.timelineDate}>{new Date(recipe.createdAt).toLocaleDateString()}</span>
+                    <span className={styles.timelineEvent}>Receta creada</span>
+                  </div>
+                )}
+                {recipe.updatedAt && (
+                  <div className={styles.timelineItem}>
+                    <span className={styles.timelineDate}>{new Date(recipe.updatedAt).toLocaleDateString()}</span>
+                    <span className={styles.timelineEvent}>Última modificación</span>
+                  </div>
+                )}
               </div>
-              <div className={styles.timelineItem}>
-                <span className={styles.timelineDate}>{recipe.updatedAt || 'Ahora'}</span>
-                <span className={styles.timelineEvent}>Última modificación</span>
-              </div>
-            </div>
+            ) : (
+              <p className={styles.emptyText}>No hay historial disponible</p>
+            )}
           </div>
         )}
 
@@ -314,21 +331,4 @@ function getHealthColor(score: number): string {
   if (score >= 80) return '#22c55e';
   if (score >= 60) return '#eab308';
   return '#ef4444';
-}
-
-function calculateComplexity(recipe: Recipe | null | undefined): 'low' | 'medium' | 'high' {
-  if (!recipe) return 'medium';
-  const ingredientCount = recipe.ingredients?.length || 0;
-  const stepCount = recipe.steps?.length || 0;
-  
-  if (ingredientCount <= 3 && stepCount <= 2) return 'low';
-  if (ingredientCount <= 6 && stepCount <= 4) return 'medium';
-  return 'high';
-}
-
-function calculateEstimatedTime(recipe: Recipe | null | undefined): number {
-  if (!recipe) return 0;
-  const stepCount = recipe.steps?.length || 0;
-  const ingredientCount = recipe.ingredients?.length || 0;
-  return stepCount * 2 + ingredientCount * 0.5;
 }

@@ -1,5 +1,6 @@
 import { RecipeWorkspaceProvider, useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
 import type { Recipe } from '../../types';
+import { UtensilsCrossed } from 'lucide-react';
 import { BuilderHeader } from './BuilderHeader';
 import { BuilderExplorer } from './BuilderExplorer';
 import { FormulaCanvas } from './FormulaCanvas';
@@ -45,6 +46,9 @@ function RecipeBuilderContent() {
     handleSave,
   } = useRecipeWorkspace();
 
+  // Check if recipe has content (product selected or ingredients added)
+  const hasRecipeContent = recipe?.product?._id || (recipe?.ingredients?.length ?? 0) > 0;
+
   return (
     <div className={styles.recipeBuilder}>
       {/* Header */}
@@ -61,14 +65,27 @@ function RecipeBuilderContent() {
 
       {/* Main Layout */}
       <div className={styles.builderLayout}>
-        {/* Explorer Panel */}
+        {/* Explorer Panel - Always visible */}
         <BuilderExplorer />
 
-        {/* Formula Canvas */}
-        <FormulaCanvas />
+        {/* Formula Canvas & Smart Inspector - Only show when recipe has content */}
+        {hasRecipeContent ? (
+          <>
+            {/* Formula Canvas */}
+            <FormulaCanvas />
 
-        {/* Smart Inspector Panel */}
-        <SmartInspector />
+            {/* Smart Inspector Panel */}
+            <SmartInspector />
+          </>
+        ) : (
+          <div className={styles.emptyWorkspace}>
+            <div className={styles.emptyWorkspaceContent}>
+              <UtensilsCrossed size={48} className={styles.emptyIcon} />
+              <h3 className={styles.emptyTitle}>Comienza tu receta</h3>
+              <p className={styles.emptyDescription}>Selecciona un producto o agrega ingredientes para empezar a construir tu receta</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Context Bar */}

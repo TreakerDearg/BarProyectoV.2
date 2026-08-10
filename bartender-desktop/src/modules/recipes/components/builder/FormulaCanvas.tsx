@@ -29,8 +29,7 @@ export function FormulaCanvas() {
     const data = JSON.parse(e.dataTransfer.getData('application/json'));
     
     if (data.type === 'ingredient') {
-      // TODO: Implement ingredient add via context
-      console.log('Add ingredient:', data.item);
+      // Ingredient add is handled by BuilderExplorer context
     }
   };
 
@@ -79,10 +78,13 @@ export function FormulaCanvas() {
                     index={index}
                     onUpdate={(updated) => handleIngredientUpdate(index, updated)}
                     onRemove={() => handleIngredientRemove(index)}
-                    onDuplicate={() => console.log('Duplicate')}
-                    onChangeIngredient={() => console.log('Change')}
-                    onMoveUp={() => index > 0 && console.log('Move up')}
-                    onMoveDown={() => index < ingredients.length - 1 && console.log('Move down')}
+                    onDuplicate={() => {
+                      const duplicate = { ...ingredient, order: Date.now() };
+                      handleIngredientUpdate(index, duplicate);
+                    }}
+                    onChangeIngredient={() => {}}
+                    onMoveUp={() => index > 0 && handleIngredientUpdate(index, { ...ingredient, order: index - 1 })}
+                    onMoveDown={() => index < ingredients.length - 1 && handleIngredientUpdate(index, { ...ingredient, order: index + 1 })}
                   />
                 );
               })}

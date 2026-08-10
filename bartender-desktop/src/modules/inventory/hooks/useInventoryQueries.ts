@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import api from '../../../services/api';
+import { getInventory } from '../services/inventoryService';
 import type { InventoryItem } from '../types/inventory';
 
 /* =========================================================
@@ -23,9 +24,7 @@ export const useInventory = () => {
   return useQuery({
     queryKey: ['inventory'],
     queryFn: async () => {
-      console.log('[useInventory] Fetching inventory...');
       const data = await getInventory();
-      console.log('[useInventory] Inventory received:', data?.length);
       return data;
     },
   });
@@ -96,8 +95,7 @@ export function useCreateInventoryItem() {
 
   return useMutation({
     mutationFn: async (item: InventoryItem) => {
-      const { data } = await api.post('/inventory', item);
-      return data;
+      await api.post('/inventory', item);
     },
     onSuccess: () => {
       // Invalidar queries de inventario
@@ -118,7 +116,7 @@ export function useUpdateInventoryItem() {
     mutationFn: async ({ id, item }: { id: string; item: InventoryItem }) => {
       await api.patch(`/inventory/${id}`, item);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidar queries específicas
       queryClient.invalidateQueries({ queryKey: inventoryKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
@@ -157,7 +155,7 @@ export function useAdjustStock() {
     mutationFn: async ({ id, quantity, reason }: { id: string; quantity: number; reason: string }) => {
       await api.patch(`/inventory/${id}/stock`, { quantity, reason });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_, variables) => {
       // Invalidar queries específicas
       queryClient.invalidateQueries({ queryKey: inventoryKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
