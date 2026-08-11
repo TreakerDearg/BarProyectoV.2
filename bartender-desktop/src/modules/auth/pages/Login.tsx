@@ -36,7 +36,7 @@ export default function Login() {
       setAuthToken(tokenParam);
       
       // Obtener perfil del usuario
-      fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
+      fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${tokenParam}`,
         },
@@ -87,7 +87,7 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/google`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/google`, {
         method: 'GET',
         headers: {
           'X-Platform': 'desktop',
@@ -151,6 +151,7 @@ export default function Login() {
               value={email}
               disabled={loading}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               className="w-full px-4 py-3.5 rounded-xl bg-slate-900/60 border border-violet-500/10 text-white placeholder:text-gray-500 outline-none focus:border-violet-500/50 focus:shadow-[0_0_20px_rgba(139,92,246,0.15)] transition-all duration-300 text-sm font-bold tracking-wide"
             />
 
@@ -162,7 +163,8 @@ export default function Login() {
                 value={password}
                 disabled={loading}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3.5 pr-10 rounded-xl bg-slate-900/60 border border-violet-500/10 text-white placeholder:text-gray-500 outline-none focus:border-violet-500/50 focus:shadow-[0_0_20px_rgba(139,92,246,0.15)] transition-all duration-300 text-sm font-bold tracking-wide"
+                autoComplete="current-password"
+                className="w-full px-4 py-3.5 pr-10 rounded-xl bg-slate-900/60 border border-violet-500/10 text-white placeholder:text-gray-500 outline-none focus_border-violet-500/50 focus:shadow-[0_0_20px_rgba(139,92,246,0.15)] transition-all duration-300 text-sm font-bold tracking-wide"
               />
 
               <button

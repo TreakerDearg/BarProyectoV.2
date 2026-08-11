@@ -77,7 +77,11 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       } else {
-        console.warn('[API] No access token available for request:', config.url);
+        // Only warn if this is not an auth endpoint (login/register don't need tokens)
+        const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register') || config.url?.includes('/auth/google');
+        if (!isAuthEndpoint) {
+          console.warn('[API] No access token available for request:', config.url);
+        }
       }
 
       //  CLEAN PAYLOAD (only for JSON requests, not FormData)

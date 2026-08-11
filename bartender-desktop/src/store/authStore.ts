@@ -16,6 +16,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   initialize: () => Promise<void>;
+  setAuth: (token: string, user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -55,6 +56,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       token: null,
       refreshToken: null,
       isAuthenticated: false,
+    });
+  },
+
+  /* =========================
+     SET AUTH (OAUTH CALLBACK)
+  ========================= */
+  setAuth: (token, user) => {
+    saveTokens(token, token);
+    setAuthToken(token);
+
+    set({
+      user,
+      token,
+      refreshToken: token,
+      isAuthenticated: true,
     });
   },
 
