@@ -1,22 +1,25 @@
 .nebula-recipe-studio {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   background-color: var(--nebula-bg-primary);
   overflow: hidden;
+  min-height: 0;
+  min-width: 0;
 }
 
 .loading-screen {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   background-color: var(--nebula-bg-primary);
   color: var(--nebula-text-primary);
   font-size: 18px;
   font-weight: 500;
+  min-height: 0;
 }
 
 .studio-content {
@@ -394,8 +397,8 @@
 
 @media (max-width: 768px) {
   .nebula-recipe-studio {
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
   }
 
   .builder-wrapper,

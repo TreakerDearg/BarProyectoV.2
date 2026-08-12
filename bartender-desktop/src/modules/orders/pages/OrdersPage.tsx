@@ -315,7 +315,7 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="nebula-salon-root nebula-luxury-root flex h-screen overflow-hidden bg-bg p-4 md:p-6 gap-4 md:gap-6 relative">
+    <div className="nebula-salon-root nebula-luxury-root flex h-full min-h-0 overflow-hidden bg-bg gap-4 md:gap-6 relative">
       <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10" />
       <SalonFlowTutorial
         isOpen={salonTutorialOpen}
@@ -369,8 +369,8 @@ export default function OrdersPage() {
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0 space-y-4">
-        <header className="flex flex-wrap items-end justify-between gap-6 px-1">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 gap-4">
+        <header className="flex flex-wrap items-end justify-between gap-6 px-1 flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl nebula-brand-mark">
               <ChefHat size={28} />
@@ -559,7 +559,7 @@ export default function OrdersPage() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="relative">

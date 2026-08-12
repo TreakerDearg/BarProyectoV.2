@@ -227,19 +227,19 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="nebula-dashboard-root flex flex-col h-full gap-6 animate-fade-in-up-fusion relative">
+    <div className="nebula-dashboard-root flex flex-col h-full min-h-0 gap-4 md:gap-6 animate-fade-in-up-fusion relative">
       <InventoryTutorial
         isOpen={tutorialOpen}
         onClose={() => closeTutorial()}
         onComplete={completeTutorial}
       />
 
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+      <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="nebula-aurora" />
       </div>
 
       {/* HEADER SECTION */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
             <Package className="text-violet-200" size={28} />
@@ -329,7 +329,7 @@ export default function InventoryPage() {
       )}
 
       {/* MAIN GRID */}
-      <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
+      <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar pb-4">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-12 h-12 rounded-xl border-2 border-violet-400/30 border-t-violet-300 animate-spin" />
@@ -346,8 +346,8 @@ export default function InventoryPage() {
             <Package size={48} className="text-violet-300/40 mb-4" />
             <p className="text-muted text-sm">No se encontraron insumos</p>
           </div>
-        ) : (
-          <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
+        ) : view === 'grid' ? (
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredItems.map((item) => {
               return (
                 <InventoryCard
@@ -360,10 +360,7 @@ export default function InventoryPage() {
               );
             })}
           </div>
-        )}
-
-        {/* LIST VIEW - Improved Design */}
-        {view === 'list' && filteredItems.length > 0 && (
+        ) : (
           <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
             <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-white/10 text-xs font-bold text-white/50 uppercase tracking-wider">
               <div className="col-span-4">Producto</div>
@@ -397,7 +394,7 @@ export default function InventoryPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white truncate">{item.name}</p>
-                        <p className="text-xs text-white/50 truncate">{item.category}</p>
+                        <p className="text-xs text-white/40">{item.category}</p>
                       </div>
                     </div>
                   </div>

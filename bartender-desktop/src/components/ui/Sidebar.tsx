@@ -23,12 +23,13 @@ import {
   Clock,
   Activity,
   Calendar,
-  TrendingUp,
+  TrendingUp
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
 import { useUIStore } from "../../store/uiStore";
 import { canAccessPath } from "../../config/accessControl";
+import { NotificationBell, useNotificationBell } from "../../components/shared/NotificationCenter";
 
 /* ============================== */
 const PATHS = {
@@ -65,6 +66,9 @@ export default function Sidebar() {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggle = useUIStore((s) => s.toggleSidebar);
   const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(null);
+  
+  // Notification bell hook
+  const { isOpen: notificationOpen, toggle: toggleNotification, unreadCount } = useNotificationBell();
 
   const handleLogout = () => {
     logout();
@@ -362,15 +366,24 @@ export default function Sidebar() {
       </nav>
 
       {/* ================= FOOTER ================= */}
-      <div className="p-3 border-t border-obsidian/40 relative z-10">
+      <div className="p-3 border-t border-obsidian/40 relative z-10 space-y-3">
 
         {!collapsed && (
-          <div className="flex items-center gap-2 mb-3 text-[9px]">
+          <div className="flex items-center gap-2 text-[9px]">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-[0_0_6px_#34B964]" />
             <span className="text-gray-500">SYSTEM</span>
             <span className="text-green-400 font-bold">ONLINE</span>
           </div>
         )}
+
+        {/* Notification Bell */}
+        <div className="flex items-center justify-center">
+          <NotificationBell 
+            isOpen={notificationOpen} 
+            onToggle={toggleNotification} 
+            unreadCount={unreadCount} 
+          />
+        </div>
 
         <button
           onClick={handleLogout}

@@ -32,6 +32,9 @@ interface NotificationCenterContextType {
   addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
   removeNotification: (id: string) => void;
   clearAll: () => void;
+  isPanelOpen: boolean;
+  togglePanel: () => void;
+  closePanel: () => void;
 }
 
 const NotificationCenterContext = createContext<NotificationCenterContextType | null>(null);
@@ -44,10 +47,22 @@ export function useNotifications() {
   return context;
 }
 
+export function useNotificationBell() {
+  const { notifications, isPanelOpen, togglePanel, closePanel } = useNotifications();
+  
+  const unreadCount = notifications.length;
+
+  return {
+    isOpen: isPanelOpen,
+    toggle: togglePanel,
+    close: closePanel,
+    unreadCount
+  };
+}
+
 export function NotificationCenterProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const addNotification = (notification: Omit<Notification, "id" | "timestamp">) => {
     const id = Math.random().toString(36).substring(7);
@@ -59,7 +74,6 @@ export function NotificationCenterProvider({ children }: { children: React.React
     };
 
     setNotifications(prev => [newNotification, ...prev]);
-    setUnreadCount(prev => prev + 1);
 
     // Auto-remove after duration
     if (newNotification.duration && newNotification.duration > 0) {
@@ -75,53 +89,65 @@ export function NotificationCenterProvider({ children }: { children: React.React
 
   const clearAll = () => {
     setNotifications([]);
-    setUnreadCount(0);
   };
 
+  const togglePanel = () => setIsPanelOpen(!isPanelOpen);
+  const closePanel = () => setIsPanelOpen(false);
+
   return (
-    <NotificationCenterContext.Provider value={{ notifications, addNotification, removeNotification, clearAll }}>
+    <NotificationCenterContext.Provider value={{ 
+      notifications, 
+      addNotification, 
+      removeNotification, 
+      clearAll,
+      isPanelOpen,
+      togglePanel,
+      closePanel
+    }}>
       {children}
-      <NotificationCenterUI
+      <NotificationCenterPanel
         notifications={notifications}
-        isOpen={isOpen}
-        onToggle={() => setIsOpen(!isOpen)}
-        onClose={() => setIsOpen(false)}
+        isOpen={isPanelOpen}
+        onClose={closePanel}
         onRemove={removeNotification}
         onClearAll={clearAll}
-        unreadCount={unreadCount}
-        setUnreadCount={setUnreadCount}
       />
     </NotificationCenterContext.Provider>
   );
 }
 
-interface NotificationCenterUIProps {
+export function NotificationBell({ isOpen, onToggle, unreadCount }: { isOpen: boolean; onToggle: () => void; unreadCount: number }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="relative p-2 bg-surface-3/30 border border-white/5 rounded-xl hover:bg-surface-3/50 hover:border-white/10 transition-all"
+      aria-label={`Notificaciones ${unreadCount > 0 ? `(${unreadCount} sin leer)` : ''}`}
+    >
+      <Bell size={18} className="text-muted" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white animate-pulse">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+interface NotificationCenterPanelProps {
   notifications: Notification[];
   isOpen: boolean;
-  onToggle: () => void;
   onClose: () => void;
   onRemove: (id: string) => void;
   onClearAll: () => void;
-  unreadCount: number;
-  setUnreadCount: (count: number) => void;
 }
 
-function NotificationCenterUI({
+function NotificationCenterPanel({
   notifications,
   isOpen,
-  onToggle,
   onClose,
   onRemove,
-  onClearAll,
-  unreadCount,
-  setUnreadCount
-}: NotificationCenterUIProps) {
-  // Mark as read when opened
-  useEffect(() => {
-    if (isOpen) {
-      setUnreadCount(0);
-    }
-  }, [isOpen, setUnreadCount]);
+  onClearAll
+}: NotificationCenterPanelProps) {
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -162,104 +188,88 @@ function NotificationCenterUI({
     return `Hace ${days} d`;
   };
 
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Bell Button */}
-      <button
-        onClick={onToggle}
-        className="relative p-3 bg-surface-3/30 border border-white/5 rounded-2xl hover:bg-surface-3/50 hover:border-white/10 transition-all"
-      >
-        <Bell size={20} className="text-muted" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </button>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]"
+        onClick={onClose}
+      />
 
-      {/* Notification Panel */}
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]"
-            onClick={onClose}
-          />
-
-          {/* Panel */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-surface-2 border-l border-white/5 z-[201] shadow-2xl">
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="p-6 border-b border-white/5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-ivory">Notificaciones</h2>
-                  <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-white/5 rounded-xl transition-colors"
-                  >
-                    <X size={20} className="text-muted" />
-                  </button>
-                </div>
-
-                {notifications.length > 0 && (
-                  <button
-                    onClick={onClearAll}
-                    className="flex items-center gap-2 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    <Trash2 size={14} />
-                    <span>Limpiar todas</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Notifications List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {notifications.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <Bell size={48} className="text-muted/30 mb-4" />
-                    <p className="text-sm text-muted">No hay notificaciones</p>
-                  </div>
-                ) : (
-                  notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 rounded-2xl border ${getNotificationStyles(notification.type)} transition-all`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-0.5">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="text-sm font-bold text-ivory">{notification.title}</h3>
-                            <button
-                              onClick={() => onRemove(notification.id)}
-                              className="flex-shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
-                            >
-                              <X size={14} className="text-muted/50 hover:text-muted" />
-                            </button>
-                          </div>
-                          <p className="text-xs text-muted mt-1">{notification.message}</p>
-                          <p className="text-[10px] text-muted/50 mt-2">{formatTime(notification.timestamp)}</p>
-                          {notification.action && (
-                            <button
-                              onClick={notification.action.onClick}
-                              className="mt-3 flex items-center gap-1 text-xs font-semibold text-gold hover:text-gold/80 transition-colors"
-                            >
-                              {notification.action.label}
-                              <ChevronRight size={12} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+      {/* Panel */}
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-surface-2 border-l border-white/5 z-[201] shadow-2xl">
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="p-6 border-b border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-ivory">Notificaciones</h2>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/5 rounded-xl transition-colors"
+              >
+                <X size={20} className="text-muted" />
+              </button>
             </div>
+
+            {notifications.length > 0 && (
+              <button
+                onClick={onClearAll}
+                className="flex items-center gap-2 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Trash2 size={14} />
+                <span>Limpiar todas</span>
+              </button>
+            )}
           </div>
-        </>
-      )}
+
+          {/* Notifications List */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Bell size={48} className="text-muted/30 mb-4" />
+                <p className="text-sm text-muted">No hay notificaciones</p>
+              </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 rounded-2xl border ${getNotificationStyles(notification.type)} transition-all`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-sm font-bold text-ivory">{notification.title}</h3>
+                        <button
+                          onClick={() => onRemove(notification.id)}
+                          className="flex-shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
+                        >
+                          <X size={14} className="text-muted/50 hover:text-muted" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted mt-1">{notification.message}</p>
+                      <p className="text-[10px] text-muted/50 mt-2">{formatTime(notification.timestamp)}</p>
+                      {notification.action && (
+                        <button
+                          onClick={notification.action.onClick}
+                          className="mt-3 flex items-center gap-1 text-xs font-semibold text-gold hover:text-gold/80 transition-colors"
+                        >
+                          {notification.action.label}
+                          <ChevronRight size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
     </>
   );
 }

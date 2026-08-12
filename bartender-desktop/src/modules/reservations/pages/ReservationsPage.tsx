@@ -314,7 +314,7 @@ export default function ReservationsPage() {
   }), [reservations]);
 
   return (
-    <div className="nebula-salon-root flex flex-col h-full space-y-6 p-4 md:p-6 relative overflow-hidden">
+    <div className="nebula-salon-root flex flex-col h-full min-h-0 gap-4 md:gap-6 p-4 md:p-6 relative overflow-hidden">
       <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-40" />
       <SalonFlowTutorial
         isOpen={salonTutorialOpen}
@@ -323,7 +323,7 @@ export default function ReservationsPage() {
       />
 
       {postSeatTableId && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 flex-shrink-0">
           <p className="text-sm font-medium">
             Clientes sentados. La mesa ya tiene sesión activa para tomar pedidos.
           </p>
@@ -350,7 +350,7 @@ export default function ReservationsPage() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 flex-shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
@@ -616,7 +616,7 @@ export default function ReservationsPage() {
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 min-h-0 flex flex-col gap-10">
+      <div className="flex-1 min-h-0 flex flex-col gap-6 overflow-y-auto">
 
         {loading && reservations.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center opacity-20 py-20">
@@ -626,7 +626,7 @@ export default function ReservationsPage() {
         ) : (
           <>
             {paginatedItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
                 {paginatedItems.map(r => (
                   <ReservationCard
                     key={r._id}
@@ -649,7 +649,7 @@ export default function ReservationsPage() {
 
             {/* PAGINATION SYSTEM UI */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-6 pt-10 border-t border-white/5 mt-auto">
+              <div className="flex items-center justify-center gap-6 pt-6 border-t border-white/5 mt-auto">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}

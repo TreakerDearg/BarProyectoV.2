@@ -100,7 +100,7 @@ export default function Dashboard() {
 
   return (
     <ToastProvider>
-      <div className="dashboard-root flex flex-col h-full gap-6 md:gap-8 dashboard-animate-fade-in-up relative">
+      <div className="dashboard-root flex flex-col h-full gap-4 md:gap-6 dashboard-animate-fade-in-up relative">
       <RealTimeDiscountAlert />
       <DashboardTutorial
         isOpen={tutorialOpen}
@@ -108,12 +108,12 @@ export default function Dashboard() {
         onComplete={completeTutorial}
       />
 
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+      <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="dashboard-aurora" />
       </div>
 
       {/* Cabecera */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
             <Monitor className="text-violet-200" size={28} />
@@ -169,7 +169,7 @@ export default function Dashboard() {
         <AnalyticsDashboardView data={data} mode={mode} onRangeChange={setRange} />
       )}
 
-      <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
+      <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar pb-4">
         {activeTab === "operation" && (
           <ServiceDashboard
             data={data}

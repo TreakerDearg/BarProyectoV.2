@@ -469,7 +469,7 @@ export default function TablesPage() {
   }, [searchParams, tables]);
 
   return (
-    <div className="nebula-salon-root flex flex-col h-screen bg-bg p-4 md:p-6 gap-4 overflow-hidden relative">
+    <div className="nebula-salon-root flex flex-col h-full min-h-0 bg-bg gap-4 overflow-hidden relative">
       <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-50" />
       <SalonFlowTutorial
         isOpen={salonTutorialOpen}
@@ -478,7 +478,7 @@ export default function TablesPage() {
       />
       
       {/* TOP COMMAND BAR - RESPONSIVE */}
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4 flex-shrink-0">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
@@ -611,7 +611,7 @@ export default function TablesPage() {
       <SalonNextStepBanner table={selectedTable} onAction={handleBannerAction} />
 
       {/* MAIN OPERATIONS CENTER - RESPONSIVE */}
-      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         
         <div className="flex-1 flex flex-col min-h-0 relative">
           <FloorPlan
