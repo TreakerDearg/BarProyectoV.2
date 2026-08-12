@@ -23,13 +23,14 @@ import {
   Clock,
   Activity,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Bell
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
 import { useUIStore } from "../../store/uiStore";
 import { canAccessPath } from "../../config/accessControl";
-import { NotificationBell, useNotificationBell } from "../../components/shared/NotificationCenter";
+import { useNotificationBell } from "../../components/shared/NotificationCenter";
 
 /* ============================== */
 const PATHS = {
@@ -66,9 +67,6 @@ export default function Sidebar() {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggle = useUIStore((s) => s.toggleSidebar);
   const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(null);
-  
-  // Notification bell hook
-  const { isOpen: notificationOpen, toggle: toggleNotification, unreadCount } = useNotificationBell();
 
   const handleLogout = () => {
     logout();
@@ -378,11 +376,12 @@ export default function Sidebar() {
 
         {/* Notification Bell */}
         <div className="flex items-center justify-center">
-          <NotificationBell 
-            isOpen={notificationOpen} 
-            onToggle={toggleNotification} 
-            unreadCount={unreadCount} 
-          />
+          <button
+            className="relative p-2 bg-surface-3/30 border border-white/5 rounded-xl hover:bg-surface-3/50 hover:border-white/10 transition-all"
+            aria-label="Notificaciones"
+          >
+            <Bell size={18} className="text-muted" />
+          </button>
         </div>
 
         <button

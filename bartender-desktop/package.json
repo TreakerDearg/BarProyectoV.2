@@ -11,9 +11,9 @@
     "dev:react": "vite",
     "dev:electron": "npm run build:electron && wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
     "build": "vite build && npm run build:electron",
+    "build:web": "vite build",
     "build:electron": "tsc -p electron/tsconfig.json",
     "preview": "vite preview",
-    "build:web": "vite build",
     "start": "electron .",
     "dist": "npm run build && electron-builder",
     "lint": "eslint ."
