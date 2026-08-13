@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
-import { getAccessToken, saveAccessToken, saveRefreshToken, clearTokens } from "../auth/tokenStorage";
+import { getAccessToken, saveAccessToken, saveRefreshToken, clearTokens, getRefreshToken } from "../auth/tokenStorage";
 
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
@@ -53,6 +53,9 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Solo ejecutar este interceptor en el cliente
+if (typeof window !== 'undefined') {
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -76,12 +79,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('bartender_refresh_token');
+        const refreshToken = getRefreshToken();
         
         if (!refreshToken) {
           // No hay refresh token, limpiar todo
           clearTokens();
-          window.dispatchEvent(new Event('auth:logout'));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('auth:logout'));
+          }
           return Promise.reject(error);
         }
 
@@ -109,7 +114,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Error al renovar, limpiar todo
         clearTokens();
-        window.dispatchEvent(new Event('auth:logout'));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth:logout'));
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -119,6 +126,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+}
 
 export function errMessage(err: unknown): string {
   const ax = err as AxiosError<{ message?: string }>;

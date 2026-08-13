@@ -9,4 +9,4 @@ export * from './IdentityRole';
 export * from './IdentityPermissions';
 export * from './IdentitySession';
 export * from './IdentityResponse';
-export * from './IdentityUser';
+export type { IdentityUser as IdentityUserProfile } from './IdentityUser';

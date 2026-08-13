@@ -19,8 +19,10 @@ interface UsePermissionsReturn {
 export const usePermissions = (user: IdentityUser | null): UsePermissionsReturn => {
   const hasPermission = useMemo(() => {
     return (permission: string): boolean => {
-      if (!user || !user.permissions) return false;
-      return user.permissions[permission] === true;
+      if (!user) return false;
+      const permissions = (user as any).permissions;
+      if (!permissions) return false;
+      return permissions[permission] === true;
     };
   }, [user]);
 

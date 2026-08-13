@@ -4,8 +4,9 @@
    Preparado para futura implementación
 ========================================================= */
 
-import api from '../api/client';
-import type { IdentityResponse, IdentityUser } from '../types';
+import { api } from '../../api/client';
+import type { IdentityResponse } from '../types/IdentityResponse';
+import type { IdentityUserProfile } from '../types';
 
 /**
  * Servicio de identidad para el frontend
@@ -30,11 +31,24 @@ class IdentityService {
         user: null,
         role: null,
         roleLabel: null,
-        status: null,
-        permissions: {},
+        isEmployee: null,
+        isAdmin: null,
+        identityStatus: null,
+        identityStatusLabel: null,
+        permissions: null,
+        hasCustomPermissions: null,
+        shift: null,
         destination: null,
+        destinationReason: null,
+        canAccess: null,
+        requiresAction: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
         token: null,
         refreshToken: null,
+        provider: null,
+        providerVerified: null,
+        lastLogin: null,
         metadata: { code: error.code || 'AUTH_ERROR' },
         message: error.message || 'Error de autenticación',
       };
@@ -56,11 +70,24 @@ class IdentityService {
         user: null,
         role: null,
         roleLabel: null,
-        status: null,
-        permissions: {},
+        isEmployee: null,
+        isAdmin: null,
+        identityStatus: null,
+        identityStatusLabel: null,
+        permissions: null,
+        hasCustomPermissions: null,
+        shift: null,
         destination: null,
+        destinationReason: null,
+        canAccess: null,
+        requiresAction: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
         token: null,
         refreshToken: null,
+        provider: null,
+        providerVerified: null,
+        lastLogin: null,
         metadata: { code: error.code || 'REGISTER_ERROR' },
         message: error.message || 'Error de registro',
       };
@@ -81,11 +108,24 @@ class IdentityService {
         user: null,
         role: null,
         roleLabel: null,
-        status: null,
-        permissions: {},
+        isEmployee: null,
+        isAdmin: null,
+        identityStatus: null,
+        identityStatusLabel: null,
+        permissions: null,
+        hasCustomPermissions: null,
+        shift: null,
         destination: null,
+        destinationReason: null,
+        canAccess: null,
+        requiresAction: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
         token: null,
         refreshToken: null,
+        provider: null,
+        providerVerified: null,
+        lastLogin: null,
         metadata: { code: error.code || 'PROFILE_ERROR' },
         message: error.message || 'Error al obtener perfil',
       };
@@ -107,11 +147,24 @@ class IdentityService {
         user: null,
         role: null,
         roleLabel: null,
-        status: null,
-        permissions: {},
+        isEmployee: null,
+        isAdmin: null,
+        identityStatus: null,
+        identityStatusLabel: null,
+        permissions: null,
+        hasCustomPermissions: null,
+        shift: null,
         destination: null,
+        destinationReason: null,
+        canAccess: null,
+        requiresAction: null,
+        blockMessage: null,
+        desktopAccessMessage: null,
         token: null,
         refreshToken: null,
+        provider: null,
+        providerVerified: null,
+        lastLogin: null,
         metadata: {},
         message: 'Logout OK',
       };
@@ -134,9 +187,11 @@ class IdentityService {
    * @param permission - Permiso a verificar
    * @returns Tiene permiso o no
    */
-  hasPermission(user: IdentityUser | null, permission: string): boolean {
-    if (!user || !user.permissions) return false;
-    return user.permissions[permission] === true;
+  hasPermission(user: IdentityUserProfile | null, permission: string): boolean {
+    if (!user) return false;
+    const permissions = (user as any).permissions;
+    if (!permissions) return false;
+    return permissions[permission] === true;
   }
 
   /**
@@ -145,7 +200,7 @@ class IdentityService {
    * @param permissions - Permisos a verificar
    * @returns Tiene todos los permisos o no
    */
-  hasAllPermissions(user: IdentityUser | null, permissions: string[]): boolean {
+  hasAllPermissions(user: IdentityUserProfile | null, permissions: string[]): boolean {
     return permissions.every(perm => this.hasPermission(user, perm));
   }
 
@@ -155,7 +210,7 @@ class IdentityService {
    * @param permissions - Permisos a verificar
    * @returns Tiene al menos un permiso o no
    */
-  hasAnyPermission(user: IdentityUser | null, permissions: string[]): boolean {
+  hasAnyPermission(user: IdentityUserProfile | null, permissions: string[]): boolean {
     return permissions.some(perm => this.hasPermission(user, perm));
   }
 }
