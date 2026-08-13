@@ -4,7 +4,6 @@ import { login as loginService, getMe } from "../modules/auth/services/authServi
 import type { User } from "../types/auth";
 
 import { saveTokens, removeTokens, getAccessToken, getRefreshToken } from "../utils/tokenStorage";
-import { setAuthToken } from "../services/api";
 
 interface AuthState {
   user: User | null;
@@ -34,7 +33,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // Guardar ambos tokens por separado
     saveTokens(response.token, response.refreshToken || response.token);
-    setAuthToken(response.token);
 
     set({
       user: response.user,
@@ -49,7 +47,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   ========================= */
   logout: () => {
     removeTokens();
-    setAuthToken(null);
 
     set({
       user: null,
@@ -64,7 +61,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   ========================= */
   setAuth: (token, user) => {
     saveTokens(token, token);
-    setAuthToken(token);
 
     set({
       user,
@@ -87,11 +83,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
 
     try {
-      // Usar access token si existe
-      if (accessToken) {
-        setAuthToken(accessToken);
-      }
-
       //  VALIDACIÓN REAL DEL TOKEN
       const user = await getMe();
 
