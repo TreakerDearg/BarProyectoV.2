@@ -1,0 +1,114 @@
+.ctaSection {
+  background: linear-gradient(135deg, #15151B 0%, #0B0B0F 100%);
+  padding: 5rem 1.5rem;
+  border-bottom: 1px solid #292932;
+}
+
+@media (min-width: 768px) {
+  .ctaSection {
+    padding: 6rem 2rem;
+  }
+}
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ctaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 90, 31, 0.15);
+  border: 1px solid rgba(255, 90, 31, 0.3);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FF5A1F;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.ctaTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #F7F7F8;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .ctaTitle {
+    font-size: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ctaTitle {
+    font-size: 3rem;
+  }
+}
+
+.ctaDescription {
+  font-size: 0.875rem;
+  color: #A7A7B0;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+@media (min-width: 768px) {
+  .ctaDescription {
+    font-size: 1rem;
+  }
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  border: none;
+  border-radius: 12px;
+  color: #F7F7F8;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 90, 31, 0.3);
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255, 90, 31, 0.4);
+}
+
+.ctaLinks {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.ctaLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #A7A7B0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.ctaLink:hover {
+  color: #FF5A1F;
+}

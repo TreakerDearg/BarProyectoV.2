@@ -1,0 +1,180 @@
+.promotionSection {
+  background: #0B0B0F;
+  padding: 4rem 1.5rem;
+  border-bottom: 1px solid #292932;
+}
+
+@media (min-width: 768px) {
+  .promotionSection {
+    padding: 5rem 2rem;
+  }
+}
+
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 184, 0, 0.15);
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FFB800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #F7F7F8;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: #A7A7B0;
+}
+
+.promotionCard {
+  background: linear-gradient(135deg, #1E1E26 0%, #15151B 100%);
+  border: 1px solid #292932;
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .promotionCard {
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+}
+
+.promotionImage {
+  position: relative;
+  min-height: 300px;
+  background-image: url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80');
+  background-size: cover;
+  background-position: center;
+}
+
+@media (min-width: 768px) {
+  .promotionImage {
+    min-height: 400px;
+  }
+}
+
+.promotionBadge {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: #FFB800;
+  color: #0B0B0F;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.promotionContent {
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .promotionContent {
+    padding: 3rem 2.5rem;
+  }
+}
+
+.promotionTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #F7F7F8;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .promotionTitle {
+    font-size: 1.75rem;
+  }
+}
+
+.promotionDescription {
+  font-size: 0.875rem;
+  color: #A7A7B0;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.promotionPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.currentPrice {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FF5A1F;
+  line-height: 1;
+}
+
+.originalPrice {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #A7A7B0;
+  text-decoration: line-through;
+}
+
+.promotionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  border: none;
+  border-radius: 12px;
+  color: #F7F7F8;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 90, 31, 0.3);
+  width: fit-content;
+}
+
+.promotionButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255, 90, 31, 0.4);
+}

@@ -1,39 +1,40 @@
 "use client";
 
-import HomeHero from "./home/components/HomeHero";
-import FeaturedCategories from "./home/components/FeaturedCategories";
-import FeaturedProducts from "./home/components/FeaturedProducts";
-import PromotionSection from "./home/components/PromotionSection";
-import ExperienceSection from "./home/components/ExperienceSection";
-import CTASection from "./home/components/CTASection";
-import MainContent from "@/components/cliente/layout/MainContent";
-import Container from "@/components/cliente/layout/Container";
+import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
+import { ModernHero } from "@/components/cliente/ModernHero/ModernHero";
+import { QuickActions } from "@/components/cliente/QuickActions/QuickActions";
+import { PromotionCard } from "@/components/cliente/PromotionCard/PromotionCard";
+import { CategoryCards } from "@/components/cliente/CategoryCards/CategoryCards";
+import { ModernProductCard } from "@/components/cliente/ModernProductCard/ModernProductCard";
+import { ExperienceSection } from "@/components/cliente/ExperienceSection/ExperienceSection";
+import { CTAFinal } from "@/components/cliente/CTAFinal/CTAFinal";
 
 export default function ClienteHomePage() {
   return (
     <>
-      {/* Hero Premium - Full width without container */}
-      <HomeHero />
+      {/* Modern Navbar */}
+      <ModernNavbar />
 
-      {/* Main Content with Container */}
-      <MainContent containerSize="large">
-        <Container size="large">
-          {/* Featured Categories */}
-          <FeaturedCategories maxCategories={6} />
+      {/* Hero Section */}
+      <ModernHero />
 
-          {/* Featured Products (Bento Grid) */}
-          <FeaturedProducts maxProducts={8} />
+      {/* Quick Actions */}
+      <QuickActions />
 
-          {/* Promotions */}
-          <PromotionSection maxPromotions={3} />
+      {/* Promotion Card */}
+      <PromotionCard />
 
-          {/* Experience */}
-          <ExperienceSection />
+      {/* Category Cards */}
+      <CategoryCards />
 
-          {/* CTA Final */}
-          <CTASection />
-        </Container>
-      </MainContent>
+      {/* Featured Products */}
+      <ModernProductCard />
+
+      {/* Experience Section */}
+      <ExperienceSection />
+
+      {/* Final CTA */}
+      <CTAFinal />
     </>
   );
 }
