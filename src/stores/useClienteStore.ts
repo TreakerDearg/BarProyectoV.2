@@ -19,6 +19,7 @@ type State = {
   setLineQty: (productId: string, quantity: number) => void;
   setLineNotes: (productId: string, notes: string) => void;
   clearCart: () => void;
+  updateLinePrice: (productId: string, price: number) => void;
 };
 
 export const useClienteStore = create<State>()(
@@ -46,7 +47,25 @@ export const useClienteStore = create<State>()(
 
       clearTableSession: () => set({ tableId: null, sessionId: null }),
 
-      addToCart: ({ productId, name, quantity = 1, notes = "" }) => {
+      addToCart: ({ productId, name, quantity = 1, notes = "", price }) => {
+        // Validaciones defensivas básicas
+        if (!productId || productId.trim() === "") {
+          console.warn("[addToCart] productId vacío, ignorando");
+          return;
+        }
+        if (!name || name.trim() === "") {
+          console.warn("[addToCart] name vacío, ignorando");
+          return;
+        }
+        if (quantity <= 0) {
+          console.warn("[addToCart] quantity inválido, ignorando");
+          return;
+        }
+        if (price < 0) {
+          console.warn("[addToCart] price negativo, ignorando");
+          return;
+        }
+
         const cart = [...get().cart];
         const i = cart.findIndex((l) => l.productId === productId);
         if (i >= 0) {
@@ -54,9 +73,10 @@ export const useClienteStore = create<State>()(
             ...cart[i],
             quantity: cart[i].quantity + quantity,
             notes: notes || cart[i].notes,
+            price: price, // Actualizar precio
           };
         } else {
-          cart.push({ productId, name, quantity, notes });
+          cart.push({ productId, name, quantity, notes, price });
         }
         set({ cart });
       },
@@ -84,6 +104,18 @@ export const useClienteStore = create<State>()(
         }),
 
       clearCart: () => set({ cart: [] }),
+
+      updateLinePrice: (productId, price) => {
+        if (price < 0) {
+          console.warn("[updateLinePrice] price negativo, ignorando");
+          return;
+        }
+        set({
+          cart: get().cart.map((l) =>
+            l.productId === productId ? { ...l, price } : l,
+          ),
+        });
+      },
     }),
     { name: "bartender-client" },
   ),

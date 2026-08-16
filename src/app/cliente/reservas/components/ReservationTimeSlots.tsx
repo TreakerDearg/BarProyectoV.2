@@ -7,7 +7,8 @@ import clsx from "clsx";
 import { checkReservationAvailability } from "@/lib/api/bartender";
 import ui from "../../cliente-ui.module.css";
 
-type AvailabilityMap = Record<string, boolean | "loading">;
+type AvailabilityStatus = "available" | "limited" | "unavailable" | "loading";
+type AvailabilityMap = Record<string, AvailabilityStatus>;
 
 interface Props {
   date: string;
@@ -59,9 +60,16 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
               guests,
             });
 
-            result[time] = data.available;
+            // Simular diferentes estados de disponibilidad
+            // En producción, esto debería venir del backend
+            if (data.available) {
+              // Randomly assign "limited" status for demo purposes
+              result[time] = Math.random() > 0.7 ? "limited" : "available";
+            } else {
+              result[time] = "unavailable";
+            }
           } catch {
-            result[time] = false;
+            result[time] = "unavailable";
           }
         })
       );
@@ -99,14 +107,15 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
           const state = available[time];
 
           const isLoading = state === "loading";
-          const isAvailable = state === true;
-          const isUnavailable = state === false;
+          const isAvailable = state === "available";
+          const isLimited = state === "limited";
+          const isUnavailable = state === "unavailable";
           const isSelected = selected === time;
 
           return (
             <motion.button
               key={time}
-              disabled={!isAvailable}
+              disabled={isUnavailable || isLoading}
               onClick={() => {
                 setSelected(time);
 
@@ -119,14 +128,15 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
                 ui.timeSlot,
                 isLoading && ui.timeSlotLoading,
                 isAvailable && ui.timeSlotAvailable,
+                isLimited && ui.timeSlotLimited,
                 isUnavailable && ui.timeSlotUnavailable,
                 isSelected && ui.timeSlotSelected
               )}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.05 }}
-              whileHover={isAvailable ? { scale: 1.05 } : {}}
-              whileTap={isAvailable ? { scale: 0.95 } : {}}
+              whileHover={!isUnavailable && !isLoading ? { scale: 1.05 } : {}}
+              whileTap={!isUnavailable && !isLoading ? { scale: 0.95 } : {}}
             >
               {/* shimmer loading */}
               {isLoading && (
@@ -139,6 +149,10 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
               </span>
 
               {/* availability indicator */}
+              {isLimited && !isSelected && (
+                <span className={ui.timeSlotLimitedBadge}>Últimos</span>
+              )}
+              
               {isAvailable && !isSelected && (
                 <span className={ui.timeSlotIndicator} />
               )}
@@ -147,11 +161,28 @@ export function ReservationTimeSlots({ date, guests, onSelect }: Props) {
         })}
       </div>
 
+      {/* No availability message */}
+      {!slots.some(time => available[time] === "available" || available[time] === "limited") && 
+       !slots.some(time => available[time] === "loading") && (
+        <div className={ui.statePanel}>
+          <p>
+            No encontramos disponibilidad para esta fecha y cantidad de personas.
+          </p>
+          <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+            Probá con otra fecha o cantidad de personas.
+          </p>
+        </div>
+      )}
+
       {/* LEGEND */}
       <div className={ui.timeSelectorLegend}>
         <div className={ui.timeSelectorLegendItem}>
           <span className={ui.timeSelectorLegendDot} />
           <span className={ui.timeSelectorLegendText}>Disponible</span>
+        </div>
+        <div className={ui.timeSelectorLegendItem}>
+          <span className={`${ui.timeSelectorLegendDot} ${ui.timeSelectorLegendDotLimited}`} />
+          <span className={ui.timeSelectorLegendText}>Últimos lugares</span>
         </div>
         <div className={ui.timeSelectorLegendItem}>
           <span className={`${ui.timeSelectorLegendDot} ${ui.timeSelectorLegendDotSelected}`} />

@@ -61,11 +61,13 @@ export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsPr
   }, [maxProducts]);
 
   const handleAddToCart = (product: ProductBrief) => {
+    const price = (product.dynamicPrice ?? product.price) ?? 0;
     addToCart({
       productId: product._id,
       name: product.name,
       quantity: 1,
       notes: "",
+      price,
     });
   };
 

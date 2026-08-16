@@ -12,6 +12,10 @@ import {
 
 import type { TableRow, ProductBrief } from "@/lib/types/api";
 import { useClienteStore } from "@/stores/useClienteStore";
+import { useOrdersStore } from "@/stores/useOrdersStore";
+import { initSocket, joinUserRoom, joinOrdersGlobal, onOrderStatus } from "@/lib/realtime/socket";
+import { useSocketReconnection } from "@/hooks/useSocketReconnection";
+import type { OrderStatus } from "@/lib/realtime/types";
 
 import { PedidoHeader } from "./components/PedidoHeader";
 import { PedidoMesa } from "./components/PedidoMesa";
@@ -33,6 +37,13 @@ export default function PedidoPage() {
   const removeFromCart = useClienteStore((state) => state.removeFromCart);
   const setLineQty = useClienteStore((state) => state.setLineQty);
   const clearCart = useClienteStore((state) => state.clearCart);
+  const user = useClienteStore((state) => state.user);
+
+  // Socket.IO for realtime order updates
+  const updateOrderStatus = useOrdersStore((state) => state.updateOrderStatus);
+  
+  // Socket reconnection handling
+  const { triggerStateSync } = useSocketReconnection();
 
   const [pickTable, setPickTable] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -44,6 +55,7 @@ export default function PedidoPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [msg, setMsg] = useState<string | null>(null);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
   /* =========================
      LOAD DATA
@@ -81,6 +93,70 @@ export default function PedidoPage() {
   }, [loadTables, loadProducts]);
 
   /* =========================
+     SOCKET.IO REALTIME
+  ========================= */
+  useEffect(() => {
+    // Initialize socket connection
+    const socket = initSocket();
+
+    // Join orders global room for order updates
+    // Backend emits to orders:global for all order updates
+    joinOrdersGlobal();
+
+    // Join user-specific room if authenticated
+    if (user?._id) {
+      joinUserRoom(user._id);
+    }
+
+    // Listen for order status updates
+    const unsubscribe = onOrderStatus((data) => {
+      console.log("[PedidoPage] Order status update received:", data);
+      
+      // Backend emits { event: "order:update", order }
+      const order = data.order;
+      if (!order) return;
+      
+      // Update local store with new status
+      updateOrderStatus(order._id, order.status as OrderStatus, order.updatedAt || new Date().toISOString());
+      
+      // Update message if this is the current order
+      if (order._id === currentOrderId) {
+        const statusMessages: Record<string, string> = {
+          "pending": "Tu pedido está pendiente",
+          "in-progress": "Tu pedido está en preparación",
+          "completed": "¡Tu pedido está listo!",
+          "cancelled": "Tu pedido fue cancelado"
+        };
+        setMsg(statusMessages[order.status] || `Estado actualizado: ${order.status}`);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user, currentOrderId, updateOrderStatus, joinOrdersGlobal]);
+
+  /* =========================
+     STATE SYNCHRONIZATION ON RECONNECTION
+  ========================= */
+  useEffect(() => {
+    const handleStateSync = () => {
+      console.log("[PedidoPage] Syncing state after reconnection");
+      // Rejoin orders global room
+      joinOrdersGlobal();
+      // Reload tables and products to ensure fresh data
+      loadTables();
+      loadProducts();
+    };
+
+    window.addEventListener("socket:state-sync", handleStateSync);
+
+    return () => {
+      window.removeEventListener("socket:state-sync", handleStateSync);
+    };
+  }, [loadTables, loadProducts, joinOrdersGlobal]);
+
+  /* =========================
      MESA
   ========================= */
   async function handleOpenSession() {
@@ -105,11 +181,13 @@ export default function PedidoPage() {
      CART (usando Zustand store)
   ========================= */
   function handleAddToCart(product: ProductBrief) {
+    const price = product.dynamicPrice ?? product.price ?? 0;
     addToCart({
       productId: product._id,
       name: product.name,
       quantity: 1,
       notes: "",
+      price,
     });
   }
 
@@ -130,7 +208,7 @@ export default function PedidoPage() {
     try {
       setSubmitting(true);
 
-      await createOrder({
+      const orderResponse = await createOrder({
         table: skipTable ? "" : pickTable,
         sessionId: skipTable ? "" : sessionId || "",
         items: cart.map((c) => ({
@@ -138,6 +216,11 @@ export default function PedidoPage() {
           quantity: c.quantity,
         })),
       });
+
+      // Store order ID for realtime tracking
+      if (orderResponse?._id) {
+        setCurrentOrderId(orderResponse._id);
+      }
 
       clearCart();
       setMsg("Pedido enviado correctamente");

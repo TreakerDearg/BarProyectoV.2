@@ -267,11 +267,11 @@
 .tableCardSelected {
   background: linear-gradient(
     135deg,
-    var(--gold-soft),
-    var(--honey-soft)
+    var(--primary-soft),
+    rgba(255, 113, 56, 0.15)
   );
-  border-color: var(--honey);
-  box-shadow: var(--glow-honey);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(255, 90, 31, 0.25);
 }
 
 /* 🔘 BOTONES */

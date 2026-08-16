@@ -9,6 +9,64 @@ export const getPromotions = async (req, res, next) => {
   } catch (error) { throw error; }
 };
 
+export const getPublicPromotions = async (req, res, next) => {
+  try {
+    const now = new Date();
+
+    const promotions = await Promotion.find({
+      isActive: true,
+      $or: [
+        // Sin restricción de fecha
+        { startDate: { $exists: false }, endDate: { $exists: false } },
+        // Dentro del rango de fechas
+        {
+          startDate: { $lte: now },
+          endDate: { $gte: now }
+        },
+        // Solo startDate definido y ya pasó
+        {
+          startDate: { $lte: now },
+          endDate: { $exists: false }
+        },
+        // Solo endDate definido y no ha pasado
+        {
+          startDate: { $exists: false },
+          endDate: { $gte: now }
+        }
+      ]
+    })
+    .populate("applicableProducts", "name price image available")
+    .sort({ createdAt: -1 });
+
+    // Transformar a DTO público (ocultar campos internos)
+    const publicPromotions = promotions.map(promo => ({
+      id: promo._id.toString(),
+      name: promo.name,
+      description: promo.description,
+      type: promo.type,
+      value: promo.value,
+      applicableProducts: promo.applicableProducts?.map(p => ({
+        id: p._id.toString(),
+        name: p.name,
+        price: p.price,
+        image: p.image,
+        available: p.available
+      })) || [],
+      applicableCategories: promo.applicableCategories || [],
+      schedule: promo.schedule ? {
+        daysOfWeek: promo.schedule.daysOfWeek || [],
+        startTime: promo.schedule.startTime,
+        endTime: promo.schedule.endTime,
+        startDate: promo.schedule.startDate,
+        endDate: promo.schedule.endDate
+      } : null,
+      active: promo.isActive
+    }));
+
+    return ok(res, publicPromotions);
+  } catch (error) { throw error; }
+};
+
 export const createPromotion = async (req, res, next) => {
   try {
     const promotion = new Promotion({

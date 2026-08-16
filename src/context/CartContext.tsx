@@ -15,6 +15,7 @@ export type AddToCartParams = {
   product: ProductBrief;
   quantity?: number;
   notes?: string;
+  price?: number; // Optional price override
 };
 
 type CartContextType = {
@@ -41,26 +42,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setLineQty = useClienteStore((s) => s.setLineQty);
   const setLineNotes = useClienteStore((s) => s.setLineNotes);
   const clearCartStore = useClienteStore((s) => s.clearCart);
-  
+  const updateLinePrice = useClienteStore((s) => s.updateLinePrice);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const itemCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
   }, [cart]);
 
-  // Total calculado basado en precio (nota: requiere que CartLine tenga price o pasar productos)
-  // Por ahora, itemCount funciona como proxy hasta que agreguemos precios al store
+  // Total monetario calculado correctamente basado en price × quantity
   const total = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.quantity, 0);
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }, [cart]);
 
   const addItem = useCallback(
-    ({ product, quantity = 1, notes = "" }: AddToCartParams) => {
+    ({ product, quantity = 1, notes = "", price }: AddToCartParams) => {
+      // Determinar el precio correcto: usar price proporcionado o dynamicPrice si existe, sino price
+      const finalPrice = price ?? (product.dynamicPrice ?? product.price) ?? 0;
+
       addToCart({
         productId: product._id,
         name: product.name,
         quantity,
         notes,
+        price: finalPrice,
       });
       setIsCartOpen(true);
     },
@@ -107,9 +112,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const getItemTotal = useCallback(
     (productId: string): number => {
       const item = cart.find((l) => l.productId === productId);
-      // Nota: CartLine no tiene price actualmente, retorna 0
-      // Se necesita agregar price al tipo CartLine o pasar mapa de precios
-      return 0;
+      if (!item) return 0;
+      return item.price * item.quantity;
     },
     [cart],
   );

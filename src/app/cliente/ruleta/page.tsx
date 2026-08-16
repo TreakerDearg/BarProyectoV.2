@@ -118,11 +118,13 @@ function RuletaPageContent() {
       const store = useClienteStore.getState();
       
       if (result.product) {
+        const price = (result.product.dynamicPrice ?? result.product.price) ?? 0;
         store.addToCart({
           productId: result.product._id,
           name: result.product.name,
           quantity: 1,
           notes: "",
+          price,
         });
       }
       

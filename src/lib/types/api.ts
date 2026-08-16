@@ -42,6 +42,7 @@ export type CartLine = {
   name: string;
   quantity: number;
   notes: string;
+  price: number;
 };
 
 export type PublicMenu = {
@@ -70,4 +71,38 @@ export type RouletteDrinkRow = {
   probability?: number;
   active?: boolean;
   product?: ProductBrief | null;
+};
+
+export type PromotionPublicDTO = {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  value: number;
+  applicableProducts: Array<{
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    available: boolean;
+  }>;
+  applicableCategories: string[];
+  schedule: {
+    daysOfWeek: string[];
+    startTime: string;
+    endTime: string;
+    startDate: Date;
+    endDate: Date;
+  } | null;
+  active: boolean;
+};
+
+export type OrderResponse = {
+  _id: string;
+  status: string;
+  table: string;
+  sessionId: string;
+  items: any[];
+  total: number;
+  createdAt: string;
 };

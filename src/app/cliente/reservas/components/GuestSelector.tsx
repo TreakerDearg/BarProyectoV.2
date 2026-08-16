@@ -41,7 +41,7 @@ export default function GuestSelector({
     <div className={ui.guestSelector}>
       <div className={ui.guestSelectorHeader}>
         <Users className={ui.guestSelectorIcon} />
-        <h3 className={ui.guestSelectorTitle}>Cantidad de Personas</h3>
+        <h3 className={ui.guestSelectorTitle}>¿Cuántas personas?</h3>
       </div>
 
       {/* Quick Selection Cards */}
@@ -71,7 +71,7 @@ export default function GuestSelector({
           type="button"
           onClick={handleDecrement}
           disabled={value <= min}
-          className={ui.guestSelectorButton}
+          className={`${ui.guestSelectorButton} ${ui.touchFeedback}`}
           whileHover={{ scale: value > min ? 1.1 : 1 }}
           whileTap={{ scale: value > min ? 0.9 : 1 }}
         >
@@ -89,7 +89,7 @@ export default function GuestSelector({
           type="button"
           onClick={handleIncrement}
           disabled={value >= max}
-          className={ui.guestSelectorButton}
+          className={`${ui.guestSelectorButton} ${ui.touchFeedback}`}
           whileHover={{ scale: value < max ? 1.1 : 1 }}
           whileTap={{ scale: value < max ? 0.9 : 1 }}
         >

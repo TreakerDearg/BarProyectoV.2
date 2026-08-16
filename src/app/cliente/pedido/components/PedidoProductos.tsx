@@ -5,6 +5,8 @@ import ui from "../pedido-ui.module.css";
 type Product = {
   _id: string;
   name: string;
+  price?: number;
+  dynamicPrice?: number;
 };
 
 type Props = {

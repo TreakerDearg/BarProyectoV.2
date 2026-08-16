@@ -59,11 +59,13 @@ export default function CartaPage() {
 
   // Handler para agregar al carrito
   const handleAddToCart = (product: ProductBrief) => {
+    const price = (product.dynamicPrice ?? product.price) ?? 0;
     addToCart({
       productId: product._id,
       name: product.name,
       quantity: 1,
       notes: "",
+      price,
     });
   };
 

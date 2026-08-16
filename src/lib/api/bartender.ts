@@ -6,8 +6,33 @@ import type {
   PublicMenu,
   RouletteDrinkRow,
   TableRow,
+  OrderResponse,
 } from "@/lib/types/api";
 import { api, errMessage } from "./client";
+
+interface PromotionPublicDTO {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  value: number;
+  applicableProducts: Array<{
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    available: boolean;
+  }>;
+  applicableCategories: string[];
+  schedule: {
+    daysOfWeek: string[];
+    startTime: string;
+    endTime: string;
+    startDate: Date;
+    endDate: Date;
+  } | null;
+  active: boolean;
+}
 
 function extractData<T>(res: AxiosResponse): T {
   const body = res.data as
@@ -108,7 +133,7 @@ export async function createOrder(body: {
 }) {
   try {
     const res = await api.post("/orders", body);
-    return extractData<unknown>(res);
+    return extractData<OrderResponse>(res);
   } catch (e) {
     throw new Error(errMessage(e));
   }
@@ -206,6 +231,15 @@ export async function checkReservationAvailability(params: {
     });
 
     return extractData<{ available: boolean }>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+export async function getPublicPromotions() {
+  try {
+    const res = await api.get("/promotions/public");
+    return extractData<PromotionPublicDTO[]>(res);
   } catch (e) {
     throw new Error(errMessage(e));
   }
