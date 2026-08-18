@@ -9,11 +9,12 @@ import {
 } from "../utils/response.js";
 import { calculateProductPrice } from "../utils/pricingEngine.js";
 import { emitProductEvent, PRODUCT_EVENTS } from "../utils/socketEvents.js";
+import { toProductListPublicDTO, toProductPublicDTO } from "../mappers/product.mapper.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /* =========================================================
-   GET ALL PRODUCTS
+   GET ALL PRODUCTS (ADMIN - Retorna modelo completo)
 ========================================================= */
 export const getProducts = async (req, res, next) => {
   try {
@@ -39,6 +40,36 @@ export const getProducts = async (req, res, next) => {
     })));
 
     return ok(res, productsWithDynamicPrice);
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   GET PUBLIC PRODUCTS (CLIENTE - Retorna DTO público)
+========================================================= */
+export const getPublicProducts = async (req, res, next) => {
+  try {
+    const { type, category, available, featured, tags, drinkStyle, dietaryRestrictions } = req.query;
+
+    const filter = { isActiveForPOS: true };
+    if (type)           filter.type           = type;
+    if (category)       filter.category       = category;
+    if (featured)       filter.featured       = featured === "true";
+    if (available !== undefined) filter.available = available === "true";
+    if (tags)  filter.tags  = { $in: tags.split(",").map((t) => t.trim()) };
+    if (drinkStyle) filter.drinkStyle = drinkStyle;
+    if (dietaryRestrictions) filter.dietaryRestrictions = { $in: dietaryRestrictions.split(",").map((t) => t.trim()) };
+
+    const products = await Product.find(filter).sort({ featured: -1, name: 1 }).lean();
+
+    // Calculate dynamic prices for all products
+    const dynamicPrices = await Promise.all(
+      products.map(async (p) => await calculateProductPrice(p))
+    );
+
+    // Use mapper to transform to public DTO
+    const publicProducts = toProductListPublicDTO(products, dynamicPrices);
+
+    return ok(res, publicProducts);
   } catch (error) { throw error; }
 };
 

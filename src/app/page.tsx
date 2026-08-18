@@ -1,5 +1,5 @@
-import LandingPage from "@/landing/LandingPage";
+import TransitionScreen from "@/landing/TransitionScreen";
 
 export default function HomePage() {
-  return <LandingPage />;
+  return <TransitionScreen />;
 }

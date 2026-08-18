@@ -16,6 +16,78 @@ export type AuthUser = {
   role: string;
 };
 
+// ========== DTOs Públicos ==========
+// Contratos normalizados entre backend y frontend
+
+export type ProductPublicDTO = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  dynamicPrice: number;
+  image: string;
+  type: "drink" | "food";
+  drinkStyle: "author" | "classic";
+  available: boolean;
+  featured: boolean;
+  category: string;
+  tags: string[];
+  dietaryRestrictions: DietaryRestriction[];
+};
+
+export type DietaryRestriction = "vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free";
+
+export type MenuPublicDTO = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  image: string;
+  type: "drink" | "food" | "mixed";
+  drinkStyle: "author" | "classic" | "mixed";
+  featured: boolean;
+  minPrice: number;
+  maxPrice: number;
+  categories: MenuCategoryPublicDTO[];
+};
+
+export type MenuCategoryPublicDTO = {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  order: number;
+  products: MenuProductPublicDTO[];
+};
+
+export type MenuProductPublicDTO = {
+  product: ProductPublicDTO;
+  price: number | null;
+  available: boolean;
+  featured: boolean;
+  order: number;
+};
+
+export type TablePublicDTO = {
+  id: string;
+  number: number;
+  capacity: number;
+  location: "indoor" | "outdoor" | "bar";
+  status: TableStatus;
+  currentSessionId: string | null;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  shape?: string;
+};
+
+export type TableStatus = "available" | "reserved" | "occupied" | "maintenance";
+
+// ========== Legacy Types (para migración gradual) ==========
+// ProductBrief se mantiene temporalmente para compatibilidad
+// TODO: Migrar todos los consumidores a ProductPublicDTO
+
 export type ProductBrief = {
   _id: string;
   name: string;

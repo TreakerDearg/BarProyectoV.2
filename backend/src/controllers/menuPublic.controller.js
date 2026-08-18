@@ -17,6 +17,7 @@ import {
   get,
   set,
 } from "../services/menuCacheService.js";
+import { toMenuPublicDTO, toMenuListPublicDTO } from "../mappers/menu.mapper.js";
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 

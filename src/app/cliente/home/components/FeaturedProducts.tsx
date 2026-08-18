@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Plus, ArrowRight, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getPublicMenus } from "@/lib/api/bartender";
-import type { PublicMenu, ProductBrief } from "@/lib/types/api";
+import type { PublicMenu, ProductBrief, ProductPublicDTO } from "@/lib/types/api";
 import { useClienteStore } from "@/stores/useClienteStore";
 import ui from "../../cliente-ui.module.css";
 
@@ -14,7 +14,7 @@ interface FeaturedProductsProps {
 }
 
 export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsProps) {
-  const [products, setProducts] = useState<ProductBrief[]>([]);
+  const [products, setProducts] = useState<ProductPublicDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +35,12 @@ export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsPr
           // Extraer todos los productos de todas las categorías
           const allProducts = Array.isArray(menus) ? menus.flatMap(menu =>
             menu.categories?.flatMap(cat =>
-              cat.products?.map(slot => slot.product).filter((p): p is ProductBrief => !!p?._id) || []
+              cat.products?.reduce<ProductPublicDTO[]>((acc, slot) => {
+                if (slot.product && 'id' in slot.product && typeof slot.product.id === 'string') {
+                  acc.push(slot.product as ProductPublicDTO);
+                }
+                return acc;
+              }, []) || []
             ) || []
           ) : [];
 
@@ -60,10 +65,10 @@ export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsPr
     };
   }, [maxProducts]);
 
-  const handleAddToCart = (product: ProductBrief) => {
+  const handleAddToCart = (product: ProductPublicDTO) => {
     const price = (product.dynamicPrice ?? product.price) ?? 0;
     addToCart({
-      productId: product._id,
+      productId: product.id,
       name: product.name,
       quantity: 1,
       notes: "",
@@ -113,13 +118,13 @@ export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsPr
         {/* Bento Grid */}
         <div className={ui.featuredProductsGrid}>
           {products.map((product, index) => {
-            const cartQty = getCartQty(product._id);
+            const cartQty = getCartQty(product.id);
             const price = typeof product.price === "number" ? product.price : Number(product.price ?? 0);
             const isFeatured = index === 0; // Primer producto es destacado (más grande)
 
             return (
               <motion.div
-                key={product._id}
+                key={product.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}

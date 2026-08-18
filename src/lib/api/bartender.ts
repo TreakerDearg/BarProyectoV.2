@@ -3,36 +3,14 @@ import type {
   ApiSuccess,
   AuthUser,
   ProductBrief,
+  ProductPublicDTO,
   PublicMenu,
   RouletteDrinkRow,
   TableRow,
   OrderResponse,
+  PromotionPublicDTO,
 } from "@/lib/types/api";
 import { api, errMessage } from "./client";
-
-interface PromotionPublicDTO {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  value: number;
-  applicableProducts: Array<{
-    id: string;
-    name: string;
-    price: number;
-    image: string;
-    available: boolean;
-  }>;
-  applicableCategories: string[];
-  schedule: {
-    daysOfWeek: string[];
-    startTime: string;
-    endTime: string;
-    startDate: Date;
-    endDate: Date;
-  } | null;
-  active: boolean;
-}
 
 function extractData<T>(res: AxiosResponse): T {
   const body = res.data as
@@ -84,6 +62,33 @@ export async function getProducts(params?: {
       },
     });
     return extractData<ProductBrief[]>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+export async function getPublicProducts(params?: {
+  type?: "food" | "drink";
+  available?: boolean;
+  featured?: boolean;
+  category?: string;
+  tags?: string[];
+}) {
+  try {
+    const res = await api.get("/products/public", {
+      params: {
+        ...(params?.type ? { type: params.type } : {}),
+        ...(params?.available !== undefined
+          ? { available: String(params.available) }
+          : {}),
+        ...(params?.featured !== undefined
+          ? { featured: String(params.featured) }
+          : {}),
+        ...(params?.category ? { category: params.category } : {}),
+        ...(params?.tags ? { tags: params.tags.join(",") } : {}),
+      },
+    });
+    return extractData<ProductPublicDTO[]>(res);
   } catch (e) {
     throw new Error(errMessage(e));
   }
