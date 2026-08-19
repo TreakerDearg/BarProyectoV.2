@@ -35,12 +35,7 @@ export default function FeaturedProducts({ maxProducts = 8 }: FeaturedProductsPr
           // Extraer todos los productos de todas las categorías
           const allProducts = Array.isArray(menus) ? menus.flatMap(menu =>
             menu.categories?.flatMap(cat =>
-              cat.products?.reduce<ProductPublicDTO[]>((acc, slot) => {
-                if (slot.product && 'id' in slot.product && typeof slot.product.id === 'string') {
-                  acc.push(slot.product as ProductPublicDTO);
-                }
-                return acc;
-              }, []) || []
+              cat.products?.map(slot => slot.product).filter(p => p !== null && typeof p === 'object' && 'id' in p && 'drinkStyle' in p).map(p => p as unknown as ProductPublicDTO) || []
             ) || []
           ) : [];
 
