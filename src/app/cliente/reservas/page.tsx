@@ -6,6 +6,7 @@ import {
   getAvailableReservationTables,
 } from "@/lib/api/bartender";
 
+import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
 import ReservationHero from "./components/ReservationHero";
 import ReservationStepper from "./components/ReservationStepper";
 import GuestSelector from "./components/GuestSelector";
@@ -146,20 +147,24 @@ export default function ReservasPage() {
 
   if (reservationSuccess) {
     return (
-      <MainContent containerSize="narrow">
-        <ReservationSuccess
-          reservationId={msg && msg.includes("🎉") ? undefined : msg || undefined}
-          date={startIso}
-          time={startIso}
-          guests={guests}
-          onReset={handleReset}
-        />
-      </MainContent>
+      <>
+        <ModernNavbar />
+        <MainContent containerSize="narrow">
+          <ReservationSuccess
+            reservationId={msg && msg.includes("🎉") ? undefined : msg || undefined}
+            date={startIso}
+            time={startIso}
+            guests={guests}
+            onReset={handleReset}
+          />
+        </MainContent>
+      </>
     );
   }
 
   return (
     <>
+      <ModernNavbar />
       {/* Hero Section */}
       {!startIso && !date && currentStep === 0 && <ReservationHero />}
 

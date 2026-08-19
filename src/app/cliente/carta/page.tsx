@@ -5,6 +5,7 @@ import { getPublicMenus } from "@/lib/api/bartender";
 import type { PublicMenu, ProductBrief } from "@/lib/types/api";
 import { ChefHat, Wine, Clapperboard, Search, X, ArrowUpDown, UtensilsCrossed, Glasses, RefreshCw } from "lucide-react";
 
+import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
 import FilterBar from "./components/FilterBar";
 import ProductCard from "./components/ProductCard";
 import LoadingState from "./components/LoadingState";
@@ -224,6 +225,7 @@ export default function CartaPage() {
 
   return (
     <>
+      <ModernNavbar />
       {/* Hero Section - Full width */}
       <Hero 
         title="Nuestra Carta"

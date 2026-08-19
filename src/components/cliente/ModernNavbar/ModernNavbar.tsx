@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { GlassWater, ShoppingCart, User, Menu, X, Home, ChefHat, Sparkles, CalendarDays } from "lucide-react";
+import { GlassWater, ShoppingCart, User, Menu, X, Home, ChefHat, Dices, CalendarDays } from "lucide-react";
 import styles from "./ModernNavbar.module.css";
 import { useClienteStore } from "@/stores/useClienteStore";
 
 const navLinks = [
   { href: "/cliente", label: "Inicio", icon: Home, exact: true },
   { href: "/cliente/carta", label: "Menú", icon: ChefHat },
-  { href: "/cliente/ruleta", label: "Promociones", icon: Sparkles },
+  { href: "/cliente/ruleta", label: "Ruleta", icon: Dices },
   { href: "/cliente/reservas", label: "Reservas", icon: CalendarDays },
 ];
 
