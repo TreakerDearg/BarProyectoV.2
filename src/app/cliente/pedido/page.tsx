@@ -17,7 +17,6 @@ import { initSocket, joinUserRoom, joinOrdersGlobal, onOrderStatus } from "@/lib
 import { useSocketReconnection } from "@/hooks/useSocketReconnection";
 import type { OrderStatus } from "@/lib/realtime/types";
 
-import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
 import { PedidoHeader } from "./components/PedidoHeader";
 import { PedidoMesa } from "./components/PedidoMesa";
 import { PedidoProductos } from "./components/PedidoProductos";
@@ -243,13 +242,11 @@ export default function PedidoPage() {
      RENDER
   ========================= */
   return (
-    <>
-      <ModernNavbar />
-      <div className={ui.container}>
-        <div className={ui.headerWithCart}>
-          <PedidoHeader />
-          <CartDrawer />
-        </div>
+    <div className={ui.container}>
+      <div className={ui.headerWithCart}>
+        <PedidoHeader />
+        <CartDrawer />
+      </div>
 
       <PedidoMesa
         tables={tables}
@@ -278,6 +275,5 @@ export default function PedidoPage() {
 
       <PedidoStatus msg={msg} />
     </div>
-    </>
   );
 }

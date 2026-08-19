@@ -1,6 +1,5 @@
 "use client";
 
-import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
 import { ModernHero } from "@/components/cliente/ModernHero/ModernHero";
 import { QuickActions } from "@/components/cliente/QuickActions/QuickActions";
 import { PromotionCard } from "@/components/cliente/PromotionCard/PromotionCard";
@@ -12,9 +11,6 @@ import { CTAFinal } from "@/components/cliente/CTAFinal/CTAFinal";
 export default function ClienteHomePage() {
   return (
     <>
-      {/* Modern Navbar */}
-      <ModernNavbar />
-
       {/* Hero Section */}
       <ModernHero />
 

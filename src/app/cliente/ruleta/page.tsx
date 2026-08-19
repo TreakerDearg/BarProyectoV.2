@@ -9,7 +9,6 @@ import type { RouletteDrinkRow } from "@/lib/types/api";
 import { Loader2, X, Trophy, Gift } from "lucide-react";
 import clsx from "clsx";
 import styles from "./Ruleta.module.css";
-import { ModernNavbar } from "@/components/cliente/ModernNavbar/ModernNavbar";
 import { CartDrawer } from "@/components/cliente/CartDrawer";
 import { RouletteHero } from "@/components/cliente/RouletteHero/RouletteHero";
 import { RouletteWheel } from "@/components/cliente/RouletteWheel/RouletteWheel";
@@ -155,13 +154,11 @@ function RuletaPageContent() {
   }
 
   return (
-    <>
-      <ModernNavbar />
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerTitle}>Ruleta Nebula</div>
-            <CartDrawer />
+    <div className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerTitle}>Ruleta Nebula</div>
+          <CartDrawer />
           {/* Connection Status Indicator */}
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${
@@ -269,7 +266,6 @@ function RuletaPageContent() {
         isAdding={isAdding}
       />
     </div>
-    </>
   );
 }
 
