@@ -20,6 +20,30 @@ router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
 
 /* =========================================================
+   TEMPORAL DIAGNOSTICS (eliminar después de confirmar OAuth)
+========================================================= */
+router.get("/google/check", (req, res) => {
+  const clientId     = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri  = process.env.GOOGLE_REDIRECT_URI;
+  const frontendUrl  = process.env.FRONTEND_URL;
+  const apiUrl       = process.env.API_URL;
+
+  res.json({
+    success: true,
+    env: {
+      GOOGLE_CLIENT_ID_present:     !!clientId,
+      GOOGLE_CLIENT_ID_prefix:      clientId ? clientId.slice(0, 20) + "..." : null,
+      GOOGLE_CLIENT_SECRET_present: !!clientSecret,
+      GOOGLE_REDIRECT_URI:          redirectUri || null,
+      FRONTEND_URL:                 frontendUrl || null,
+      API_URL:                      apiUrl || null,
+      NODE_ENV:                     process.env.NODE_ENV || null,
+    },
+  });
+});
+
+/* =========================================================
    PRIVATE ROUTES
 ========================================================= */
 router.get("/me", protect, getProfile);
