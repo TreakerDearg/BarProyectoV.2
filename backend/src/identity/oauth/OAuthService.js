@@ -51,12 +51,13 @@ class OAuthService {
 
       const authorizationUrl = providerInstance.getAuthorizationUrl(state);
 
-      return createIdentityResponse({
+      // Devolver objeto plano — createIdentityResponse descarta authorizationUrl
+      return {
         success: true,
         authorizationUrl,
         state,
         provider,
-      });
+      };
     } catch (error) {
       logger.error('[OAuthService] Error en initiateOAuth:', error);
       throw error;
