@@ -59,7 +59,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   /* =========================
      SET AUTH (OAUTH CALLBACK)
   ========================= */
-  setAuth: (token, user) => {
   setAuth: (token: string, user: User, refreshToken?: string) => {
     // Guardar ambos tokens — el refreshToken puede venir del callback OAuth
     saveTokens(token, refreshToken || token);
