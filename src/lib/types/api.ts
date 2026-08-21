@@ -16,6 +16,39 @@ export type AuthUser = {
   role: string;
 };
 
+// Respuesta completa del Identity Decision Engine (POST /auth/login, GET /auth/google/callback)
+export type IdentityDecisionResponse = {
+  success: boolean;
+  // Usuario básico
+  user: { id: string; name: string; email: string; role: string };
+  // Identidad
+  identityStatus: string;     // CLIENT | EMPLOYEE | EMPLOYEE_WORKING | EMPLOYEE_OFF_SHIFT | ADMIN | OWNER | LOCKED | INACTIVE | PENDING_VERIFICATION
+  identityStatusLabel: string;
+  isEmployee: boolean;
+  isAdmin: boolean;
+  role: string;
+  roleLabel: string;
+  // Acceso
+  canAccess: boolean;
+  requiresAction: string | null;
+  destination: string;
+  destinationReason: string;
+  // Mensajes
+  blockMessage: { title?: string; message: string; [key: string]: unknown } | null;
+  desktopAccessMessage: { title?: string; message?: string; shiftStart?: string; minutesUntilStart?: number } | null;
+  // Tokens
+  token: string;
+  refreshToken: string;
+  tokenExpiresIn: string;
+  // Proveedor
+  provider: string;
+  providerVerified: boolean;
+  lastLogin: string | null;
+  // Sesión
+  session: Record<string, unknown>;
+  message?: string;
+};
+
 // ========== DTOs Públicos ==========
 // Contratos normalizados entre backend y frontend
 

@@ -45,7 +45,8 @@ export default function Login() {
         .then(data => {
           if (data.success) {
             const { setAuth } = useAuthStore.getState();
-            setAuth(tokenParam, data.data);
+            // Pasar el refreshToken real del callback, no duplicar el access token
+            setAuth(tokenParam, data.data, refreshTokenParam);
             navigate("/dashboard");
           }
         })

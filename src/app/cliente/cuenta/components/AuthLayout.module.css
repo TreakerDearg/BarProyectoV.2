@@ -1,0 +1,172 @@
+/* ===================================================================
+   AuthLayout — dos columnas desktop, una columna mobile
+   =================================================================== */
+
+/* ── Wrapper ─────────────────────────────────────────────────────*/
+
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  background: #0B0B0F;
+}
+
+/* ── Panel izquierdo — Brand ─────────────────────────────────────*/
+
+.brand {
+  display: none; /* Oculto en mobile */
+}
+
+/* ── Panel derecho — Formulario ──────────────────────────────────*/
+
+.formPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 80px; /* 80px para MobileNavigation */
+  min-height: 100vh;
+}
+
+.logoMobile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  margin-bottom: 40px;
+  align-self: flex-start;
+}
+
+.logoMarkSm {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 1rem;
+  font-weight: 900;
+  color: #F7F7F8;
+  box-shadow: 0 4px 12px rgba(255, 90, 31, 0.35);
+  letter-spacing: -0.02em;
+}
+
+.logoTextSm {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #F7F7F8;
+  letter-spacing: -0.02em;
+}
+
+.formContent {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* ── Desktop — dos columnas ──────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .wrapper {
+    flex-direction: row;
+  }
+
+  .brand {
+    display: flex;
+    width: 45%;
+    max-width: 520px;
+    background: linear-gradient(145deg, #0F0F14 0%, #0B0B0F 100%);
+    border-right: 1px solid rgba(255, 90, 31, 0.1);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .brandInner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 48px;
+    height: 100%;
+  }
+
+  .logoLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .logoMark {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display, "Outfit", sans-serif);
+    font-size: 1.375rem;
+    font-weight: 900;
+    color: #F7F7F8;
+    box-shadow: 0 4px 20px rgba(255, 90, 31, 0.4);
+    letter-spacing: -0.02em;
+  }
+
+  .logoText {
+    font-family: var(--font-display, "Outfit", sans-serif);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #F7F7F8;
+    letter-spacing: -0.025em;
+  }
+
+  .tagline {
+    margin-top: auto;
+    font-family: var(--font-display, "Outfit", sans-serif);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    color: #F7F7F8;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    padding-bottom: 80px;
+  }
+
+  /* Decoración radial en el brand panel */
+  .brandDecoration {
+    position: absolute;
+    bottom: -80px;
+    right: -80px;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(255, 90, 31, 0.12) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .formPanel {
+    flex: 1;
+    padding: 48px 64px 48px;
+  }
+
+  .logoMobile {
+    display: none; /* Ocultar en desktop */
+  }
+
+  .formContent {
+    max-width: 420px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .formPanel {
+    padding: 64px 80px;
+  }
+
+  .formContent {
+    max-width: 440px;
+  }
+}
