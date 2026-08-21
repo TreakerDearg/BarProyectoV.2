@@ -228,9 +228,10 @@ export function useAuth(): UseAuthReturn {
         headers: { "X-Platform": "web" },
       });
       const data = await res.json();
+      const authUrl = data.data?.authorizationUrl ?? data.authorizationUrl;
 
-      if (data.success && data.authorizationUrl) {
-        window.location.href = data.authorizationUrl;
+      if (authUrl) {
+        window.location.href = authUrl;
       } else {
         setError("No se pudo iniciar la autenticación con Google.");
       }

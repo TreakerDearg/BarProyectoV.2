@@ -365,13 +365,7 @@ export const googleAuth = async (req, res, next) => {
     }, "Flujo OAuth iniciado");
   } catch (error) {
     logger.error("[Auth] Error en googleAuth:", error);
-    // TEMP: exponer mensaje real para diagnóstico — eliminar después
-    return res.status(500).json({
-      success: false,
-      message: "Error al iniciar OAuth",
-      _debug_message: error?.message || String(error),
-      _debug_stack: error?.stack?.split('\n').slice(0, 5),
-    });
+    return serverError(res, "Error al iniciar OAuth");
   }
 };
 
