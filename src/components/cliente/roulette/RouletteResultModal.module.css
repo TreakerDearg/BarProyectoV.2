@@ -1,0 +1,403 @@
+/* ===================================================================
+   RouletteResultModal
+   Mobile: bottom sheet con drag handle
+   Desktop: modal centrado con backdrop
+   =================================================================== */
+
+/* ── Backdrop ────────────────────────────────────────────────────*/
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 8, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
+}
+
+/* ── Panel — mobile: bottom sheet ────────────────────────────────*/
+
+.panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: #15151B;
+  border-top: 1px solid rgba(255, 90, 31, 0.2);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Prevenir scroll accidental en la rueda detrás */
+  overscroll-behavior: contain;
+}
+
+/* ── Drag handle ─────────────────────────────────────────────────*/
+
+.dragHandle {
+  width: 40px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+/* ── Botón cerrar ────────────────────────────────────────────────*/
+
+.closeButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(247, 247, 248, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F7F7F8;
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────*/
+
+.header {
+  text-align: center;
+  padding-top: 8px;
+}
+
+.sparkleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sparkle {
+  font-size: 1.1rem;
+}
+
+.resultLabel {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: clamp(0.75rem, 2vw, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #FF5A1F;
+}
+
+/* ── Drink card ──────────────────────────────────────────────────*/
+
+.drinkCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Imagen */
+.imageWrapper {
+  width: 140px;
+  height: 140px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #1E1E26;
+  border: 1px solid rgba(255, 90, 31, 0.2);
+  flex-shrink: 0;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1E1E26 0%, #0B0B0F 100%);
+}
+
+.placeholderIcon {
+  width: 48px;
+  height: 48px;
+  color: rgba(255, 90, 31, 0.3);
+}
+
+/* Info */
+.drinkInfo {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.drinkName {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: clamp(1.4rem, 5vw, 1.75rem);
+  font-weight: 800;
+  color: #F7F7F8;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+/* Rareza */
+.rarity {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rarityCommon {
+  background: rgba(41, 41, 50, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(247, 247, 248, 0.6);
+}
+
+.rarityRare {
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: #60A5FA;
+}
+
+.rarityEpic {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #A78BFA;
+}
+
+.rarityLegendary {
+  background: rgba(255, 184, 0, 0.12);
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  color: #FFB800;
+  box-shadow: 0 0 12px rgba(255, 184, 0, 0.15);
+}
+
+.drinkDescription {
+  font-size: 0.875rem;
+  color: rgba(247, 247, 248, 0.55);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 280px;
+}
+
+.drinkPrice {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 800;
+  color: #FFB800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* ── Acciones ────────────────────────────────────────────────────*/
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 15px 24px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  border: none;
+  color: #F7F7F8;
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 16px rgba(255, 90, 31, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.primaryAction:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 20px rgba(255, 90, 31, 0.4);
+  transform: translateY(-1px);
+}
+
+.primaryAction:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primaryAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primaryAction:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 2px;
+}
+
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(247, 247, 248, 0.6);
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.secondaryAction:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 90, 31, 0.3);
+  color: #F7F7F8;
+}
+
+.secondaryAction:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.secondaryAction:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 2px;
+}
+
+.actionIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Spinner para el estado "agregando" */
+.actionSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(247, 247, 248, 0.3);
+  border-top-color: #F7F7F8;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Desktop: modal centrado ─────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .panel {
+    position: fixed;
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+    bottom: auto;
+    right: auto;
+    width: 100%;
+    max-width: 480px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 90, 31, 0.2);
+    padding: 32px;
+    max-height: 88vh;
+  }
+
+  /* Ocultar drag handle en desktop */
+  .dragHandle {
+    display: none;
+  }
+
+  /* Layout del drinkCard en dos columnas en desktop */
+  .drinkCard {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .imageWrapper {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+  }
+
+  .drinkInfo {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .drinkDescription {
+    max-width: none;
+  }
+
+  .actions {
+    flex-direction: row;
+  }
+
+  .primaryAction,
+  .secondaryAction {
+    flex: 1;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────*/
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction,
+  .secondaryAction {
+    transition: none;
+  }
+
+  .primaryAction:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .actionSpinner {
+    animation: none;
+    border: 2px solid #F7F7F8;
+    opacity: 0.6;
+  }
+}

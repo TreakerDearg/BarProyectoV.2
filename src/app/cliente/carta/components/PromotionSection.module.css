@@ -1,0 +1,101 @@
+/* ===================================================================
+   PromotionSection — franja de promociones activas
+   =================================================================== */
+
+.section {
+  padding: 0 0 8px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────*/
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 16px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flame {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.heading {
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: clamp(1.125rem, 3vw, 1.3rem);
+  font-weight: 800;
+  color: #F7F7F8;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.subheading {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.8125rem;
+  color: rgba(247, 247, 248, 0.45);
+  margin: 0;
+  margin-top: 2px;
+}
+
+/* ── Scroller horizontal ─────────────────────────────────────────*/
+
+.scroller {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 16px 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .header {
+    padding: 0 24px 20px;
+  }
+
+  .scroller {
+    padding: 4px 24px 12px;
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* En desktop mostrar como grid si caben pocas promos */
+  .scroller {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    overflow-x: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+    padding: 4px 24px 12px;
+  }
+}

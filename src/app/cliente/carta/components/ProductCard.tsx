@@ -1,145 +1,164 @@
-import type { ProductBrief } from "@/lib/types/api";
-import { Plus, UtensilsCrossed, Wine, Flame, Check, ImageOff, Tag } from "lucide-react";
-import { useState } from "react";
-import clsx from "clsx";
-import ui from "../../cliente-ui.module.css";
+"use client";
 
-type ProductCardProps = {
-  product: ProductBrief;
-  cartQty?: number;
-  onAdd?: (product: ProductBrief) => void;
-};
+import { memo, useState } from "react";
+import type { ProductPublicDTO } from "@/lib/types/api";
+import type { ProductPromotion } from "@/hooks/usePromotions";
+import styles from "./ProductCard.module.css";
 
-function typeLabel(type: string | undefined) {
-  // Usar el tipo directamente del backend si está normalizado
-  if (!type) return "Especial";
-  
-  const normalized = type.toLowerCase();
-  // Capitalizar primera letra
-  return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+// ─────────────────────────────────────────────────────────────────
+// ProductCard — tarjeta de producto rediseñada
+// Usa ProductPublicDTO (id, dynamicPrice real del backend)
+// ─────────────────────────────────────────────────────────────────
+
+interface ProductCardProps {
+  product: ProductPublicDTO;
+  promotion: ProductPromotion | null;
+  cartQty: number;
+  onAdd: (product: ProductPublicDTO) => void;
+  onOpenDetail: (product: ProductPublicDTO) => void;
 }
 
-export default function ProductCard({
+function formatPrice(n: number): string {
+  return n.toLocaleString("es-AR", { maximumFractionDigits: 0 });
+}
+
+export const ProductCard = memo(function ProductCard({
   product,
-  cartQty = 0,
+  promotion,
+  cartQty,
   onAdd,
+  onOpenDetail,
 }: ProductCardProps) {
-  const ok = product.available !== false;
-  const [imageError, setImageError] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-  const price =
-    typeof product.price === "number"
-      ? product.price
-      : Number(product.price ?? 0);
-  const normalizedType = (product.type ?? "").toLowerCase();
-  const isDrink =
-    normalizedType === "drink" ||
-    normalizedType === "bebida" ||
-    normalizedType === "cocktail";
+  const isAvailable = product.available !== false;
+  const basePrice = product.dynamicPrice ?? product.price;
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
+  // Precio a mostrar y precio tachado
+  const displayPrice = promotion?.promoPrice ?? basePrice;
+  const strikePrice = promotion?.promoPrice != null ? basePrice : null;
 
-  const hasValidImage = product.image && !imageError;
-  
-  // Detectar promociones si existen en el backend
-  const hasPromotion = (product as any).promotion || (product as any).discount;
-  const discountPrice = hasPromotion ? (product as any).discountPrice || (product as any).dynamicPrice : null;
+  const isDrink = product.type === "drink";
 
   return (
-    <article className={clsx(ui.cardV3, !ok && ui.cardV3Disabled)}>
-      <div className={ui.cardV3Glow} aria-hidden />
-      
-      {/* Image or Placeholder */}
-      <div className={ui.cardV3ImageContainer}>
-        {hasValidImage ? (
+    <article
+      className={`${styles.card} ${!isAvailable ? styles.cardUnavailable : ""}`}
+      aria-label={`${product.name}${!isAvailable ? " — Agotado" : ""}`}
+    >
+      {/* ── Imagen ─────────────────────────────────────────────────*/}
+      <button
+        type="button"
+        className={styles.imageBtn}
+        onClick={() => isAvailable && onOpenDetail(product)}
+        aria-label={`Ver detalle de ${product.name}`}
+        tabIndex={isAvailable ? 0 : -1}
+      >
+        {product.image && !imgError ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.image}
             alt={product.name}
-            className={ui.cardV3Image}
-            onError={handleImageError}
+            className={styles.image}
+            onError={() => setImgError(true)}
             loading="lazy"
           />
         ) : (
-          <div className={ui.cardV3ImagePlaceholder}>
-            <ImageOff className={ui.cardV3PlaceholderIcon} />
-            <span className={ui.cardV3PlaceholderText}>Sin imagen</span>
+          <div className={styles.imagePlaceholder} aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" className={styles.placeholderIcon}>
+              {isDrink ? (
+                <path d="M9 3h6l1 5H8L9 3zm0 0H6l-2 7h2m13-7h-3m3 0l2 7h-2M4 10h16v2c0 3.866-3.134 7-7 7h-2c-3.866 0-7-3.134-7-7v-2z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              ) : (
+                <path d="M3 11l19-9-9 19-2-8-8-2z"
+                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              )}
+            </svg>
           </div>
         )}
-      </div>
 
-      {/* Type Badge */}
-      <div className={ui.cardV3TypeBadge}>
-        {isDrink ? (
-          <Wine className="h-3 w-3" />
-        ) : (
-          <UtensilsCrossed className="h-3 w-3" />
+        {/* Badge de agotado */}
+        {!isAvailable && (
+          <div className={styles.unavailableBadge} aria-hidden="true">
+            Agotado
+          </div>
         )}
-        <span>{typeLabel(product.type)}</span>
-      </div>
 
-      {/* Promotion Badge */}
-      {hasPromotion && (
-        <div className={ui.cardV3PromotionBadge}>
-          <Tag className="h-3 w-3" />
-          <span>Promoción</span>
-        </div>
-      )}
+        {/* Badge de promoción */}
+        {promotion && isAvailable && (
+          <div className={styles.promoBadge} aria-label={`Promoción: ${promotion.label}`}>
+            {promotion.label}
+          </div>
+        )}
 
-      {/* Content */}
-      <div className={ui.cardV3Content}>
-        <div className={ui.cardV3Header}>
-          <h4 className={ui.cardV3Title}>{product.name}</h4>
-          <span className={clsx(ui.cardV3Availability, ok ? ui.cardV3Available : ui.cardV3Unavailable)}>
-            {ok ? (
-              <>
-                <Flame className="h-3 w-3" />
-                Disponible
-              </>
-            ) : (
-              "Agotado"
-            )}
-          </span>
-        </div>
+        {/* Badge de destacado */}
+        {product.featured && isAvailable && !promotion && (
+          <div className={styles.featuredBadge} aria-hidden="true">
+            ✦ Destacado
+          </div>
+        )}
+      </button>
 
+      {/* ── Contenido ──────────────────────────────────────────────*/}
+      <div className={styles.content}>
+        {/* Tipo */}
+        <span className={styles.typeLabel} aria-hidden="true">
+          {isDrink ? "Bebida" : "Comida"}
+          {product.category ? ` · ${product.category}` : ""}
+        </span>
+
+        {/* Nombre */}
+        <h3 className={styles.name}>{product.name}</h3>
+
+        {/* Descripción */}
         {product.description && (
-          <p className={ui.cardV3Desc}>{product.description}</p>
+          <p className={styles.description}>{product.description}</p>
         )}
 
-        <div className={ui.cardV3Footer}>
-          <div className={ui.cardV3PriceContainer}>
-            {hasPromotion && discountPrice && (
-              <span className={ui.cardV3OriginalPrice}>
-                ${price.toLocaleString("es-AR", { maximumFractionDigits: 0 })}
+        {/* Footer: precio + botón */}
+        <div className={styles.footer}>
+          <div className={styles.priceBlock}>
+            {strikePrice != null && (
+              <span className={styles.strikePrice} aria-label={`Precio original: $${formatPrice(strikePrice)}`}>
+                ${formatPrice(strikePrice)}
               </span>
             )}
-            <p className={clsx(ui.cardV3Price, hasPromotion && ui.cardV3DiscountPrice)}>
-              ${(hasPromotion && discountPrice ? discountPrice : price).toLocaleString("es-AR", {
-                maximumFractionDigits: 0,
-              })}
-            </p>
+            <span
+              className={`${styles.price} ${promotion?.promoPrice != null ? styles.promoPrice : ""}`}
+              aria-label={`Precio: $${formatPrice(displayPrice)}`}
+            >
+              ${formatPrice(displayPrice)}
+            </span>
           </div>
 
-          {/* Quick Add Button */}
+          {/* Botón agregar */}
           <button
             type="button"
-            onClick={() => onAdd?.(product)}
-            disabled={!ok}
-            className={clsx(ui.cardV3QuickAdd, cartQty > 0 && ui.cardV3QuickAddActive)}
-            aria-label={cartQty > 0 ? `${cartQty} en carrito` : "Agregar al carrito"}
+            className={`${styles.addBtn} ${cartQty > 0 ? styles.addBtnActive : ""}`}
+            onClick={() => onAdd(product)}
+            disabled={!isAvailable}
+            aria-label={
+              cartQty > 0
+                ? `${cartQty} en el pedido — agregar otro`
+                : `Agregar ${product.name} al pedido`
+            }
           >
             {cartQty > 0 ? (
               <>
-                <Check className="h-4 w-4" />
-                <span className={ui.cardV3QuickAddQty}>{cartQty}</span>
+                <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span>{cartQty}</span>
               </>
             ) : (
-              <Plus className="h-4 w-4" />
+              <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5"
+                  strokeLinecap="round" />
+              </svg>
             )}
           </button>
         </div>
       </div>
     </article>
   );
-}
+});

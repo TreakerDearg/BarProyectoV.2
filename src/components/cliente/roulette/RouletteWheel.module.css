@@ -1,0 +1,377 @@
+/* ===================================================================
+   RouletteWheel — Premium Visual Experience
+   Design system: bartender-client-design SKILL
+   Mobile-first, deterministic animation
+   =================================================================== */
+
+/* ── Escena principal ─────────────────────────────────────────── */
+
+.wheelScene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Tamaño base para móvil: rueda de 300px + espacio para pointer y glows */
+  width: 340px;
+  height: 340px;
+  flex-shrink: 0;
+}
+
+/* ── Glows ambientales ───────────────────────────────────────────*/
+
+.ambientGlow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 90, 31, 0.12) 0%,
+    transparent 60%
+  );
+  filter: blur(24px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambientGlowSecondary {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 184, 0, 0.07) 0%,
+    transparent 50%
+  );
+  filter: blur(16px);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.4s ease;
+}
+
+.ambientActive {
+  opacity: 1;
+  animation: glowPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* ── Anillos decorativos ─────────────────────────────────────────*/
+
+.ringOuter {
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(255, 90, 31, 0.18);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ringInner {
+  position: absolute;
+  inset: -16px;
+  border: 1px solid rgba(255, 90, 31, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Wrapper de la rueda ─────────────────────────────────────────*/
+
+.wheelWrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Rueda principal ─────────────────────────────────────────────*/
+
+.wheel {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 90, 31, 0.5);
+  box-shadow:
+    0 0 0 2px rgba(0, 0, 0, 0.8),
+    0 0 0 4px rgba(255, 90, 31, 0.2),
+    0 8px 40px rgba(0, 0, 0, 0.7),
+    inset 0 0 80px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  will-change: transform;
+  transform-origin: center center;
+  position: relative;
+}
+
+/* ── Labels de segmentos ─────────────────────────────────────────*/
+
+.segmentLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+.segmentText {
+  display: block;
+  margin-top: 16px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-sans, "Outfit", sans-serif);
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.9),
+    0 0 8px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Hub central ─────────────────────────────────────────────────*/
+
+.hubOuter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #0B0B0F;
+  border: 2px solid rgba(255, 90, 31, 0.4);
+  box-shadow:
+    0 0 0 3px rgba(0, 0, 0, 0.9),
+    0 4px 16px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(255, 90, 31, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.hubInner {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1E1E26 0%, #0B0B0F 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 90, 31, 0.2);
+}
+
+.hubCore {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(255, 90, 31, 0.4);
+}
+
+.hubIcon {
+  width: 18px;
+  height: 18px;
+  color: #0B0B0F;
+}
+
+/* ── Puntero ─────────────────────────────────────────────────────*/
+
+.pointerWrapper {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pointer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  filter: drop-shadow(0 4px 12px rgba(255, 90, 31, 0.5));
+}
+
+.pointerArrow {
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 28px solid #FF5A1F;
+  position: relative;
+}
+
+.pointerArrow::before {
+  content: "";
+  position: absolute;
+  top: -32px;
+  left: -12px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 24px solid #FF7138;
+}
+
+.pointerDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #FF5A1F;
+  border: 2px solid rgba(255, 90, 31, 0.3);
+  box-shadow: 0 0 8px rgba(255, 90, 31, 0.6);
+  margin-top: -4px;
+}
+
+/* ── Responsive — tablet ─────────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .wheelScene {
+    width: 420px;
+    height: 420px;
+  }
+
+  .wheel {
+    width: 360px;
+    height: 360px;
+  }
+
+  .hubOuter {
+    width: 88px;
+    height: 88px;
+  }
+
+  .hubInner {
+    width: 72px;
+    height: 72px;
+  }
+
+  .hubCore {
+    width: 48px;
+    height: 48px;
+  }
+
+  .hubIcon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .segmentText {
+    font-size: 10px;
+    margin-top: 20px;
+  }
+
+  .pointerArrow {
+    border-left-width: 16px;
+    border-right-width: 16px;
+    border-top-width: 32px;
+  }
+
+  .pointerArrow::before {
+    border-left-width: 14px;
+    border-right-width: 14px;
+    border-top-width: 28px;
+    top: -36px;
+    left: -14px;
+  }
+
+  .pointerDot {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* ── Responsive — desktop ────────────────────────────────────────*/
+
+@media (min-width: 1024px) {
+  .wheelScene {
+    width: 500px;
+    height: 500px;
+  }
+
+  .wheel {
+    width: 440px;
+    height: 440px;
+    border-width: 4px;
+  }
+
+  .hubOuter {
+    width: 100px;
+    height: 100px;
+  }
+
+  .hubInner {
+    width: 84px;
+    height: 84px;
+  }
+
+  .hubCore {
+    width: 56px;
+    height: 56px;
+  }
+
+  .hubIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .segmentText {
+    font-size: 11px;
+    margin-top: 24px;
+  }
+
+  .pointerArrow {
+    border-left-width: 18px;
+    border-right-width: 18px;
+    border-top-width: 36px;
+  }
+
+  .pointerArrow::before {
+    border-left-width: 16px;
+    border-right-width: 16px;
+    border-top-width: 32px;
+    top: -40px;
+    left: -16px;
+  }
+
+  .pointerDot {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────*/
+
+@media (prefers-reduced-motion: reduce) {
+  .ambientActive {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  .wheel {
+    transition: transform 0.5s ease;
+  }
+}

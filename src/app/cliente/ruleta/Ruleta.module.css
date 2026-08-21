@@ -1,138 +1,169 @@
-.container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4) var(--space-20);
+/* ===================================================================
+   RulettePage — layout y composición
+   Mobile-first. La rueda es el protagonista.
+   =================================================================== */
+
+/* ── Página ──────────────────────────────────────────────────────*/
+
+.page {
+  position: relative;
+  min-height: calc(100vh - 64px); /* descontar el Navbar */
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px 80px; /* 80px para MobileNavigation */
+  overflow: hidden;
 }
 
-@media (min-width: var(--bp-sm)) {
-  .container {
-    padding: var(--space-8) var(--space-6) var(--space-24);
-    gap: var(--space-10);
-  }
+/* ── Fondo decorativo ────────────────────────────────────────────*/
+
+.pageBackground {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 50% 0%,
+      rgba(255, 90, 31, 0.06) 0%,
+      transparent 70%
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
-@media (min-width: var(--bp-lg)) {
-  .container {
-    padding: var(--space-10) var(--space-8) var(--space-28);
-  }
+/* ── Experiencia — columna central ──────────────────────────────*/
+
+.experience {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  max-width: 640px;
 }
 
-.header {
+/* ── Sección de la rueda ─────────────────────────────────────────*/
+
+.wheelSection {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-6);
-  border-radius: var(--radius-2xl);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-}
-
-.headerContent {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  justify-content: center;
   width: 100%;
 }
 
-.headerTitle {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
-}
+/* ── Controles (status + botón) ──────────────────────────────────*/
 
-@media (min-width: var(--bp-sm)) {
-  .headerTitle {
-    font-size: var(--text-2xl);
-  }
-}
-
-/* Wheel Bento Container */
-.wheelBento {
+.controls {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  border-radius: var(--radius-2xl);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  min-height: 400px;
+  gap: 16px;
+  width: 100%;
 }
 
-@media (min-width: var(--bp-sm)) {
-  .wheelBento {
-    min-height: 500px;
-  }
-}
+/* ── Skeleton de carga ───────────────────────────────────────────*/
 
-@media (min-width: var(--bp-lg)) {
-  .wheelBento {
-    min-height: 600px;
-  }
-}
-
-.alertInfo {
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg);
-  background: var(--gold-soft);
-  border: 1px solid var(--gold-border);
-  color: var(--gold-light);
-  font-size: 0.9375rem;
-  text-align: center;
-}
-
-.alertInfoLink {
-  color: var(--gold);
-  text-decoration: underline;
-}
-
-.alertInfoLink:hover {
-  text-decoration: none;
-}
-
-.alertError {
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg);
-  background: var(--red-soft);
-  border: 1px solid var(--red-border);
-  color: var(--red-light);
-  font-size: 0.9375rem;
-  text-align: center;
-}
-
-.loading {
+.loadingWrapper {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 3rem;
+  gap: 20px;
+  padding: 48px 24px;
 }
 
-.spinner {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 3px solid var(--border);
-  border-top-color: var(--gold);
+.skeletonWheel {
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
+.skeletonLine {
+  width: 180px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: shimmer 1.6s ease-in-out infinite 0.2s;
+}
+
+.skeletonButton {
+  width: 200px;
+  height: 54px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: shimmer 1.6s ease-in-out infinite 0.4s;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* ── Responsive — tablet ─────────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .page {
+    padding: 40px 24px 48px;
+    min-height: calc(100vh - 72px);
   }
-  to {
-    transform: rotate(360deg);
+
+  .experience {
+    gap: 36px;
+  }
+
+  .skeletonWheel {
+    width: 360px;
+    height: 360px;
   }
 }
 
-.empty {
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--text-muted);
+/* ── Responsive — desktop ────────────────────────────────────────*/
+
+@media (min-width: 1024px) {
+  .page {
+    padding: 48px 32px 64px;
+  }
+
+  .experience {
+    gap: 40px;
+    max-width: 720px;
+  }
+
+  .skeletonWheel {
+    width: 440px;
+    height: 440px;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────*/
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonWheel,
+  .skeletonLine,
+  .skeletonButton {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ── Accessibility ───────────────────────────────────────────────*/
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

@@ -1,0 +1,120 @@
+/* ===================================================================
+   SkeletonGrid — shimmer cards
+   =================================================================== */
+
+.wrapper {
+  padding: 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #15151B;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineSm,
+.lineMd,
+.lineLg {
+  height: 12px;
+  border-radius: 6px;
+  animation: shimmer 1.6s ease-in-out infinite;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.lineSm { width: 40%; animation-delay: 0.1s; }
+.lineMd { width: 70%; animation-delay: 0.2s; }
+.lineLg { width: 90%; height: 10px; animation-delay: 0.3s; }
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.price {
+  width: 60px;
+  height: 18px;
+  border-radius: 6px;
+  animation: shimmer 1.6s ease-in-out infinite 0.4s;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+.btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  animation: shimmer 1.6s ease-in-out infinite 0.5s;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.07) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────*/
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .wrapper {
+    padding: 0 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image, .lineSm, .lineMd, .lineLg, .price, .btn {
+    animation: none;
+    opacity: 0.5;
+  }
+}

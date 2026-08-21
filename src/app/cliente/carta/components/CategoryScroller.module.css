@@ -1,0 +1,117 @@
+/* ===================================================================
+   CategoryScroller — horizontal scroll, mobile-first
+   =================================================================== */
+
+.wrapper {
+  width: 100%;
+  /* Fade en los bordes para indicar scroll */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 16px,
+    black calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+.scroller {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 16px 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Pills ───────────────────────────────────────────────────────*/
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(247, 247, 248, 0.6);
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.pill:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #F7F7F8;
+}
+
+.pill:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 2px;
+}
+
+.pillActive {
+  background: rgba(255, 90, 31, 0.15) !important;
+  border-color: rgba(255, 90, 31, 0.4) !important;
+  color: #FF7138 !important;
+  font-weight: 600;
+}
+
+.pillLabel {
+  line-height: 1;
+}
+
+.pillCount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: inherit;
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.pillActive .pillCount {
+  background: rgba(255, 90, 31, 0.2);
+  opacity: 1;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────*/
+
+@media (min-width: 768px) {
+  .scroller {
+    padding: 4px 24px 8px;
+    gap: 10px;
+  }
+
+  .pill {
+    padding: 9px 20px;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill {
+    transition: none;
+  }
+}
