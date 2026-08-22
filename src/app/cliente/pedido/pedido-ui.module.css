@@ -1,10 +1,20 @@
 .container {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  /* El ClienteShell ya aplica padding-bottom global,
+     pero añadimos extra para garantizar que el último elemento
+     no quede tapado por el dock en cualquier viewport */
+  padding-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 1.5rem;
+  }
 }
 
 /* HEADER */

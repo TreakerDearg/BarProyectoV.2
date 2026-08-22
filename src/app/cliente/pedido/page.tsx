@@ -22,7 +22,6 @@ import { PedidoMesa } from "./components/PedidoMesa";
 import { PedidoProductos } from "./components/PedidoProductos";
 import { PedidoCarrito } from "./components/PedidoCarrito";
 import { PedidoStatus } from "./components/PedidoStatus";
-import { CartDrawer } from "@/components/cliente/CartDrawer";
 
 export default function PedidoPage() {
   /* =========================
@@ -243,10 +242,7 @@ export default function PedidoPage() {
   ========================= */
   return (
     <div className={ui.container}>
-      <div className={ui.headerWithCart}>
-        <PedidoHeader />
-        <CartDrawer />
-      </div>
+      <PedidoHeader />
 
       <PedidoMesa
         tables={tables}

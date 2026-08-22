@@ -7006,11 +7006,14 @@
 
 .newReservationMain {
   padding: 1.5rem;
+  /* En mobile el sidebar flota sobre el contenido (~140px desde el dock) */
+  padding-bottom: 16rem;
 }
 
 @media (min-width: 768px) {
   .newReservationMain {
     padding: 2rem 3rem;
+    padding-bottom: 2rem;
   }
 }
 
@@ -7027,7 +7030,7 @@
 @media (max-width: 1023px) {
   .newReservationSidebar {
     position: fixed;
-    bottom: 0;
+    bottom: 5.5rem; /* encima del dock de navegación (88px) */
     left: 0;
     right: 0;
     top: auto;
@@ -7038,7 +7041,9 @@
     border-left: none;
     border-right: none;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    z-index: 100;
+    z-index: 50; /* por debajo del dock (z-100) y del navbar (z-1000) */
+    max-height: 40vh;
+    overflow-y: auto;
   }
 }
 

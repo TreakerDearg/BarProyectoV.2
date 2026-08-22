@@ -1,32 +1,26 @@
 /**
- * Capa visual área cliente — usa variables de bartender-tokens.css + utilidades Tailwind donde convenga.
+ * ClienteShell — layout global del área cliente
+ * Compensa el navbar fijo (~72px arriba) y el dock mobile (~88px abajo).
  */
 
 .shell {
+  position: relative;
   min-height: 100vh;
-  padding-bottom: 5.5rem;
   color: var(--text);
-  background:
-    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(200, 50, 40, 0.07), transparent),
-    radial-gradient(ellipse 60% 30% at 0% 100%, rgba(212, 163, 64, 0.05), transparent),
-    radial-gradient(ellipse 50% 25% at 100% 80%, rgba(52, 185, 100, 0.04), transparent),
-    var(--bg);
 }
 
-@media (min-width: 640px) {
-  .shell {
-    padding-bottom: 2rem;
-  }
-}
-
+/* ── Main — compensa navbar fijo ────────────────────────────────*/
 .main {
-  margin-inline: auto;
-  max-width: 72rem;
-  padding: 2rem 1rem 3rem;
+  /* padding-top: altura del navbar (1rem padding × 2 + 40px logo = ~72px) */
+  padding-top: 72px;
+  /* padding-bottom mobile: dock (56px) + 1rem gap desde borde + margen extra */
+  padding-bottom: 5.5rem; /* 88px */
+  min-height: 100vh;
 }
 
-@media (min-width: 640px) {
+/* Cuando el dock desaparece (≥1024px) reducir el padding-bottom */
+@media (min-width: 1024px) {
   .main {
-    padding-inline: 1.5rem;
+    padding-bottom: 2rem;
   }
 }

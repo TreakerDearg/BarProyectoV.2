@@ -7,23 +7,26 @@ import MobileNavigation from "@/components/cliente/layout/MobileNavigation";
 import Footer from "@/components/cliente/layout/Footer";
 import PageTransition from "@/components/cliente/layout/PageTransition";
 import "@/styles/cliente-tokens.css";
+import styles from "./cliente-shell.module.css";
 
 export function ClienteShell({ children }: { children: React.ReactNode }) {
   return (
     <Providers>
-      <div className="relative min-h-screen text-[var(--text)]">
+      <div className={styles.shell}>
         {/* Background Layer */}
         <BackgroundLayer />
 
-        {/* Header */}
+        {/* Header — fixed top, z-1000, ~72px height */}
         <Header />
 
-        {/* Main Content with Page Transition */}
-        <PageTransition>
-          {children}
-        </PageTransition>
+        {/* Main Content — padding-top compensa el navbar fijo */}
+        <main className={styles.main}>
+          <PageTransition>
+            {children}
+          </PageTransition>
+        </main>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation dock — fixed bottom */}
         <MobileNavigation />
 
         {/* Footer */}
