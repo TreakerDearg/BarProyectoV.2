@@ -1,0 +1,213 @@
+/* ===================================================================
+   404 Not Found — Nebula
+   Paleta: #0B0B0F bg · #FF5A1F primary · #F7F7F8 text
+   =================================================================== */
+
+/* ── Página ──────────────────────────────────────────────────────*/
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: #0B0B0F;
+  overflow: hidden;
+}
+
+/* ── Glow de fondo ───────────────────────────────────────────────*/
+
+.glow {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(600px, 120vw);
+  height: min(600px, 120vw);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 90, 31, 0.1) 0%,
+    rgba(255, 90, 31, 0.04) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+/* ── Contenido ───────────────────────────────────────────────────*/
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+}
+
+/* ── Número 404 ──────────────────────────────────────────────────*/
+
+.code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.codeDigit {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: clamp(5rem, 22vw, 8rem);
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 90, 31, 0.5);
+  letter-spacing: -0.04em;
+  user-select: none;
+}
+
+.codeGlass {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* La copa ocupa el espacio del 0 central */
+  width: clamp(52px, 12vw, 80px);
+  color: #FF5A1F;
+  filter: drop-shadow(0 0 16px rgba(255, 90, 31, 0.4));
+  animation: float 3s ease-in-out infinite;
+}
+
+.glassIcon {
+  width: 100%;
+  height: auto;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ── Textos ──────────────────────────────────────────────────────*/
+
+.title {
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 800;
+  color: #F7F7F8;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.description {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  color: rgba(247, 247, 248, 0.5);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ── Acciones ────────────────────────────────────────────────────*/
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 28px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  border: none;
+  color: #F7F7F8;
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(255, 90, 31, 0.3);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.primaryBtn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 90, 31, 0.4);
+}
+
+.primaryBtn:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 3px;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(247, 247, 248, 0.7);
+  font-family: "Outfit", "Inter", system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.secondaryBtn:hover {
+  border-color: rgba(255, 90, 31, 0.4);
+  color: #FF7138;
+  background: rgba(255, 90, 31, 0.06);
+}
+
+.secondaryBtn:focus-visible {
+  outline: 2px solid #FF5A1F;
+  outline-offset: 3px;
+}
+
+/* ── Hint ────────────────────────────────────────────────────────*/
+
+.hint {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.8125rem;
+  color: rgba(247, 247, 248, 0.25);
+  margin: 0;
+  max-width: 340px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────*/
+
+@media (min-width: 640px) {
+  .actions {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────*/
+
+@media (prefers-reduced-motion: reduce) {
+  .codeGlass {
+    animation: none;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    transition: none;
+  }
+
+  .primaryBtn:hover {
+    transform: none;
+  }
+}
