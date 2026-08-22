@@ -51,6 +51,15 @@ class IdentityService {
         return createIdentityError(lockMessage, IdentityErrorCodes.USER_LOCKED);
       }
 
+      // Verificar que no sea cuenta OAuth (sin contraseña)
+      if (!user.password) {
+        logger.warn(`[IdentityService] Intento de login con contraseña en cuenta OAuth: ${email}`);
+        return createIdentityError(
+          `Esta cuenta fue creada con ${user.provider || 'Google'}. Usá el botón de Google para iniciar sesión.`,
+          IdentityErrorCodes.INVALID_CREDENTIALS
+        );
+      }
+
       // Verificar contraseña
       const isMatch = await user.comparePassword(password);
 

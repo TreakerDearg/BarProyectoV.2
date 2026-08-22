@@ -86,6 +86,14 @@ export const loginUser = async (req, res, next) => {
       return unauthorized(res, "Credenciales inválidas");
     }
 
+    /* ─── Verificar que el usuario tiene contraseña (no es cuenta OAuth) ─── */
+    if (!user.password) {
+      return unauthorized(res,
+        `Esta cuenta fue creada con ${user.provider || "Google"}. ` +
+        "Usá el botón de Google para iniciar sesión."
+      );
+    }
+
     /* ─── Verificar contraseña ─── */
     const isMatch = await user.comparePassword(password);
 
