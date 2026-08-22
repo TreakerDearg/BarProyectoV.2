@@ -1,33 +1,30 @@
-/* ===================================================================
-   RouletteWheel — Premium Visual Experience
-   Design system: bartender-client-design SKILL
-   Mobile-first, deterministic animation
-   =================================================================== */
-
-/* ── Escena principal ─────────────────────────────────────────── */
+/* ================================================================
+   RouletteWheel — Golden Night
+   Segmentos: dorado / bronce / carbón / crema
+   Puntero y hub: dorado premium
+================================================================ */
 
 .wheelScene {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Tamaño base para móvil: rueda de 300px + espacio para pointer y glows */
   width: 340px;
   height: 340px;
   flex-shrink: 0;
 }
 
-/* ── Glows ambientales ───────────────────────────────────────────*/
+/* ── Glows ambientales — dorado, no naranja ──────────────────────*/
 
 .ambientGlow {
   position: absolute;
   inset: -40px;
   background: radial-gradient(
     circle at center,
-    rgba(255, 90, 31, 0.12) 0%,
+    rgba(212, 175, 55, 0.10) 0%,
     transparent 60%
   );
-  filter: blur(24px);
+  filter: blur(28px);
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
@@ -38,7 +35,7 @@
   inset: -20px;
   background: radial-gradient(
     circle at center,
-    rgba(255, 184, 0, 0.07) 0%,
+    rgba(168, 117, 58, 0.06) 0%,
     transparent 50%
   );
   filter: blur(16px);
@@ -54,22 +51,16 @@
 }
 
 @keyframes glowPulse {
-  from {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.05);
-  }
+  from { opacity: 0.6; transform: scale(1); }
+  to   { opacity: 1;   transform: scale(1.05); }
 }
 
-/* ── Anillos decorativos ─────────────────────────────────────────*/
+/* ── Anillos decorativos — dorado sutil ──────────────────────────*/
 
 .ringOuter {
   position: absolute;
   inset: -8px;
-  border: 1px solid rgba(255, 90, 31, 0.18);
+  border: 1px solid var(--border-gold);
   border-radius: 50%;
   pointer-events: none;
   z-index: 1;
@@ -78,13 +69,13 @@
 .ringInner {
   position: absolute;
   inset: -16px;
-  border: 1px solid rgba(255, 90, 31, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.06);
   border-radius: 50%;
   pointer-events: none;
   z-index: 1;
 }
 
-/* ── Wrapper de la rueda ─────────────────────────────────────────*/
+/* ── Rueda ───────────────────────────────────────────────────────*/
 
 .wheelWrapper {
   position: relative;
@@ -94,25 +85,24 @@
   justify-content: center;
 }
 
-/* ── Rueda principal ─────────────────────────────────────────────*/
-
 .wheel {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 90, 31, 0.5);
+  /* Borde dorado premium */
+  border: 3px solid var(--gold-a50);
   box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.8),
-    0 0 0 4px rgba(255, 90, 31, 0.2),
+    0 0 0 2px rgba(0, 0, 0, 0.9),
+    0 0 0 4px var(--gold-a12),
     0 8px 40px rgba(0, 0, 0, 0.7),
-    inset 0 0 80px rgba(0, 0, 0, 0.35);
+    inset 0 0 80px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   will-change: transform;
   transform-origin: center center;
   position: relative;
 }
 
-/* ── Labels de segmentos ─────────────────────────────────────────*/
+/* ── Segmentos ───────────────────────────────────────────────────*/
 
 .segmentLabel {
   position: absolute;
@@ -132,10 +122,10 @@
   margin-top: 16px;
   font-size: 9px;
   font-weight: 700;
-  font-family: var(--font-sans, "Outfit", sans-serif);
+  font-family: var(--font-sans);
   text-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.9),
-    0 0 8px rgba(0, 0, 0, 0.7);
+    0 1px 4px rgba(0, 0, 0, 0.95),
+    0 0 8px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -144,7 +134,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Hub central ─────────────────────────────────────────────────*/
+/* ── Hub central — dorado sobre negro ────────────────────────────*/
 
 .hubOuter {
   position: absolute;
@@ -154,12 +144,12 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #0B0B0F;
-  border: 2px solid rgba(255, 90, 31, 0.4);
+  background: var(--bg);
+  border: 2px solid var(--gold-a50);
   box-shadow:
-    0 0 0 3px rgba(0, 0, 0, 0.9),
+    0 0 0 3px rgba(0, 0, 0, 0.95),
     0 4px 16px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(255, 90, 31, 0.15);
+    var(--glow-gold-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,31 +160,33 @@
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1E1E26 0%, #0B0B0F 100%);
+  background: linear-gradient(135deg, var(--surface-2) 0%, var(--bg) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 90, 31, 0.2);
+  border: 1px solid var(--border-gold);
 }
 
 .hubCore {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  /* Gradiente dorado — identidad Golden Night */
+  background: var(--grad-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px rgba(255, 90, 31, 0.4);
+  box-shadow: var(--glow-gold-sm);
 }
 
 .hubIcon {
   width: 18px;
   height: 18px;
-  color: #0B0B0F;
+  /* Icono negro sobre dorado — contraste AA */
+  color: var(--bg);
 }
 
-/* ── Puntero ─────────────────────────────────────────────────────*/
+/* ── Puntero — dorado ────────────────────────────────────────────*/
 
 .pointerWrapper {
   position: absolute;
@@ -212,7 +204,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0;
-  filter: drop-shadow(0 4px 12px rgba(255, 90, 31, 0.5));
+  filter: drop-shadow(0 4px 12px var(--gold-a50));
 }
 
 .pointerArrow {
@@ -220,7 +212,7 @@
   height: 0;
   border-left: 14px solid transparent;
   border-right: 14px solid transparent;
-  border-top: 28px solid #FF5A1F;
+  border-top: 28px solid var(--gold);
   position: relative;
 }
 
@@ -233,145 +225,50 @@
   height: 0;
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
-  border-top: 24px solid #FF7138;
+  border-top: 24px solid var(--gold-light);
 }
 
 .pointerDot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #FF5A1F;
-  border: 2px solid rgba(255, 90, 31, 0.3);
-  box-shadow: 0 0 8px rgba(255, 90, 31, 0.6);
+  background: var(--gold);
+  border: 2px solid var(--gold-a35);
+  box-shadow: var(--glow-gold-sm);
   margin-top: -4px;
 }
 
 /* ── Responsive — tablet ─────────────────────────────────────────*/
 
 @media (min-width: 768px) {
-  .wheelScene {
-    width: 420px;
-    height: 420px;
-  }
-
-  .wheel {
-    width: 360px;
-    height: 360px;
-  }
-
-  .hubOuter {
-    width: 88px;
-    height: 88px;
-  }
-
-  .hubInner {
-    width: 72px;
-    height: 72px;
-  }
-
-  .hubCore {
-    width: 48px;
-    height: 48px;
-  }
-
-  .hubIcon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .segmentText {
-    font-size: 10px;
-    margin-top: 20px;
-  }
-
-  .pointerArrow {
-    border-left-width: 16px;
-    border-right-width: 16px;
-    border-top-width: 32px;
-  }
-
-  .pointerArrow::before {
-    border-left-width: 14px;
-    border-right-width: 14px;
-    border-top-width: 28px;
-    top: -36px;
-    left: -14px;
-  }
-
-  .pointerDot {
-    width: 14px;
-    height: 14px;
-  }
+  .wheelScene { width: 420px; height: 420px; }
+  .wheel { width: 360px; height: 360px; }
+  .hubOuter { width: 88px; height: 88px; }
+  .hubInner { width: 72px; height: 72px; }
+  .hubCore  { width: 48px; height: 48px; }
+  .hubIcon  { width: 22px; height: 22px; }
+  .segmentText { font-size: 10px; margin-top: 20px; }
+  .pointerArrow { border-left-width: 16px; border-right-width: 16px; border-top-width: 32px; }
+  .pointerArrow::before { border-left-width: 14px; border-right-width: 14px; border-top-width: 28px; top: -36px; left: -14px; }
+  .pointerDot { width: 14px; height: 14px; }
 }
 
 /* ── Responsive — desktop ────────────────────────────────────────*/
 
 @media (min-width: 1024px) {
-  .wheelScene {
-    width: 500px;
-    height: 500px;
-  }
-
-  .wheel {
-    width: 440px;
-    height: 440px;
-    border-width: 4px;
-  }
-
-  .hubOuter {
-    width: 100px;
-    height: 100px;
-  }
-
-  .hubInner {
-    width: 84px;
-    height: 84px;
-  }
-
-  .hubCore {
-    width: 56px;
-    height: 56px;
-  }
-
-  .hubIcon {
-    width: 26px;
-    height: 26px;
-  }
-
-  .segmentText {
-    font-size: 11px;
-    margin-top: 24px;
-  }
-
-  .pointerArrow {
-    border-left-width: 18px;
-    border-right-width: 18px;
-    border-top-width: 36px;
-  }
-
-  .pointerArrow::before {
-    border-left-width: 16px;
-    border-right-width: 16px;
-    border-top-width: 32px;
-    top: -40px;
-    left: -16px;
-  }
-
-  .pointerDot {
-    width: 16px;
-    height: 16px;
-  }
+  .wheelScene { width: 500px; height: 500px; }
+  .wheel { width: 440px; height: 440px; border-width: 4px; }
+  .hubOuter { width: 100px; height: 100px; }
+  .hubInner { width: 84px; height: 84px; }
+  .hubCore  { width: 56px; height: 56px; }
+  .hubIcon  { width: 26px; height: 26px; }
+  .segmentText { font-size: 11px; margin-top: 24px; }
+  .pointerArrow { border-left-width: 18px; border-right-width: 18px; border-top-width: 36px; }
+  .pointerArrow::before { border-left-width: 16px; border-right-width: 16px; border-top-width: 32px; top: -40px; left: -16px; }
+  .pointerDot { width: 16px; height: 16px; }
 }
 
-/* ── Reduced motion ──────────────────────────────────────────────*/
-
 @media (prefers-reduced-motion: reduce) {
-  .ambientActive {
-    animation: none;
-    opacity: 0.8;
-  }
-
-  .wheel {
-    transition: transform 0.5s ease;
-  }
+  .ambientActive { animation: none; opacity: 0.8; }
+  .wheel { transition: transform 0.5s ease; }
 }

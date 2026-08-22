@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Manrope, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
-import "../styles/cliente-tokens-v3.css";
+import "../styles/golden-night.css";
 
-const dmSans = DM_Sans({
+// ── UI / Funcional — todo el sistema ────────────────────────────
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-dm",
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+// ── Display / Editorial — títulos premium ────────────────────────
+const dmSerifDisplay = DM_Serif_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-cormorant",
+  variable: "--font-display",
+  weight: "400",
   display: "swap",
 });
 
@@ -51,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${dmSans.variable} ${cormorant.variable}`}>
+    <html lang="es" className={`${manrope.variable} ${dmSerifDisplay.variable}`}>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

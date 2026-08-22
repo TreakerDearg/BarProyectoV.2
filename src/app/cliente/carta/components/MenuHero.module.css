@@ -1,6 +1,7 @@
-/* ===================================================================
-   MenuHero — compacto, mobile-first
-   =================================================================== */
+/* ================================================================
+   MenuHero — Golden Night
+   DM Serif Display para el título. Glow dorado sutil.
+================================================================ */
 
 .hero {
   position: relative;
@@ -9,12 +10,13 @@
   text-align: center;
 }
 
+/* Glow dorado muy sutil — atmósfera nocturna */
 .heroBackground {
   position: absolute;
   inset: 0;
   background: radial-gradient(
     ellipse 80% 60% at 50% 0%,
-    rgba(255, 90, 31, 0.07) 0%,
+    rgba(212, 175, 55, 0.06) 0%,
     transparent 70%
   );
   pointer-events: none;
@@ -31,21 +33,20 @@
   margin: 0 auto;
 }
 
-/* ── Badge ───────────────────────────────────────────────────────*/
-
+/* Badge — dorado ghost */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 5px 14px;
-  border-radius: 9999px;
-  background: rgba(255, 90, 31, 0.1);
-  border: 1px solid rgba(255, 90, 31, 0.22);
-  color: #FF7138;
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: var(--font-sans, "Outfit", sans-serif);
-  letter-spacing: 0.08em;
+  border-radius: var(--radius-full);
+  background: var(--gold-a08);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
 }
 
@@ -53,45 +54,38 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #FF5A1F;
-  box-shadow: 0 0 5px rgba(255, 90, 31, 0.5);
+  background: var(--gold);
+  box-shadow: var(--glow-gold-sm);
 }
 
-/* ── Heading ─────────────────────────────────────────────────────*/
-
+/* Título principal — DM Serif Display, crema */
 .heading {
-  font-family: var(--font-display, "Outfit", sans-serif);
+  font-family: var(--font-display);
   font-size: clamp(2rem, 6vw, 3rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  color: #F7F7F8;
+  font-weight: 400;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--cream);
   margin: 0;
 }
 
-.headingAccent {
-  color: #FF5A1F;
-}
-
-/* ── Descripción ─────────────────────────────────────────────────*/
+/* Acento — dorado en el nombre */
+.headingAccent { color: var(--gold); }
 
 .description {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  color: rgba(247, 247, 248, 0.55);
-  line-height: 1.6;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  line-height: var(--leading-relaxed);
   margin: 0;
 }
 
+/* Stats — dorado soft */
 .stats {
-  color: rgba(255, 184, 0, 0.75);
-  font-weight: 500;
+  color: var(--gold-soft);
+  font-weight: var(--font-medium);
 }
 
-/* ── Responsive ──────────────────────────────────────────────────*/
-
 @media (min-width: 768px) {
-  .hero {
-    padding: 64px 32px 40px;
-  }
+  .hero { padding: 64px 32px 40px; }
 }

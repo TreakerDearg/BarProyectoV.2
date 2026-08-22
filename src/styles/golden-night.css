@@ -1,0 +1,493 @@
+/* ================================================================
+   GOLDEN NIGHT — BARTENDER SYSTEM DESIGN SYSTEM
+   Identidad: Nocturna · Premium · Gastronómica · Elegante
+   Paleta:    Negro · Carbón · Dorado · Crema · Bronce
+   Fuentes:   Manrope (UI) · DM Serif Display (Editorial)
+   ================================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* ──────────────────────────────────────────────────────────────
+     BACKGROUNDS — Deep Obsidian
+  ────────────────────────────────────────────────────────────── */
+  --bg:           #09090B;    /* Casi negro */
+  --bg-deep:      #060608;    /* Más profundo para gradientes */
+  --bg-secondary: #0F1013;    /* Secciones alternas */
+  --surface:      #15161A;    /* Cards, modales */
+  --surface-2:    #1C1D22;    /* Cards elevadas */
+  --surface-3:    #24252B;    /* Cards destacadas */
+  --surface-4:    #2E2F36;    /* Hover de cards */
+  --surface-glow: rgba(15,16,19,0.95);
+
+  /* Glass */
+  --glass-bg:         rgba(15,16,19,0.70);
+  --glass-bg-strong:  rgba(15,16,19,0.90);
+  --glass-bg-light:   rgba(15,16,19,0.45);
+
+  /* ──────────────────────────────────────────────────────────────
+     GOLD — Acento premium. Regla 5%: úsalo con moderación.
+  ────────────────────────────────────────────────────────────── */
+  --gold:         #D4AF37;    /* Primary gold — CTA, activos, precios */
+  --gold-light:   #E6C766;    /* Hover, highlights */
+  --gold-soft:    #B9962E;    /* Borders, iconos secundarios */
+  --gold-deep:    #8F7020;    /* Fondos sutiles, gradientes */
+
+  /* Opacidades utilitarias */
+  --gold-a05:  rgba(212, 175, 55, 0.05);
+  --gold-a08:  rgba(212, 175, 55, 0.08);
+  --gold-a12:  rgba(212, 175, 55, 0.12);
+  --gold-a20:  rgba(212, 175, 55, 0.20);
+  --gold-a35:  rgba(212, 175, 55, 0.35);
+  --gold-a50:  rgba(212, 175, 55, 0.50);
+  --gold-a65:  rgba(212, 175, 55, 0.65);
+
+  /* ──────────────────────────────────────────────────────────────
+     BRONZE — Segundo acento. Detalles gastronómicos.
+  ────────────────────────────────────────────────────────────── */
+  --bronze:       #A8753A;
+  --bronze-light: #C49050;
+  --bronze-soft:  rgba(168, 117, 58, 0.12);
+  --bronze-border:rgba(168, 117, 58, 0.28);
+
+  /* ──────────────────────────────────────────────────────────────
+     CREAM — Calidez tipográfica. Headings premium.
+  ────────────────────────────────────────────────────────────── */
+  --cream:        #F4E9D0;
+  --cream-dim:    rgba(244, 233, 208, 0.75);
+
+  /* ──────────────────────────────────────────────────────────────
+     TEXT — Jerarquía clara sobre fondos oscuros
+  ────────────────────────────────────────────────────────────── */
+  --text:          #F5F1E8;    /* Primary — cuerpo y títulos */
+  --text-dim:      #B7B5AE;    /* Secondary — descripciones */
+  --text-muted:    #7D7B75;    /* Muted — hints, placeholders */
+  --text-disabled: #515159;    /* Disabled */
+  --text-gold:     #D4AF37;    /* Precios, badges destacados */
+  --text-cream:    #F4E9D0;    /* Headings editoriales */
+
+  /* Aliases legacy (usados en CartDrawer y otras partes) */
+  --text-primary:   var(--text);
+  --text-secondary: var(--text-dim);
+
+  /* ──────────────────────────────────────────────────────────────
+     BORDERS
+  ────────────────────────────────────────────────────────────── */
+  --border:         #292A30;               /* Neutral base */
+  --border-strong:  #3A3B42;               /* Más visible */
+  --border-subtle:  rgba(255,255,255,0.04);/* Casi invisible */
+  --border-default: rgba(255,255,255,0.07);/* Por defecto */
+  --border-gold:    rgba(212,175,55,0.20); /* Gold sutil */
+  --border-gold-strong: rgba(212,175,55,0.40);
+  --border-bronze:  rgba(168,117,58,0.25);
+
+  /* ──────────────────────────────────────────────────────────────
+     SEMÁNTICOS — NO usar como identidad, solo contexto
+  ────────────────────────────────────────────────────────────── */
+  /* Success */
+  --green:           #4CAF78;
+  --green-light:     #6DC992;
+  --green-dark:      #2E7D50;
+  --green-soft:      rgba(76, 175, 120, 0.12);
+  --green-border:    rgba(76, 175, 120, 0.28);
+
+  /* Warning */
+  --amber:           #D6A84F;
+  --amber-light:     #E8BE70;
+  --amber-dark:      #A07830;
+  --amber-soft:      rgba(214, 168, 79, 0.12);
+  --amber-border:    rgba(214, 168, 79, 0.28);
+
+  /* Error / Danger — solo para errores, cancelaciones */
+  --red:             #D95C5C;
+  --red-light:       #EE7878;
+  --red-dark:        #A83838;
+  --red-soft:        rgba(217, 92, 92, 0.10);
+  --red-border:      rgba(217, 92, 92, 0.25);
+
+  /* Info */
+  --blue:            #6F9BC2;
+  --blue-soft:       rgba(111, 155, 194, 0.12);
+  --blue-border:     rgba(111, 155, 194, 0.25);
+
+  /* Aliases semánticos */
+  --success:         var(--green);
+  --warning:         var(--amber);
+  --error:           var(--red);
+  --info:            var(--blue);
+  --danger:          var(--red);
+
+  /* ──────────────────────────────────────────────────────────────
+     ALIAS LEGACY — mantener compatibilidad con CartDrawer, etc.
+  ────────────────────────────────────────────────────────────── */
+  --primary:         var(--gold);
+  --primary-light:   var(--gold-light);
+  --primary-dark:    var(--gold-soft);
+  --primary-soft:    var(--gold-a12);
+
+  --orange:          var(--bronze);       /* redirigir orange → bronze */
+  --orange-light:    var(--bronze-light);
+  --orange-soft:     var(--bronze-soft);
+  --orange-border:   var(--bronze-border);
+
+  /* Aliases de fondo legacy */
+  --surface-elevated: var(--surface-2);
+  --bg-elevated:      var(--surface-2);
+  --bg-surface:       var(--surface);
+
+  /* ──────────────────────────────────────────────────────────────
+     TIPOGRAFÍA
+     Las variables --font-sans y --font-display se inyectan
+     via next/font en <html className="...">.
+     Aquí las usamos como fallback y definimos --font-body.
+  ────────────────────────────────────────────────────────────── */
+  /* next/font inyecta --font-sans = Manrope, --font-display = DM Serif Display */
+  --font-body: var(--font-sans);  /* alias para componentes que usan --font-body */
+
+  /* Escala tipográfica fluid */
+  --text-xs:   clamp(0.6875rem, 0.65rem + 0.2vw,  0.75rem);
+  --text-sm:   clamp(0.8125rem, 0.775rem + 0.2vw, 0.875rem);
+  --text-base: clamp(0.9375rem, 0.9rem + 0.2vw,   1rem);
+  --text-lg:   clamp(1rem,      0.95rem + 0.25vw,  1.0625rem);
+  --text-xl:   clamp(1.125rem,  1.05rem + 0.375vw, 1.25rem);
+  --text-2xl:  clamp(1.25rem,   1.125rem + 0.625vw,1.5rem);
+  --text-3xl:  clamp(1.5rem,    1.25rem + 1.25vw,  2rem);
+  --text-4xl:  clamp(2rem,      1.5rem + 2.5vw,    3rem);
+  --text-5xl:  clamp(2.5rem,    2rem + 2.5vw,      4rem);
+  --text-display: clamp(2.5rem, 2rem + 3vw,        4.5rem);
+
+  /* Pesos */
+  --font-normal:    400;
+  --font-medium:    500;
+  --font-semibold:  600;
+  --font-bold:      700;
+  --font-extrabold: 800;
+
+  /* Interlineado */
+  --leading-tight:   1.15;
+  --leading-snug:    1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;
+
+  /* Tracking */
+  --tracking-tight:   -0.025em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.025em;
+  --tracking-wider:   0.06em;
+  --tracking-widest:  0.12em;
+
+  /* ──────────────────────────────────────────────────────────────
+     SPACING — base 4px, escala 8px
+  ────────────────────────────────────────────────────────────── */
+  --space-px: 1px;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ──────────────────────────────────────────────────────────────
+     RADII
+  ────────────────────────────────────────────────────────────── */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ──────────────────────────────────────────────────────────────
+     SOMBRAS — oscuras, no excesivas sobre negro
+  ────────────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 4px  rgba(0,0,0,0.20);
+  --shadow-sm: 0 2px 8px  rgba(0,0,0,0.25);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.30);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.40);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,0.50);
+
+  /* Gold glow — solo CTA y elementos seleccionados */
+  --glow-gold-sm: 0 4px 16px  rgba(212,175,55,0.12);
+  --glow-gold-md: 0 8px 30px  rgba(212,175,55,0.18);
+  --glow-gold-lg: 0 16px 48px rgba(212,175,55,0.22);
+
+  /* ──────────────────────────────────────────────────────────────
+     GRADIENTES
+  ────────────────────────────────────────────────────────────── */
+  /* Gradient de botón CTA dorado */
+  --grad-gold:       linear-gradient(135deg, #8F7020 0%, #D4AF37 60%, #E6C766 100%);
+  --grad-gold-hover: linear-gradient(135deg, #A07828 0%, #E0BA45 60%, #EDD080 100%);
+
+  /* Fondo atmosférico oscuro */
+  --grad-dark-gold:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(212,175,55,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168,117,58,0.04) 0%, transparent 60%);
+
+  /* Surface sutil */
+  --grad-surface:
+    linear-gradient(145deg, #1C1D22 0%, #15161A 100%);
+
+  /* ──────────────────────────────────────────────────────────────
+     BREAKPOINTS
+  ────────────────────────────────────────────────────────────── */
+  --bp-xs:  320px;
+  --bp-sm:  375px;
+  --bp-md:  425px;
+  --bp-lg:  768px;
+  --bp-xl:  1024px;
+  --bp-2xl: 1280px;
+  --bp-3xl: 1440px;
+
+  /* ──────────────────────────────────────────────────────────────
+     TRANSICIONES
+  ────────────────────────────────────────────────────────────── */
+  --duration-fast:   100ms;
+  --duration-base:   180ms;
+  --duration-slow:   300ms;
+  --ease-out:        cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-decel:      cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+/* ================================================================
+   BOTONES — Sistema Golden Night
+================================================================ */
+
+/* Primary — acción principal */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: none;
+  color: #09090B;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wide);
+  cursor: pointer;
+  transition: filter var(--duration-base) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
+  box-shadow: var(--glow-gold-sm);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: var(--glow-gold-md);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.97);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Secondary — acción secundaria */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--gold-a35);
+  color: var(--gold-light);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--gold-a08);
+  border-color: var(--gold-a50);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Ghost */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--gold-a08);
+  border-color: var(--border-gold);
+  color: var(--gold-light);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ================================================================
+   CARDS — Sistema Golden Night
+================================================================ */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  transition: border-color var(--duration-base) var(--ease-out),
+              background var(--duration-base) var(--ease-out),
+              transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
+}
+
+.card:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-selected {
+  background: var(--gold-a08);
+  border-color: var(--gold-a35);
+  box-shadow: 0 0 0 1px var(--gold-a20);
+}
+
+/* ================================================================
+   INPUTS — Sistema Golden Night
+================================================================ */
+
+.input-gn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  outline: none;
+  transition: border-color var(--duration-base) var(--ease-out),
+              background var(--duration-base) var(--ease-out);
+  -webkit-appearance: none;
+}
+
+.input-gn::placeholder {
+  color: var(--text-disabled);
+}
+
+.input-gn:focus {
+  border-color: var(--gold-a65);
+  background: var(--surface-2);
+}
+
+.input-gn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================================================================
+   BADGES — Sistema Golden Night
+================================================================ */
+
+.badge-gold {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--gold-a12);
+  border: 1px solid var(--gold-a35);
+  color: var(--gold-light);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+.badge-bronze {
+  background: var(--bronze-soft);
+  border: 1px solid var(--bronze-border);
+  color: var(--bronze-light);
+}
+
+.badge-success {
+  background: var(--green-soft);
+  border: 1px solid var(--green-border);
+  color: var(--green-light);
+}
+
+.badge-warning {
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-light);
+}
+
+.badge-error {
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+}
+
+/* ================================================================
+   REDUCED MOTION
+================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  .card,
+  .input-gn {
+    transition: none;
+  }
+
+  .btn-primary:hover:not(:disabled),
+  .card:hover {
+    transform: none;
+  }
+}

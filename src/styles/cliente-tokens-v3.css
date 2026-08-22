@@ -1,10 +1,11 @@
 /* ===============================================================
    BARTENDER SYSTEM — DESIGN SYSTEM v3.0 (Cliente Premium)
-   Inspirado en: Uber Eats, Starbucks, Notion, Apple, Airbnb, Stripe
-   Paleta: Obsidian · Gold · Wine · Amber · Cream
+   ACTUALIZADO: usa golden-night.css como base de tokens.
+   Este archivo extiende/override solo lo necesario para el área cliente.
+   Fuentes inyectadas via next/font en layout.tsx.
    =============================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap");
+/* NO @import Google Fonts — next/font las maneja en layout.tsx */
 
 :root {
   color-scheme: dark;
@@ -85,11 +86,11 @@
   --text-success-light: #6AE096;
 
   /* ===============================================================
-     TYPOGRAPHY — Fluid Scale
+     TYPOGRAPHY — apunta a next/font (Manrope + DM Serif Display)
+     NO sobreescribir con strings estáticos
   =============================================================== */
-  --font-sans: "Outfit", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: "Outfit", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  /* --font-sans y --font-display ya están inyectados por next/font en layout.tsx */
+  --font-body: var(--font-sans); /* alias para componentes legacy */
 
   /* Fluid font sizes (clamp-based) */
   --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.8125rem);

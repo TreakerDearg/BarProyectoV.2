@@ -1,6 +1,7 @@
-/* ===================================================================
-   SearchBar — búsqueda + sort
-   =================================================================== */
+/* ================================================================
+   SearchBar — Golden Night
+   Campo carbón · foco dorado · sort neutral
+================================================================ */
 
 .wrapper {
   display: flex;
@@ -9,29 +10,29 @@
   padding: 0 16px;
 }
 
-/* ── Campo de búsqueda ───────────────────────────────────────────*/
-
 .searchField {
   flex: 1;
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--duration-base) var(--ease-out),
+              background var(--duration-base) var(--ease-out);
   min-width: 0;
 }
 
+/* Foco dorado */
 .searchField:focus-within {
-  border-color: rgba(255, 90, 31, 0.35);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--gold-a65);
+  background: var(--surface-2);
 }
 
 .searchIcon {
   width: 18px;
   height: 18px;
-  color: rgba(247, 247, 248, 0.35);
+  color: var(--text-disabled);
   flex-shrink: 0;
   margin-left: 14px;
   pointer-events: none;
@@ -43,25 +44,20 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #F7F7F8;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 0.9375rem;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
   line-height: 1;
   min-width: 0;
 }
 
-.input::placeholder {
-  color: rgba(247, 247, 248, 0.3);
-}
-
-/* Quitar el botón nativo de limpiar de <input type="search"> */
-.input::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-}
+.input::placeholder { color: var(--text-disabled); }
+.input::-webkit-search-cancel-button { -webkit-appearance: none; }
 
 .counter {
-  font-size: 0.75rem;
-  color: rgba(247, 247, 248, 0.35);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
   white-space: nowrap;
   padding-right: 4px;
   flex-shrink: 0;
@@ -73,54 +69,39 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
   border: none;
-  color: rgba(247, 247, 248, 0.35);
+  color: var(--text-disabled);
   cursor: pointer;
   margin-right: 6px;
   flex-shrink: 0;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
-.clearBtn:hover {
-  color: #F7F7F8;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.clearBtn:focus-visible {
-  outline: 2px solid #FF5A1F;
-  outline-offset: 2px;
-}
-
-.clearIcon {
-  width: 14px;
-  height: 14px;
-}
-
-/* ── Sort ────────────────────────────────────────────────────────*/
+.clearBtn:hover { color: var(--text-dim); }
+.clearBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.clearIcon { width: 14px; height: 14px; }
 
 .sortWrapper {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 0 12px;
   height: 44px;
   flex-shrink: 0;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--duration-base) var(--ease-out);
 }
 
-.sortWrapper:focus-within {
-  border-color: rgba(255, 90, 31, 0.35);
-}
+.sortWrapper:focus-within { border-color: var(--gold-a65); }
 
 .sortIcon {
   width: 16px;
   height: 16px;
-  color: rgba(247, 247, 248, 0.35);
+  color: var(--text-disabled);
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -129,45 +110,26 @@
   background: transparent;
   border: none;
   outline: none;
-  color: rgba(247, 247, 248, 0.7);
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 0.875rem;
+  color: var(--text-dim);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   cursor: pointer;
   padding: 0;
-  /* En algunos navegadores el select hereda colores del sistema */
   -webkit-appearance: none;
   appearance: none;
 }
 
-.sortSelect option {
-  background: #15151B;
-  color: #F7F7F8;
-}
-
-/* ── Responsive ──────────────────────────────────────────────────*/
+.sortSelect option { background: var(--surface); color: var(--text); }
 
 @media (min-width: 768px) {
-  .wrapper {
-    padding: 0 24px;
-    gap: 12px;
-  }
-
-  .input {
-    font-size: 1rem;
-  }
+  .wrapper { padding: 0 24px; gap: 12px; }
+  .input { font-size: var(--text-base); }
 }
 
 @media (max-width: 400px) {
-  /* En móviles muy pequeños, ocultar el sort y dejar solo la búsqueda */
-  .sortWrapper {
-    display: none;
-  }
+  .sortWrapper { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .searchField,
-  .clearBtn,
-  .sortWrapper {
-    transition: none;
-  }
+  .searchField, .clearBtn, .sortWrapper { transition: none; }
 }

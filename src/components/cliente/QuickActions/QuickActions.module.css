@@ -1,42 +1,40 @@
+/* ================================================================
+   QuickActions — Golden Night
+   Cards carbón · hover borde dorado · icono dorado
+================================================================ */
+
 .quickActions {
-  background: #0B0B0F;
+  background: var(--bg);
   padding: 3rem 1.5rem;
-  border-bottom: 1px solid #292932;
+  border-bottom: 1px solid var(--border);
 }
 
 @media (min-width: 768px) {
-  .quickActions {
-    padding: 4rem 2rem;
-  }
+  .quickActions { padding: 4rem 2rem; }
 }
 
-.container {
-  max-width: 1440px;
-  margin: 0 auto;
-}
+.container { max-width: 1440px; margin: 0 auto; }
 
 .header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
+/* Título con DM Serif Display */
 .header h2 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #F7F7F8;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 400;
+  color: var(--cream);
+  letter-spacing: var(--tracking-tight);
   margin-bottom: 0.5rem;
-}
-
-@media (min-width: 768px) {
-  .header h2 {
-    font-size: 2rem;
-  }
+  line-height: var(--leading-snug);
 }
 
 .header p {
-  font-size: 0.875rem;
-  color: #A7A7B0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-dim);
 }
 
 .actionsGrid {
@@ -52,53 +50,71 @@
   }
 }
 
+/* Card — carbón con hover dorado */
 .actionCard {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
   padding: 1.5rem 1rem;
-  background: #15151B;
-  border: 1px solid #292932;
-  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all var(--duration-slow) var(--ease-out);
   cursor: pointer;
 }
 
 .actionCard:hover {
-  background: #1E1E26;
-  border-color: #FF5A1F;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(255, 90, 31, 0.15);
+  background: var(--surface-2);
+  border-color: var(--border-gold);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
+.actionCard:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Ícono — dorado ghost normal, dorado sólido en hover */
 .actionIcon {
   width: 56px;
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(255, 90, 31, 0.1) 0%, rgba(255, 113, 56, 0.1) 100%);
-  border-radius: 14px;
-  color: #FF5A1F;
-  transition: all 0.3s ease;
+  background: var(--gold-a08);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  transition: all var(--duration-base) var(--ease-out);
 }
 
 .actionCard:hover .actionIcon {
-  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
-  color: #F7F7F8;
-  transform: scale(1.1);
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--bg);
+  transform: scale(1.08);
+  box-shadow: var(--glow-gold-sm);
 }
 
+/* Label — neutral, hover dorado */
 .actionLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #F7F7F8;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-dim);
   text-align: center;
-  transition: color 0.3s ease;
+  transition: color var(--duration-base) var(--ease-out);
 }
 
 .actionCard:hover .actionLabel {
-  color: #FF5A1F;
+  color: var(--gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionCard, .actionIcon, .actionLabel { transition: none; }
+  .actionCard:hover { transform: none; }
+  .actionCard:hover .actionIcon { transform: none; }
 }

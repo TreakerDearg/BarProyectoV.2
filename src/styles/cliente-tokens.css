@@ -1,10 +1,10 @@
 /* ===============================================================
    BARTENDER SYSTEM — DESIGN SYSTEM v2.0 (Cliente)
-   Copia de bartender-desktop/index.css
-   Paleta: Rojo · Dorado · Naranja · Verde · Obsidian
+   ACTUALIZADO: Google Fonts removido — next/font en layout.tsx.
+   Variables legacy mantenidas para compatibilidad.
    =============================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap");
+/* NO @import Google Fonts — next/font las maneja en layout.tsx */
 
 :root {
   color-scheme: dark;
