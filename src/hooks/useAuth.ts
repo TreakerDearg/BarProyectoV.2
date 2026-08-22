@@ -63,6 +63,10 @@ function humanizeError(message: string | undefined, status?: number): string {
 
   const msg = (message ?? "").toLowerCase();
 
+  // Mensaje específico de cuenta OAuth — darle prioridad antes de los genéricos
+  if (msg.includes("google") || msg.includes("botón de google") || msg.includes("fue creada con"))
+    return message!;
+
   if (msg.includes("credenciales") || msg.includes("contraseña") || status === 401)
     return "El email o la contraseña no son correctos.";
   if (msg.includes("bloqueada") || msg.includes("locked"))
