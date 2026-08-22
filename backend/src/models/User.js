@@ -301,6 +301,8 @@ userSchema.pre("save", async function () {
 
 /* ================= METHODS ================= */
 userSchema.methods.comparePassword = function (password) {
+  // Usuarios OAuth no tienen contraseña — nunca llamar bcrypt con null/undefined
+  if (!this.password) return Promise.resolve(false);
   return bcrypt.compare(password, this.password);
 };
 
