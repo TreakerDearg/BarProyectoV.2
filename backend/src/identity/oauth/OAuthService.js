@@ -125,7 +125,8 @@ class OAuthService {
 
       const identityUser = createIdentityUser(user);
 
-      return createIdentityResponse({
+      // Devolver objeto plano — createIdentityResponse descarta token y refreshToken
+      return {
         success: true,
         user: identityUser,
         token,
@@ -138,7 +139,7 @@ class OAuthService {
             ...sessionInfo,
           },
         },
-      });
+      };
     } catch (error) {
       logger.error('[OAuthService] Error en handleOAuthCallback:', error);
       return createIdentityError(

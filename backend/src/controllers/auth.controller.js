@@ -403,7 +403,7 @@ export const googleCallback = async (req, res, next) => {
     }
 
     // Verificar si el usuario puede hacer login
-    const user = await User.findById(response.user._id);
+    const user = await User.findById(response.user.id ?? response.user._id);
     const loginCheck = canLogin(user);
     
     if (!loginCheck.canLogin) {
@@ -412,7 +412,7 @@ export const googleCallback = async (req, res, next) => {
     }
 
     // Crear sesión
-    const session = await refreshTokenService.createRefreshToken(user._id, sessionInfo);
+    const session = await refreshTokenService.generateRefreshToken(user._id, sessionInfo);
 
     // Ejecutar Decision Engine
     const identityDecision = await executeLoginDecision(user, session, {
