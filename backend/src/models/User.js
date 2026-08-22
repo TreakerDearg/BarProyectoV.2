@@ -293,7 +293,9 @@ userSchema.index({ "attendance.lastCheckIn": 1 });
 
 /* ================= PASSWORD ================= */
 userSchema.pre("save", async function () {
+  // No hashear si la contraseña no fue modificada o si es null (cuenta OAuth)
   if (!this.isModified("password")) return;
+  if (!this.password) return;   // usuarios OAuth: password = null, no hashear
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
