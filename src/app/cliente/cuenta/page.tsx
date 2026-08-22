@@ -189,6 +189,7 @@ export default function CuentaPage() {
             loading={loading}
             error={error}
             onRegister={handleRegister}
+            onGoogleLogin={initiateGoogleOAuth}
             onSwitchToLogin={switchToLogin}
           />
         )}
