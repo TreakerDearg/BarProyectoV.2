@@ -74,6 +74,12 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
+    "protocols": [
+      {
+        "name": "Bartender SSO",
+        "schemes": ["bartender"]
+      }
+    ],
     "win": {
       "target": "nsis",
       "sign": false

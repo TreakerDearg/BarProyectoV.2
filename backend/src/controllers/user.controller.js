@@ -274,3 +274,32 @@ export const assignShift = async (req, res, next) => {
     return ok(res, user, `Turno ${shift} asignado correctamente`);
   } catch (error) { throw error; }
 };
+
+/* =========================================================
+   GET ALL USERS (admin only) — con filtros opcionales
+   Permite listar clientes (role=client) para promoverlos
+========================================================= */
+export const getUsers = async (req, res, next) => {
+  try {
+    const { role, isEmployee, active, search } = req.query;
+
+    const filter = { deletedAt: null };
+    if (role)                    filter.role       = role;
+    if (isEmployee !== undefined) filter.isEmployee = isEmployee === "true";
+    if (active !== undefined)    filter.isActive   = active === "true";
+
+    let query = User.find(filter).select(safeSelect).sort({ name: 1 });
+
+    const users = await query.lean();
+
+    // Filtro de búsqueda por texto (nombre o email)
+    const result = search
+      ? users.filter(u =>
+          u.name?.toLowerCase().includes(search.toLowerCase()) ||
+          u.email?.toLowerCase().includes(search.toLowerCase())
+        )
+      : users;
+
+    return ok(res, result);
+  } catch (error) { throw error; }
+};

@@ -86,8 +86,13 @@ export default function AuthCallbackPage() {
   }, [loading, error, status]);
 
   const handleGoToSystem = () => {
-    const dest = goToEmployeeSystem();
-    router.replace(dest);
+    goToEmployeeSystem().then((dest) => {
+      // Si ya lanzamos bartender://, dest es "/cliente" — no hacemos redirect adicional.
+      // Si es /admin u otro, navegamos.
+      if (dest && dest !== "/cliente") {
+        router.replace(dest);
+      }
+    });
   };
 
   const handleContinueAsClient = () => {

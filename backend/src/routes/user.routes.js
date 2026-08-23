@@ -3,6 +3,7 @@ import {
   createEmployee, getEmployees, getUser, updateUser,
   deactivateUser, activateUser, changePassword,
   updatePermissions, updateRolePermissions, updateShiftPermissions, assignShift,
+  getUsers,
 } from "../controllers/user.controller.js";
 
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
@@ -18,6 +19,11 @@ import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = express.Router();
 const adminOnly = [protect, authorizeRoles("admin")];
+
+/* =========================================================
+   LIST ALL USERS (admin only, with role/isEmployee filter)
+========================================================= */
+router.get("/", ...adminOnly, asyncHandler(getUsers));
 
 /* =========================================================
    EMPLOYEES MODULE

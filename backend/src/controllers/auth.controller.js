@@ -1,4 +1,5 @@
 import jwt    from "jsonwebtoken";
+import crypto from "crypto";
 import User   from "../models/User.js";
 import { logger } from "../config/logger.js";
 import {
@@ -9,6 +10,24 @@ import identityService from "../identity/services/IdentityService.js";
 import refreshTokenService from "../identity/services/RefreshTokenService.js";
 import { canLogin, executeLoginDecision } from "../identity/decision/IdentityDecisionEngine.js";
 import { initializeSession, terminateSession, refreshSession } from "../ecosystem/EcosystemService.js";
+
+/* =========================================================
+   SSO TOKEN STORE — Map en memoria, TTL 90 segundos
+   Formato: ssoToken → { userId, refreshToken, createdAt }
+   Sin Redis, sin modelo extra — solución simple y efectiva
+========================================================= */
+const ssoTokenStore = new Map();
+const SSO_TTL_MS = 90_000; // 90 segundos
+
+// Limpieza periódica de tokens expirados (cada 5 minutos)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of ssoTokenStore) {
+    if (now - value.createdAt > SSO_TTL_MS) {
+      ssoTokenStore.delete(key);
+    }
+  }
+}, 5 * 60 * 1000);
 
 /* =========================================================
    TOKEN GENERATOR (LEGACY - MIGRADO A IdentityService)
@@ -450,5 +469,115 @@ export const googleCallback = async (req, res, next) => {
     logger.error("[Auth] Error en googleCallback:", error);
     const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=oauth_error`;
     return res.redirect(errorUrl);
+  }
+};
+
+/* =========================================================
+   GENERATE SSO TOKEN
+   Genera un token de un solo uso (OTP) para handoff web→desktop.
+   El token expira en 90 segundos y solo puede canjearse una vez.
+   Requiere que el usuario esté autenticado (protect middleware).
+========================================================= */
+export const generateSSOToken = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    // Verificar que el usuario tiene rol de empleado
+    const user = await User.findById(userId).select("_id role isEmployee").lean();
+    if (!user) return unauthorized(res, "Usuario no encontrado");
+
+    // Generar token único criptográficamente seguro
+    const ssoToken = crypto.randomBytes(32).toString("hex");
+
+    // Obtener el refreshToken actual del header (si viene)
+    // Lo necesitamos para regenerar la sesión en el desktop
+    const authHeader = req.headers.authorization || "";
+    const accessToken = authHeader.replace("Bearer ", "").trim();
+
+    // Almacenar en el store con TTL
+    ssoTokenStore.set(ssoToken, {
+      userId,
+      accessToken,
+      role: user.role,
+      isEmployee: user.isEmployee,
+      createdAt: Date.now(),
+    });
+
+    logger.info(`[Auth] SSO token generado para usuario ${userId}`);
+
+    return ok(res, { ssoToken, expiresIn: SSO_TTL_MS / 1000 }, "SSO token generado");
+  } catch (error) {
+    logger.error("[Auth] Error en generateSSOToken:", error);
+    return serverError(res, "Error al generar token SSO");
+  }
+};
+
+/* =========================================================
+   REDEEM SSO TOKEN
+   El desktop canjea el OTP y recibe tokens de sesión completos.
+   El token se invalida inmediatamente después del canje.
+   Ruta pública (el desktop no tiene token todavía).
+========================================================= */
+export const redeemSSOToken = async (req, res, next) => {
+  try {
+    const { ssoToken } = req.body;
+
+    if (!ssoToken) return badRequest(res, "ssoToken requerido");
+
+    const entry = ssoTokenStore.get(ssoToken);
+
+    if (!entry) {
+      return unauthorized(res, "Token SSO inválido o ya utilizado");
+    }
+
+    // Verificar TTL
+    if (Date.now() - entry.createdAt > SSO_TTL_MS) {
+      ssoTokenStore.delete(ssoToken);
+      return unauthorized(res, "Token SSO expirado");
+    }
+
+    // Invalidar inmediatamente — un solo uso
+    ssoTokenStore.delete(ssoToken);
+
+    // Obtener usuario completo
+    const user = await User.findById(entry.userId).select(
+      "_id name email role shift isEmployee permissions isActive"
+    ).lean();
+
+    if (!user || !user.isActive) {
+      return unauthorized(res, "Usuario no disponible");
+    }
+
+    // Generar sesión nueva para el desktop
+    const sessionInfo = {
+      platform: "desktop",
+      loginMethod: "sso",
+      isTrusted: true,
+    };
+
+    const token = identityService.generateToken(user);
+    const refreshTokenData = await refreshTokenService.generateRefreshToken(
+      user._id.toString(),
+      sessionInfo
+    );
+
+    logger.info(`[Auth] SSO token canjeado para usuario ${user.email} → desktop`);
+
+    return ok(res, {
+      token,
+      refreshToken: refreshTokenData.refreshToken,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isEmployee: user.isEmployee,
+        shift: user.shift,
+      },
+    }, "SSO login exitoso");
+  } catch (error) {
+    logger.error("[Auth] Error en redeemSSOToken:", error);
+    return serverError(res, "Error al canjear token SSO");
   }
 };

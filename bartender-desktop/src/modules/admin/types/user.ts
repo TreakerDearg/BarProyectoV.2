@@ -72,6 +72,15 @@ export interface User {
 
   isActive: boolean;
 
+  /** true para cualquier rol que no sea "client" */
+  isEmployee?: boolean;
+
+  /** proveedor OAuth si aplica */
+  provider?: "local" | "google" | "apple" | string;
+
+  /** avatar URL (OAuth) */
+  avatar?: string | null;
+
   schedule?: UserSchedule;
 
   lastLogin?: string;

@@ -1,13 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check, Database, FileText, Target, Users, UserCheck } from "lucide-react";
+import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check, Database, FileText, Target, Users, UserCheck, UserPlus } from "lucide-react";
 import EmployeeCard from "../components/EmployeeCard";
 import EmployeeForm from "../components/EmployeeForm";
+import PromoteModal from "../components/PromoteModal";
 import BackupSystem from "../../../components/shared/BackupSystem";
 import AuditLogSystem from "../../../components/shared/AuditLogSystem";
 import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 import DataExportImport from "../../../components/shared/DataExportImport";
 import {
   getEmployees,
+  getClients,
   createEmployee,
   deactivateUser,
   updateUser,
@@ -17,11 +19,15 @@ import "../../../styles/nebula-obsidian-theme.css";
 
 export default function EmployeesPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [clients, setClients] = useState<User[]>([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [promoteTarget, setPromoteTarget] = useState<User | null>(null);
   const [open, setOpen] = useState(false);
   const [auditUser, setAuditUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clientsLoading, setClientsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeSystemTab, setActiveSystemTab] = useState<"employees" | "backup" | "audit">("employees");
+  const [activeSystemTab, setActiveSystemTab] = useState<"employees" | "clients" | "backup" | "audit">("employees");
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
   const [showExportImport, setShowExportImport] = useState(false);
@@ -70,13 +76,21 @@ export default function EmployeesPage() {
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-
     const data = await getEmployees();
-
-    // 👇 service ya garantiza array
     setUsers(data);
-
     setLoading(false);
+  };
+
+  const fetchClients = async (search?: string) => {
+    setClientsLoading(true);
+    try {
+      const data = await getClients(search);
+      setClients(data);
+    } catch {
+      // silencioso — la pestaña de empleados no se rompe
+    } finally {
+      setClientsLoading(false);
+    }
   };
 
   /* =====================================================
@@ -156,6 +170,13 @@ export default function EmployeesPage() {
     fetchData();
   }, []);
 
+  // Cargar clientes al cambiar a esa pestaña
+  useEffect(() => {
+    if (activeSystemTab === "clients") {
+      fetchClients(clientSearch);
+    }
+  }, [activeSystemTab]);
+
   /* =====================================================
      LISTEN: USER DISABLED (GLOBAL AUTH EVENT)
   ===================================================== */
@@ -172,36 +193,26 @@ export default function EmployeesPage() {
     };
   }, []);
 
-  /* =====================================================
-     CREATE EMPLOYEE
-  ===================================================== */
   const handleCreate = async (form: any) => {
     const res = await createEmployee(form);
-
-    if (!res) {
-      alert("No se pudo crear el empleado");
-      return;
-    }
-
+    if (!res) { alert("No se pudo crear el empleado"); return; }
     setOpen(false);
     await fetchData();
   };
 
-  /* =====================================================
-     DEACTIVATE EMPLOYEE
-  ===================================================== */
   const handleDeactivate = async (id: string) => {
     const ok = window.confirm("¿Desactivar usuario?");
     if (!ok) return;
-
     const res = await deactivateUser(id);
-
-    if (!res) {
-      alert("No se pudo desactivar el usuario");
-      return;
-    }
-
+    if (!res) { alert("No se pudo desactivar el usuario"); return; }
     await fetchData();
+  };
+
+  const handlePromoteSuccess = (updated: User) => {
+    setPromoteTarget(null);
+    // Refrescar ambas listas
+    fetchData();
+    fetchClients(clientSearch);
   };
 
   /* =====================================================
@@ -278,6 +289,17 @@ export default function EmployeesPage() {
               }`}
             >
               Personal
+            </button>
+            <button
+              onClick={() => setActiveSystemTab("clients")}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeSystemTab === "clients"
+                  ? "bg-emerald/20 text-emerald-400 border border-emerald/30"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              <UserPlus size={14} className="inline mr-1" />
+              Ascender
             </button>
             <button
               onClick={() => setActiveSystemTab("backup")}
@@ -379,6 +401,82 @@ export default function EmployeesPage() {
         </>
       )}
 
+      {/* ================= CLIENTS TAB ================= */}
+      {activeSystemTab === "clients" && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <input
+              type="search"
+              placeholder="Buscar por nombre o email…"
+              value={clientSearch}
+              onChange={(e) => {
+                setClientSearch(e.target.value);
+                fetchClients(e.target.value);
+              }}
+              className="flex-1 h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm font-medium focus:outline-none focus:border-gold/40"
+            />
+            <button
+              onClick={() => fetchClients(clientSearch)}
+              className="h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white/50 text-xs font-bold hover:text-white hover:border-white/20 transition-all"
+            >
+              Actualizar
+            </button>
+          </div>
+
+          {clientsLoading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="animate-spin text-emerald-400" size={28} />
+            </div>
+          ) : clients.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                <Users size={22} className="text-white/30" />
+              </div>
+              <p className="text-sm text-white/40 font-bold uppercase tracking-wider">
+                {clientSearch ? "No se encontraron clientes" : "No hay clientes registrados"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {clients.map((client) => (
+                <div
+                  key={client._id}
+                  className="flex items-center justify-between gap-4 p-4 bg-white/3 border border-white/8 rounded-2xl hover:border-white/15 transition-all"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald/20 to-cyan/10 border border-emerald/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-emerald-400">
+                        {client.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{client.name}</p>
+                      <p className="text-xs text-white/40 truncate">{client.email}</p>
+                      {client.provider && client.provider !== "local" && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-400/70">
+                          via {client.provider}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setPromoteTarget(client)}
+                    className="flex-shrink-0 flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-gold/80 to-yellow-500/80 text-black text-[10px] font-bold uppercase tracking-wider hover:from-gold hover:to-yellow-500 hover:shadow-md hover:shadow-gold/20 transition-all"
+                  >
+                    <UserCheck size={13} />
+                    Ascender
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-[10px] text-white/25 text-center font-medium">
+            {clients.length} cliente{clients.length !== 1 ? "s" : ""} encontrado{clients.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+      )}
+
       {/* ================= BACKUP TAB ================= */}
       {activeSystemTab === "backup" && (
         <BackupSystem
@@ -429,6 +527,15 @@ export default function EmployeesPage() {
           user={auditUser}
           onClose={() => setAuditUser(null)}
           onRefresh={fetchData}
+        />
+      )}
+
+      {/* ── PROMOTE MODAL ── */}
+      {promoteTarget && (
+        <PromoteModal
+          user={promoteTarget}
+          onClose={() => setPromoteTarget(null)}
+          onSuccess={handlePromoteSuccess}
         />
       )}
 

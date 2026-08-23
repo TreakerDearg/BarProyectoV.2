@@ -125,8 +125,11 @@ export default function CuentaPage() {
 
   // ── Acciones del EmployeeModal
   const handleGoToSystem = useCallback(() => {
-    const dest = goToEmployeeSystem();
-    router.replace(dest);
+    goToEmployeeSystem().then((dest) => {
+      if (dest && dest !== "/cliente") {
+        router.replace(dest);
+      }
+    });
   }, [goToEmployeeSystem, router]);
 
   const handleContinueAsClient = useCallback(() => {

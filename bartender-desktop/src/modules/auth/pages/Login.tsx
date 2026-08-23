@@ -7,14 +7,14 @@ import { setAuthToken } from "../../../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, initialize } = useAuthStore();
+  const { login, isAuthenticated, initialize, setAuth } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
 
   useEffect(() => {
     initialize();
@@ -24,60 +24,89 @@ export default function Login() {
     if (isAuthenticated) navigate("/dashboard");
   }, [isAuthenticated]);
 
-  // Manejar callback de OAuth
+  // ── SSO via Electron IPC (bartender://auth?t=<token>) ──────────────
+  // El main process de Electron canjea el token y emite "auth:sso".
+  // Aquí escuchamos ese evento y completamos el login sin contraseña.
+  useEffect(() => {
+    // Solo disponible dentro de Electron
+    const api = (window as any).electronAPI;
+    if (!api?.sso?.onToken) return;
+
+    setSsoLoading(true); // Mostrar spinner mientras esperamos el deep link
+
+    const cleanup = api.sso.onToken((payload: {
+      success: boolean;
+      token?: string;
+      refreshToken?: string;
+      user?: { _id: string; name: string; email: string; role: string; isEmployee?: boolean; shift?: string | null };
+      error?: string;
+    }) => {
+      setSsoLoading(false);
+
+      if (!payload.success || !payload.token || !payload.user) {
+        setError(payload.error || "El acceso automático expiró. Iniciá sesión manualmente.");
+        return;
+      }
+
+      // Guardar tokens y usuario — mismo flujo que el login normal
+      saveTokens(payload.token, payload.refreshToken || payload.token);
+      setAuthToken(payload.token);
+      setAuth(payload.token, payload.user as any, payload.refreshToken);
+      navigate("/dashboard");
+    });
+
+    // Timeout: si en 10s no llega el SSO token, cancelar el spinner
+    const timeout = setTimeout(() => {
+      setSsoLoading(false);
+    }, 10_000);
+
+    return () => {
+      cleanup?.();
+      clearTimeout(timeout);
+    };
+  }, [navigate, setAuth]);
+
+  // ── Callback de OAuth (URL params — flujo web redirectado al desktop) ─
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
-    const refreshTokenParam = urlParams.get('refreshToken');
-    const errorParam = urlParams.get('error');
+    const tokenParam = urlParams.get("token");
+    const refreshTokenParam = urlParams.get("refreshToken");
+    const errorParam = urlParams.get("error");
 
     if (tokenParam && refreshTokenParam) {
       saveTokens(tokenParam, refreshTokenParam);
       setAuthToken(tokenParam);
-      
-      // Obtener perfil del usuario
+
       fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${tokenParam}`,
-        },
+        headers: { Authorization: `Bearer ${tokenParam}` },
       })
-        .then(res => res.json())
-        .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           if (data.success) {
-            const { setAuth } = useAuthStore.getState();
-            // Pasar el refreshToken real del callback, no duplicar el access token
             setAuth(tokenParam, data.data, refreshTokenParam);
             navigate("/dashboard");
           }
         })
-        .catch(err => {
-          console.error('Error al obtener perfil:', err);
+        .catch((err) => {
+          console.error("Error al obtener perfil:", err);
         });
-      
-      // Limpiar URL
-      window.history.replaceState({}, '', '/login');
+
+      window.history.replaceState({}, "", "/login");
     } else if (errorParam) {
-      setError('Error en autenticación con Google');
-      window.history.replaceState({}, '', '/login');
+      setError("Error en autenticación con Google");
+      window.history.replaceState({}, "", "/login");
     }
-  }, [navigate]);
+  }, [navigate, setAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (!email || !password) {
-      setError("Completa todos los campos");
-      return;
-    }
-
+    if (!email || !password) { setError("Completa todos los campos"); return; }
     setLoading(true);
-
     try {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      // FIX: Use err?.message since Axios interceptor already normalized the error object to have a 'message' property
       setError(err?.message || "Credenciales incorrectas");
     } finally {
       setLoading(false);
@@ -89,25 +118,44 @@ export default function Login() {
     setError(null);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/google`, {
-        method: 'GET',
-        headers: {
-          'X-Platform': 'desktop',
-        },
+        method: "GET",
+        headers: { "X-Platform": "desktop" },
       });
       const data = await response.json();
-      
-      if (data.success) {
-        // Redirigir a Google OAuth
-        window.location.href = data.authorizationUrl;
+      const authUrl = data.data?.authorizationUrl ?? data.authorizationUrl;
+      if (authUrl) {
+        window.location.href = authUrl;
       } else {
-        setError(data.message || 'Error al iniciar OAuth');
+        setError(data.message || "Error al iniciar OAuth");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar OAuth');
+      setError(err instanceof Error ? err.message : "Error al iniciar OAuth");
     } finally {
       setLoading(false);
     }
   };
+
+  // ── SSO loading screen ────────────────────────────────────────────────
+  if (ssoLoading) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center bg-[#030209] text-white">
+        <div className="absolute inset-0 z-0">
+          <div className="nebula-aurora" />
+        </div>
+        <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+          <Loader2 size={48} className="animate-spin text-violet-400" />
+          <div>
+            <p className="text-lg font-bold tracking-widest text-violet-300 uppercase">
+              Iniciando sesión automática…
+            </p>
+            <p className="text-xs text-violet-400/50 mt-2 font-medium tracking-wider">
+              Recibiendo credenciales desde Nebula
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-[#030209] overflow-hidden text-white">

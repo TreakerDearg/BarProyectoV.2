@@ -52,7 +52,7 @@ export interface UseAuthReturn {
   /** Después del EmployeeModal: el usuario eligió continuar como cliente */
   continueAsClient: () => void;
   /** Después del EmployeeModal: el usuario eligió ir al sistema de empleados */
-  goToEmployeeSystem: () => string;
+  goToEmployeeSystem: () => Promise<string>;
   clearError: () => void;
   clearEmployeeDecision: () => void;
 }
@@ -326,11 +326,40 @@ export function useAuth(): UseAuthReturn {
     // El caller redirige a /cliente
   }, []);
 
-  const goToEmployeeSystem = useCallback((): string => {
+  const goToEmployeeSystem = useCallback(async (): Promise<string> => {
     const dest = employeeDecision?.employeeDestination ?? "/admin";
     setEmployeeDecision(null);
+
+    // Si el destino es el desktop, intentar SSO handoff vía deep link bartender://
+    // Esto evita que el empleado tenga que loguearse de nuevo en el desktop.
+    if (dest === "/desktop" || dest.startsWith("/desktop")) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sso-token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        const ssoToken = data.data?.ssoToken ?? data.ssoToken;
+
+        if (ssoToken) {
+          // Abrir el desktop via custom protocol — el main process de Electron
+          // recibe el deep link, canjea el SSO token y hace auto-login.
+          window.location.href = `bartender://auth?t=${ssoToken}`;
+          // Devolver "/" como fallback por si el protocolo no está registrado
+          // (el usuario verá la pantalla de inicio del cliente)
+          return "/cliente";
+        }
+      } catch {
+        // Si falla la generación del SSO token, redirigir al admin web como fallback
+      }
+      return "/admin";
+    }
+
     return dest;
-  }, [employeeDecision]);
+  }, [employeeDecision, token]);
 
   return {
     isAuthenticated: !!token && !!user,
