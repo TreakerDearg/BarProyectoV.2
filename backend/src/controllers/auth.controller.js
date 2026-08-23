@@ -439,6 +439,9 @@ export const googleCallback = async (req, res, next) => {
       destination: identityDecision.destination,
       canAccess: identityDecision.canAccess.toString(),
       identityStatus: identityDecision.identityStatus,
+      // Pasar isEmployee explícitamente para que el frontend no dependa solo del rol
+      isEmployee: (identityDecision.isEmployee === true).toString(),
+      role: user.role,
     });
 
     const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?${params.toString()}`;

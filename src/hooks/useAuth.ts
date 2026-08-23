@@ -1,3 +1,4 @@
+
 "use client";
 
 // ─────────────────────────────────────────────────────────────────
@@ -89,9 +90,13 @@ function humanizeError(message: string | undefined, status?: number): string {
   return "Algo salió mal. Intentá de nuevo.";
 }
 
-/** Determina si tras el login hay que mostrar el modal de empleado */
+/** Determina si tras el login hay que mostrar el modal de empleado.
+ *  Usa SOLO el campo isEmployee del backend — nunca infiere del rol. */
 function buildEmployeeDecision(data: IdentityDecisionResponse): EmployeeDecision | null {
-  if (!data.isEmployee && !isStaffRole(data.user.role)) return null;
+  // Cliente → nunca mostrar modal, siempre a /cliente
+  if (data.user.role === "client") return null;
+  // Solo mostrar modal si el backend confirma explícitamente que es empleado
+  if (!data.isEmployee) return null;
   return {
     employeeDestination: data.destination || "/admin",
     identityStatus: data.identityStatus,
@@ -278,9 +283,18 @@ export function useAuth(): UseAuthReturn {
       };
       setAuth(tokenParam, authUser);
 
-      // Detectar empleado desde params del callback
-      const employeeFromEngine = isEmployeeParam === "true" || isStaffRole(authUser.role);
-      if (employeeFromEngine && canAccessParam !== "false") {
+      // Detectar empleado — SOLO si el backend lo confirma explícitamente
+      // No inferir del rol para evitar falsos positivos con cuentas de cliente
+      const isEmployeeConfirmed = isEmployeeParam === "true";
+      const isClientRole = authUser.role === "client";
+
+      // Si es cliente → siempre ir a /cliente, sin modal
+      if (isClientRole) {
+        return { redirectTo: "/cliente" };
+      }
+
+      // Si el backend confirma que es empleado → mostrar modal
+      if (isEmployeeConfirmed && canAccessParam !== "false") {
         setEmployeeDecision({
           employeeDestination: destinationParam || "/admin",
           identityStatus: identityStatus || "EMPLOYEE",
@@ -292,6 +306,11 @@ export function useAuth(): UseAuthReturn {
 
       // Fuera de turno → off-shift
       if (identityStatus === "EMPLOYEE_OFF_SHIFT") {
+        return { redirectTo: "/auth/off-shift" };
+      }
+
+      // Fallback — si tiene rol de empleado pero canAccess=false, off-shift también
+      if (canAccessParam === "false") {
         return { redirectTo: "/auth/off-shift" };
       }
 
