@@ -399,11 +399,20 @@ export const googleCallback = async (req, res, next) => {
     const response = await oauthService.handleOAuthCallback('google', code, state, sessionInfo);
 
     if (!response.success) {
-      return badRequest(res, response.message);
+      // Redirigir con error — NO devolver JSON (el browser espera redirect)
+      logger.warn(`[Auth] googleCallback falló: ${response.message}`);
+      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=${encodeURIComponent(response.message || 'oauth_error')}`;
+      return res.redirect(errorUrl);
     }
 
     // Verificar si el usuario puede hacer login
-    const user = await User.findById(response.user.id ?? response.user._id);
+    const userId = response.user?.id ?? response.user?._id;
+    if (!userId) {
+      logger.error('[Auth] googleCallback: user sin id en response:', response.user);
+      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=oauth_error`;
+      return res.redirect(errorUrl);
+    }
+    const user = await User.findById(userId);
     const loginCheck = canLogin(user);
     
     if (!loginCheck.canLogin) {

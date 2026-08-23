@@ -72,7 +72,10 @@ export class ProviderStrategy {
    */
   validateState(state) {
     try {
-      const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
+      // Decodificar URL-encoding si viene desde req.query con caracteres especiales
+      const decoded = JSON.parse(
+        Buffer.from(decodeURIComponent(state), 'base64').toString()
+      );
       const age = Date.now() - decoded.timestamp;
       return age < 10 * 60 * 1000; // 10 minutos
     } catch {
