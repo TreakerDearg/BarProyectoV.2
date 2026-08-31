@@ -170,7 +170,7 @@ class OAuthService {
     if (user) {
       logger.info(`[OAuthService] Vinculando cuenta existente con ${provider}: ${user.email}`);
       
-      // Vincular cuenta
+      // Vincular cuenta y asegurar providerVerified=true (Google verifica emails)
       user[`${provider}Id`] = providerProfile.id;
       user.provider = provider;
       user.providerVerified = true;
@@ -187,14 +187,15 @@ class OAuthService {
       email: providerProfile.email,
       [`${provider}Id`]: providerProfile.id,
       provider,
+      // Google verifica emails — siempre true para evitar PENDING_VERIFICATION
       providerVerified: true,
       avatar: providerProfile.avatar,
-      role: 'client', // Rol por defecto para nuevos usuarios
+      role: 'client',
       isActive: true,
       permissions: {},
       shift: null,
       isEmployee: false,
-      password: null, // Sin contraseña para usuarios OAuth
+      password: null,
     });
 
     return user;
@@ -202,14 +203,14 @@ class OAuthService {
 
   /**
    * Actualiza datos de proveedor en usuario
-   * @param {User} user - Usuario
-   * @param {string} provider - Nombre del proveedor
-   * @param {ProviderProfile} providerProfile - Perfil del proveedor
    */
   async updateProviderData(user, provider, providerProfile) {
     user[`${provider}Id`] = providerProfile.id;
     user.provider = provider;
-    user.providerVerified = providerProfile.emailVerified;
+    // Para Google, los emails siempre están verificados.
+    // Forzamos providerVerified=true para evitar que nuevos usuarios
+    // queden en estado PENDING_VERIFICATION al primer login.
+    user.providerVerified = providerProfile.emailVerified !== false ? true : false;
     user.avatar = providerProfile.avatar || user.avatar;
     user.lastProviderLogin = new Date();
     user.lastLogin = new Date();

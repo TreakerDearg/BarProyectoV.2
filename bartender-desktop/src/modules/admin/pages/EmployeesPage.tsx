@@ -12,8 +12,11 @@ import {
   getClients,
   createEmployee,
   deactivateUser,
+  activateUser,
   updateUser,
 } from "../services/userService";
+import { getAuditLogs, exportAuditLogs } from "../services/auditService";
+import type { AuditLog } from "../../../components/shared/AuditLogSystem";
 import type { User, UserSchedule } from "../types/user";
 import "../../../styles/nebula-obsidian-theme.css";
 
@@ -30,6 +33,9 @@ export default function EmployeesPage() {
   const [activeSystemTab, setActiveSystemTab] = useState<"employees" | "clients" | "backup" | "audit">("employees");
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  // Audit logs reales
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
   const [showExportImport, setShowExportImport] = useState(false);
 
   // Filter groups for AdvancedSearchFilter
@@ -175,7 +181,22 @@ export default function EmployeesPage() {
     if (activeSystemTab === "clients") {
       fetchClients(clientSearch);
     }
+    if (activeSystemTab === "audit") {
+      fetchAuditLogs();
+    }
   }, [activeSystemTab]);
+
+  const fetchAuditLogs = async () => {
+    setAuditLoading(true);
+    try {
+      const { logs } = await getAuditLogs({ limit: 100, page: 1 });
+      setAuditLogs(logs);
+    } catch {
+      // silencioso — la página no se rompe
+    } finally {
+      setAuditLoading(false);
+    }
+  };
 
   /* =====================================================
      LISTEN: USER DISABLED (GLOBAL AUTH EVENT)
@@ -503,15 +524,19 @@ export default function EmployeesPage() {
 
       {/* ================= AUDIT TAB ================= */}
       {activeSystemTab === "audit" && (
-        <AuditLogSystem
-          logs={[]}
-          onExport={() => {
-            console.log("Export audit logs");
-          }}
-          onClear={() => {
-            console.log("Clear audit logs");
-          }}
-        />
+        auditLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="animate-spin text-violet-400" size={28} />
+          </div>
+        ) : (
+          <AuditLogSystem
+            logs={auditLogs}
+            onExport={async () => {
+              try { await exportAuditLogs(); } catch { /* silencioso */ }
+            }}
+            onClear={undefined}
+          />
+        )
       )}
 
       {/* ================= MODAL ================= */}

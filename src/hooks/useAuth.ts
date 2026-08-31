@@ -304,13 +304,18 @@ export function useAuth(): UseAuthReturn {
         return null; // El modal se encarga de la redirección
       }
 
-      // Fuera de turno → off-shift
+      // Fuera de turno → off-shift (solo empleados)
       if (identityStatus === "EMPLOYEE_OFF_SHIFT") {
         return { redirectTo: "/auth/off-shift" };
       }
 
-      // Fallback — si tiene rol de empleado pero canAccess=false, off-shift también
+      // canAccess=false con rol de empleado → off-shift
+      // canAccess=false con rol de cliente → error de cuenta (nunca debería pasar con Google)
       if (canAccessParam === "false") {
+        if (isClientRole) {
+          // Cliente con canAccess=false: cuenta bloqueada/inactiva → login con mensaje
+          return { redirectTo: "/cliente/cuenta?error=account_inactive" };
+        }
         return { redirectTo: "/auth/off-shift" };
       }
 

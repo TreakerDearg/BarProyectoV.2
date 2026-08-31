@@ -4,7 +4,19 @@ import type { User } from "../types/user";
 /* =========================================================
    HELPERS
 ========================================================= */
-const unwrap = (res: any): any => res?.data?.data ?? res?.data ?? [];
+const unwrap = (res: any): any => {
+  // El interceptor de Axios del desktop retorna response.data directamente.
+  // El backend envuelve en { success: true, data: T }.
+  // Por lo tanto res = { success, data: T } → extraer data.
+  if (Array.isArray(res)) return res;
+  if (res?.data !== undefined) {
+    const inner = res.data;
+    if (Array.isArray(inner)) return inner;
+    if (inner?.data !== undefined) return Array.isArray(inner.data) ? inner.data : inner.data;
+    return inner ?? [];
+  }
+  return res ?? [];
+};
 
 /* =========================================================
    GET ALL USERS (con filtros opcionales)
@@ -28,7 +40,16 @@ export const getUsers = async (params?: {
    GET CLIENTS — usuarios con role="client" para promover
 ========================================================= */
 export const getClients = async (search?: string): Promise<User[]> => {
-  return getUsers({ role: "client", active: true, search });
+  try {
+    return await getUsers({ role: "client", search });
+  } catch (err: any) {
+    const status = err?.response?.status ?? err?.status;
+    if (status === 403 || status === 401) {
+      console.warn("[userService] getClients: sin permisos de admin para listar clientes");
+      return [];
+    }
+    throw err;
+  }
 };
 
 /* =========================================================

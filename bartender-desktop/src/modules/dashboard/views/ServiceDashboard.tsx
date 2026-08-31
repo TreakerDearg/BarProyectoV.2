@@ -14,6 +14,7 @@ import InventoryAlerts from "../components/alerts/InventoryAlerts";
 import LiveActivity from "../components/alerts/LiveActivity";
 import DashboardPricingPanel from "../components/DashboardPricingPanel";
 import ImprovementSuggestions from "../components/ImprovementSuggestions";
+import ActiveStaffPanel from "../components/ActiveStaffPanel";
 import {
   Activity,
   Target,
@@ -234,6 +235,8 @@ export default function ServiceDashboard({
             {/* Improvement Suggestions - Medium and Advanced */}
             <ImprovementSuggestions suggestions={suggestions} maxVisible={2} />
             <DashboardPricingPanel />
+            {/* ── Personal activo en turno — datos reales de /attendance/today ── */}
+            <ActiveStaffPanel />
             <div className="dashboard-panel p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Monitor size={18} className="text-violet-300" />

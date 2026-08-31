@@ -1,4 +1,6 @@
 import ExcelJS from 'exceljs';
+import mongoose from 'mongoose';
+import ActivityLog from '../models/ActivityLog.js';
 import { ok, badRequest } from '../utils/response.js';
 import { logger } from '../config/logger.js';
 
@@ -96,53 +98,123 @@ export const exportAuditLogs = async (req, res) => {
 };
 
 /**
- * Get audit logs with pagination and filtering
+ * Get audit logs — lee desde ActivityLog (fuente de verdad real)
  */
 export const getAuditLogs = async (req, res) => {
   try {
-    const { page = 1, limit = 50, startDate, endDate, entityType, actionType } = req.query;
+    const {
+      page = 1,
+      limit = 50,
+      startDate,
+      endDate,
+      activityType,
+      userId,
+      userRole,
+      shift,
+    } = req.query;
 
-    // TODO: Fetch audit logs from database with pagination and filtering
-    // For now, return sample data
-    const auditLogs = [
-      {
-        id: '1',
-        action: 'create',
-        entity: 'Product',
-        entityId: 'prod_001',
-        userId: req.user?.id || 'system',
-        userName: req.user?.name || 'System',
-        timestamp: new Date(),
-        changes: { name: 'New Product', price: 10.99 },
-        metadata: { ip: '127.0.0.1' },
-      },
-      {
-        id: '2',
-        action: 'update',
-        entity: 'Inventory',
-        entityId: 'inv_001',
-        userId: req.user?.id || 'system',
-        userName: req.user?.name || 'System',
-        timestamp: new Date(Date.now() - 3600000),
-        changes: { stock: { from: 50, to: 45 } },
-        metadata: { ip: '127.0.0.1' },
-      },
-    ];
+    const pageNum  = Math.max(1, parseInt(page));
+    const limitNum = Math.min(200, Math.max(1, parseInt(limit)));
+    const skip     = (pageNum - 1) * limitNum;
 
-    logger.info('[Audit] Audit logs retrieved successfully');
+    // Construir filtro
+    const filter = {};
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate)   filter.createdAt.$lte = new Date(endDate);
+    }
+    if (activityType && activityType !== 'all') filter.activityType = activityType;
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+      filter.userId = new mongoose.Types.ObjectId(userId);
+    }
+    if (userRole) filter.userRole = userRole;
+    if (shift)    filter.shift    = shift;
+
+    const [logs, total] = await Promise.all([
+      ActivityLog.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      ActivityLog.countDocuments(filter),
+    ]);
+
+    // Mapear al formato que espera el frontend (AuditLog interface)
+    const mapped = logs.map((log) => ({
+      id:         log._id.toString(),
+      action:     mapActivityTypeToAction(log.activityType),
+      entity:     mapActivityTypeToEntity(log.activityType),
+      entityId:   log.orderId?.toString() || log.tableId?.toString() || undefined,
+      userId:     log.userId?.toString(),
+      userName:   log.userName,
+      userRole:   log.userRole,
+      timestamp:  log.createdAt,
+      description: log.description,
+      shift:      log.shift,
+      metadata:   log.metadata || {},
+      ipAddress:  log.metadata?.ip || undefined,
+    }));
+
+    logger.info(`[Audit] ${mapped.length} activity logs retrieved`);
+
     return ok(res, {
-      logs: auditLogs,
+      logs: mapped,
       pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: auditLogs.length,
-        totalPages: Math.ceil(auditLogs.length / Number(limit)),
+        page:       pageNum,
+        limit:      limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
       },
     });
   } catch (error) {
     logger.error('[Audit] Error fetching audit logs:', error);
-    return badRequest(res, 'Error fetching audit logs');
+    return badRequest(res, 'Error al obtener logs de auditoría');
   }
+};
+
+// Mapear activityType del modelo al formato "action" del frontend
+function mapActivityTypeToAction(activityType) {
+  const map = {
+    login: 'login',
+    logout: 'logout',
+    identity_decision: 'login',
+    order_created: 'create',
+    order_completed: 'update',
+    order_cancelled: 'delete',
+    payment_processed: 'create',
+    inventory_updated: 'update',
+    discount_applied: 'update',
+    table_assigned: 'update',
+    menu_viewed: 'update',
+    recipe_accessed: 'update',
+    roulette_used: 'update',
+    permission_change: 'update',
+    settings_updated: 'update',
+  };
+  return map[activityType] || 'update';
+}
+
+function mapActivityTypeToEntity(activityType) {
+  const map = {
+    login: 'Auth',
+    logout: 'Auth',
+    identity_decision: 'Auth',
+    order_created: 'Order',
+    order_completed: 'Order',
+    order_cancelled: 'Order',
+    payment_processed: 'Payment',
+    inventory_updated: 'Inventory',
+    discount_applied: 'Discount',
+    table_assigned: 'Table',
+    menu_viewed: 'Menu',
+    recipe_accessed: 'Recipe',
+    roulette_used: 'Roulette',
+    permission_change: 'User',
+    settings_updated: 'Settings',
+  };
+  return map[activityType] || 'System';
+}
 };
 
 /**

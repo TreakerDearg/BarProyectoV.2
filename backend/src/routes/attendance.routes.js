@@ -22,6 +22,7 @@ router.post("/check-in", protect, authorizeRoles("admin", "manager", "bartender"
 router.post("/check-out", protect, authorizeRoles("admin", "manager", "bartender", "waiter", "cashier", "kitchen"), checkOut);
 
 // Get attendance data
+router.get("/active", protect, authorizeRoles("admin", "manager"), getTodayAttendance);  // alias más explícito
 router.get("/user/:userId", protect, authorizeRoles("admin", "manager"), getUserAttendance);
 router.get("/today", protect, authorizeRoles("admin", "manager", "bartender", "waiter"), getTodayAttendance);
 router.get("/stats", protect, authorizeRoles("admin", "manager"), getAttendanceStats);
