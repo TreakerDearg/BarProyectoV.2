@@ -46,13 +46,15 @@ class GoogleProvider extends ProviderStrategy {
    */
   async exchangeCodeForToken(code) {
     try {
-      const response = await axios.post(this.config.tokenUrl, {
+      const params = new URLSearchParams({
         code,
         client_id: this.config.clientId,
         client_secret: this.config.clientSecret,
         redirect_uri: this.config.redirectUri,
         grant_type: 'authorization_code',
-      }, {
+      });
+
+      const response = await axios.post(this.config.tokenUrl, params.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },

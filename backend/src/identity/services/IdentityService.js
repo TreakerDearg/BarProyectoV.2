@@ -232,11 +232,12 @@ class IdentityService {
 
   /**
    * Genera un token JWT (Access Token de corta duración)
+   * jwt.sign es síncrono — no marcar async para no devolver un Promise
+   * en redirects OAuth (URLSearchParams stringifyaría "[object Promise]").
    * @param {Object} user - Usuario del modelo
-   * @returns {Promise<string>} Token JWT
+   * @returns {string} Token JWT
    */
-  async generateToken(user) {
-    // Access token expira en 15-30 minutos (configurable)
+  generateToken(user) {
     const accessTokenExpiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || '30m';
     return jwt.sign(
       { id: user._id, role: user.role, shift: user.shift || null },

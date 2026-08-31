@@ -37,7 +37,11 @@ class OAuthService {
       }
 
       const providerInstance = ProviderFactory.createProvider(provider);
-      const state = providerInstance.generateState();
+      const platform = sessionInfo.platform === 'desktop' ? 'desktop' : 'web';
+      const state = providerInstance.generateState({
+        platform,
+        audience: platform === 'desktop' ? 'staff' : 'client',
+      });
 
       // Guardar sesión OAuth temporal (en producción usar Redis)
       const oauthSession = new OAuthSession({
@@ -112,8 +116,7 @@ class OAuthService {
       // Actualizar datos de proveedor
       await this.updateProviderData(user, provider, providerProfile);
 
-      // Generar access token
-      const token = identityService.generateToken(user);
+      const token = await identityService.generateToken(user);
 
       // Generar refresh token y crear sesión
       const refreshTokenData = await refreshTokenService.generateRefreshToken(
@@ -182,12 +185,15 @@ class OAuthService {
     // Crear nuevo usuario
     logger.info(`[OAuthService] Creando nuevo usuario con ${provider}: ${providerProfile.email}`);
 
+    const emailLocal = (providerProfile.email || 'cliente').split('@')[0];
+    const rawName = (providerProfile.name || '').trim();
+    const name = rawName.length >= 2 ? rawName.slice(0, 50) : emailLocal.slice(0, 50);
+
     user = await User.create({
-      name: providerProfile.name,
+      name,
       email: providerProfile.email,
       [`${provider}Id`]: providerProfile.id,
       provider,
-      // Google verifica emails — siempre true para evitar PENDING_VERIFICATION
       providerVerified: true,
       avatar: providerProfile.avatar,
       role: 'client',
@@ -195,7 +201,6 @@ class OAuthService {
       permissions: {},
       shift: null,
       isEmployee: false,
-      password: null,
     });
 
     return user;

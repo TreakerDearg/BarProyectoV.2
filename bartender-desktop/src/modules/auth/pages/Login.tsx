@@ -7,7 +7,7 @@ import { setAuthToken } from "../../../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, initialize, setAuth } = useAuthStore();
+  const { login, isAuthenticated, initialize, setAuth, user } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +21,13 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/dashboard");
-  }, [isAuthenticated]);
+    if (isAuthenticated && user?.role === "client") {
+      useAuthStore.getState().logout();
+      setError("Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
+      return;
+    }
+    if (isAuthenticated && user?.role && user.role !== "client") navigate("/dashboard");
+  }, [isAuthenticated, user, navigate]);
 
   // ── SSO via Electron IPC (bartender://auth?t=<token>) ──────────────
   // El main process de Electron canjea el token y emite "auth:sso".
@@ -48,7 +53,11 @@ export default function Login() {
         return;
       }
 
-      // Guardar tokens y usuario — mismo flujo que el login normal
+      if (payload.user.role === "client") {
+        setError("Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
+        return;
+      }
+
       saveTokens(payload.token, payload.refreshToken || payload.token);
       setAuthToken(payload.token);
       setAuth(payload.token, payload.user as any, payload.refreshToken);
@@ -83,7 +92,12 @@ export default function Login() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            setAuth(tokenParam, data.data, refreshTokenParam);
+            const profile = data.data;
+            if (profile?.role === "client") {
+              setError("Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
+              return;
+            }
+            setAuth(tokenParam, profile, refreshTokenParam);
             navigate("/dashboard");
           }
         })
@@ -123,10 +137,19 @@ export default function Login() {
       });
       const data = await response.json();
       const authUrl = data.data?.authorizationUrl ?? data.authorizationUrl;
-      if (authUrl) {
-        window.location.href = authUrl;
-      } else {
+      if (!authUrl) {
         setError(data.message || "Error al iniciar OAuth");
+        return;
+      }
+
+      // Abrir Google en el navegador del sistema para no navegar
+      // la ventana de Electron hacia la web del cliente.
+      const api = (window as any).electronAPI;
+      if (api?.utils?.openExternal) {
+        await api.utils.openExternal(authUrl);
+        setSsoLoading(true);
+      } else {
+        window.location.href = authUrl;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar OAuth");

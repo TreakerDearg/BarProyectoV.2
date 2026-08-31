@@ -275,51 +275,45 @@ export function useAuth(): UseAuthReturn {
       const data = await res.json();
       if (!data.success) return null;
 
+      const roleParam = params.get("role");
       const authUser: AuthUser = {
         _id: data.data._id ?? data.data.id,
         name: data.data.name,
         email: data.data.email,
-        role: data.data.role,
+        role: data.data.role || roleParam || "client",
       };
       setAuth(tokenParam, authUser);
 
-      // Detectar empleado — SOLO si el backend lo confirma explícitamente
-      // No inferir del rol para evitar falsos positivos con cuentas de cliente
       const isEmployeeConfirmed = isEmployeeParam === "true";
       const isClientRole = authUser.role === "client";
+      const dest = destinationParam || "";
+      const destIsDesktop = dest === "/desktop" || dest.startsWith("/desktop");
 
-      // Si es cliente → siempre ir a /cliente, sin modal
       if (isClientRole) {
         return { redirectTo: "/cliente" };
       }
 
-      // Si el backend confirma que es empleado → mostrar modal
-      if (isEmployeeConfirmed && canAccessParam !== "false") {
-        setEmployeeDecision({
-          employeeDestination: destinationParam || "/admin",
-          identityStatus: identityStatus || "EMPLOYEE",
-          identityStatusLabel: identityStatus || "Empleado",
-          desktopAccessMessage: null,
-        });
-        return null; // El modal se encarga de la redirección
+      if (isEmployeeConfirmed || destIsDesktop || dest === "/admin" || dest === "/employee") {
+        if (canAccessParam !== "false" || destIsDesktop) {
+          setEmployeeDecision({
+            employeeDestination: destIsDesktop ? "/desktop" : (destinationParam || "/admin"),
+            identityStatus: identityStatus || "EMPLOYEE",
+            identityStatusLabel: identityStatus || "Empleado",
+            desktopAccessMessage: null,
+          });
+          return null;
+        }
       }
 
-      // Fuera de turno → off-shift (solo empleados)
       if (identityStatus === "EMPLOYEE_OFF_SHIFT") {
         return { redirectTo: "/auth/off-shift" };
       }
 
-      // canAccess=false con rol de empleado → off-shift
-      // canAccess=false con rol de cliente → error de cuenta (nunca debería pasar con Google)
       if (canAccessParam === "false") {
-        if (isClientRole) {
-          // Cliente con canAccess=false: cuenta bloqueada/inactiva → login con mensaje
-          return { redirectTo: "/cliente/cuenta?error=account_inactive" };
-        }
         return { redirectTo: "/auth/off-shift" };
       }
 
-      return { redirectTo: destinationParam || "/cliente" };
+      return { redirectTo: "/cliente" };
     } catch {
       return null;
     }

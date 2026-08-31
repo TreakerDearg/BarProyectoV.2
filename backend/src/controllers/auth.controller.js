@@ -122,6 +122,12 @@ export const loginUser = async (req, res, next) => {
       return unauthorized(res, "Credenciales inválidas");
     }
 
+    /* ─── Desktop no admite cuentas de cliente ─── */
+    const platform = req.headers['x-platform'] || 'web';
+    if (platform === 'desktop' && user.role === 'client') {
+      return forbidden(res, "Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
+    }
+
     /* ─── Verificar si puede hacer login con Decision Engine ─── */
     const loginCheck = canLogin(user);
     if (!loginCheck.canLogin) {
@@ -400,6 +406,34 @@ export const googleAuth = async (req, res, next) => {
    GOOGLE OAUTH CALLBACK
    Procesa el callback de Google OAuth con Decision Engine
 ========================================================= */
+const frontendCallback = (query) => {
+  const base = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`;
+  return `${base}?${new URLSearchParams(query).toString()}`;
+};
+
+const parseOAuthOrigin = async (state) => {
+  try {
+    const GoogleProvider = (await import('../identity/providers/GoogleProvider.js')).default;
+    const parsed = new GoogleProvider().parseState(state);
+    if (!parsed) return { platform: 'web', audience: 'client' };
+    return parsed;
+  } catch {
+    return { platform: 'web', audience: 'client' };
+  }
+};
+
+const issueSsoToken = (user) => {
+  const ssoToken = crypto.randomBytes(32).toString("hex");
+  ssoTokenStore.set(ssoToken, {
+    userId: user._id.toString(),
+    accessToken: null,
+    role: user.role,
+    isEmployee: user.isEmployee,
+    createdAt: Date.now(),
+  });
+  return ssoToken;
+};
+
 export const googleCallback = async (req, res, next) => {
   try {
     const { code, state } = req.query;
@@ -408,9 +442,10 @@ export const googleCallback = async (req, res, next) => {
       return badRequest(res, "Código o estado faltante");
     }
 
+    const origin = await parseOAuthOrigin(state);
     const oauthService = (await import('../identity/oauth/OAuthService.js')).default;
     const sessionInfo = {
-      platform: req.headers['x-platform'] || 'web',
+      platform: origin.platform,
       userAgent: req.headers['user-agent'],
       ip: req.ip,
     };
@@ -418,57 +453,83 @@ export const googleCallback = async (req, res, next) => {
     const response = await oauthService.handleOAuthCallback('google', code, state, sessionInfo);
 
     if (!response.success) {
-      // Redirigir con error — NO devolver JSON (el browser espera redirect)
       logger.warn(`[Auth] googleCallback falló: ${response.message}`);
-      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=${encodeURIComponent(response.message || 'oauth_error')}`;
-      return res.redirect(errorUrl);
+      return res.redirect(frontendCallback({ error: response.message || 'oauth_error' }));
     }
 
-    // Verificar si el usuario puede hacer login
     const userId = response.user?.id ?? response.user?._id;
     if (!userId) {
       logger.error('[Auth] googleCallback: user sin id en response:', response.user);
-      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=oauth_error`;
-      return res.redirect(errorUrl);
-    }
-    const user = await User.findById(userId);
-    const loginCheck = canLogin(user);
-    
-    if (!loginCheck.canLogin) {
-      const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=${loginCheck.reason}`;
-      return res.redirect(errorUrl);
+      return res.redirect(frontendCallback({ error: 'oauth_error' }));
     }
 
-    // Crear sesión
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.redirect(frontendCallback({ error: 'oauth_error' }));
+    }
+
+    const isClient = user.role === 'client';
+
+    if (origin.platform === 'desktop') {
+      if (isClient) {
+        const session = await refreshTokenService.generateRefreshToken(user._id, {
+          ...sessionInfo,
+          platform: 'web',
+        });
+        logger.info(`[Auth] Google desktop → cuenta cliente, redirigiendo a web: ${user.email}`);
+        return res.redirect(frontendCallback({
+          token: String(response.token || ''),
+          refreshToken: session.refreshToken,
+          destination: '/cliente',
+          canAccess: 'true',
+          identityStatus: 'CLIENT',
+          isEmployee: 'false',
+          role: 'client',
+        }));
+      }
+
+      const loginCheck = canLogin(user);
+      if (!loginCheck.canLogin) {
+        return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }));
+      }
+
+      const ssoToken = issueSsoToken(user);
+      logger.info(`[Auth] Google OAuth desktop: ${user.email} (${user.role}) -> bartender://`);
+      return res.redirect(`bartender://auth?t=${ssoToken}`);
+    }
+
+    const loginCheck = canLogin(user);
+    if (!loginCheck.canLogin) {
+      return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }));
+    }
+
     const session = await refreshTokenService.generateRefreshToken(user._id, sessionInfo);
 
-    // Ejecutar Decision Engine
     const identityDecision = await executeLoginDecision(user, session, {
       accessToken: response.token,
       refreshToken: session.refreshToken,
       expiresIn: response.expiresIn,
     });
 
-    logger.info(`[Auth] Google OAuth exitoso: ${user.email} (${user.role}) -> ${identityDecision.destination}`);
+    const isStaff = user.role !== 'client';
+    const destination = isClient
+      ? '/cliente'
+      : (identityDecision.destination || '/cliente');
 
-    // Redirigir con toda la información de decisión
-    const params = new URLSearchParams({
-      token: response.token,
+    logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) -> ${destination}`);
+
+    return res.redirect(frontendCallback({
+      token: String(response.token || ''),
       refreshToken: session.refreshToken,
-      destination: identityDecision.destination,
-      canAccess: identityDecision.canAccess.toString(),
-      identityStatus: identityDecision.identityStatus,
-      // Pasar isEmployee explícitamente para que el frontend no dependa solo del rol
-      isEmployee: (identityDecision.isEmployee === true).toString(),
-      role: user.role,
-    });
-
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?${params.toString()}`;
-    return res.redirect(redirectUrl);
+      destination,
+      canAccess: String(identityDecision.canAccess !== false),
+      identityStatus: identityDecision.identityStatus || (isClient ? 'CLIENT' : 'EMPLOYEE'),
+      isEmployee: String(isStaff || identityDecision.isEmployee === true || identityDecision.isAdmin === true),
+      role: user.role || 'client',
+    }));
   } catch (error) {
     logger.error("[Auth] Error en googleCallback:", error);
-    const errorUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback?error=oauth_error`;
-    return res.redirect(errorUrl);
+    return res.redirect(frontendCallback({ error: 'oauth_error' }));
   }
 };
 

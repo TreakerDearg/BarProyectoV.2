@@ -55,14 +55,38 @@ export class ProviderStrategy {
    * Genera estado CSRF para OAuth
    * @returns {string} Estado CSRF
    */
-  generateState() {
+  generateState(extra = {}) {
     return Buffer.from(
       JSON.stringify({
         timestamp: Date.now(),
         provider: this.providerName,
         random: Math.random().toString(36).substring(2),
+        platform: extra.platform === 'desktop' ? 'desktop' : 'web',
+        audience: extra.audience || (extra.platform === 'desktop' ? 'staff' : 'client'),
       })
     ).toString('base64');
+  }
+
+  /**
+   * Decodifica el estado OAuth (CSRF + origen del flujo)
+   * @param {string} state - Estado CSRF
+   * @returns {Object|null}
+   */
+  parseState(state) {
+    try {
+      const raw = typeof state === 'string' ? decodeURIComponent(state) : state;
+      const decoded = JSON.parse(Buffer.from(raw, 'base64').toString());
+      const age = Date.now() - decoded.timestamp;
+      if (age >= 10 * 60 * 1000) return null;
+      return {
+        timestamp: decoded.timestamp,
+        provider: decoded.provider,
+        platform: decoded.platform === 'desktop' ? 'desktop' : 'web',
+        audience: decoded.audience === 'staff' ? 'staff' : 'client',
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**
@@ -71,15 +95,6 @@ export class ProviderStrategy {
    * @returns {boolean} Estado válido
    */
   validateState(state) {
-    try {
-      // Decodificar URL-encoding si viene desde req.query con caracteres especiales
-      const decoded = JSON.parse(
-        Buffer.from(decodeURIComponent(state), 'base64').toString()
-      );
-      const age = Date.now() - decoded.timestamp;
-      return age < 10 * 60 * 1000; // 10 minutos
-    } catch {
-      return false;
-    }
+    return this.parseState(state) !== null;
   }
 }

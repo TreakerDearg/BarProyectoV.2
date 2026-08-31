@@ -29,15 +29,33 @@ export const useAuthStore = create<AuthState>((set) => ({
      LOGIN
   ========================= */
   login: async (email, password) => {
-    const response = await loginService({ email, password });
+    const response: any = await loginService({ email, password });
+    const payload = response?.data ?? response;
+    const token = payload?.token ?? response?.token;
+    const refreshToken = payload?.refreshToken ?? response?.refreshToken;
+    const rawUser = payload?.user ?? response?.user;
 
-    // Guardar ambos tokens por separado
-    saveTokens(response.token, response.refreshToken || response.token);
+    if (!token || !rawUser) {
+      throw new Error(response?.message || "No se pudo iniciar sesión");
+    }
+
+    const role = rawUser.role || payload.role;
+    if (role === "client") {
+      throw new Error("Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
+    }
+
+    const user = {
+      ...rawUser,
+      _id: rawUser._id ?? rawUser.id,
+      role,
+    };
+
+    saveTokens(token, refreshToken || token);
 
     set({
-      user: response.user,
-      token: response.token,
-      refreshToken: response.refreshToken || response.token,
+      user,
+      token,
+      refreshToken: refreshToken || token,
       isAuthenticated: true,
     });
   },

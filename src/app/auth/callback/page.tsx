@@ -45,7 +45,9 @@ export default function AuthCallbackPage() {
     // Error devuelto por el backend
     if (errorParam || (!params.get("token"))) {
       setErrorMsg(
-        errorParam === "oauth_error"
+        errorParam === "desktop_client"
+          ? "Esta cuenta es de cliente. Google creó o usó tu cuenta en la web del bar, no en Nebula."
+          : errorParam === "oauth_error"
           ? "Error al autenticar con Google. Intentá de nuevo."
           : "La sesión de autenticación expiró o fue inválida."
       );
