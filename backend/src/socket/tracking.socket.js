@@ -12,10 +12,10 @@ export const setupTrackingEvents = (io) => {
   trackingNamespace.use((socket, next) => {
     const token = socket.handshake.auth.token;
     
-    // Aquí puedes validar el token JWT si es necesario
-    // Por ahora, permitimos la conexión para desarrollo
+    // Permitir conexiones sin token para desarrollo y clientes públicos
+    // En producción, validar el token JWT aquí
     if (!token) {
-      logger.info("[Tracking Socket] Conexión sin token de autenticación (modo desarrollo)");
+      logger.info("[Tracking Socket] Conexión sin token de autenticación (permitido para desarrollo)");
     }
     
     next();

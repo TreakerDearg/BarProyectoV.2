@@ -133,7 +133,7 @@ api.interceptors.response.use(
     // o simplemente devolvemos response.data para tener todo (es mejor para tener el message)
     return response.data;
   },
-  async (error) => {
+  async  (error) => {
     const status = error?.response?.status;
     const backendData = error?.response?.data;
     const originalRequest = error.config;
@@ -204,6 +204,11 @@ api.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // For 403 errors, log but don't automatically logout
+    if (status === 403) {
+      console.warn('[API] Access forbidden - user may not have required permissions');
     }
 
     // Normalizar el error para el frontend usando el response estándar del backend

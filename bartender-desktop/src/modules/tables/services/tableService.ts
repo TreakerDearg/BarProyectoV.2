@@ -156,7 +156,7 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
       }
     }
 
-    console.error("[Payment Service Error]:", {
+    console.error("[Table Service Error]:", {
       message: msg,
       statusCode,
       errorCode,

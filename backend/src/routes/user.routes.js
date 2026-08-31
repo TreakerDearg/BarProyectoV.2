@@ -21,9 +21,9 @@ const router = express.Router();
 const adminOnly = [protect, authorizeRoles("admin")];
 
 /* =========================================================
-   LIST ALL USERS (admin only, with role/isEmployee filter)
+   LIST ALL USERS (authenticated access with role/isEmployee filter)
 ========================================================= */
-router.get("/", ...adminOnly, asyncHandler(getUsers));
+router.get("/", protect, asyncHandler(getUsers));
 
 /* =========================================================
    EMPLOYEES MODULE

@@ -13,17 +13,16 @@ const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
 /* =========================================================
-   READ ROUTES
+   READ ROUTES (PUBLIC ACCESS FOR VIEWING)
 ========================================================= */
 router.get("/", asyncHandler(getTables));
 router.get("/:id", asyncHandler(getTableById));
 
 /* =========================================================
-   POS FLOW (abrir/cerrar mesa)
+   POS FLOW (abrir/cerrar mesa) - AUTHENTICATED ACCESS
 ========================================================= */
-// En el futuro, protect y validar roles de POS
-router.post("/:id/open", asyncHandler(openTable));
-router.post("/:id/close", asyncHandler(closeTable));
+router.post("/:id/open", protect, asyncHandler(openTable));
+router.post("/:id/close", protect, asyncHandler(closeTable));
 
 /* =========================================================
    CRUD TABLES (ADMIN ONLY)

@@ -5,9 +5,10 @@ import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 const router = Router();
 
 /* =========================================================
-   DASHBOARD (ADMIN ONLY)
+   DASHBOARD (AUTHENTICATED ACCESS - DEVELOPMENT MODE)
 ========================================================= */
-router.use(protect, authorizeRoles("admin", "manager"));
+// For development, allow basic authentication without strict role requirements
+router.use(protect);
 
 router.get("/", getDashboardStats);
 

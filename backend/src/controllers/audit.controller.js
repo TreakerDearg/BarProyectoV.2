@@ -215,7 +215,6 @@ function mapActivityTypeToEntity(activityType) {
   };
   return map[activityType] || 'System';
 }
-};
 
 /**
  * Clear audit logs (admin only)

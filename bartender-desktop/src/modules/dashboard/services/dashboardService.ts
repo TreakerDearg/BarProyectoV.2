@@ -330,3 +330,30 @@ export async function fetchDashboard(
     throw parseAxiosError(error);
   }
 }
+
+/* =========================================================
+   LEGACY FUNCTIONS (For compatibility with old code)
+========================================================= */
+
+export async function getTodayStats(): Promise<DashboardStats> {
+  try {
+    return await fetchDashboard(undefined, "all", "1");
+  } catch (error: any) {
+    console.error("[getTodayStats] Error:", error);
+    throw new Error("Ocurrió un error inesperado");
+  }
+}
+
+export async function getDailyLimitRemaining(): Promise<{ limit: number; remaining: number }> {
+  try {
+    // This function appears to be obsolete - returning default values
+    // In the future, this could be connected to actual daily limits
+    return {
+      limit: 100000, // Default daily limit
+      remaining: 100000, // Full remaining
+    };
+  } catch (error: any) {
+    console.error("[getDailyLimitRemaining] Error:", error);
+    throw new Error("Ocurrió un error inesperado");
+  }
+}

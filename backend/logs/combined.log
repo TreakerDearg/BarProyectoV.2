@@ -28350,3 +28350,16 @@
 {"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-17 15:10:40"}
 {"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-17 15:10:41"}
 {"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-17 15:10:41"}
+{"level":"info","message":"[Cloudinary] Configuración cargada correctamente","timestamp":"2026-08-31 15:08:30"}
+{"level":"info","message":"[Cache] Redis not configured, using in-memory cache","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"[Socket] Inicializando namespaces de WebSocket...","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"[Socket] ✅ Namespace /tracking inicializado","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"🚀 Bartender API corriendo en http://localhost:5000","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"🌍 NODE_ENV: development","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"🔧 Middleware preset: development","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"📊 Métricas habilitadas: /metrics","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"❤️ Health check: /health","timestamp":"2026-08-31 15:10:59"}
+{"level":"info","message":"[DB] Estado → connected","timestamp":"2026-08-31 15:11:05"}
+{"level":"info","message":"🟢 MongoDB conectado correctamente","timestamp":"2026-08-31 15:11:05"}
+{"ip":"::1","level":"info","message":"[Request] Incoming","method":"GET","path":"/health","requestId":"59d303bf-1e3a-4ef2-9961-0611a9334085","timestamp":"2026-08-31 15:12:09","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-AR) WindowsPowerShell/5.1.19041.5486"}
+{"level":"info","message":"[200] GET /health 242.93ms","request":{"accept":"application/json","id":"59d303bf-1e3a-4ef2-9961-0611a9334085","ip":"::1","method":"GET","params":{},"path":"/health","query":{},"url":"/health","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; es-AR) WindowsPowerShell/5.1.19041.5486"},"response":{"duration":"242.93ms","durationMs":242.9349,"status":200},"timestamp":"2026-08-31 15:12:10"}
