@@ -123,7 +123,25 @@ export async function getTables() {
 export async function openTableSession(tableId: string) {
   try {
     const res = await api.post(`/tables/${tableId}/open`);
-    return extractData<{ sessionId: string; table: TableRow }>(res);
+    return extractData<{ sessionId: string; tableCode?: string | null; table: TableRow }>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+/**
+ * Busca una mesa por su código de 3 dígitos.
+ * Devuelve tableId, sessionId y tableNumber.
+ */
+export async function getTableByCode(code: string) {
+  try {
+    const res = await api.get(`/tables/code/${code}`);
+    return extractData<{
+      tableId:     string;
+      tableNumber: number;
+      sessionId:   string;
+      tableCode:   string;
+    }>(res);
   } catch (e) {
     throw new Error(errMessage(e));
   }

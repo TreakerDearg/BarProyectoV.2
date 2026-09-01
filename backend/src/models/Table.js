@@ -175,6 +175,17 @@ const tableSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    /* =========================
+       TABLE CODE — PIN numérico de 3 dígitos
+       Generado al abrir la mesa, para que el cliente lo ingrese
+       y se asocie sin QR ni login obligatorio.
+    ========================= */
+    tableCode: {
+      type: String,
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -237,10 +248,11 @@ tableSchema.methods.release = function () {
   this.isLocked = false;
   this.openedAt = null;
   this.closedAt = new Date();
+  this.tableCode = null;   // limpiar código al liberar
 };
 
 /**
- * Inicia sesión POS
+ * Inicia sesión POS — genera tableCode de 3 dígitos
  */
 tableSchema.methods.startSession = function (sessionId) {
   this.status = "occupied";
@@ -248,6 +260,8 @@ tableSchema.methods.startSession = function (sessionId) {
   this.isLocked = true;
   this.openedAt = new Date();
   this.closedAt = null;
+  // Generar código numérico de 3 dígitos (100–999)
+  this.tableCode = String(Math.floor(100 + Math.random() * 900));
 };
 
 /**

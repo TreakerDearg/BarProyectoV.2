@@ -63,7 +63,29 @@
   }
 }
 
-/* Drawer — reemplaza .drawerOpen */
+/* ──────────────────────────────────────────────────────
+   MODAL CENTRADO (reemplaza el drawer lateral)
+────────────────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 480px);
+  max-height: 88vh;
+  z-index: 201;
+  background: var(--surface);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(212, 163, 64, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Drawer legacy (mantenido por compatibilidad) */
 .drawer {
   position: fixed;
   top: 0;
@@ -78,6 +100,156 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* ──────────────────────────────────────────────────────
+   CONFIRM MODAL
+────────────────────────────────────────────────────── */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.confirmBox {
+  width: min(90vw, 380px);
+  background: var(--surface-2);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-xl);
+  padding: 2rem 1.75rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.875rem;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(212, 163, 64, 0.1);
+}
+
+.confirmIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  box-shadow: 0 0 24px rgba(212, 163, 64, 0.2);
+}
+
+.confirmTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.confirmSub {
+  font-size: 0.9375rem;
+  color: var(--text-dim);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.confirmSummary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+}
+
+.confirmSummaryLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.confirmSummaryValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.confirmNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.confirmCancel {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.confirmCancel:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.confirmOk {
+  flex: 1.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: var(--shadow-gold);
+}
+
+.confirmOk:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold), var(--gold-glow);
+}
+
+.confirmOk:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Precio en cada ítem */
+.itemPrice {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 /* Pricing */

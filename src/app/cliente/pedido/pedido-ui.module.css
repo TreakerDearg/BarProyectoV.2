@@ -1,44 +1,634 @@
 .container {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 1rem 3rem;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
-  /* El ClienteShell ya aplica padding-bottom global,
-     pero añadimos extra para garantizar que el último elemento
-     no quede tapado por el dock en cualquier viewport */
-  padding-bottom: 2rem;
+  gap: 1.5rem;
 }
 
 @media (min-width: 640px) {
-  .container {
-    padding: 1.5rem;
-  }
+  .container { padding: 1.5rem 1.5rem 3rem; }
 }
 
-/* HEADER */
-.header {
-  text-align: center;
+/* ── TOAST ───────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+  animation: slideDown 0.25s ease;
 }
 
-.headerWithCart {
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-12px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+}
+
+.toastOk   { background: rgba(52,185,100,0.15); border-color: var(--green-border); color: var(--green-light);  }
+.toastErr  { background: rgba(200,50,40,0.15);  border-color: var(--red-border);   color: var(--red-light);    }
+.toastInfo { background: rgba(212,163,64,0.15); border-color: var(--gold-border);  color: var(--gold-light);   }
+
+/* ── ESTADO PEDIDO EN CURSO ─────────────────────────────────── */
+.orderStatusCard {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--gold-border);
+  background: linear-gradient(135deg,
+    rgba(212,163,64,0.1) 0%,
+    rgba(212,163,64,0.04) 100%);
+  overflow: hidden;
+}
+
+.orderStatusCardPrep {
+  border-color: var(--orange-border);
+  background: linear-gradient(135deg,
+    rgba(224,120,40,0.12) 0%,
+    rgba(224,120,40,0.04) 100%);
+}
+
+.orderStatusCardDone {
+  border-color: var(--green-border);
+  background: linear-gradient(135deg,
+    rgba(52,185,100,0.12) 0%,
+    rgba(52,185,100,0.04) 100%);
+}
+
+.orderProgressTrack {
+  height: 5px;
+  background: rgba(255,255,255,0.07);
+}
+
+.orderProgressFill {
+  height: 100%;
+  transition: width 0.6s ease;
+}
+
+.progressPending { width: 25%;  background: var(--gold);   }
+.progressPrep    { width: 65%;  background: var(--orange);  }
+.progressDone    { width: 100%; background: var(--green);   }
+
+.orderStatusBody {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.orderStatusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(212,163,64,0.15);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+}
+
+.iconAnimPrep {
+  background: rgba(224,120,40,0.15);
+  border-color: var(--orange-border);
+  color: var(--orange-light);
+  animation: spinSlow 2s linear infinite;
+}
+
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+
+.iconAnimDone {
+  background: rgba(52,185,100,0.15);
+  border-color: var(--green-border);
+  color: var(--green-light);
+}
+
+.orderStatusText { display: flex; flex-direction: column; gap: 2px; }
+
+.orderStatusTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.orderStatusSub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  font-family: monospace;
+}
+
+.orderSteps {
+  display: flex;
+  gap: 16px;
+}
+
+.orderStep {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.35;
+}
+
+.orderStepActive { opacity: 1; }
+.orderStepDone   { opacity: 0.6; }
+
+.orderStepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.orderStepActive .orderStepDot { background: var(--gold); }
+.orderStepDone   .orderStepDot { background: var(--green); }
+
+.orderStepLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.orderStepActive .orderStepLabel { color: var(--text); }
+
+.orderNewBtn {
+  margin: 0 1.5rem 1.25rem;
+  padding: 0.75rem;
+  width: calc(100% - 3rem);
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.18s ease;
+}
+
+.orderNewBtn:hover { filter: brightness(1.08); }
+
+/* ── CARD ─────────────────────────────────────────────────────── */
+.card {
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.cardInner { padding: 1.25rem 1.5rem; }
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── PASO TABS ───────────────────────────────────────────────── */
+.stepTabRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-.title {
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
+.stepTabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-3);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.stepTab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: calc(var(--radius-md) - 2px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stepTab:hover { color: var(--text); }
+
+.stepTabActive {
+  background: var(--surface);
+  color: var(--gold-light);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ── CÓDIGO ──────────────────────────────────────────────────── */
+.codeInputRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.codeInput {
+  flex: 1;
+  max-width: 120px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: monospace;
+  letter-spacing: 0.2em;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  padding: 0.75rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.codeInput:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,163,64,0.12); }
+
+/* ── INPUTS / SELECTS ────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input:focus { border-color: var(--gold); }
+
+/* ── BOTONES ─────────────────────────────────────────────────── */
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.18s ease;
+  white-space: nowrap;
+}
+
+.btnPrimary:hover:not(:disabled) { filter: brightness(1.08); }
+.btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnSend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 1rem;
+  border-radius: var(--radius-full);
+  background: var(--grad-gold);
+  border: 1px solid var(--gold-border);
+  color: var(--bg-deep);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-gold);
+  transition: all 0.18s ease;
+  margin-top: 0.75rem;
+}
+
+.btnSend:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold), var(--gold-glow);
+}
+
+.btnSend:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btnAddProduct {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: var(--gold-soft);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnAddProduct:hover:not(:disabled) { background: var(--gold); color: var(--bg-deep); }
+.btnAddProduct:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── PRODUCTOS ───────────────────────────────────────────────── */
+.productsLoading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2rem;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+.productsGrid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 480px) {
+  .productsGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .productsGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.productCard {
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.18s ease;
+}
+
+.productCard:hover { border-color: var(--gold-border); }
+
+.productImageWrap {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--surface-4);
+}
+
+.productImage { width: 100%; height: 100%; object-fit: cover; }
+
+.productBody {
+  padding: 0.75rem 1rem 0.5rem;
+}
+
+.productName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.productPrice {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin: 0;
+}
+
+.productActions {
+  padding: 0 1rem 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-full);
+  padding: 2px 6px;
+}
+
+.qtyBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease;
+}
+
+.qtyBtn:hover { background: var(--gold-soft); }
+
+.qtyVal {
+  min-width: 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text);
 }
 
-.subtitle {
-  color: var(--text-dim);
-  font-size: 0.9rem;
+/* ── CARRITO RESUMEN ─────────────────────────────────────────── */
+.cartHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
 }
+
+.cartIcon { color: var(--gold); }
+
+.cartBadge {
+  margin-left: auto;
+  background: var(--gold);
+  color: var(--bg-deep);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease;
+}
+
+.cartItem:hover { border-color: var(--gold-border); }
+
+.cartInfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.cartName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cartItemPrice {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cartControls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.cartQtyBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.cartQtyBtn:hover { border-color: var(--gold-border); color: var(--gold); }
+
+.qtyInput {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.removeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.removeBtn:hover { background: var(--red-border); }
+
+.cartTotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 0 0;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.cartTotalLabel {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.cartTotalValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+/* ── SESIÓN BADGE ────────────────────────────────────────────── */
+.sessionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0.75rem;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  border: 1px solid var(--green-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--green-light);
+}
+
+.sessionDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulseG 1.8s ease infinite;
+}
+
+@keyframes pulseG {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52,185,100,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(52,185,100,0); }
+}
+
+/* ── SKIP ────────────────────────────────────────────────────── */
+.skipText {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  padding: 1rem;
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: var(--radius-lg);
+  line-height: 1.55;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────── */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.emptyIcon { color: var(--text-muted); opacity: 0.45; }
+
+.empty {
+  font-size: 0.9375rem;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* ── HEADER legacy ───────────────────────────────────────────── */
+.header { text-align: center; }
+.title  { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; color: var(--text); }
+.subtitle { color: var(--text-dim); font-size: 0.9rem; }
 
 /* CARD */
 .card {

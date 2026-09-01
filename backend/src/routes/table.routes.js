@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   getTables, getTableById, createTable, updateTable, deleteTable,
   openTable, closeTable, addTableTag, removeTableTag, clearTableTags,
-  getTableAnalytics, getTableAnalyticsById, generateTableAnalytics, getTablePerformanceRanking
+  getTableAnalytics, getTableAnalyticsById, generateTableAnalytics, getTablePerformanceRanking,
+  getTableByCode,
 } from "../controllers/table.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createTableSchema } from "../utils/schemas.js";
@@ -16,11 +17,17 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
    READ ROUTES (PUBLIC ACCESS FOR VIEWING)
 ========================================================= */
 router.get("/", asyncHandler(getTables));
-router.get("/:id", asyncHandler(getTableById));
+
+/* =========================================================
+   CODE LOOKUP — Cliente valida código de 3 dígitos
+   GET /tables/code/:code  (ruta estática antes de /:id)
+========================================================= */
+router.get("/code/:code", asyncHandler(getTableByCode));
 
 /* =========================================================
    POS FLOW (abrir/cerrar mesa) - AUTHENTICATED ACCESS
 ========================================================= */
+router.get("/:id", asyncHandler(getTableById));
 router.post("/:id/open", protect, asyncHandler(openTable));
 router.post("/:id/close", protect, asyncHandler(closeTable));
 

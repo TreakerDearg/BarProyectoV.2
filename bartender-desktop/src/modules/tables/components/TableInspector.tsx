@@ -25,6 +25,37 @@ import {
 import TableForm from "./TableForm";
 import type { Table } from "../types/table";
 
+// ── Componente de código numérico ──────────────────────────────────
+function TableCodeBadge({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-gold/10 border border-gold/30 text-center relative overflow-hidden">
+      {/* Glow decorativo */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent pointer-events-none" />
+      <p className="text-[9px] font-black text-gold/60 uppercase tracking-[0.3em]">Código de mesa</p>
+      <p className="text-5xl font-black text-grad-gold tracking-[0.2em] leading-none">{code}</p>
+      <p className="text-[8px] text-muted/60 leading-relaxed">
+        El cliente ingresa este código en su dispositivo
+      </p>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="mt-1 py-1.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-gold/20 text-gold hover:bg-gold/10 active:scale-95"
+      >
+        {copied ? "✓ Copiado" : "Copiar código"}
+      </button>
+    </div>
+  );
+}
+
 interface Props {
   table: Table | null;
   tables: Table[];
@@ -171,6 +202,13 @@ export default function TableInspector({
             </div>
           </div>
         </section>
+
+        {/* CÓDIGO DE MESA — visible solo cuando está ocupada */}
+        {table.status === "occupied" && table.tableCode && (
+          <section>
+            <TableCodeBadge code={table.tableCode} />
+          </section>
+        )}
 
         {/* NOTES & TAGS */}
         <section>

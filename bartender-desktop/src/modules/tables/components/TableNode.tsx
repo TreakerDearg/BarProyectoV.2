@@ -549,6 +549,13 @@ export default function TableNode({
               </div>
             </div>
           )}
+          {/* Código de mesa (grid view) */}
+          {table.status === "occupied" && table.tableCode && viewType === "grid" && (
+            <div className="mt-1 flex items-center justify-center gap-1 bg-gold/10 border border-gold/25 rounded-lg px-2 py-0.5 relative z-10">
+              <span className="text-[7px] font-black text-gold/60 uppercase tracking-widest">Cód</span>
+              <span className="text-[10px] font-black text-gold tracking-widest font-mono">{table.tableCode}</span>
+            </div>
+          )}
         </>
       )}
 

@@ -117,7 +117,7 @@ export async function startServiceSession(
     `[TableSession] Sesión ${sessionId} en mesa #${table.number}${reservationId ? ` (reserva ${reservationId})` : ""}`
   );
 
-  return { table: lean, sessionId, alreadyActive: false };
+  return { table: lean, sessionId, tableCode: lean?.tableCode || null, alreadyActive: false };
 }
 
 /**

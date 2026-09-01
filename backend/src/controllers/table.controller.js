@@ -40,6 +40,36 @@ const releaseExpiredAndEmit = async () => {
 };
 
 /* =========================================================
+   VALIDATE TABLE CODE — Cliente ingresa código de 3 dígitos
+   GET /tables/code/:code
+========================================================= */
+export const getTableByCode = async (req, res, next) => {
+  try {
+    const { code } = req.params;
+    if (!code || !/^\d{3}$/.test(code)) {
+      return badRequest(res, "Código inválido. Debe ser de 3 dígitos.");
+    }
+
+    const table = await Table.findOne({
+      tableCode: code,
+      status: "occupied",
+    }).lean();
+
+    if (!table) {
+      return notFound(res, "Código incorrecto o la mesa ya fue cerrada.");
+    }
+
+    // Devolver solo la info mínima necesaria para el cliente
+    return ok(res, {
+      tableId:   table._id,
+      tableNumber: table.number,
+      sessionId: table.currentSessionId,
+      tableCode: table.tableCode,
+    });
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
    GET ALL TABLES (con órdenes activas adjuntas y cálculos de totales)
 ========================================================= */
 export const getTables = async (req, res, next) => {

@@ -81,4 +81,7 @@ export interface Table {
 
   /* MAINTENANCE */
   maintenanceUntil?: string | null;
+
+  /* TABLE CODE — PIN de 3 dígitos generado al abrir */
+  tableCode?: string | null;
 }
