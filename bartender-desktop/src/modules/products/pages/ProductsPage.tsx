@@ -433,6 +433,7 @@ export default function ProductsPage() {
           product={selectedProduct}
           onSave={handleSave}
           onClose={() => { setPageView("list"); setSelectedProduct(null); }}
+          categoryNames={derivedCategories.map((c) => c.name)}
         />
       )}
 

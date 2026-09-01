@@ -6,6 +6,8 @@ export interface InventoryItem {
   ========================= */
   name: string;
   description?: string;
+  image?: string;
+  imagePublicId?: string;
 
   /* =========================
      STOCK

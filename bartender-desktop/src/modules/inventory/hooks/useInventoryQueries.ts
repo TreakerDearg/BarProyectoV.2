@@ -1,167 +1,117 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
-import api from '../../../services/api';
-import { getInventory } from '../services/inventoryService';
+import {
+  getInventory, getInventoryStats, getInventoryCategories,
+  getInventoryMovements, adjustStock as adjustStockFn,
+  createInventoryItem, updateInventoryItem, deleteInventoryItem,
+  type InventoryStats, type InventoryMovement,
+} from '../services/inventoryService';
 import type { InventoryItem } from '../types/inventory';
 
-/* =========================================================
-   QUERY KEYS
-========================================================= */
+// ── Query keys ────────────────────────────────────────────────────
+
 export const inventoryKeys = {
-  all: ['inventory'] as const,
-  lists: () => [...inventoryKeys.all, 'list'] as const,
-  list: (filters?: string) => [...inventoryKeys.lists(), filters] as const,
-  details: () => [...inventoryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...inventoryKeys.details(), id] as const,
-  categories: () => [...inventoryKeys.all, 'categories'] as const,
-  stats: () => [...inventoryKeys.all, 'stats'] as const,
-  withProducts: () => [...inventoryKeys.all, 'with-products'] as const,
+  all:          ['inventory'] as const,
+  lists:        ()           => [...inventoryKeys.all, 'list']          as const,
+  list:         (f?: string) => [...inventoryKeys.lists(), f]           as const,
+  details:      ()           => [...inventoryKeys.all, 'detail']        as const,
+  detail:       (id: string) => [...inventoryKeys.details(), id]        as const,
+  movements:    (id: string) => [...inventoryKeys.all, 'movements', id] as const,
+  categories:   ()           => [...inventoryKeys.all, 'categories']    as const,
+  stats:        ()           => [...inventoryKeys.all, 'stats']         as const,
+  withProducts: ()           => [...inventoryKeys.all, 'with-products'] as const,
 };
 
-/* =========================================================
-   GET ALL INVENTORY
-========================================================= */
-export const useInventory = () => {
-  return useQuery({
-    queryKey: ['inventory'],
-    queryFn: async () => {
-      const data = await getInventory();
-      return data;
-    },
+// ── Queries ───────────────────────────────────────────────────────
+
+export const useInventory = (params?: Parameters<typeof getInventory>[0]) =>
+  useQuery({
+    queryKey: inventoryKeys.list(JSON.stringify(params ?? {})),
+    queryFn:  () => getInventory(params),
   });
-};
 
-/* =========================================================
-   GET ONE INVENTORY ITEM
-========================================================= */
-export function useInventoryItem(id: string, options?: UseQueryOptions<InventoryItem>) {
+export function useInventoryStats(options?: UseQueryOptions<InventoryStats>) {
   return useQuery({
-    queryKey: inventoryKeys.detail(id),
-    queryFn: async () => {
-      const { data } = await api.get(`/inventory/${id}`);
-      return data;
-    },
-    enabled: !!id,
+    queryKey: inventoryKeys.stats(),
+    queryFn:  () => getInventoryStats(),
     ...options,
   });
 }
 
-/* =========================================================
-   GET INVENTORY CATEGORIES
-========================================================= */
 export function useInventoryCategories(options?: UseQueryOptions<string[]>) {
   return useQuery({
     queryKey: inventoryKeys.categories(),
-    queryFn: async () => {
-      const { data } = await api.get('/inventory/categories');
-      return data || [];
-    },
+    queryFn:  () => getInventoryCategories(),
     ...options,
   });
 }
 
-/* =========================================================
-   GET INVENTORY STATS
-========================================================= */
-export function useInventoryStats(options?: UseQueryOptions<any>) {
+export function useInventoryMovements(id: string, options?: UseQueryOptions<InventoryMovement[]>) {
   return useQuery({
-    queryKey: inventoryKeys.stats(),
-    queryFn: async () => {
-      const { data } = await api.get('/inventory/stats');
-      return data;
-    },
+    queryKey: inventoryKeys.movements(id),
+    queryFn:  () => getInventoryMovements(id),
+    enabled:  !!id,
     ...options,
   });
 }
 
-/* =========================================================
-   GET INVENTORY WITH PRODUCTS
-========================================================= */
-export function useInventoryWithProducts(options?: UseQueryOptions<any[]>) {
-  return useQuery({
-    queryKey: inventoryKeys.withProducts(),
-    queryFn: async () => {
-      const { data } = await api.get('/inventory/with-products');
-      return data;
-    },
-    ...options,
-  });
-}
+// ── Mutations ─────────────────────────────────────────────────────
 
-/* =========================================================
-   CREATE INVENTORY ITEM
-========================================================= */
 export function useCreateInventoryItem() {
-  const queryClient = useQueryClient();
-
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (item: InventoryItem) => {
-      await api.post('/inventory', item);
-    },
+    mutationFn: ({ item, imageFile }: { item: InventoryItem; imageFile?: File | null }) =>
+      createInventoryItem(item, imageFile),
     onSuccess: () => {
-      // Invalidar queries de inventario
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.stats() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.categories() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.stats() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.categories() });
     },
   });
 }
 
-/* =========================================================
-   UPDATE INVENTORY ITEM
-========================================================= */
 export function useUpdateInventoryItem() {
-  const queryClient = useQueryClient();
-
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, item }: { id: string; item: InventoryItem }) => {
-      await api.patch(`/inventory/${id}`, item);
-    },
-    onSuccess: (_, variables) => {
-      // Invalidar queries específicas
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.stats() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.categories() });
+    mutationFn: ({ id, item, imageFile }: { id: string; item: InventoryItem; imageFile?: File | null }) =>
+      updateInventoryItem(id, item, imageFile),
+    onSuccess: (_, v) => {
+      qc.invalidateQueries({ queryKey: inventoryKeys.detail(v.id) });
+      qc.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.stats() });
     },
   });
 }
 
-/* =========================================================
-   DELETE INVENTORY ITEM
-========================================================= */
 export function useDeleteInventoryItem() {
-  const queryClient = useQueryClient();
-
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/inventory/${id}`);
-    },
+    mutationFn: (id: string) => deleteInventoryItem(id),
     onSuccess: () => {
-      // Invalidar queries de inventario
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.stats() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.categories() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.stats() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.categories() });
     },
   });
 }
 
-/* =========================================================
-   ADJUST STOCK
-========================================================= */
+/**
+ * Ajuste de stock — alineado con el backend:
+ * body: { amount: number, type: "add"|"subtract", reason: string }
+ */
 export function useAdjustStock() {
-  const queryClient = useQueryClient();
-
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, quantity, reason }: { id: string; quantity: number; reason: string }) => {
-      await api.patch(`/inventory/${id}/stock`, { quantity, reason });
-    },
-    onSuccess: (_, variables) => {
-      // Invalidar queries específicas
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: inventoryKeys.stats() });
-      // También invalidar recetas que dependen de este inventario
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    mutationFn: ({
+      id, amount, type, reason,
+    }: {
+      id: string; amount: number; type: "add" | "subtract"; reason?: string;
+    }) => adjustStockFn(id, amount, type, reason ?? ""),
+    onSuccess: (_, v) => {
+      qc.invalidateQueries({ queryKey: inventoryKeys.detail(v.id) });
+      qc.invalidateQueries({ queryKey: inventoryKeys.movements(v.id) });
+      qc.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: inventoryKeys.stats() });
+      qc.invalidateQueries({ queryKey: ['recipes'] });
     },
   });
 }

@@ -1,109 +1,85 @@
 import { create } from "zustand";
 import type { InventoryItem } from "../types/inventory";
 
-export type InventoryMode = "simple" | "advanced";
+/**
+ * Tres niveles de información:
+ *   basic    — compacto: nombre, stock, estado, ajuste rápido ±1
+ *   standard — estándar: + imagen, proveedor, costo, barra de stock, ajuste con cantidad + motivo
+ *   advanced — completo: fila horizontal, + valor total, recetas vinculadas, forecasting, todas las acciones
+ */
+export type InventoryMode = "basic" | "standard" | "advanced";
 export type InventoryView = "grid" | "list";
 export type InventoryPageView = "list" | "form";
 
-const MODE_KEY = "nebula_inventory_mode";
+const MODE_KEY = "nebula_inventory_mode_v2";
 const VIEW_KEY = "nebula_inventory_view";
 
 interface InventoryUiState {
-  mode: InventoryMode;
-  view: InventoryView;
-  pageView: InventoryPageView;
+  mode:         InventoryMode;
+  view:         InventoryView;
+  pageView:     InventoryPageView;
   selectedItem: InventoryItem | null;
   isDrawerOpen: boolean;
-  setMode: (mode: InventoryMode) => void;
-  toggleMode: () => void;
-  setView: (view: InventoryView) => void;
-  toggleView: () => void;
-  setPageView: (view: InventoryPageView) => void;
+
+  setMode:         (mode: InventoryMode) => void;
+  setView:         (view: InventoryView) => void;
+  toggleView:      () => void;
+  setPageView:     (view: InventoryPageView) => void;
   setSelectedItem: (item: InventoryItem | null) => void;
-  toggleDrawer: () => void;
-  openDrawer: (item: InventoryItem) => void;
-  closeDrawer: () => void;
+  toggleDrawer:    () => void;
+  openDrawer:      (item: InventoryItem) => void;
+  closeDrawer:     () => void;
 }
 
 function readStoredMode(): InventoryMode {
   try {
-    const stored = localStorage.getItem(MODE_KEY);
-    if (stored === "advanced" || stored === "simple") return stored;
-  } catch {
-    /* ignore */
-  }
-  return "simple";
+    const v = localStorage.getItem(MODE_KEY);
+    if (v === "basic" || v === "standard" || v === "advanced") return v;
+  } catch { /* ignore */ }
+  return "standard";
 }
 
 function readStoredView(): InventoryView {
   try {
-    const stored = localStorage.getItem(VIEW_KEY);
-    if (stored === "grid" || stored === "list") return stored;
-  } catch {
-    /* ignore */
-  }
+    const v = localStorage.getItem(VIEW_KEY);
+    if (v === "grid" || v === "list") return v;
+  } catch { /* ignore */ }
   return "grid";
 }
 
 export const useInventoryUiStore = create<InventoryUiState>((set) => ({
-  mode: readStoredMode(),
-  view: readStoredView(),
-  pageView: "list",
+  mode:         readStoredMode(),
+  view:         readStoredView(),
+  pageView:     "list",
   selectedItem: null,
   isDrawerOpen: false,
 
   setMode: (mode) => {
-    try {
-      localStorage.setItem(MODE_KEY, mode);
-    } catch {
-      /* ignore */
-    }
+    try { localStorage.setItem(MODE_KEY, mode); } catch { /**/ }
     set({ mode });
   },
 
-  toggleMode: () =>
-    set((state) => {
-      const next: InventoryMode =
-        state.mode === "simple" ? "advanced" : "simple";
-      try {
-        localStorage.setItem(MODE_KEY, next);
-      } catch {
-        /* ignore */
-      }
-      return { mode: next };
-    }),
-
   setView: (view) => {
-    try {
-      localStorage.setItem(VIEW_KEY, view);
-    } catch {
-      /* ignore */
-    }
+    try { localStorage.setItem(VIEW_KEY, view); } catch { /**/ }
     set({ view });
   },
 
   toggleView: () =>
-    set((state) => {
-      const next: InventoryView = state.view === "grid" ? "list" : "grid";
-      try {
-        localStorage.setItem(VIEW_KEY, next);
-      } catch {
-        /* ignore */
-      }
+    set((s) => {
+      const next: InventoryView = s.view === "grid" ? "list" : "grid";
+      try { localStorage.setItem(VIEW_KEY, next); } catch { /**/ }
       return { view: next };
     }),
 
-  setPageView: (pageView) => set({ pageView }),
-
-  setSelectedItem: (selectedItem) => set({ selectedItem }),
+  setPageView:     (pageView)  => set({ pageView }),
+  setSelectedItem: (item)      => set({ selectedItem: item }),
 
   toggleDrawer: () =>
-    set((state) => ({
-      isDrawerOpen: !state.isDrawerOpen,
-      selectedItem: state.isDrawerOpen ? null : state.selectedItem,
+    set((s) => ({
+      isDrawerOpen: !s.isDrawerOpen,
+      selectedItem: s.isDrawerOpen ? null : s.selectedItem,
     })),
 
-  openDrawer: (item) => set({ selectedItem: item, isDrawerOpen: true }),
-
-  closeDrawer: () => set({ isDrawerOpen: false, selectedItem: null }),
+  openDrawer:  (item) => set({ selectedItem: item, isDrawerOpen: true }),
+  closeDrawer: ()     => set({ isDrawerOpen: false, selectedItem: null }),
 }));

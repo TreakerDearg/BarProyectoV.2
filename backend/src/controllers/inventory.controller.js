@@ -347,3 +347,29 @@ export const getInventoryWithProducts = async (req, res, next) => {
     return ok(res, itemsWithProducts);
   } catch (error) { throw error; }
 };
+
+/* =========================================================
+   GET MOVEMENTS — expone el historial de un ítem
+   Los movimientos tienen `select: false` en el modelo,
+   por lo que debemos hacer select explícito.
+========================================================= */
+export const getInventoryMovements = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!isValidId(id)) return badRequest(res, "ID inválido");
+
+    const item = await InventoryItem.findById(id)
+      .select("name movements")
+      .lean();
+
+    if (!item) return notFound(res, "Item no encontrado");
+
+    // Ordenar movimientos del más reciente al más antiguo
+    const movements = (item.movements || [])
+      .slice()
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 200); // Limitar a los últimos 200
+
+    return ok(res, { name: item.name, movements });
+  } catch (error) { throw error; }
+};
