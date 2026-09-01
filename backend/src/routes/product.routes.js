@@ -3,7 +3,7 @@ import {
   getProducts, getProduct, createProduct, updateProduct, deleteProduct,
   syncProductAvailability, getProductStats, toggleProductAvailability,
   getProductsWithRecipes, getProductsWithInventory, getBeverageProducts,
-  getPublicProducts
+  getPublicProducts, getCategories,
 } from "../controllers/product.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createProductSchema, updateProductSchema } from "../utils/schemas.js";
@@ -16,13 +16,14 @@ const adminOnly = [protect, authorizeRoles("admin", "manager")];
 /* =========================================================
    PUBLIC / BASIC ROUTES
 ========================================================= */
-router.get("/public", getPublicProducts);
-router.get("/", getProducts);
-router.get("/beverages", getBeverageProducts);
-router.get("/with-recipes", getProductsWithRecipes);
+router.get("/public",      getPublicProducts);
+router.get("/categories",  getCategories);        // ← nuevo — sin auth para el cliente
+router.get("/",            getProducts);
+router.get("/beverages",   getBeverageProducts);
+router.get("/with-recipes",   getProductsWithRecipes);
 router.get("/with-inventory", getProductsWithInventory);
-router.get("/stats", getProductStats);
-router.get("/:id", getProduct);
+router.get("/stats",       getProductStats);
+router.get("/:id",         getProduct);
 
 /* =========================================================
    ADMIN / MANAGEMENT ROUTES

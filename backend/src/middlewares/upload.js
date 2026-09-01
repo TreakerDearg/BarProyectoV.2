@@ -1,58 +1,60 @@
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import cloudinary from '../config/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
+import { logger } from '../config/logger.js';
 
-// Configuración de almacenamiento de Cloudinary
+// Cloudinary ya está configurado en config/cloudinary.js que se importa
+// en server.js al iniciar. Aquí usamos directamente v2.
+
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'nebula',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    public_id: (req, file) => {
-      // Generar un nombre único para el archivo
-      const timestamp = Date.now();
-      const originalName = file.originalname.split('.')[0];
-      return `${originalName}-${timestamp}`;
-    },
+  cloudinary,
+  params: async (req, file) => {
+    // Determinar carpeta según el campo y la ruta
+    let folder = 'nebula/general';
+    if (req.baseUrl?.includes('products') || req.path?.includes('products')) {
+      folder = 'nebula/products';
+    } else if (req.baseUrl?.includes('recipes')) {
+      folder = 'nebula/recipes';
+    } else if (req.baseUrl?.includes('upload')) {
+      folder = 'nebula/uploads';
+    }
+
+    const timestamp = Date.now();
+    const originalName = file.originalname.replace(/\.[^/.]+$/, '').replace(/[^a-z0-9]/gi, '-').toLowerCase();
+
+    return {
+      folder,
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      public_id: `${originalName}-${timestamp}`,
+      transformation: [
+        { width: 1200, height: 900, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
+      ],
+    };
   },
 });
 
-// Filtro para aceptar solo imágenes
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
-  console.log('[Upload Middleware] File filter check:', {
-    originalname: file.originalname,
-    mimetype: file.mimetype,
-    size: file.size,
-  });
-  
-  if (allowedTypes.includes(file.mimetype)) {
-    console.log('[Upload Middleware] File type accepted');
+  const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    console.error('[Upload Middleware] File type rejected:', file.mimetype);
-    cb(new Error(`Tipo de archivo no permitido: ${file.mimetype}. Solo se aceptan imágenes (jpg, jpeg, png, webp)`), false);
+    cb(new Error(`Tipo no permitido: ${file.mimetype}. Solo jpg, jpeg, png, webp.`), false);
   }
 };
 
-// Configuración de multer
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB máximo
-    files: 5, // Máximo 5 archivos a la vez
+    fileSize: 8 * 1024 * 1024, // 8 MB
+    files: 6,
   },
 });
 
-// Middleware para upload individual
-export const uploadSingle = (fieldName) => upload.single(fieldName);
-
-// Middleware para upload múltiple
-export const uploadMultiple = (fieldName, maxCount = 5) => upload.array(fieldName, maxCount);
-
-// Middleware para upload de múltiples campos con diferentes nombres
-export const uploadFields = (fields) => upload.fields(fields);
+export const uploadSingle   = (field)          => upload.single(field);
+export const uploadMultiple = (field, max = 5) => upload.array(field, max);
+export const uploadFields   = (fields)          => upload.fields(fields);
 
 export default upload;

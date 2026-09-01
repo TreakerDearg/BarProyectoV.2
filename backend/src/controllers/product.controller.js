@@ -483,3 +483,55 @@ export const getProductsWithInventory = async (req, res, next) => {
     return ok(res, productsWithInventory);
   } catch (error) { throw error; }
 };
+
+/* =========================================================
+   GET CATEGORIES
+   Devuelve todas las categorías únicas existentes en los productos,
+   con count de productos y distribución por tipo.
+   Usado por el desktop para el selector de categorías y por el
+   cliente web para el CategoryScroller.
+========================================================= */
+export const getCategories = async (req, res, next) => {
+  try {
+    const { type, activeOnly } = req.query;
+
+    const matchStage = {};
+    if (type)                      matchStage.type     = type;
+    if (activeOnly === 'true')     matchStage.isActiveForPOS = true;
+
+    const categories = await Product.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id:       "$category",
+          count:     { $sum: 1 },
+          available: { $sum: { $cond: ["$available", 1, 0] } },
+          byType:    { $push: "$type" },
+          featured:  { $sum: { $cond: ["$featured", 1, 0] } },
+          // Tomar una imagen de muestra de la categoría
+          sampleImage: { $first: "$image" },
+        },
+      },
+      { $match: { _id: { $ne: null, $ne: "" } } },
+      { $sort: { count: -1, _id: 1 } },
+    ]);
+
+    // Calcular cuántos son drinks vs food por categoría
+    const formatted = categories.map((cat) => {
+      const drinks = cat.byType.filter((t) => t === "drink").length;
+      const food   = cat.byType.filter((t) => t === "food").length;
+      return {
+        id:          cat._id,
+        name:        cat._id,
+        count:       cat.count,
+        available:   cat.available,
+        featured:    cat.featured,
+        drinks,
+        food,
+        sampleImage: cat.sampleImage || null,
+      };
+    });
+
+    return ok(res, formatted);
+  } catch (error) { throw error; }
+};

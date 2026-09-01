@@ -1,5 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity, TrendingUp, Package, RefreshCcw, X } from "lucide-react";
+import {
+  Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity,
+  TrendingUp, Package, RefreshCcw, X, SlidersHorizontal,
+  Rows3, Rows4, ChefHat, GlassWater,
+} from "lucide-react";
 
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
@@ -10,111 +14,59 @@ import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilte
 
 import {
   getProducts,
+  getCategories,
   createProduct,
   updateProduct,
   deleteProduct,
+  type ProductCategory,
 } from "../services/productService";
 
-import { useProductSocketEvents } from "../../../hooks/useSocket";
-import { useProductTutorial } from "../hooks/useProductTutorial";
-import { useProductUiStore } from "../store/productUiStore";
+import { useProductSocketEvents }  from "../../../hooks/useSocket";
+import { useProductTutorial }      from "../hooks/useProductTutorial";
+import { useProductUiStore, type ProductMode } from "../store/productUiStore";
 
 import type { Product } from "../../../types/product";
 import "../../../styles/nebula-theme.css";
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+// ── Helpers ───────────────────────────────────────────────────────
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+function formatPrice(n: number) {
+  return n.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+}
+
+// ── Página ────────────────────────────────────────────────────────
+
+export default function ProductsPage() {
+  const [products, setProducts]           = useState<Product[]>([]);
+  const [categories, setCategories]       = useState<ProductCategory[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loading, setLoading]             = useState(true);
+  const [catsLoading, setCatsLoading]     = useState(false);
+  const [error, setError]                 = useState<string | null>(null);
+  const [search, setSearch]               = useState("");
   const [showExportImport, setShowExportImport] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
 
-  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
-    try {
-      const data = filteredProducts;
-      const filename = `productos-export-${new Date().toISOString().split('T')[0]}`;
-
-      // For now, use JSON export as base implementation
-      // TODO: Implement Excel export in backend
-      if (options.format === "json") {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filename}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (err) {
-      console.error("Error exporting products:", err);
-      setError("Error al exportar productos");
-    }
-  };
-
-  const handleImport = async () => {
-    // Import disabled for now - only export for auditing
-    setError("Importación deshabilitada - solo exportación para auditoría");
-  };
-
-  // Filter groups for AdvancedSearchFilter
-  const filterGroups = [
-    {
-      id: "category",
-      label: "Categoría",
-      type: "checkbox" as const,
-      options: Array.from(new Set(products.map(p => p.category))).map(cat => ({
-        value: cat,
-        label: cat,
-      })),
-      selected: activeFilters["category"] || [],
-    },
-    {
-      id: "type",
-      label: "Tipo",
-      type: "radio" as const,
-      options: [
-        { value: "drink", label: "Bebida" },
-        { value: "food", label: "Comida" },
-      ],
-      selected: activeFilters["type"] || [],
-    },
-    {
-      id: "availability",
-      label: "Disponibilidad",
-      type: "checkbox" as const,
-      options: [
-        { value: "available", label: "Disponible" },
-        { value: "featured", label: "Destacado" },
-      ],
-      selected: activeFilters["availability"] || [],
-    },
-  ];
-
   const {
-    isOpen: tutorialOpen,
-    openTutorial,
-    closeTutorial,
-    completeTutorial,
-  } = useProductTutorial();
+    mode, setMode,
+    view, setView, toggleView,
+    pageView, setPageView,
+    activeCategory, setActiveCategory,
+    selectedProduct: storeSelectedProduct,
+    isDrawerOpen,
+  } = useProductUiStore();
 
-  const { mode, setMode, view, toggleView, pageView, setPageView, selectedProduct: storeSelectedProduct, isDrawerOpen } = useProductUiStore();
+  const { isOpen: tutorialOpen, openTutorial, closeTutorial, completeTutorial } = useProductTutorial();
 
-  /* =========================
-     FETCH PRODUCTS
-  ========================= */
+  // ── Fetch ──────────────────────────────────────────────────────
+
   const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-
       const data = await getProducts();
-
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Error loading products:", err);
       setError("Error al cargar productos");
       setProducts([]);
     } finally {
@@ -122,103 +74,108 @@ export default function ProductsPage() {
     }
   }, []);
 
+  const fetchCategories = useCallback(async () => {
+    setCatsLoading(true);
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch {
+      // silencioso — las categorías se derivan de los productos como fallback
+    } finally {
+      setCatsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
 
-  /* =========================================================
-     REAL-TIME UPDATES VIA SOCKET.IO
-  ========================================================= */
-  useProductSocketEvents(
-    // Producto creado
-    (data) => {
-      console.log("[Socket] Producto creado:", data);
-      if (data.product) {
-        setProducts(prev => [...prev, data.product]);
-      }
-    },
-    // Producto actualizado
-    (data) => {
-      console.log("[Socket] Producto actualizado:", data);
-      if (data.product) {
-        setProducts(prev => prev.map(p => 
-          p._id === data.product._id ? data.product : p
-        ));
-      }
-    },
-    // Producto eliminado
-    (data) => {
-      console.log("[Socket] Producto eliminado:", data);
-      if (data.id) {
-        setProducts(prev => prev.filter(p => p._id !== data.id));
-      }
-    },
-    // Disponibilidad cambiada
-    (data) => {
-      console.log("[Socket] Disponibilidad cambiada:", data);
-      if (data.id && data.available !== undefined) {
-        setProducts(prev => prev.map(p => 
-          p._id === data.id ? { ...p, available: data.available as boolean } : p
-        ));
-      }
+  // ── Categorías derivadas (fallback si /categories falla) ───────
+  const derivedCategories: ProductCategory[] = useMemo(() => {
+    if (categories.length > 0) return categories;
+    const map = new Map<string, { count: number; drinks: number; food: number }>();
+    for (const p of products) {
+      const cat = p.category?.trim() || "sin categoría";
+      const entry = map.get(cat) ?? { count: 0, drinks: 0, food: 0 };
+      entry.count++;
+      if (p.type === "drink") entry.drinks++;
+      else entry.food++;
+      map.set(cat, entry);
     }
+    return Array.from(map.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([name, stats]) => ({
+        id: name, name, sampleImage: null, featured: 0, available: 0, ...stats,
+      }));
+  }, [categories, products]);
+
+  // ── Socket.IO en tiempo real ───────────────────────────────────
+  useProductSocketEvents(
+    (d) => { if (d.product) setProducts((p) => [...p, d.product]); },
+    (d) => { if (d.product) setProducts((p) => p.map((x) => x._id === d.product._id ? d.product : x)); },
+    (d) => { if (d.id) setProducts((p) => p.filter((x) => x._id !== d.id)); },
+    (d) => { if (d.id != null) setProducts((p) => p.map((x) => x._id === d.id ? { ...x, available: d.available } : x)); }
   );
 
+  // ── Filtrado ───────────────────────────────────────────────────
   const filteredProducts = useMemo(() => {
     let list = products;
 
-    // Apply search text
+    // Categoría del selector rápido
+    if (activeCategory) {
+      list = list.filter((p) => p.category?.toLowerCase() === activeCategory.toLowerCase());
+    }
+
+    // Búsqueda de texto
     if (search.trim()) {
-      const lower = search.toLowerCase();
+      const q = search.toLowerCase();
       list = list.filter((p) =>
-        p?.name?.toLowerCase().includes(lower) ||
-        p?.category?.toLowerCase().includes(lower) ||
-        p?.description?.toLowerCase().includes(lower)
+        p?.name?.toLowerCase().includes(q) ||
+        p?.category?.toLowerCase().includes(q) ||
+        p?.description?.toLowerCase().includes(q) ||
+        p?.tags?.some((t) => t.toLowerCase().includes(q))
       );
     }
 
-    // Apply category filter
+    // Filtros avanzados
     if (activeFilters["category"]?.length > 0) {
-      list = list.filter(p => activeFilters["category"]!.includes(p.category));
+      list = list.filter((p) => activeFilters["category"]!.includes(p.category));
     }
-
-    // Apply type filter
     if (activeFilters["type"]?.length > 0) {
-      list = list.filter(p => activeFilters["type"]!.includes(p.type));
+      list = list.filter((p) => activeFilters["type"]!.includes(p.type));
     }
-
-    // Apply availability filter
     if (activeFilters["availability"]?.length > 0) {
-      list = list.filter(p => {
-        const filters = activeFilters["availability"]!;
-        if (filters.includes("available") && !p.available) return false;
-        if (filters.includes("featured") && !p.featured) return false;
+      list = list.filter((p) => {
+        const f = activeFilters["availability"]!;
+        if (f.includes("available") && !p.available) return false;
+        if (f.includes("featured")  && !p.featured)  return false;
         return true;
       });
     }
 
     return list;
-  }, [products, search, activeFilters]);
+  }, [products, activeCategory, search, activeFilters]);
 
+  // ── Estadísticas ───────────────────────────────────────────────
   const stats = useMemo(() => {
-    const total = products.length;
+    const total     = products.length;
     const available = products.filter((p) => p.available).length;
-    const featured = products.filter((p) => p.featured).length;
-    const drinks = products.filter((p) => p.type === 'drink').length;
-    const food = products.filter((p) => p.type === 'food').length;
-    const avgMargin = products.length > 0 
+    const featured  = products.filter((p) => p.featured).length;
+    const drinks    = products.filter((p) => p.type === "drink").length;
+    const food      = products.filter((p) => p.type === "food").length;
+    const avgMargin = total > 0
       ? products.reduce((acc, p) => {
-          const margin = p.price > 0 && p.cost > 0 ? ((p.price - p.cost) / p.price) * 100 : 0;
-          return acc + margin;
-        }, 0) / products.length
+          const m = p.price > 0 && (p.cost ?? 0) > 0
+            ? ((p.price - (p.cost ?? 0)) / p.price) * 100
+            : 0;
+          return acc + m;
+        }, 0) / total
       : 0;
-
     return { total, available, featured, drinks, food, avgMargin };
   }, [products]);
 
-  /* =========================
-     SAVE (CREATE / UPDATE)
-  ========================= */
+  // ── Acciones CRUD ──────────────────────────────────────────────
   const handleSave = async (product: Product) => {
     try {
       if (product._id) {
@@ -226,16 +183,12 @@ export default function ProductsPage() {
       } else {
         await createProduct(product);
       }
-
       setPageView("list");
       setSelectedProduct(null);
-
       fetchProducts();
+      fetchCategories();
     } catch (err) {
-      console.error("Error saving product:", err);
-      const message =
-        err instanceof Error ? err.message : "Error al guardar producto";
-      setError(message);
+      setError(err instanceof Error ? err.message : "Error al guardar producto");
     }
   };
 
@@ -244,178 +197,246 @@ export default function ProductsPage() {
     setPageView("form");
   };
 
-  /* =========================
-     DELETE
-  ========================= */
   const handleDelete = async (id: string) => {
+    if (!confirm("¿Eliminar este producto?")) return;
     try {
-      if (!confirm("¿Eliminar producto?")) return;
-
       await deleteProduct(id);
       fetchProducts();
+      fetchCategories();
     } catch (err) {
-      console.error("Error deleting product:", err);
-      const message =
-        err instanceof Error ? err.message : "Error al eliminar producto";
-      setError(message);
+      setError(err instanceof Error ? err.message : "Error al eliminar");
     }
   };
 
+  const handleExport = async (options: { format: string }) => {
+    const filename = `productos-${new Date().toISOString().split("T")[0]}`;
+    const blob = new Blob([JSON.stringify(filteredProducts, null, 2)], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = `${filename}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async () => {
+    setError("Importación deshabilitada — solo exportación para auditoría");
+  };
+
+  // ── Grid columns según modo ────────────────────────────────────
+  const gridCols = view === "list"
+    ? "grid-cols-1"
+    : mode === "simple"
+      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+      : mode === "standard"
+        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        : "grid-cols-1";
+
+  // ── View level para ProductCard ────────────────────────────────
+  const viewLevel = view === "list" ? "advanced" : mode;
+
+  // ── FilterGroups ───────────────────────────────────────────────
+  const filterGroups = [
+    {
+      id: "type",
+      label: "Tipo",
+      type: "radio" as const,
+      options: [
+        { value: "drink", label: "Bebida" },
+        { value: "food",  label: "Comida" },
+      ],
+      selected: activeFilters["type"] || [],
+    },
+    {
+      id: "availability",
+      label: "Estado",
+      type: "checkbox" as const,
+      options: [
+        { value: "available", label: "Disponible" },
+        { value: "featured",  label: "Destacado"  },
+      ],
+      selected: activeFilters["availability"] || [],
+    },
+  ];
+
+  // ── Render ─────────────────────────────────────────────────────
   return (
-    <div className="nebula-dashboard-root flex flex-col h-full gap-6 animate-fade-in-up-fusion relative">
-      <ProductTutorial
-        isOpen={tutorialOpen}
-        onClose={() => closeTutorial()}
-        onComplete={() => completeTutorial()}
-      />
+    <div className="nebula-page flex flex-col gap-6 min-h-0 h-full overflow-hidden">
 
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="nebula-aurora" />
-      </div>
-
-      {/* HEADER SECTION */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 via-purple-500/20 to-cyan-500/20 border border-violet-400/30 shadow-[0_0_32px_rgba(139,92,246,0.2)]">
-            <Package className="text-violet-200" size={28} />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Catálogo de Productos
-            </h1>
-            <p className="text-xs text-white/50 mt-1 flex items-center gap-1.5">
-              <Target size={12} className="text-violet-400/70" />
-              Product Management · Nebula v3
-            </p>
-          </div>
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-ivory tracking-tight">Productos</h1>
+          <p className="text-xs text-muted mt-0.5">
+            {stats.total} productos · {stats.available} disponibles · {stats.drinks} bebidas · {stats.food} comidas
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar producto…"
+              className="h-9 pl-8 pr-3 rounded-xl bg-white/5 border border-white/10 text-xs text-ivory placeholder:text-muted/50 focus:outline-none focus:border-violet/40 w-44"
+            />
+            <SlidersHorizontal size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+          </div>
+
           <AdvancedSearchFilter
             filterGroups={filterGroups}
-            onSearch={setSearch}
             onFilterChange={setActiveFilters}
-            placeholder="Buscar productos..."
-            savedFilters={[]}
             onSaveFilter={() => {}}
             onLoadFilter={() => {}}
           />
-
-          <button
-            onClick={() => openTutorial()}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title="Tutorial de productos"
-          >
-            <HelpCircle size={16} />
-            Tutorial
-          </button>
 
           <ModeToggle mode={mode} onChange={setMode} />
 
           <button
             onClick={toggleView}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title={`Vista: ${view === 'grid' ? 'Cuadrícula' : 'Lista'}`}
+            title={`Vista: ${view === "grid" ? "cuadrícula" : "lista"}`}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
           >
-            {view === 'grid' ? <LayoutGrid size={16} /> : <List size={16} />}
+            {view === "grid" ? <LayoutGrid size={15} /> : <List size={15} />}
           </button>
 
           <button
             onClick={fetchProducts}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
             title="Actualizar"
+            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
           >
-            <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
+            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
           </button>
 
           <button
             onClick={() => setShowExportImport(true)}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-            title="Exportar/Importar"
+            title="Exportar"
+            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
           >
-            <Target size={16} />
+            <Target size={15} />
           </button>
 
           <button
-            onClick={() => {
-              setSelectedProduct(null);
-              setPageView("form");
-            }}
-            className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
+            onClick={() => openTutorial()}
+            title="Tutorial"
+            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-violet-300 hover:border-violet/20 transition-colors"
           >
-            <Plus size={18} />
-            <span className="text-xs font-bold tracking-wide uppercase">Nuevo</span>
+            <HelpCircle size={15} />
+          </button>
+
+          <button
+            onClick={() => { setSelectedProduct(null); setPageView("form"); }}
+            className="nebula-btn-primary flex items-center gap-2 px-4 py-2"
+          >
+            <Plus size={16} />
+            <span className="text-xs font-bold uppercase tracking-wider">Nuevo</span>
           </button>
         </div>
       </header>
 
-      {/* KPI DASHBOARD */}
-      <div className={`grid gap-4 ${mode === 'simple' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-5'}`}>
-        <KPIBox label="Total" value={stats.total} icon={<Package size={18} />} color="violet" />
-        <KPIBox label="Disponibles" value={stats.available} icon={<Zap size={18} />} color="cyan" />
-        <KPIBox label="Destacados" value={stats.featured} icon={<Activity size={18} />} color="orange" />
-        {mode === 'advanced' && (
+      {/* ── KPIs ───────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
+        <KPIBox label="Total"      value={stats.total}     icon={<Package  size={17} />} color="violet" />
+        <KPIBox label="Disponibles" value={stats.available} icon={<Zap      size={17} />} color="cyan"   />
+        <KPIBox label="Destacados" value={stats.featured}  icon={<Activity size={17} />} color="gold"   />
+        <KPIBox
+          label="Margen prom."
+          value={`${Math.round(stats.avgMargin)}%`}
+          icon={<TrendingUp size={17} />}
+          color="emerald"
+        />
+      </div>
+
+      {/* ── Selector de categorías ─────────────────────────────── */}
+      <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0 scrollbar-none">
+        <CategoryPill
+          name="Todos"
+          count={products.length}
+          active={activeCategory === ""}
+          onClick={() => setActiveCategory("")}
+        />
+        {derivedCategories.map((cat) => (
+          <CategoryPill
+            key={cat.id}
+            name={cat.name}
+            count={cat.count}
+            drinks={cat.drinks}
+            food={cat.food}
+            active={activeCategory.toLowerCase() === cat.name.toLowerCase()}
+            onClick={() => setActiveCategory(
+              activeCategory.toLowerCase() === cat.name.toLowerCase() ? "" : cat.name
+            )}
+          />
+        ))}
+      </div>
+
+      {/* ── Error ──────────────────────────────────────────────── */}
+      {error && (
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-red/10 border border-red/20 text-red-300 text-xs flex-shrink-0">
+          <span className="flex-1">{error}</span>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Grid de productos ───────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar pr-0.5">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-2 border-violet/20 animate-spin" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+            </div>
+            <p className="text-xs text-muted mt-4 animate-pulse">Cargando productos…</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20">
+              <Package size={44} className="text-violet-300/50" />
+            </div>
+            <p className="text-sm font-semibold text-ivory/60">
+              {search || activeCategory ? "Sin resultados" : "No hay productos registrados"}
+            </p>
+            {(search || activeCategory) && (
+              <button
+                onClick={() => { setSearch(""); setActiveCategory(""); }}
+                className="text-xs text-violet-400 hover:text-violet-300 underline transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        ) : (
           <>
-            <KPIBox label="Bebidas" value={stats.drinks} icon={<TrendingUp size={18} />} color="violet" />
-            <KPIBox label="Comidas" value={stats.food} icon={<TrendingUp size={18} />} color="violet" />
+            <p className="text-[10px] text-muted mb-3 uppercase tracking-widest">
+              {filteredProducts.length} producto{filteredProducts.length !== 1 ? "s" : ""}
+              {activeCategory ? ` en "${activeCategory}"` : ""}
+            </p>
+            <div className={`grid gap-3 ${gridCols}`}>
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  view={viewLevel}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
           </>
         )}
       </div>
 
-      {/* ERROR */}
-      {error && (
-        <div className="nebula-panel border-red-400/30 bg-red-500/10 text-red-300 p-4 rounded-xl text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* MAIN GRID */}
-      <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar pb-8">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 border-violet-400/20 animate-spin" />
-              <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
-            </div>
-            <p className="text-sm text-white/50 mt-4 animate-pulse">Cargando productos...</p>
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20 mb-4">
-              <Package size={48} className="text-violet-300/60" />
-            </div>
-            <p className="text-white/50 text-sm">
-              {search ? "No se encontraron productos" : "No hay productos registrados"}
-            </p>
-          </div>
-        ) : (
-          <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}>
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onEdit={handleEdit}
-                onDelete={() => handleDelete(product._id!)}
-                simplified={mode === 'simple'}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* FORM VIEW */}
+      {/* ── Formulario ─────────────────────────────────────────── */}
       {pageView === "form" && (
         <ProductForm
           product={selectedProduct}
           onSave={handleSave}
-          onClose={() => {
-            setPageView("list");
-            setSelectedProduct(null);
-          }}
+          onClose={() => { setPageView("list"); setSelectedProduct(null); }}
         />
       )}
 
-      {/* DETAIL DRAWER */}
+      {/* ── Drawer de detalle ───────────────────────────────────── */}
       {isDrawerOpen && storeSelectedProduct && (
         <ProductDetailDrawer
           product={storeSelectedProduct}
@@ -424,22 +445,27 @@ export default function ProductsPage() {
         />
       )}
 
-      {/* EXPORT/IMPORT PANEL */}
+      {/* ── Tutorial ────────────────────────────────────────────── */}
+      {tutorialOpen && (
+        <ProductTutorial
+          onClose={closeTutorial}
+          onComplete={completeTutorial}
+        />
+      )}
+
+      {/* ── Export/Import ───────────────────────────────────────── */}
       {showExportImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Datos</h3>
-              <button
-                onClick={() => setShowExportImport(false)}
-                className="text-muted hover:text-ivory transition-colors"
-              >
-                <X size={20} />
+              <h3 className="text-base font-bold text-ivory">Exportar datos</h3>
+              <button onClick={() => setShowExportImport(false)} className="text-muted hover:text-ivory">
+                <X size={18} />
               </button>
             </div>
             <DataExportImport
               data={filteredProducts}
-              filename={`productos-${new Date().toISOString().split('T')[0]}`}
+              filename={`productos-${new Date().toISOString().split("T")[0]}`}
               onExport={handleExport}
               onImport={handleImport}
               availableFormats={["json"]}
@@ -451,50 +477,91 @@ export default function ProductsPage() {
   );
 }
 
-/* =========================
-   COMPONENTS
-========================= */
-function KPIBox({ label, value, icon, color }: { label: string; value: number | string; icon: React.ReactNode; color: string }) {
-  const colorClasses = {
-    violet: "from-violet-500/20 via-purple-500/15 to-violet-600/10 border-violet-400/30",
-    cyan: "from-cyan-500/20 via-teal-500/15 to-cyan-600/10 border-cyan-400/30",
-    orange: "from-orange-500/20 via-amber-500/15 to-orange-600/10 border-orange-400/30",
-  };
+// ── Subcomponentes ────────────────────────────────────────────────
 
-  const iconBg = {
-    violet: "bg-violet/20 text-violet-400",
-    cyan: "bg-cyan/20 text-cyan-400",
-    orange: "bg-orange/20 text-orange-400",
+function KPIBox({
+  label, value, icon, color,
+}: {
+  label: string; value: number | string; icon: React.ReactNode; color: string;
+}) {
+  const colors: Record<string, { bg: string; icon: string }> = {
+    violet:  { bg: "from-violet/15 border-violet/25",  icon: "text-violet-400 bg-violet/15"  },
+    cyan:    { bg: "from-cyan/15 border-cyan/25",      icon: "text-cyan-400 bg-cyan/15"       },
+    gold:    { bg: "from-gold/15 border-gold/25",      icon: "text-gold bg-gold/15"           },
+    emerald: { bg: "from-emerald/15 border-emerald/25",icon: "text-emerald-400 bg-emerald/15" },
   };
+  const c = colors[color] ?? colors.violet;
 
   return (
-    <div className={`nebula-panel p-4 flex items-center gap-4 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} rounded-xl border transition-all hover:scale-[1.02]`}>
-      <div className={`p-2.5 rounded-lg ${iconBg[color as keyof typeof iconBg]}`}>
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="text-xs text-white/60 mb-1 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-white">{value}</p>
+    <div className={`p-4 rounded-xl border bg-gradient-to-br ${c.bg} bg-surface-3/50 flex items-center gap-3`}>
+      <div className={`p-2 rounded-xl ${c.icon}`}>{icon}</div>
+      <div>
+        <p className="text-[10px] text-muted uppercase tracking-widest">{label}</p>
+        <p className="text-xl font-bold text-ivory">{value}</p>
       </div>
     </div>
   );
 }
 
-function ModeToggle({ mode, onChange }: { mode: 'simple' | 'advanced'; onChange: (mode: 'simple' | 'advanced') => void }) {
+function CategoryPill({
+  name, count, drinks, food, active, onClick,
+}: {
+  name: string; count: number; drinks?: number; food?: number;
+  active: boolean; onClick: () => void;
+}) {
   return (
-    <div className="nebula-mode-toggle">
-      <button
-        onClick={() => onChange('simple')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === 'simple' ? 'active' : 'text-muted hover:text-ivory'}`}
-      >
-        Simple
-      </button>
-      <button
-        onClick={() => onChange('advanced')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${mode === 'advanced' ? 'active' : 'text-muted hover:text-ivory'}`}
-      >
-        Avanzado
-      </button>
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+        active
+          ? "bg-violet/15 border-violet/35 text-violet-300"
+          : "bg-white/3 border-white/8 text-muted hover:border-white/18 hover:text-ivory"
+      }`}
+    >
+      {name !== "Todos" && drinks !== undefined && food !== undefined && (
+        <span className="opacity-60">
+          {food > 0 && drinks > 0
+            ? <SlidersHorizontal size={11} />
+            : food > 0
+              ? <ChefHat size={11} />
+              : <GlassWater size={11} />
+          }
+        </span>
+      )}
+      <span>{name}</span>
+      <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${
+        active ? "bg-violet/20 text-violet-300" : "bg-white/5 text-muted/70"
+      }`}>
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function ModeToggle({ mode, onChange }: { mode: ProductMode; onChange: (m: ProductMode) => void }) {
+  const options: { value: ProductMode; label: string; icon: React.ReactNode }[] = [
+    { value: "simple",   label: "Simple",   icon: <Rows4 size={13} />     },
+    { value: "standard", label: "Estándar", icon: <Rows3 size={13} />     },
+    { value: "advanced", label: "Completo", icon: <List  size={13} />     },
+  ];
+
+  return (
+    <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          title={opt.label}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+            mode === opt.value
+              ? "bg-violet/20 text-violet-300 border border-violet/30"
+              : "text-muted hover:text-ivory"
+          }`}
+        >
+          {opt.icon}
+          <span className="hidden sm:inline">{opt.label}</span>
+        </button>
+      ))}
     </div>
   );
 }

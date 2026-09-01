@@ -1,158 +1,183 @@
 import api from "../../../services/api";
 import type { Product } from "../../../types/product";
 
-const extractError = (error: any): string => {
-  return (
-    String(error?.response?.data?.message || "") ||
-    String(error?.response?.data?.error || "") ||
-    String(error?.message || "") ||
-    "Unexpected error"
-  );
-};
+// ── Tipos de categoría ────────────────────────────────────────────
 
-/* =========================
-   IMAGE VALIDATION
-========================= */
-export function validateImageData(product: any): { valid: boolean; error?: string } {
-  // Validate main image
-  if (product.image && !product.imagePublicId) {
-    return {
-      valid: false,
-      error: 'Se requiere imagePublicId cuando se proporciona una imagen principal'
-    };
-  }
-  if (product.imagePublicId && !product.image) {
-    return {
-      valid: false,
-      error: 'Se requiere image URL cuando se proporciona imagePublicId'
-    };
-  }
-  if (product.image && !product.image.includes('cloudinary.com')) {
-    return {
-      valid: false,
-      error: 'La URL de la imagen debe ser de Cloudinary'
-    };
-  }
-
-  // Validate gallery images
-  if (product.gallery && Array.isArray(product.gallery)) {
-    if (product.galleryPublicIds && Array.isArray(product.galleryPublicIds)) {
-      if (product.gallery.length !== product.galleryPublicIds.length) {
-        return {
-          valid: false,
-          error: 'El número de imágenes de la galería debe coincidir con el número de publicIds'
-        };
-      }
-    }
-    
-    for (const imageUrl of product.gallery) {
-      if (imageUrl && !imageUrl.includes('cloudinary.com')) {
-        return {
-          valid: false,
-          error: 'Las URLs de la galería deben ser de Cloudinary'
-        };
-      }
-    }
-  }
-
-  return { valid: true };
+export interface ProductCategory {
+  id: string;
+  name: string;
+  count: number;
+  available: number;
+  featured: number;
+  drinks: number;
+  food: number;
+  sampleImage: string | null;
 }
 
-/* =========================
-   NORMALIZER
-========================= */
-const normalizeProduct = (product: Product) => ({
-  name: product.name?.trim(),
-  description: product.description || "",
-  price: Number(product.price ?? 0),
-  cost: Number(product.cost ?? 0),
+// ── Error extractor ───────────────────────────────────────────────
 
-  type: product.type,
-  category: product.category?.trim().toLowerCase(),
-  subcategory: product.subcategory?.trim().toLowerCase() || "",
+const extractError = (error: any): string =>
+  String(
+    error?.response?.data?.message ||
+    error?.data?.message ||
+    error?.message ||
+    "Unexpected error"
+  );
 
-  available: product.available ?? true,
-  image: product.image || "",
-  featured: product.featured ?? false,
+// ── Helpers ───────────────────────────────────────────────────────
 
-  tags: Array.isArray(product.tags)
-    ? product.tags
-    : typeof product.tags === "string"
-      ? (product.tags as string).split(",")
-      : [],
+/**
+ * Construye un FormData con los campos del producto.
+ * Si se provee un File en `imageFile`, lo adjunta como campo `image`.
+ * Si se proveen Files en `galleryFiles`, los adjunta como campo `gallery`.
+ * Los campos JSON complejos (arrays) se serializan como strings.
+ */
+function buildProductFormData(
+  product: Product,
+  imageFile?: File | null,
+  galleryFiles?: File[]
+): FormData {
+  const fd = new FormData();
 
-  preparationTime: Number(product.preparationTime ?? 0),
-});
+  // Campos de texto
+  if (product.name)         fd.append("name",            product.name.trim());
+  if (product.description)  fd.append("description",     product.description);
+  if (product.category)     fd.append("category",        product.category.trim().toLowerCase());
+  if (product.subcategory)  fd.append("subcategory",     product.subcategory?.trim().toLowerCase() ?? "");
+  if (product.type)         fd.append("type",            product.type);
+  if (product.drinkStyle)   fd.append("drinkStyle",      product.drinkStyle);
 
-/* =========================
-   GET PRODUCTS
-========================= */
+  fd.append("price",           String(product.price ?? 0));
+  fd.append("cost",            String(product.cost ?? 0));
+  fd.append("available",       String(product.available ?? true));
+  fd.append("featured",        String(product.featured ?? false));
+  fd.append("preparationTime", String(product.preparationTime ?? 5));
+
+  // Arrays → JSON string para que el backend los parsee correctamente
+  if (Array.isArray(product.tags) && product.tags.length > 0) {
+    // multer no puede parsear arrays directamente; los enviamos como múltiples campos
+    product.tags.forEach((t) => fd.append("tags", t));
+  }
+  if (Array.isArray(product.dietaryRestrictions) && product.dietaryRestrictions.length > 0) {
+    product.dietaryRestrictions.forEach((d) => fd.append("dietaryRestrictions", d));
+  }
+
+  // Imagen principal: si hay un File nuevo, adjuntarlo.
+  // Si ya tiene URL de Cloudinary (sin cambios), enviarla como campo.
+  if (imageFile instanceof File) {
+    fd.append("image", imageFile);
+  } else if (product.image && product.image.includes("cloudinary.com")) {
+    fd.append("image",         product.image);
+    if ((product as any).imagePublicId) {
+      fd.append("imagePublicId", (product as any).imagePublicId);
+    }
+  }
+
+  // Galería
+  if (galleryFiles && galleryFiles.length > 0) {
+    galleryFiles.forEach((f) => fd.append("gallery", f));
+  }
+
+  return fd;
+}
+
+// ── API calls ─────────────────────────────────────────────────────
+
+/**
+ * Lista todos los productos (admin).
+ */
 export const getProducts = async (): Promise<Product[]> => {
-  const { data } = await api.get("/products");
-  return Array.isArray(data) ? data : [];
+  const data = await api.get("/products");
+  const list = (data as any)?.data ?? data;
+  return Array.isArray(list) ? list : [];
 };
 
-/* =========================
-   GET BEVERAGE PRODUCTS (for Variants)
-========================= */
+/**
+ * Bebidas (para variantes / ruleta).
+ */
 export const getBeverageProducts = async (params?: { category?: string }): Promise<Product[]> => {
-  const queryParams = new URLSearchParams();
-  if (params?.category) queryParams.append('category', params.category);
-  
-  const url = `/products/beverages${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const { data } = await api.get(url);
-  return Array.isArray(data) ? data : [];
+  const qs = params?.category ? `?category=${params.category}` : "";
+  const data = await api.get(`/products/beverages${qs}`);
+  const list = (data as any)?.data ?? data;
+  return Array.isArray(list) ? list : [];
 };
 
-/* =========================
-   CREATE
-========================= */
+/**
+ * Categorías únicas con estadísticas.
+ */
+export const getCategories = async (params?: {
+  type?: "drink" | "food";
+  activeOnly?: boolean;
+}): Promise<ProductCategory[]> => {
+  const qs = new URLSearchParams();
+  if (params?.type)       qs.set("type",       params.type);
+  if (params?.activeOnly) qs.set("activeOnly",  "true");
+  const data = await api.get(`/products/categories?${qs.toString()}`);
+  const list = (data as any)?.data ?? data;
+  return Array.isArray(list) ? list : [];
+};
+
+/**
+ * Crea un producto con soporte real de imagen.
+ * Acepta un `File` como `imageFile` para subir a Cloudinary vía multipart.
+ */
 export const createProduct = async (
-  product: Product
+  product: Product,
+  imageFile?: File | null,
+  galleryFiles?: File[]
 ): Promise<Product> => {
   try {
-    // Validate image data before sending
-    const imageValidation = validateImageData(product);
-    if (!imageValidation.valid) {
-      throw new Error(imageValidation.error);
-    }
+    const fd = buildProductFormData(product, imageFile, galleryFiles);
 
-    const payload = normalizeProduct(product);
-    const { data } = await api.post("/products", payload);
-    return data;
+    // El interceptor de Axios del desktop NO debe serializar FormData como JSON
+    const data = await api.post("/products", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return ((data as any)?.data ?? data) as Product;
   } catch (error) {
     throw new Error(extractError(error));
   }
 };
 
-/* =========================
-   UPDATE
-========================= */
+/**
+ * Actualiza un producto. Si `imageFile` es un File, reemplaza la imagen en Cloudinary.
+ */
 export const updateProduct = async (
   id: string,
-  product: Product
+  product: Product,
+  imageFile?: File | null,
+  galleryFiles?: File[]
 ): Promise<Product> => {
   try {
-    // Validate image data before sending
-    const imageValidation = validateImageData(product);
-    if (!imageValidation.valid) {
-      throw new Error(imageValidation.error);
-    }
+    const fd = buildProductFormData(product, imageFile, galleryFiles);
 
-    const payload = normalizeProduct(product);
-    const { data } = await api.put(`/products/${id}`, payload);
-    return data;
+    const data = await api.put(`/products/${id}`, fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return ((data as any)?.data ?? data) as Product;
   } catch (error) {
     throw new Error(extractError(error));
   }
 };
 
-/* =========================
-   DELETE
-========================= */
+/**
+ * Elimina un producto (y sus imágenes de Cloudinary vía backend).
+ */
 export const deleteProduct = async (id: string): Promise<void> => {
   try {
     await api.delete(`/products/${id}`);
+  } catch (error) {
+    throw new Error(extractError(error));
+  }
+};
+
+/**
+ * Toggle disponibilidad.
+ */
+export const toggleAvailability = async (id: string): Promise<Product> => {
+  try {
+    const data = await api.patch(`/products/${id}/toggle-availability`);
+    return ((data as any)?.data ?? data) as Product;
   } catch (error) {
     throw new Error(extractError(error));
   }

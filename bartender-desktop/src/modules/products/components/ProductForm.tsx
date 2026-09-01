@@ -24,6 +24,7 @@ import {
 
 import "../../../styles/nebula-forms-theme.css";
 
+import api from "../../../services/api";
 import type { Product } from "../../../types/product";
 
 const EMPTY_FORM: Product = {
@@ -286,56 +287,144 @@ function ProductFinancePanel({ formData, setFormData }: { formData: Product; set
   );
 }
 
-// EnhancedImageUpload Component
-function EnhancedImageUpload({ currentImage, onImageUpload }: { currentImage: string | undefined; onImageUpload: (url: string) => void }) {
+// EnhancedImageUpload Component — sube a Cloudinary vía /upload del backend
+function EnhancedImageUpload({
+  currentImage,
+  onImageUpload,
+  onFileSelect,
+}: {
+  currentImage: string | undefined;
+  onImageUpload: (url: string, publicId: string) => void;
+  /** También expone el File para que ProductForm lo pase al servicio */
+  onFileSelect?: (file: File | null) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+
+  const handleFile = async (file: File) => {
+    setUploadError(null);
+    onFileSelect?.(file);
+
+    // Preview local inmediato
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview(objectUrl);
+
+    // Subir a Cloudinary vía backend /upload
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const result = await api.post("/upload", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }) as any;
+
+      const url       = result?.data?.url  || result?.url  || "";
+      const publicId  = result?.data?.publicId || result?.publicId || "";
+
+      if (url) {
+        onImageUpload(url, publicId);
+        URL.revokeObjectURL(objectUrl);
+        setLocalPreview(null);
+      } else {
+        throw new Error("No se recibió URL de Cloudinary");
+      }
+    } catch (err: any) {
+      setUploadError(err?.message || "Error al subir imagen");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const displayImage = localPreview || currentImage;
+
   return (
     <div className="nebula-form-card nebula-form-animate-slide-in">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-cyan/10 rounded-xl">
           <ImageIcon className="text-cyan-400" size={20} />
         </div>
-        <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Image Upload</h3>
+        <div className="flex-1">
+          <h3 className="text-sm font-bold text-ivory uppercase tracking-widest">Imagen del producto</h3>
+          {displayImage && (
+            <p className="text-[10px] text-emerald-400 mt-0.5 flex items-center gap-1">
+              <CheckCircle size={10} />
+              {localPreview ? "Vista previa local" : "Imagen en Cloudinary"}
+            </p>
+          )}
+        </div>
+        {displayImage && (
+          <button
+            type="button"
+            onClick={() => { onImageUpload("", ""); onFileSelect?.(null); setLocalPreview(null); }}
+            className="text-[10px] text-red-400/60 hover:text-red-400 transition-colors"
+          >
+            Quitar
+          </button>
+        )}
       </div>
 
-      <div className="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center hover:border-rose/40 transition-colors">
-        {currentImage ? (
+      <div
+        className={`relative group cursor-pointer border-2 border-dashed rounded-xl overflow-hidden transition-all ${
+          uploading ? "border-cyan/40 cursor-wait" : "border-white/10 hover:border-cyan/40"
+        }`}
+        style={{ aspectRatio: "16/9" }}
+      >
+        {displayImage ? (
           <>
-            <img 
-              src={currentImage} 
-              alt="Product preview" 
-              className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" 
+            <img
+              src={displayImage}
+              alt="Preview"
+              className="absolute inset-0 w-full h-full object-cover group-hover:brightness-75 transition-all duration-300"
             />
-            <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-rose-300">
-              <Upload size={32} className="mb-2" />
-              <p className="text-sm font-medium">Click to replace product image</p>
-              <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 10MB (16:9 Recommended)</p>
-            </div>
+            {uploading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60">
+                <Loader2 size={28} className="animate-spin text-cyan-400 mb-2" />
+                <p className="text-xs text-cyan-300 font-semibold">Subiendo a Cloudinary…</p>
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60">
+                <Upload size={24} className="text-ivory mb-1" />
+                <p className="text-xs font-semibold text-ivory">Cambiar imagen</p>
+              </div>
+            )}
           </>
         ) : (
-          <div className="relative z-10 flex flex-col items-center text-muted group-hover:text-rose-300">
-            <Upload size={32} className="mb-2" />
-            <p className="text-sm font-medium">Click to upload product image</p>
-            <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 10MB (16:9 Recommended)</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            {uploading ? (
+              <>
+                <Loader2 size={28} className="animate-spin text-cyan-400 mb-2" />
+                <p className="text-xs text-cyan-300 font-semibold">Subiendo…</p>
+              </>
+            ) : (
+              <>
+                <Upload size={28} className="text-muted mb-2" />
+                <p className="text-sm font-medium text-muted">Subir imagen</p>
+                <p className="text-[10px] mt-1 text-muted/50">JPG, PNG, WEBP · Máx 8 MB</p>
+              </>
+            )}
           </div>
         )}
+
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          disabled={uploading}
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) {
-              // In a real implementation, this would upload to Cloudinary
-              // For now, we'll use a placeholder
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                onImageUpload(reader.result as string);
-              };
-              reader.readAsDataURL(file);
-            }
+            if (file) handleFile(file);
+            e.target.value = "";
           }}
-          className="absolute inset-0 opacity-0 cursor-pointer"
+          className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-wait"
         />
       </div>
+
+      {uploadError && (
+        <p className="text-xs text-red-400 mt-2 flex items-center gap-1.5">
+          <AlertTriangle size={12} />
+          {uploadError}
+        </p>
+      )}
     </div>
   );
 }
@@ -576,10 +665,11 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
     return () => clearTimeout(timer);
   }, [formData]);
 
-  const handleImageUpload = (imageUrl: string) => {
+  const handleImageUpload = (imageUrl: string, publicId?: string) => {
     setFormData((prev) => ({
       ...prev,
       image: imageUrl,
+      imagePublicId: publicId || (prev as any).imagePublicId || "",
     }));
   };
 
@@ -640,7 +730,10 @@ export default function ProductForm({ product, onSave, onClose }: ProductFormPro
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
           {/* LEFT COLUMN - Image Upload & Product Core (7 columns) */}
           <div className="lg:col-span-7 space-y-8">
-            <EnhancedImageUpload currentImage={formData.image} onImageUpload={handleImageUpload} />
+            <EnhancedImageUpload
+              currentImage={formData.image}
+              onImageUpload={handleImageUpload}
+            />
             <ProductIdentityCard formData={formData} setFormData={setFormData} />
           </div>
 

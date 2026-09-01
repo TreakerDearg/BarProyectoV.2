@@ -249,3 +249,22 @@ export async function getPublicPromotions() {
     throw new Error(errMessage(e));
   }
 }
+
+export interface ProductCategoryPublic {
+  id: string;
+  name: string;
+  count: number;
+  drinks: number;
+  food: number;
+  sampleImage: string | null;
+}
+
+export async function getProductCategories(params?: { type?: "drink" | "food" }): Promise<ProductCategoryPublic[]> {
+  try {
+    const qs = params?.type ? `?type=${params.type}` : "";
+    const res = await api.get(`/products/categories${qs}`);
+    return extractData<ProductCategoryPublic[]>(res);
+  } catch {
+    return []; // No romper la Carta si falla
+  }
+}
