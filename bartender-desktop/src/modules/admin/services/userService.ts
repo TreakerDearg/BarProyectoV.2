@@ -41,14 +41,16 @@ export const getUsers = async (params?: {
 ========================================================= */
 export const getClients = async (search?: string): Promise<User[]> => {
   try {
-    return await getUsers({ role: "client", search });
+    const result = await getUsers({ role: "client", search });
+    return Array.isArray(result) ? result : [];
   } catch (err: any) {
-    const status = err?.response?.status ?? err?.status;
+    const status = err?.response?.status ?? err?.status ?? err?.code;
     if (status === 403 || status === 401) {
-      console.warn("[userService] getClients: sin permisos de admin para listar clientes");
+      console.warn("[userService] getClients: sin permisos — asegurate de estar logueado como admin");
       return [];
     }
-    throw err;
+    console.error("[userService] getClients error:", err?.message || err);
+    return [];
   }
 };
 
@@ -76,12 +78,15 @@ export const createEmployee = async (payload: Partial<User> & { password?: strin
 export const promoteToEmployee = async (
   id: string,
   role: User["role"],
-  shift?: User["shift"]
+  shift?: User["shift"] | undefined
 ): Promise<User> => {
   const payload: Partial<User> = { role };
-  if (shift) payload.shift = shift;
+  // Solo asignar turno si se provee y el rol no es client
+  if (shift && role !== "client") payload.shift = shift;
+  // Si degrada a client, limpiar el turno
+  if (role === "client") payload.shift = null as any;
   const res = await api.put(`/users/${id}`, payload);
-  return unwrap(res);
+  return unwrap(res) as User;
 };
 
 /* =========================================================

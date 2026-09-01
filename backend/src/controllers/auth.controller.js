@@ -511,10 +511,12 @@ export const googleCallback = async (req, res, next) => {
       expiresIn: response.expiresIn,
     });
 
-    const isStaff = user.role !== 'client';
+    // ── Regla clara: clientes siempre a /cliente, empleados al decision engine
+    // isEmployee=true SOLO si el usuario es realmente un empleado (no admin que visita la web)
+    const isEmployeeForWeb = user.role !== 'client' && user.isEmployee === true;
     const destination = isClient
       ? '/cliente'
-      : (identityDecision.destination || '/cliente');
+      : (identityDecision.destination || '/admin');
 
     logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) -> ${destination}`);
 
@@ -522,9 +524,9 @@ export const googleCallback = async (req, res, next) => {
       token: String(response.token || ''),
       refreshToken: session.refreshToken,
       destination,
-      canAccess: String(identityDecision.canAccess !== false),
-      identityStatus: identityDecision.identityStatus || (isClient ? 'CLIENT' : 'EMPLOYEE'),
-      isEmployee: String(isStaff || identityDecision.isEmployee === true || identityDecision.isAdmin === true),
+      canAccess: isClient ? 'true' : String(identityDecision.canAccess !== false),
+      identityStatus: isClient ? 'CLIENT' : (identityDecision.identityStatus || 'EMPLOYEE'),
+      isEmployee: isClient ? 'false' : String(isEmployeeForWeb),
       role: user.role || 'client',
     }));
   } catch (error) {

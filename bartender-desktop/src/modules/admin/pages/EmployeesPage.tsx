@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check, Database, FileText, Target, Users, UserCheck, UserPlus } from "lucide-react";
+import { useAuthStore } from "../../../store/authStore";
 import EmployeeCard from "../components/EmployeeCard";
 import EmployeeForm from "../components/EmployeeForm";
 import PromoteModal from "../components/PromoteModal";
@@ -21,6 +22,10 @@ import type { User, UserSchedule } from "../types/user";
 import "../../../styles/nebula-obsidian-theme.css";
 
 export default function EmployeesPage() {
+  // Rol del usuario autenticado — solo admin puede ascender/cambiar roles
+  const currentUser = useAuthStore((s) => s.user);
+  const isAdmin = currentUser?.role === "admin";
+
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<User[]>([]);
   const [clientSearch, setClientSearch] = useState("");
@@ -184,6 +189,7 @@ export default function EmployeesPage() {
     if (activeSystemTab === "audit") {
       fetchAuditLogs();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSystemTab]);
 
   const fetchAuditLogs = async () => {
@@ -317,7 +323,9 @@ export default function EmployeesPage() {
                 activeSystemTab === "clients"
                   ? "bg-emerald/20 text-emerald-400 border border-emerald/30"
                   : "text-white/50 hover:text-white"
-              }`}
+              } ${!isAdmin ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
+              disabled={!isAdmin}
+              title={!isAdmin ? "Solo el administrador puede gestionar roles" : undefined}
             >
               <UserPlus size={14} className="inline mr-1" />
               Ascender
@@ -480,13 +488,15 @@ export default function EmployeesPage() {
                       )}
                     </div>
                   </div>
+                  {isAdmin && (
                   <button
                     onClick={() => setPromoteTarget(client)}
                     className="flex-shrink-0 flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-gold/80 to-yellow-500/80 text-black text-[10px] font-bold uppercase tracking-wider hover:from-gold hover:to-yellow-500 hover:shadow-md hover:shadow-gold/20 transition-all"
                   >
                     <UserCheck size={13} />
-                    Ascender
+                    Cambiar rol
                   </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -559,6 +569,7 @@ export default function EmployeesPage() {
       {promoteTarget && (
         <PromoteModal
           user={promoteTarget}
+          adminRole={currentUser?.role ?? ""}
           onClose={() => setPromoteTarget(null)}
           onSuccess={handlePromoteSuccess}
         />

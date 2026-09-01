@@ -255,12 +255,9 @@ export function useAuth(): UseAuthReturn {
   const processOAuthCallback = useCallback(async (
     params: URLSearchParams
   ): Promise<{ redirectTo: string } | null> => {
-    const tokenParam       = params.get("token");
+    const tokenParam        = params.get("token");
     const refreshTokenParam = params.get("refreshToken");
-    const destinationParam  = params.get("destination");
-    const canAccessParam    = params.get("canAccess");
     const identityStatus    = params.get("identityStatus");
-    const isEmployeeParam   = params.get("isEmployee");
     const error             = params.get("error");
 
     if (error || !tokenParam || !refreshTokenParam) return null;
@@ -269,51 +266,51 @@ export function useAuth(): UseAuthReturn {
     saveRefreshToken(refreshTokenParam);
 
     try {
+      // Fuente de verdad: el perfil real del usuario desde el backend.
+      // NO confiamos en destination/isEmployee de la URL — pueden estar
+      // corruptos o desactualizados. Preguntamos directamente al backend.
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${tokenParam}` },
       });
       const data = await res.json();
       if (!data.success) return null;
 
-      const roleParam = params.get("role");
+      const profile = data.data;
       const authUser: AuthUser = {
-        _id: data.data._id ?? data.data.id,
-        name: data.data.name,
-        email: data.data.email,
-        role: data.data.role || roleParam || "client",
+        _id: profile._id ?? profile.id,
+        name: profile.name,
+        email: profile.email,
+        role: profile.role ?? "client",
       };
       setAuth(tokenParam, authUser);
 
-      const isEmployeeConfirmed = isEmployeeParam === "true";
-      const isClientRole = authUser.role === "client";
-      const dest = destinationParam || "";
-      const destIsDesktop = dest === "/desktop" || dest.startsWith("/desktop");
-
-      if (isClientRole) {
+      // ── Regla simple y sin ambigüedad ───────────────────────────
+      // Cliente → siempre a /cliente, sin modal, sin preguntas.
+      if (authUser.role === "client") {
         return { redirectTo: "/cliente" };
       }
 
-      if (isEmployeeConfirmed || destIsDesktop || dest === "/admin" || dest === "/employee") {
-        if (canAccessParam !== "false" || destIsDesktop) {
-          setEmployeeDecision({
-            employeeDestination: destIsDesktop ? "/desktop" : (destinationParam || "/admin"),
-            identityStatus: identityStatus || "EMPLOYEE",
-            identityStatusLabel: identityStatus || "Empleado",
-            desktopAccessMessage: null,
-          });
-          return null;
-        }
-      }
-
+      // Empleado fuera de turno → off-shift
       if (identityStatus === "EMPLOYEE_OFF_SHIFT") {
         return { redirectTo: "/auth/off-shift" };
       }
 
-      if (canAccessParam === "false") {
-        return { redirectTo: "/auth/off-shift" };
+      // Cuenta bloqueada/inactiva → volver al login
+      if (identityStatus === "INACTIVE" || identityStatus === "LOCKED") {
+        return { redirectTo: "/cliente/cuenta?error=account_blocked" };
       }
 
-      return { redirectTo: "/cliente" };
+      // Cualquier otro rol (empleado, admin, etc.) → mostrar EmployeeModal
+      // Dejar que el usuario decida si accede al sistema o continúa como cliente
+      const dest = authUser.role === "admin" ? "/admin" : "/desktop";
+      setEmployeeDecision({
+        employeeDestination: dest,
+        identityStatus: identityStatus || "EMPLOYEE",
+        identityStatusLabel: identityStatus || "Empleado",
+        desktopAccessMessage: null,
+      });
+      return null; // El modal maneja la redirección
+
     } catch {
       return null;
     }
