@@ -92,7 +92,7 @@ export const createReservation = async (req, res, next) => {
 
     const { 
       customerName, customerPhone, customerEmail, startTime, endTime, 
-      guests, tableId, notes, source, isVIP, deposit 
+      guests, tableId, notes, source, isVIP, deposit, guestDietaryRestrictions
     } = req.body;
 
     const start = parseDate(startTime);
@@ -184,6 +184,7 @@ export const createReservation = async (req, res, next) => {
       isVIP: Boolean(isVIP),
       deposit: Number(deposit || 0),
       tags: Array.isArray(req.body.tags) ? req.body.tags : [],
+      guestDietaryRestrictions: Array.isArray(guestDietaryRestrictions) ? guestDietaryRestrictions : [],
     });
 
     const populated = await reservation.populate("tableId", POPULATE_TABLE);
@@ -302,7 +303,7 @@ export const updateReservation = async (req, res, next) => {
 
     const { 
       customerName, customerPhone, customerEmail, startTime, endTime, 
-      guests, tableId, notes, source, isVIP, deposit, status, tags
+      guests, tableId, notes, source, isVIP, deposit, status, tags, guestDietaryRestrictions
     } = req.body;
 
     const reservation = await Reservation.findById(id);
@@ -320,6 +321,7 @@ export const updateReservation = async (req, res, next) => {
     if (deposit !== undefined) reservation.deposit = Number(deposit);
     if (status) reservation.status = status;
     if (tags !== undefined) reservation.tags = tags;
+    if (guestDietaryRestrictions !== undefined) reservation.guestDietaryRestrictions = guestDietaryRestrictions;
 
     let start = reservation.startTime;
     let end = reservation.endTime;

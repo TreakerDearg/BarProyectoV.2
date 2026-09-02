@@ -227,6 +227,11 @@ export async function createReservation(body: {
   tableId?: string;
   notes?: string;
   source?: "web" | "app" | "admin";
+  guestDietaryRestrictions?: Array<{
+    guestName: string;
+    restrictions: string[];
+    notes?: string;
+  }>;
 }) {
   try {
     const res = await api.post("/reservations", {

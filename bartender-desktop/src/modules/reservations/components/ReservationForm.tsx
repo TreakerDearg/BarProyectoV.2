@@ -18,9 +18,13 @@ import {
   Star,
   Timer,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
-import type { Reservation } from "../types/reservation";
+import type { Reservation, GuestDietaryRestriction } from "../types/reservation";
+import { DIETARY_OPTIONS } from "../types/reservation";
+import { getDietaryIcon } from "../utils/dietaryIcons";
 import { getAvailableTables } from "../services/reservationService";
 
 /* =========================
@@ -53,16 +57,27 @@ const DURATION_PRESETS = [
    LOCATION LABELS
 ========================= */
 const LOCATION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  indoor: { label: "Interior / Salón", icon: "🏠", color: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
-  outdoor: { label: "Terraza / Exterior", icon: "☀️", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  bar: { label: "Barra / Bar", icon: "🍸", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-  vip: { label: "Zona VIP", icon: "👑", color: "text-gold bg-gold/10 border-gold/20" },
-  terraza: { label: "Terraza", icon: "🌿", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  indoor:   { label: "Interior / Salón",    icon: "indoor",   color: "text-blue-400 bg-blue-500/10 border-blue-500/20"     },
+  outdoor:  { label: "Terraza / Exterior",  icon: "outdoor",  color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+  bar:      { label: "Barra / Bar",         icon: "bar",      color: "text-amber-400 bg-amber-500/10 border-amber-500/20"   },
+  vip:      { label: "Zona VIP",            icon: "vip",      color: "text-gold bg-gold/10 border-gold/20"                 },
+  terraza:  { label: "Terraza",             icon: "terraza",  color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
 };
+
+const LOCATION_ICON_NAMES: Record<string, string> = {
+  indoor:  "Home",
+  outdoor: "Sun",
+  bar:     "GlassWater",
+  vip:     "Crown",
+  terraza: "Trees",
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _locationIconNames = LOCATION_ICON_NAMES; // reservado para uso futuro
 
 const getLocationConfig = (loc: string) => {
   const key = loc?.toLowerCase() || "indoor";
-  return LOCATION_LABELS[key] || { label: loc || "Otra Zona", icon: "📍", color: "text-muted bg-white/5 border-white/10" };
+  return LOCATION_LABELS[key] || { label: loc || "Otra Zona", icon: "default", color: "text-muted bg-white/5 border-white/10" };
 };
 
 /* =========================
@@ -83,6 +98,7 @@ export default function ReservationForm({
     notes: "",
     isVIP: false,
     deposit: 0,
+    guestDietaryRestrictions: [] as GuestDietaryRestriction[],
   });
 
   const [tables, setTables] = useState<TableOption[]>([]);
@@ -90,6 +106,7 @@ export default function ReservationForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
+  const [showDietary, setShowDietary] = useState(false);
 
   const isEditing = Boolean(reservation?._id);
 
@@ -112,6 +129,9 @@ export default function ReservationForm({
       notes: reservation.notes || "",
       isVIP: (reservation as any).isVIP || false,
       deposit: (reservation as any).deposit || 0,
+      guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions)
+        ? reservation.guestDietaryRestrictions
+        : [],
     });
 
     // Detect preset duration
@@ -191,7 +211,7 @@ export default function ReservationForm({
     if (formData.guests > selectedTable.capacity) {
       return {
         type: "danger" as const,
-        message: `⚠️ La Mesa ${selectedTable.number} tiene capacidad para ${selectedTable.capacity} personas, pero se asignan ${formData.guests} invitados.`,
+        message: `La Mesa ${selectedTable.number} no tiene capacidad para ${formData.guests} personas (máx: ${selectedTable.capacity}).`,
       };
     }
     if (formData.guests === selectedTable.capacity) {
@@ -360,7 +380,7 @@ export default function ReservationForm({
               <AlertCircle size={24} className={capacityWarning.type === "danger" ? "text-red-500 animate-pulse" : "text-amber-500"} />
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest mb-1">
-                  {capacityWarning.type === "danger" ? "⚠️ Conflicto de Capacidad" : "Capacidad Ajustada"}
+                  {capacityWarning.type === "danger" ? "Conflicto de Capacidad" : "Capacidad Ajustada"}
                 </p>
                 <p className="text-xs font-bold">{capacityWarning.message}</p>
               </div>
@@ -484,7 +504,7 @@ export default function ReservationForm({
                       return (
                         <div key={location}>
                           <p className={`text-xs font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
-                            <span className="text-lg">{config.icon}</span>
+                            <MapPin size={14} />
                             {config.label}
                             <span className="text-muted/50 text-sm">({locationTables.length})</span>
                           </p>
@@ -631,6 +651,118 @@ export default function ReservationForm({
                 </p>
               )}
             </div>
+          </div>
+
+          {/* RESTRICCIONES DIETÉTICAS POR INVITADO */}
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={() => setShowDietary((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 px-6 py-4 rounded-[1.5rem] border border-white/8 bg-amber-500/5 hover:bg-amber-500/10 transition-all"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400">
+                  <AlertTriangle size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-black text-ivory uppercase tracking-widest">
+                    Restricciones Dietéticas por Invitado
+                  </p>
+                  <p className="text-[10px] text-muted font-bold uppercase tracking-wider mt-0.5">
+                    {formData.guestDietaryRestrictions.filter((g: GuestDietaryRestriction) => g.restrictions.length > 0).length > 0
+                      ? `${formData.guestDietaryRestrictions.reduce((s: number, g: GuestDietaryRestriction) => s + g.restrictions.length, 0)} restricción(es) registradas`
+                      : `${formData.guests} invitado${formData.guests > 1 ? "s" : ""} — indicá si alguien no puede comer algo`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {formData.guestDietaryRestrictions.some((g: GuestDietaryRestriction) => g.restrictions.length > 0) && (
+                  <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
+                    {formData.guestDietaryRestrictions.reduce((s: number, g: GuestDietaryRestriction) => s + g.restrictions.length, 0)}
+                  </span>
+                )}
+                {showDietary ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
+              </div>
+            </button>
+
+            {showDietary && (
+              <div className="space-y-4 px-2">
+                {Array.from({ length: Math.max(1, formData.guests) }, (_, idx) => {
+                  const entry: GuestDietaryRestriction = formData.guestDietaryRestrictions[idx] ?? {
+                    guestName: "", restrictions: [], notes: "",
+                  };
+                  const update = (updated: GuestDietaryRestriction) => {
+                    const list: GuestDietaryRestriction[] = [
+                      ...formData.guestDietaryRestrictions,
+                    ];
+                    list[idx] = updated;
+                    setFormData((prev: any) => ({ ...prev, guestDietaryRestrictions: list }));
+                  };
+                  return (
+                    <div key={idx} className="rounded-[1.5rem] border border-white/8 bg-surface-3/30 overflow-hidden">
+                      <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5">
+                        <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-black text-gold">{idx + 1}</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={entry.guestName}
+                          onChange={(e) => update({ ...entry, guestName: e.target.value })}
+                          placeholder={`Nombre del invitado ${idx + 1}`}
+                          className="flex-1 bg-transparent text-sm font-bold text-ivory placeholder:text-muted/40 outline-none border-none"
+                        />
+                        {entry.restrictions.length > 0 && (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/20 text-amber-300 flex items-center gap-1">
+                            <AlertTriangle size={10} />
+                            {entry.restrictions.length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {DIETARY_OPTIONS.map((opt) => {
+                            const selected = entry.restrictions.includes(opt.value);
+                            return (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => {
+                                  const next = selected
+                                    ? entry.restrictions.filter((r) => r !== opt.value)
+                                    : [...entry.restrictions, opt.value];
+                                  update({ ...entry, restrictions: next });
+                                }}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-bold transition-all text-left ${
+                                  selected
+                                    ? opt.color
+                                    : "bg-white/5 border-white/10 text-muted hover:bg-white/10 hover:text-ivory"
+                                }`}
+                              >
+                                <span className="flex-shrink-0">{getDietaryIcon(opt.iconName, 13)}</span>
+                                <span className="truncate">{opt.label}</span>
+                                {selected && <CheckCircle size={11} className="ml-auto flex-shrink-0" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {entry.restrictions.length > 0 && (
+                          <div className="relative">
+                            <FileText size={14} className="absolute left-4 top-3.5 text-muted" />
+                            <input
+                              type="text"
+                              value={entry.notes ?? ""}
+                              onChange={(e) => update({ ...entry, notes: e.target.value })}
+                              placeholder="Nota adicional (ej: alérgico severo al maní…)"
+                              className="input-royale !pl-12 !py-3 text-xs"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* OBSERVATIONS */}

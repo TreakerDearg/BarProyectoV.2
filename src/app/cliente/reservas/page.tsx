@@ -20,9 +20,11 @@ export default function NewReservasPage() {
     selectTimeSlot,
     submitReservation,
     resetReservation,
+    updateGuestDietary,
+    setGuestDietaryRestrictions,
   } = useReservationLogic();
 
-  const { date, startIso, endIso, guests, success, loading, error } = state;
+  const { date, startIso, endIso, guests, success, loading, error, guestDietaryRestrictions } = state;
 
   if (success) {
     return (
@@ -30,6 +32,7 @@ export default function NewReservasPage() {
         date={date}
         time={startIso}
         guests={guests}
+        guestDietaryRestrictions={guestDietaryRestrictions}
         onReset={resetReservation}
       />
     );
@@ -43,6 +46,7 @@ export default function NewReservasPage() {
 
       <div className={ui.newReservationLayout}>
         <div className={ui.newReservationMain}>
+          {/* Paso 1: Fecha + Comensales */}
           {!startIso && (
             <>
               <NewDateSelector
@@ -50,7 +54,7 @@ export default function NewReservasPage() {
                 onChange={setDate}
                 minDate={new Date().toISOString().split("T")[0]}
               />
-              
+
               {date && (
                 <NewGuestSelector
                   value={guests}
@@ -62,6 +66,7 @@ export default function NewReservasPage() {
             </>
           )}
 
+          {/* Paso 2: Horario */}
           {date && !startIso && (
             <NewTimeSlotSelector
               date={date}
@@ -70,15 +75,19 @@ export default function NewReservasPage() {
             />
           )}
 
+          {/* Paso 3: Datos del cliente + restricciones */}
           {startIso && endIso && !success && (
             <NewReservationForm
               values={{
-                customerName: state.customerName,
+                customerName:  state.customerName,
                 customerPhone: state.customerPhone,
                 customerEmail: state.customerEmail,
-                notes: state.notes,
+                notes:         state.notes,
               }}
+              guests={guests}
+              guestDietaryRestrictions={guestDietaryRestrictions}
               onChange={setFormValue}
+              onDietaryChange={updateGuestDietary}
               onSubmit={() => setStep(3)}
               loading={loading}
             />
@@ -91,6 +100,7 @@ export default function NewReservasPage() {
           )}
         </div>
 
+        {/* Sidebar: resumen + confirmación */}
         <div className={ui.newReservationSidebar}>
           <NewReservationSummary
             date={date}
@@ -99,7 +109,12 @@ export default function NewReservasPage() {
             customerName={state.customerName}
             onConfirm={submitReservation}
             loading={loading}
-            canConfirm={!!startIso && !!endIso && !!state.customerName && !!state.customerPhone}
+            canConfirm={
+              !!startIso &&
+              !!endIso &&
+              !!state.customerName &&
+              !!state.customerPhone
+            }
           />
         </div>
       </div>

@@ -15,9 +15,12 @@ import {
   Crown,
   Wallet,
   Globe,
-  MessageCircle
+  MessageCircle,
+  AlertTriangle,
 } from "lucide-react";
 import type { Reservation } from "../types/reservation";
+import { DIETARY_OPTIONS } from "../types/reservation";
+import { getDietaryIcon } from "../utils/dietaryIcons";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
@@ -323,6 +326,54 @@ export default function ReservationCard({
                 {tag.label}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* DIETARY RESTRICTIONS STRIP */}
+        {r.guestDietaryRestrictions && r.guestDietaryRestrictions.some((g) => g.restrictions.length > 0) && (
+          <div className="pt-4 border-t border-amber-500/15">
+            <div className="flex items-center gap-2 mb-2.5">
+              <AlertTriangle size={12} className="text-amber-400/70 flex-shrink-0" />
+              <p className="text-[9px] font-black text-amber-400/70 uppercase tracking-widest">
+                Restricciones Dietéticas
+              </p>
+            </div>
+            <div className="space-y-2">
+              {r.guestDietaryRestrictions
+                .filter((g) => g.restrictions.length > 0)
+                .map((guest, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-[9px] font-black text-gold">{idx + 1}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black text-ivory mb-1 truncate">
+                        {guest.guestName || `Invitado ${idx + 1}`}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {guest.restrictions.map((r) => {
+                          const opt = DIETARY_OPTIONS.find((o) => o.value === r);
+                          return (
+                            <span
+                              key={r}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${opt?.color ?? "bg-white/5 border-white/10 text-muted"}`}
+                            >
+                              {getDietaryIcon(opt?.iconName ?? "AlertTriangle", 10)}
+                              {opt?.label ?? r}
+                            </span>
+                          );
+                        })}
+                      </div>
+                      {guest.notes && (
+                        <p className="text-[9px] text-muted italic mt-1 truncate">{guest.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
       </div>

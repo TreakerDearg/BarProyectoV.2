@@ -1,57 +1,59 @@
+/* ================================================================
+   ModernHero — NightGold Edition
+   Fondo obsidiana · acento dorado · tipografía editorial
+================================================================ */
+
 .hero {
   position: relative;
   min-height: 90vh;
   display: flex;
   align-items: center;
   overflow: hidden;
-  background: #0B0B0F;
+  background: var(--bg-deep);
 }
 
 @media (min-width: 768px) {
-  .hero {
-    min-height: 85vh;
-  }
+  .hero { min-height: 85vh; }
 }
 
+/* Capa de fondo oscuro con gradiente dorado sutil */
 .heroBackground {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #0B0B0F 0%, #15151B 50%, #0B0B0F 100%);
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(212,163,64,0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 0%  100%,  rgba(168,117,58,0.05) 0%, transparent 60%),
+    var(--bg-deep);
 }
 
+/* Imagen de fondo del local / barra */
 .heroImage {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-image: url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1920&q=80');
   background-size: cover;
   background-position: center;
-  opacity: 0.3;
-  mix-blend-mode: overlay;
+  opacity: 0.18;
+  mix-blend-mode: luminosity;
 }
 
+/* Overlay con degradado hacia abajo */
 .heroOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(11, 11, 15, 0.5) 0%,
-    rgba(11, 11, 15, 0.7) 50%,
-    rgba(11, 11, 15, 0.95) 100%
+    rgba(6,6,8,0.45)  0%,
+    rgba(6,6,8,0.65)  50%,
+    rgba(6,6,8,0.97) 100%
   );
 }
 
+/* Contenido central */
 .heroContent {
   position: relative;
   z-index: 1;
+  width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding: 6rem 1.5rem 3rem;
@@ -63,100 +65,74 @@
 }
 
 @media (min-width: 768px) {
-  .heroContent {
-    padding: 8rem 2rem 4rem;
-    gap: 2.5rem;
-  }
+  .heroContent { padding: 8rem 2rem 4rem; gap: 2.5rem; }
 }
 
 @media (min-width: 1024px) {
-  .heroContent {
-    padding: 10rem 3rem 5rem;
-    gap: 3rem;
-  }
+  .heroContent { padding: 10rem 3rem 5rem; gap: 3rem; }
 }
 
+/* Badge superior */
 .heroBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 90, 31, 0.15);
-  border: 1px solid rgba(255, 90, 31, 0.3);
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #FF5A1F;
-  letter-spacing: 0.05em;
+  padding: 0.5rem 1.25rem;
+  background: var(--gold-a12);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--gold-light);
+  letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  animation: fadeInUp 0.6s ease;
+  animation: fadeInUp 0.55s var(--ease-out) both;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Título */
 .heroTitle {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #F7F7F8;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  max-width: 600px;
-  animation: fadeInUp 0.6s ease 0.1s backwards;
+  font-family: var(--font-sans);
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  font-weight: var(--font-extrabold);
+  color: var(--text);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  max-width: 800px;
+  animation: fadeInUp 0.55s var(--ease-out) 0.1s both;
 }
 
-@media (min-width: 768px) {
-  .heroTitle {
-    font-size: 3.5rem;
-    max-width: 700px;
-  }
+/* Acento dorado en el título */
+.heroTitleGold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-@media (min-width: 1024px) {
-  .heroTitle {
-    font-size: 4.5rem;
-    max-width: 800px;
-  }
-}
-
+/* Subtítulo */
 .heroSubtitle {
-  font-size: 1rem;
-  font-weight: 400;
-  color: #A7A7B0;
-  line-height: 1.6;
-  max-width: 500px;
-  animation: fadeInUp 0.6s ease 0.2s backwards;
+  font-family: var(--font-sans);
+  font-size: clamp(0.9375rem, 2vw, 1.125rem);
+  font-weight: var(--font-normal);
+  color: var(--text-dim);
+  line-height: var(--leading-relaxed);
+  max-width: 560px;
+  animation: fadeInUp 0.55s var(--ease-out) 0.2s both;
 }
 
-@media (min-width: 768px) {
-  .heroSubtitle {
-    font-size: 1.125rem;
-    max-width: 600px;
-  }
-}
-
+/* Acciones */
 .heroActions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  max-width: 400px;
-  animation: fadeInUp 0.6s ease 0.3s backwards;
+  max-width: 420px;
+  animation: fadeInUp 0.55s var(--ease-out) 0.3s both;
 }
 
-@media (min-width: 768px) {
-  .heroActions {
-    flex-direction: row;
-    max-width: 500px;
-  }
+@media (min-width: 480px) {
+  .heroActions { flex-direction: row; }
 }
 
 .primaryButton {
@@ -166,22 +142,28 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  background: var(--grad-gold);
   border: none;
-  border-radius: 12px;
-  color: #F7F7F8;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  border-radius: var(--radius-lg);
+  color: var(--bg-deep);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
   text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(255, 90, 31, 0.3);
+  cursor: pointer;
+  transition: filter var(--duration-base) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
+  box-shadow: var(--glow-gold-sm);
 }
 
 .primaryButton:hover {
+  filter: brightness(1.1);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255, 90, 31, 0.4);
+  box-shadow: var(--glow-gold-md);
 }
+
+.primaryButton:active { transform: scale(0.97); }
 
 .secondaryButton {
   flex: 1;
@@ -191,50 +173,79 @@
   gap: 0.5rem;
   padding: 1rem 2rem;
   background: transparent;
-  border: 2px solid #292932;
-  border-radius: 12px;
-  color: #F7F7F8;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
   text-decoration: none;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
 }
 
 .secondaryButton:hover {
-  background: #1E1E26;
-  border-color: #FF5A1F;
-  color: #FF5A1F;
+  background: var(--gold-a08);
+  border-color: var(--border-gold);
+  color: var(--gold-light);
 }
 
+/* Stats */
 .heroStats {
   display: flex;
+  align-items: center;
   gap: 2rem;
-  animation: fadeInUp 0.6s ease 0.4s backwards;
+  animation: fadeInUp 0.55s var(--ease-out) 0.4s both;
+}
+
+@media (max-width: 767px) {
+  .heroStats { display: none; }
 }
 
 .statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
   text-align: center;
 }
 
+.statIcon {
+  color: var(--gold-soft);
+  margin-bottom: 0.125rem;
+}
+
 .statValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #FF5A1F;
+  font-family: var(--font-sans);
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-weight: var(--font-extrabold);
+  color: var(--gold);
   line-height: 1;
 }
 
 .statLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #A7A7B0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.25rem;
+  letter-spacing: var(--tracking-wider);
 }
 
-@media (max-width: 767px) {
-  .heroStats {
-    display: none;
-  }
+.statDivider {
+  width: 1px;
+  height: 40px;
+  background: var(--border);
+}
+
+/* Animación */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroBadge, .heroTitle, .heroSubtitle,
+  .heroActions, .heroStats { animation: none; }
+  .primaryButton:hover, .secondaryButton:hover { transform: none; }
 }

@@ -137,6 +137,9 @@ export const createReservation = async (reservation: any) => {
     isVIP: Boolean(reservation.isVIP),
     deposit: Number(reservation.deposit || 0),
     tags: reservation.tags || [],
+    guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions)
+      ? reservation.guestDietaryRestrictions
+      : [],
   };
 
   return safeRequest<Reservation>(
@@ -260,6 +263,9 @@ export const updateReservation = async (id: string, reservation: any): Promise<R
     isVIP: Boolean(reservation.isVIP),
     deposit: Number(reservation.deposit || 0),
     tags: reservation.tags || [],
+    guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions)
+      ? reservation.guestDietaryRestrictions
+      : [],
   };
 
   return safeRequest<Reservation>(

@@ -431,7 +431,7 @@ export default function ReservationsPage() {
       </div>
 
       {/* ===========================
-         📅 AGENDA SEMANAL HORIZONTAL (MINI-CALENDAR)
+         AGENDA SEMANAL HORIZONTAL (MINI-CALENDAR)
       =========================== */}
       <MiniCalendarFilter
         reservations={reservations}
@@ -479,7 +479,7 @@ export default function ReservationsPage() {
                 ? "¡LLEGANDO AHORA!"
                 : diffMin >= -15
                 ? `Esperando ${Math.abs(diffMin)} min`
-                : `⚠️ ${Math.abs(diffMin)} MIN ATRASADO`;
+                : `${Math.abs(diffMin)} MIN ATRASADO`;
 
               const timeFormatted = startTime.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 

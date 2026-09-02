@@ -35,7 +35,7 @@ const STATUS_STEPS: OrderStatusStr[] = ["pending", "in-progress", "completed"];
 const STATUS_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   pending:      { label: "Pedido recibido",   icon: <Clock3   size={18} />, color: "#D4A340" },
   "in-progress":{ label: "En preparación…",  icon: <ChefHat  size={18} />, color: "#E07828" },
-  completed:    { label: "¡Pedido listo! 🎉", icon: <PartyPopper size={18} />, color: "#34B964" },
+  completed:    { label: "Pedido listo",    icon: <PartyPopper size={18} />, color: "#34B964" },
   cancelled:    { label: "Pedido cancelado",  icon: <AlertCircle size={18} />, color: "#C83228" },
 };
 

@@ -15,7 +15,21 @@
 
 .container { max-width: 1440px; margin: 0 auto; }
 
-.sectionHeader { margin-bottom: 2rem; }
+/* Header */
+.sectionHeader { margin-bottom: 2.5rem; }
+
+.sectionKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--gold-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  margin-bottom: 0.75rem;
+}
 
 .sectionTitle {
   font-family: var(--font-display);
@@ -33,59 +47,63 @@
   color: var(--text-dim);
 }
 
+/* Scroll horizontal en mobile, grid en desktop */
 .categoriesContainer {
   display: flex;
   gap: 1rem;
   overflow-x: auto;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Scrollbar Golden Night */
-.categoriesContainer::-webkit-scrollbar { height: 4px; }
+.categoriesContainer::-webkit-scrollbar { height: 3px; }
 .categoriesContainer::-webkit-scrollbar-track { background: var(--surface); border-radius: 2px; }
-.categoriesContainer::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-.categoriesContainer::-webkit-scrollbar-thumb:hover { background: var(--gold-soft); }
+.categoriesContainer::-webkit-scrollbar-thumb { background: var(--gold-a20); border-radius: 2px; }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .categoriesContainer {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
     overflow-x: visible;
   }
 }
 
+@media (min-width: 1024px) {
+  .categoriesContainer {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+/* Card */
 .categoryCard {
   flex: 0 0 auto;
-  width: 140px;
+  width: 148px;
   scroll-snap-align: start;
   text-decoration: none;
   transition: transform var(--duration-slow) var(--ease-out);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .categoryCard { width: auto; }
 }
 
 .categoryCard:hover { transform: translateY(-6px); }
 
-/* Imagen con borde dorado en hover */
+/* Imagen */
 .categoryImage {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 100%;
+  aspect-ratio: 1;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  margin-bottom: 0.75rem;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  transition: all var(--duration-slow) var(--ease-out);
-}
-
-@media (min-width: 768px) {
-  .categoryImage { width: 100%; }
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  transition:
+    border-color var(--duration-slow) var(--ease-out),
+    box-shadow   var(--duration-slow) var(--ease-out);
 }
 
 .categoryCard:hover .categoryImage {
@@ -105,11 +123,34 @@
 .categoryOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(9,9,11,0.75) 100%);
+  background: linear-gradient(180deg, transparent 30%, rgba(6,6,8,0.72) 100%);
 }
 
-/* Nombre — crema en hover, neutro en normal */
+/* Badge de tipo (bebida / cocina) */
+.typeBadge {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(6,6,8,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-full);
+  font-size: 0.625rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-dim);
+  backdrop-filter: blur(6px);
+}
+
+/* Nombre */
 .categoryName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
@@ -120,8 +161,59 @@
 
 .categoryCard:hover .categoryName { color: var(--cream); }
 
+.categoryCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  background: var(--gold-a12);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-full);
+  font-size: 0.5625rem;
+  font-weight: var(--font-bold);
+  color: var(--gold);
+}
+
+/* Skeleton */
+.skeletonCard {
+  flex: 0 0 auto;
+  width: 148px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .skeletonCard { width: auto; }
+}
+
+.skeletonImage {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  animation: skeletonPulse 1.4s ease-in-out infinite;
+}
+
+.skeletonLabel {
+  height: 0.875rem;
+  width: 70%;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  animation: skeletonPulse 1.4s ease-in-out infinite 0.2s;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .categoryCard, .categoryImage, .categoryImage img, .categoryName { transition: none; }
   .categoryCard:hover { transform: none; }
   .categoryCard:hover .categoryImage img { transform: none; }
+  .skeletonImage, .skeletonLabel { animation: none; }
 }

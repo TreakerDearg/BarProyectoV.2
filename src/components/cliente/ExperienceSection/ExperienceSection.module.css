@@ -1,35 +1,32 @@
+/* ================================================================
+   ExperienceSection — Golden Night
+   Bento card · imagen izquierda · contenido derecha
+================================================================ */
+
 .experienceSection {
-  background: #0B0B0F;
+  background: var(--bg-secondary);
   padding: 4rem 1.5rem;
-  border-bottom: 1px solid #292932;
+  border-bottom: 1px solid var(--border);
 }
 
 @media (min-width: 768px) {
-  .experienceSection {
-    padding: 5rem 2rem;
-  }
+  .experienceSection { padding: 5rem 2rem; }
 }
 
-.container {
-  max-width: 1440px;
-  margin: 0 auto;
-}
+.container { max-width: 1440px; margin: 0 auto; }
 
 .experienceCard {
-  background: linear-gradient(135deg, #1E1E26 0%, #15151B 100%);
-  border: 1px solid #292932;
-  border-radius: 24px;
+  background: var(--grad-surface);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-2xl);
   overflow: hidden;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  box-shadow: var(--glow-gold-sm);
 }
 
 @media (min-width: 768px) {
-  .experienceCard {
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-  }
+  .experienceCard { grid-template-columns: 1fr 1fr; }
 }
 
 .experienceImage {
@@ -41,18 +38,17 @@
 }
 
 @media (min-width: 768px) {
-  .experienceImage {
-    min-height: 400px;
-  }
+  .experienceImage { min-height: 420px; }
 }
 
 .experienceOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, rgba(11, 11, 15, 0.8) 0%, transparent 100%);
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(6,6,8,0.7) 0%,
+    transparent 70%
+  );
 }
 
 .experienceContent {
@@ -60,64 +56,52 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 1.25rem;
 }
 
 @media (min-width: 768px) {
-  .experienceContent {
-    padding: 3rem 2.5rem;
-  }
+  .experienceContent { padding: 3rem 2.5rem; }
 }
 
 .experienceBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(255, 90, 31, 0.15);
-  border: 1px solid rgba(255, 90, 31, 0.3);
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #FF5A1F;
-  letter-spacing: 0.05em;
+  padding: 0.375rem 1rem;
+  background: var(--gold-a08);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--gold-light);
+  letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  margin-bottom: 1.5rem;
   width: fit-content;
 }
 
 .experienceTitle {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #F7F7F8;
-  letter-spacing: -0.02em;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-@media (min-width: 768px) {
-  .experienceTitle {
-    font-size: 2.25rem;
-  }
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 400;
+  color: var(--cream);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+  margin: 0;
 }
 
 .experienceDescription {
-  font-size: 0.875rem;
-  color: #A7A7B0;
-  line-height: 1.7;
-  margin-bottom: 2rem;
-}
-
-@media (min-width: 768px) {
-  .experienceDescription {
-    font-size: 1rem;
-  }
+  font-family: var(--font-sans);
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  color: var(--text-dim);
+  line-height: var(--leading-relaxed);
+  margin: 0;
 }
 
 .features {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.875rem;
 }
 
 .feature {
@@ -129,41 +113,59 @@
 .featureIcon {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 90, 31, 0.1);
-  border-radius: 10px;
-  color: #FF5A1F;
-  flex-shrink: 0;
+  background: var(--gold-a08);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  color: var(--gold);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.feature:hover .featureIcon {
+  background: var(--gold-a20);
 }
 
 .featureText {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #F7F7F8;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text);
 }
 
 .experienceCTA {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #FF5A1F 0%, #FF7138 100%);
+  padding: 0.875rem 2rem;
+  background: var(--grad-gold);
   border: none;
-  border-radius: 12px;
-  color: #F7F7F8;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
+  border-radius: var(--radius-full);
+  color: var(--bg-deep);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
   text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(255, 90, 31, 0.3);
   width: fit-content;
+  cursor: pointer;
+  transition:
+    filter    var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+  box-shadow: var(--glow-gold-sm);
 }
 
 .experienceCTA:hover {
+  filter: brightness(1.1);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255, 90, 31, 0.4);
+  box-shadow: var(--glow-gold-md);
+}
+
+.experienceCTA:active { transform: scale(0.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .experienceCTA { transition: none; }
+  .experienceCTA:hover { transform: none; }
 }

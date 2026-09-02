@@ -1,85 +1,182 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { Plus, Star, GlassWater, ChefHat, ArrowRight, ShoppingCart } from "lucide-react";
+import { getPublicProducts } from "@/lib/api/bartender";
+import { useClienteStore } from "@/stores/useClienteStore";
+import type { ProductPublicDTO } from "@/lib/types/api";
 import styles from "./ModernProductCard.module.css";
 
-const featuredProducts = [
-  {
-    id: 1,
-    name: "Hamburguesa Clásica",
-    description: "Carne 100% premium, lechuga, tomate, cebolla y nuestra salsa especial",
-    price: 12.99,
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80",
-    badge: "Popular",
-  },
-  {
-    id: 2,
-    name: "Papas Fritas",
-    description: "Papas cortadas a mano, doradas y crujientes con sal marina",
-    price: 4.99,
-    image: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80",
-    badge: null,
-  },
-  {
-    id: 3,
-    name: "Cóctel Mojito",
-    description: "Ron blanco, menta fresca, lima, azúcar y soda",
-    price: 8.99,
-    image: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=400&q=80",
-    badge: "Nuevo",
-  },
-  {
-    id: 4,
-    name: "Brownie con Helado",
-    description: "Brownie de chocolate caliente con helado de vainilla",
-    price: 6.99,
-    image: "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400&q=80",
-    badge: null,
-  },
-];
+const MAX_FEATURED = 8;
+
+function ProductSkeleton() {
+  return (
+    <div className={styles.skeletonCard} aria-hidden="true">
+      <div className={styles.skeletonImage} />
+      <div className={styles.skeletonContent}>
+        <div className={styles.skeletonTitle} />
+        <div className={styles.skeletonDesc} />
+        <div className={styles.skeletonFooter} />
+      </div>
+    </div>
+  );
+}
+
+function ProductCardItem({ product }: { product: ProductPublicDTO }) {
+  const addToCart    = useClienteStore((s) => s.addToCart);
+  const cart         = useClienteStore((s) => s.cart);
+  const [added, setAdded] = useState(false);
+
+  const inCartQty = cart.find((c) => c.productId === product.id)?.quantity ?? 0;
+  const price = product.dynamicPrice ?? product.price ?? 0;
+
+  const handleAdd = useCallback(() => {
+    addToCart({
+      productId: product.id,
+      name:      product.name,
+      quantity:  1,
+      notes:     "",
+      price,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1400);
+  }, [addToCart, product, price]);
+
+  const fmtPrice = (n: number) =>
+    n.toLocaleString("es-AR", {
+      style: "currency", currency: "ARS", maximumFractionDigits: 0,
+    });
+
+  return (
+    <div className={`${styles.productCard} ${!product.available ? styles.productCardUnavailable : ""}`}>
+      {/* Imagen */}
+      <div className={styles.productImage}>
+        {product.image ? (
+          <img src={product.image} alt={product.name} loading="lazy" />
+        ) : (
+          <div className={styles.productImagePlaceholder}>
+            {product.type === "drink"
+              ? <GlassWater size={28} className={styles.placeholderIcon} />
+              : <ChefHat   size={28} className={styles.placeholderIcon} />}
+          </div>
+        )}
+
+        {/* Badges */}
+        {product.featured && (
+          <div className={styles.badgeFeatured}>
+            <Star size={10} />
+            Destacado
+          </div>
+        )}
+        {!product.available && (
+          <div className={styles.badgeUnavailable}>No disponible</div>
+        )}
+        {product.type === "drink" && (
+          <div className={styles.typeTag}>
+            <GlassWater size={10} />
+          </div>
+        )}
+      </div>
+
+      {/* Contenido */}
+      <div className={styles.productContent}>
+        <p className={styles.productCategory}>{product.category}</p>
+        <h3 className={styles.productName}>{product.name}</h3>
+        {product.description && (
+          <p className={styles.productDescription}>{product.description}</p>
+        )}
+
+        <div className={styles.productFooter}>
+          <span className={styles.productPrice}>{fmtPrice(price)}</span>
+
+          <button
+            type="button"
+            className={`${styles.addButton} ${added ? styles.addButtonAdded : ""}`}
+            onClick={handleAdd}
+            disabled={!product.available}
+            aria-label={`Agregar ${product.name} al carrito`}
+          >
+            {added ? (
+              <>
+                <ShoppingCart size={14} />
+                <span>Agregado</span>
+              </>
+            ) : inCartQty > 0 ? (
+              <>
+                <Plus size={14} />
+                <span>+1 ({inCartQty})</span>
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                <span>Agregar</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ModernProductCard() {
-  const handleAddToCart = (productId: number) => {
-    console.log(`Adding product ${productId} to cart`);
-    // TODO: Implement cart functionality
-  };
+  const [products, setProducts] = useState<ProductPublicDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getPublicProducts({ available: true })
+      .then((data) => {
+        // Priorizar featured, luego por nombre
+        const sorted = [...data].sort((a, b) => {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          return a.name.localeCompare(b.name, "es");
+        });
+        setProducts(sorted.slice(0, MAX_FEATURED));
+      })
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <section className={styles.productsSection}>
       <div className={styles.container}>
+        {/* Header */}
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Lo más pedido</h2>
+          <div className={styles.sectionKicker}>
+            <Star size={13} />
+            Productos reales de la carta
+          </div>
+          <div className={styles.sectionTitleRow}>
+            <h2 className={styles.sectionTitle}>Lo más pedido</h2>
+            <Link href="/cliente/carta" className={styles.seeAllLink}>
+              Ver carta completa
+              <ArrowRight size={15} />
+            </Link>
+          </div>
           <p className={styles.sectionSubtitle}>Los favoritos de nuestros clientes</p>
         </div>
-        
-        <div className={styles.productsGrid}>
-          {featuredProducts.map((product) => (
-            <div key={product.id} className={styles.productCard}>
-              <div className={styles.productImage}>
-                <img src={product.image} alt={product.name} />
-                {product.badge && (
-                  <div className={styles.productBadge}>{product.badge}</div>
-                )}
-              </div>
-              
-              <div className={styles.productContent}>
-                <h3 className={styles.productName}>{product.name}</h3>
-                <p className={styles.productDescription}>{product.description}</p>
-                
-                <div className={styles.productFooter}>
-                  <span className={styles.productPrice}>${product.price.toFixed(2)}</span>
-                  <button
-                    className={styles.addButton}
-                    onClick={() => handleAddToCart(product.id)}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Agregar
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+
+        {/* Grid */}
+        {loading ? (
+          <div className={styles.productsGrid}>
+            {Array.from({ length: 4 }, (_, i) => <ProductSkeleton key={i} />)}
+          </div>
+        ) : products.length === 0 ? (
+          <div className={styles.emptyState}>
+            <ChefHat size={36} className={styles.emptyIcon} />
+            <p>La carta se está actualizando.</p>
+            <Link href="/cliente/carta" className={styles.emptyLink}>
+              Ver disponibilidad en tiempo real
+            </Link>
+          </div>
+        ) : (
+          <div className={styles.productsGrid}>
+            {products.map((p) => (
+              <ProductCardItem key={p.id} product={p} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

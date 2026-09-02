@@ -1,28 +1,10 @@
+/**
+ * Tipos compartidos del sistema de reservas.
+ */
+
 import type { ReactNode } from "react";
 
-export type ReservationStatus =
-  | "pending"
-  | "confirmed"
-  | "seated"
-  | "completed"
-  | "cancelled"
-  | "no-show";
-
-export type ReservationSource = "web" | "app" | "admin";
-
-export type TagType = "allergy" | "diet" | "preference" | "vip" | "other";
-export type TagPriority = "low" | "medium" | "high";
-
-export interface ReservationTag {
-  label: string;
-  type: TagType;
-  priority: TagPriority;
-}
-
-/* ==============================
-   RESTRICCIONES DIETÉTICAS POR INVITADO
-============================== */
-export type DietaryRestrictionOption =
+export type DietaryRestriction =
   | "vegan"
   | "vegetarian"
   | "gluten-free"
@@ -35,21 +17,21 @@ export type DietaryRestrictionOption =
   | "low-sodium"
   | "other";
 
-export interface GuestDietaryRestriction {
+export interface GuestDietaryEntry {
   guestName: string;
-  restrictions: DietaryRestrictionOption[];
+  restrictions: DietaryRestriction[];
   notes?: string;
 }
 
-export interface DietaryOptionDef {
-  value: DietaryRestrictionOption;
+export interface DietaryOption {
+  value: DietaryRestriction;
   label: string;
-  /** Nombre del ícono Lucide para referencia */
+  /** Nombre del ícono Lucide para renderizar — ver getDietaryIcon() */
   iconName: string;
   color: string;
 }
 
-export const DIETARY_OPTIONS: DietaryOptionDef[] = [
+export const DIETARY_OPTIONS: DietaryOption[] = [
   { value: "vegan",          label: "Vegano",           iconName: "Leaf",          color: "bg-green-500/15 border-green-500/30 text-green-300"   },
   { value: "vegetarian",     label: "Vegetariano",      iconName: "Salad",         color: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300" },
   { value: "gluten-free",    label: "Sin Gluten",       iconName: "WheatOff",      color: "bg-amber-500/15 border-amber-500/30 text-amber-300"   },
@@ -62,53 +44,3 @@ export const DIETARY_OPTIONS: DietaryOptionDef[] = [
   { value: "low-sodium",     label: "Bajo en Sodio",    iconName: "Droplets",      color: "bg-cyan-500/15 border-cyan-500/30 text-cyan-300"    },
   { value: "other",          label: "Otra",             iconName: "AlertTriangle", color: "bg-zinc-500/15 border-zinc-500/30 text-zinc-300"    },
 ];
-
-export interface Reservation {
-  _id?: string;
-
-  customerName: string;
-  customerPhone: string;
-  customerEmail?: string;
-
-  startTime: string; // ISO
-  endTime: string;   // ISO
-
-  dayKey?: string;
-  timeSlot?: string;
-
-  guests: number;
-
-  tableId?: {
-    _id: string;
-    number: number;
-    capacity: number;
-    status: string;
-    location: string;
-  } | string | null;
-
-  status: ReservationStatus;
-
-  isVIP?: boolean;
-  deposit?: number;
-
-  posSessionId?: string;
-
-  notes?: string;
-  tags?: ReservationTag[];
-
-  /** Restricciones dietéticas por invitado */
-  guestDietaryRestrictions?: GuestDietaryRestriction[];
-
-  source?: ReservationSource;
-
-  isLocked?: boolean;
-
-  seatedAt?: string;
-  cancelledAt?: string;
-
-  isActive?: boolean;
-  durationMinutes?: number;
-
-  createdAt?: string;
-  updatedAt?: string;
-}

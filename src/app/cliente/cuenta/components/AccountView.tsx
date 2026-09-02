@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { memo, useEffect, useState, useCallback } from "react";
+import {
+  ChefHat, ShoppingBag, CalendarDays, Sparkles,
+  ClipboardList, CheckCircle2, XCircle, Clock, ChevronRight,
+} from "lucide-react";
 import { roleLabel } from "@/lib/auth/roles";
 import type { AuthUser } from "@/lib/types/api";
 import { useClienteStore } from "@/stores/useClienteStore";
@@ -49,33 +53,41 @@ function fmtTime(iso: string) {
 
 // ── Quick-action hub (estilo McDonalds kiosk) ─────────────────────
 
-const QUICK_ACTIONS = [
+interface QuickAction {
+  href: string;
+  label: string;
+  sub: string;
+  icon: React.ReactNode;
+  accent: string;
+}
+
+const QUICK_ACTIONS: QuickAction[] = [
   {
-    href: "/cliente/carta",
-    label: "Ver carta",
-    sub:   "Menú completo",
-    emoji: "🍹",
+    href:   "/cliente/carta",
+    label:  "Ver carta",
+    sub:    "Menú completo",
+    icon:   <ChefHat size={26} />,
     accent: "gold",
   },
   {
-    href: "/cliente/pedido",
-    label: "Pedir",
-    sub:   "Haz tu pedido",
-    emoji: "🛎",
+    href:   "/cliente/pedido",
+    label:  "Pedir",
+    sub:    "Haz tu pedido",
+    icon:   <ShoppingBag size={26} />,
     accent: "green",
   },
   {
-    href: "/cliente/reservas",
-    label: "Reservas",
-    sub:   "Mis reservas",
-    emoji: "📅",
+    href:   "/cliente/reservas",
+    label:  "Reservas",
+    sub:    "Mis reservas",
+    icon:   <CalendarDays size={26} />,
     accent: "blue",
   },
   {
-    href: "/cliente/ruleta",
-    label: "Ruleta",
-    sub:   "Sorpresa de bar",
-    emoji: "🎰",
+    href:   "/cliente/ruleta",
+    label:  "Ruleta",
+    sub:    "Sorpresa de bar",
+    icon:   <Sparkles size={26} />,
     accent: "amber",
   },
 ];
@@ -240,7 +252,7 @@ export const AccountView = memo(function AccountView({
                   <span className={styles.liveStepLabel}>
                     {step === "pending"      ? "Enviado"
                       : step === "in-progress" ? "Preparando"
-                      : "Listo 🎉"}
+                      : "Listo"}
                   </span>
                 </div>
               );
@@ -273,7 +285,7 @@ export const AccountView = memo(function AccountView({
               href={a.href}
               className={[styles.quickCard, styles[`quickCard_${a.accent}`]].join(" ")}
             >
-              <span className={styles.quickEmoji} aria-hidden="true">{a.emoji}</span>
+              <span className={styles.quickEmoji} aria-hidden="true">{a.icon}</span>
               <span className={styles.quickLabel}>{a.label}</span>
               <span className={styles.quickSub}>{a.sub}</span>
             </Link>
@@ -296,7 +308,7 @@ export const AccountView = memo(function AccountView({
             </div>
           ) : recentOrders.length === 0 ? (
             <div className={styles.ordersEmpty}>
-              <span aria-hidden="true">🧾</span>
+              <ClipboardList size={28} className="opacity-40" aria-hidden="true" />
               <p>Todavía no hay pedidos en esta sesión.</p>
             </div>
           ) : (

@@ -35,6 +35,37 @@ const tagSchema = new mongoose.Schema(
 );
 
 /* ==============================
+   GUEST DIETARY RESTRICTION SCHEMA
+   Cada entrada = un invitado con sus restricciones
+============================== */
+const DIETARY_OPTIONS = [
+  "vegan",
+  "vegetarian",
+  "gluten-free",
+  "dairy-free",
+  "nut-free",
+  "sugar-free",
+  "shellfish-free",
+  "kosher",
+  "halal",
+  "low-sodium",
+  "other",
+];
+
+const guestDietarySchema = new mongoose.Schema(
+  {
+    guestName: { type: String, required: true, trim: true },
+    restrictions: {
+      type: [String],
+      enum: DIETARY_OPTIONS,
+      default: [],
+    },
+    notes: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+/* ==============================
    RESERVATION SCHEMA
 ============================== */
 const reservationSchema = new mongoose.Schema(
@@ -79,6 +110,9 @@ const reservationSchema = new mongoose.Schema(
 
     notes: { type: String, default: "" },
     tags: { type: [tagSchema], default: [] },
+
+    /** Restricciones dietéticas por invitado */
+    guestDietaryRestrictions: { type: [guestDietarySchema], default: [] },
 
     source: {
       type: String,
