@@ -1,41 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus,
-  RefreshCcw,
-  AlertCircle,
-  X,
-  Sparkles,
-  HelpCircle,
+  Plus, RefreshCcw, AlertCircle, X, Sparkles, HelpCircle,
+  LayoutGrid, Box, Layers, Map, Grid3X3,
+  Users, Activity, DollarSign, CheckCircle2, Clock,
 } from "lucide-react";
 
 import {
-  getTables,
-  createTable,
-  updateTable,
-  deleteTable,
-  openTable,
-  closeTable,
-  getTablePayments,
-  generateReceipt,
-  updateTableLayout,
-  createSessionCheckout,
-  PaymentServiceError,
-  getPaymentErrorMessage,
+  getTables, createTable, updateTable, deleteTable,
+  openTable, closeTable, getTablePayments, generateReceipt,
+  updateTableLayout, createSessionCheckout,
+  PaymentServiceError, getPaymentErrorMessage,
   type SessionCheckoutResult,
 } from "../services/tableService";
 
 import type { Table } from "../types/table";
 import { connectSalonSockets, getMainSocket } from "../../../services/socket";
 
-import FloorPlan from "../components/FloorPlan";
+import FloorPlan    from "../components/FloorPlan";
 import TableInspector from "../components/TableInspector";
-import TableStats from "../components/TableStats";
-import TableForm from "../components/TableForm";
-import OrderForm from "../../orders/components/OrderForm";
+import TableStats   from "../components/TableStats";
+import TableForm    from "../components/TableForm";
+import OrderForm    from "../../orders/components/OrderForm";
 import PaymentHistory from "../components/PaymentHistory";
 import ReceiptModal from "../components/ReceiptModal";
 import TableAnalyticsDashboard from "../components/TableAnalyticsDashboard";
@@ -43,57 +32,101 @@ import PaymentMethodSelector from "../components/PaymentMethodSelector";
 import SalonNextStepBanner from "../../salon/components/SalonNextStepBanner";
 import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
 import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
-import { useSalonUiStore } from "../../../store/salonUiStore";
+import { useTablesUiStore, type TablesMode } from "../../../store/tablesUiStore";
 import { updateReservationStatus } from "../../reservations/services/reservationService";
 import "../../../styles/nebula-theme.css";
 
+// ── Mode toggle ───────────────────────────────────────────────────
+
+const MODE_OPTIONS: { value: TablesMode; label: string; icon: React.ReactNode; desc: string }[] = [
+  { value: "basic",    label: "Básico",    icon: <Box     size={14} />, desc: "Estado y acciones rápidas" },
+  { value: "standard", label: "Estándar",  icon: <Layers  size={14} />, desc: "Totales, código y órdenes"  },
+  { value: "advanced", label: "Avanzado",  icon: <Activity size={14} />, desc: "KPIs y analytics completos" },
+];
+
+function ModeToggle({ mode, onChange }: { mode: TablesMode; onChange: (m: TablesMode) => void }) {
+  return (
+    <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1">
+      {MODE_OPTIONS.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          title={opt.desc}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+            mode === opt.value
+              ? "bg-gold/20 text-gold border border-gold/30"
+              : "text-muted hover:text-ivory"
+          }`}
+        >
+          {opt.icon}
+          <span className="hidden sm:inline">{opt.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── KPI box ───────────────────────────────────────────────────────
+
+function KPIBox({
+  label, value, icon, colorCls, pulse,
+}: {
+  label: string; value: string | number; icon: React.ReactNode;
+  colorCls: string; pulse?: boolean;
+}) {
+  return (
+    <div className={`p-4 rounded-xl border bg-surface-3/50 flex items-center gap-3 ${colorCls}`}>
+      <div className={`p-2 rounded-xl ${colorCls} ${pulse ? "animate-pulse" : ""}`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[10px] text-muted uppercase tracking-widest truncate">{label}</p>
+        <p className="text-xl font-bold text-ivory leading-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Página ────────────────────────────────────────────────────────
+
 export default function TablesPage() {
-  const [tables, setTables] = useState<Table[]>([]);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [isOrderOpen, setIsOrderOpen] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tables,         setTables]         = useState<Table[]>([]);
+  const [selectedTable,  setSelectedTable]  = useState<Table | null>(null);
+  const [loading,        setLoading]        = useState(false);
+  const [isOrderOpen,    setIsOrderOpen]    = useState(false);
+  const [isFormOpen,     setIsFormOpen]     = useState(false);
+  const [error,          setError]          = useState<string | null>(null);
   const [isPaymentHistoryOpen, setIsPaymentHistoryOpen] = useState(false);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [isPaymentSelectorOpen, setIsPaymentSelectorOpen] = useState(false);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [isReceiptModalOpen,   setIsReceiptModalOpen]   = useState(false);
+  const [isAnalyticsOpen,      setIsAnalyticsOpen]      = useState(false);
+  const [isPaymentSelectorOpen,setIsPaymentSelectorOpen]= useState(false);
+  const [payments,       setPayments]       = useState<any[]>([]);
+  const [selectedReceipt,setSelectedReceipt]= useState<any>(null);
   const [sessionBalanceDue, setSessionBalanceDue] = useState(0);
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  const [isMobile,       setIsMobile]       = useState(false);
+  const [isInspectorOpen,setIsInspectorOpen]= useState(false);
+  const [activeLocation, setActiveLocation] = useState<string>("all");
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const salonMode = useSalonUiStore((s) => s.mode);
-  const setSalonMode = useSalonUiStore((s) => s.setMode);
+
+  const { mode, setMode, view, setView, toggleView } = useTablesUiStore();
   const {
     isOpen: salonTutorialOpen,
     openTutorial: openSalonTutorial,
     closeTutorial: closeSalonTutorial,
     completeTutorial: completeSalonTutorial,
   } = useSalonTutorial(true);
-  const [, setCurrentOrderTotal] = useState<number>(0);
 
-  const handleTableLayoutChange = async (id: string, x: number, y: number) => {
-    try {
-      // Actualizar localmente de forma optimista para fluidez total
-      setTables((prev) =>
-        prev.map((t) => (t._id === id ? { ...t, x, y } : t))
-      );
-      if (selectedTable?._id === id) {
-        setSelectedTable((prev) => prev ? { ...prev, x, y } : null);
-      }
-      
-      // Guardar coordenadas de plano en backend
-      await updateTableLayout(id, { x, y });
-    } catch (err) {
-      setError("Error al guardar la posición de la mesa");
-      console.error("Error updating table layout:", err);
-    }
-  };
+  // ── Resize ────────────────────────────────────────────────────
+  useEffect(() => {
+    const handle = () => setIsMobile(window.innerWidth < 1024);
+    handle();
+    window.addEventListener("resize", handle);
+    return () => window.removeEventListener("resize", handle);
+  }, []);
 
+  // ── Fetch ─────────────────────────────────────────────────────
   const fetchTables = async () => {
     try {
       setLoading(true);
@@ -101,29 +134,15 @@ export default function TablesPage() {
       const data = await getTables();
       setTables(data || []);
     } catch (err: any) {
-      setError("Fallo en la sincronización de activos");
-      console.error("Error fetching tables:", err);
+      setError("Error al sincronizar mesas");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchTables();
-    
-    // Detectar tamaño de pantalla para responsividad
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  useEffect(() => { fetchTables(); }, []);
 
+  // ── Socket.IO ─────────────────────────────────────────────────
   useEffect(() => {
     const token = localStorage.getItem("token") || undefined;
     connectSalonSockets(token);
@@ -131,333 +150,41 @@ export default function TablesPage() {
     if (!socket) return;
 
     const handleUpdate = (updated: Table) => {
-      setTables((prev) =>
-        prev.map((t) => (t._id === updated._id ? updated : t))
-      );
+      setTables((prev) => prev.map((t) => t._id === updated._id ? updated : t));
       if (selectedTable?._id === updated._id) setSelectedTable(updated);
     };
-
-    const handleCreated = (t: Table) =>
-      setTables((prev) => [...prev, t]);
-
+    const handleCreated = (t: Table) => setTables((prev) => [...prev, t]);
     const handleDeleted = (payload: string | { tableId?: string; _id?: string }) => {
-      const id =
-        typeof payload === "string"
-          ? payload
-          : payload?.tableId ?? payload?._id;
+      const id = typeof payload === "string" ? payload : payload?.tableId ?? payload?._id;
       if (!id) return;
       setTables((prev) => prev.filter((t) => t._id !== id));
       if (selectedTable?._id === id) setSelectedTable(null);
     };
 
-    const handleTableClosed = () => {
-      fetchTables();
-    };
-
-    socket.on("table:update", handleUpdate);
+    socket.on("table:update",  handleUpdate);
     socket.on("table:created", handleCreated);
     socket.on("table:deleted", handleDeleted);
-    socket.on("table:closed", handleTableClosed);
-    socket.on("payment:completed", handleTableClosed);
+    socket.on("table:closed",  fetchTables);
+    socket.on("payment:completed", fetchTables);
 
     return () => {
-      socket.off("table:update", handleUpdate);
-      socket.off("table:closed", handleTableClosed);
-      socket.off("payment:completed", handleTableClosed);
+      socket.off("table:update",  handleUpdate);
       socket.off("table:created", handleCreated);
       socket.off("table:deleted", handleDeleted);
+      socket.off("table:closed",  fetchTables);
+      socket.off("payment:completed", fetchTables);
     };
   }, [selectedTable]);
 
-  // Actualizar el total de la orden cuando cambia la mesa seleccionada
+  // Abrir inspector en mobile cuando se selecciona mesa
   useEffect(() => {
+    if (selectedTable && isMobile) setIsInspectorOpen(true);
     if (selectedTable) {
-      const total = selectedTable.orders?.reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0;
-      setCurrentOrderTotal(total);
-      
-      // En móvil, cerrar el inspector cuando se selecciona una mesa
-      if (isMobile) {
-        setIsInspectorOpen(true);
-      }
+      // Actualizar total corriente
     }
   }, [selectedTable, isMobile]);
 
-  const handleOpen = async (id: string) => {
-    // Foolproof validation
-    const table = tables.find(t => t._id === id);
-    if (!table) {
-      setError("Mesa no encontrada. Por favor selecciona una mesa válida.");
-      return;
-    }
-
-    if (table.status === "occupied") {
-      setError("Esta mesa ya está abierta. No puedes abrir una mesa ocupada.");
-      return;
-    }
-
-    if (table.status === "maintenance") {
-      setError("Esta mesa está en mantenimiento. No puedes abrirla.");
-      return;
-    }
-
-    if (table.status === "reserved") {
-      await seatTableReservation(table);
-      return;
-    }
-
-    try {
-      const updated = await openTable(id);
-      setSelectedTable(updated);
-      setTables((prev) =>
-        prev.map((t) => (t._id === id ? updated : t))
-      );
-      setIsOrderOpen(true);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Error al abrir la mesa";
-      setError(msg);
-    }
-  };
-
-  const seatTableReservation = async (table: Table) => {
-    if (!table.currentReservation) {
-      setError("Esta mesa no tiene una reserva vinculada.");
-      return;
-    }
-    try {
-      setError(null);
-      await updateReservationStatus(String(table.currentReservation), "seated");
-      const list = await getTables();
-      setTables(list);
-      const updated = list.find((t) => t._id === table._id);
-      if (updated) {
-        setSelectedTable(updated);
-        setIsOrderOpen(true);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "No se pudo sentar la reserva";
-      setError(msg);
-    }
-  };
-
-  const handleSeatFromInspector = () => {
-    if (selectedTable) seatTableReservation(selectedTable);
-  };
-
-  const handleViewReservation = () => {
-    if (!selectedTable?.currentReservation) return;
-    navigate(`/reservations?highlight=${selectedTable.currentReservation}`);
-  };
-
-  const handleBannerAction = () => {
-    if (!selectedTable) return;
-    if (selectedTable.status === "available") handleOpen(selectedTable._id!);
-    else if (selectedTable.status === "reserved") handleSeatFromInspector();
-    else if (selectedTable.status === "occupied") setIsOrderOpen(true);
-  };
-
-  const handleClose = async (id: string) => {
-    // Foolproof validation
-    const table = tables.find(t => t._id === id);
-    if (!table) {
-      setError("Mesa no encontrada. Por favor selecciona una mesa válida.");
-      return;
-    }
-
-    if (table.status !== "occupied") {
-      setError("Solo puedes cerrar mesas que estén ocupadas. Esta mesa no tiene una sesión activa.");
-      return;
-    }
-
-    const totalAmount = table.orders?.reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0;
-    const totalPaid = table.totalPayments || 0;
-
-    if (totalAmount > 0 && totalPaid < totalAmount) {
-      if (!confirm(`La cuenta tiene un saldo pendiente de $${(totalAmount - totalPaid).toFixed(2)}. ¿Estás seguro de que quieres cerrar la mesa sin cobrar el saldo completo?`)) {
-        return;
-      }
-    }
-
-    try {
-      await closeTable(id);
-    } catch (err) {
-      setError("Error al finalizar sesión");
-      console.error("Error closing table:", err);
-    }
-  };
-
-  const handleSave = async (tableData: Table) => {
-    // Foolproof validation
-    if (!tableData.number || tableData.number <= 0) {
-      setError("El número de mesa es requerido y debe ser mayor a 0.");
-      return;
-    }
-
-    if (!tableData.capacity || tableData.capacity <= 0) {
-      setError("La capacidad es requerida y debe ser mayor a 0.");
-      return;
-    }
-
-    if (!tableData.location) {
-      setError("La ubicación de la mesa es requerida.");
-      return;
-    }
-
-    // Check for duplicate table numbers when creating new
-    if (!tableData._id) {
-      const existingTable = tables.find(t => t.number === tableData.number);
-      if (existingTable) {
-        setError(`Ya existe una mesa con el número ${tableData.number}. Por favor usa un número diferente.`);
-        return;
-      }
-    }
-
-    try {
-      if (tableData._id) {
-        await updateTable(tableData._id, tableData);
-      } else {
-        await createTable(tableData);
-      }
-      setIsFormOpen(false);
-      fetchTables();
-    } catch (err) {
-      setError("Error al persistir cambios");
-      console.error("Error saving table:", err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    // Foolproof validation
-    const table = tables.find(t => t._id === id);
-    if (!table) {
-      setError("Mesa no encontrada. Por favor selecciona una mesa válida.");
-      return;
-    }
-
-    if (table.status === "occupied") {
-      setError("No puedes eliminar una mesa que está ocupada. Por favor cierra la mesa primero.");
-      return;
-    }
-
-    if (table.status === "reserved") {
-      setError("No puedes eliminar una mesa que está reservada. Por favor cancela la reserva primero.");
-      return;
-    }
-
-    if (!confirm(`¿Estás seguro de que quieres eliminar la mesa #${table.number}? Esta acción no se puede deshacer.`)) {
-      return;
-    }
-
-    try {
-      await deleteTable(id);
-      setSelectedTable(null);
-    } catch (err) {
-      setError("No se pudo eliminar el activo");
-      console.error("Error deleting table:", err);
-    }
-  };
-
-  const handleViewPaymentHistory = async () => {
-    if (!selectedTable) return;
-    try {
-      const data = await getTablePayments(selectedTable._id!, selectedTable.currentSessionId || undefined);
-      setPayments(data || []);
-      setIsPaymentHistoryOpen(true);
-    } catch (err) {
-      setError("Error al cargar historial de pagos");
-      console.error("Error fetching payment history:", err);
-    }
-  };
-
-  const handleViewReceipt = async (paymentId: string) => {
-    try {
-      const receipt = await generateReceipt(paymentId);
-      setSelectedReceipt(receipt);
-      setIsReceiptModalOpen(true);
-    } catch (err) {
-      setError("Error al generar recibo");
-      console.error("Error generating receipt:", err);
-    }
-  };
-
-  const handleViewAnalytics = () => {
-    if (!selectedTable) return;
-    setIsAnalyticsOpen(true);
-  };
-
-  const handlePaymentSelector = () => {
-    if (!selectedTable) return;
-
-    if (!selectedTable.currentSessionId) {
-      setError("La mesa no tiene una sesión activa para cobrar.");
-      return;
-    }
-
-    const openOrders =
-      selectedTable.orders?.filter((o) => o.sessionStatus === "open") || [];
-    if (!openOrders.length) {
-      setError("No hay órdenes abiertas para cobrar en esta mesa.");
-      return;
-    }
-
-    const hasPendingOrInProgress = openOrders.some(
-      (o) => o.status === "pending" || o.status === "in-progress"
-    );
-    if (hasPendingOrInProgress) {
-      setError("No se puede proceder al pago: hay pedidos pendientes o en preparación.");
-      return;
-    }
-
-    const totalAmount =
-      selectedTable.totalAmount ??
-      openOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const balanceDue =
-      selectedTable.balanceDue !== undefined
-        ? selectedTable.balanceDue
-        : Math.max(0, totalAmount - (selectedTable.totalPaid || 0));
-
-    if (balanceDue <= 0) {
-      setError("No hay saldo pendiente en esta mesa.");
-      return;
-    }
-
-    setSessionBalanceDue(balanceDue);
-    setIsPaymentSelectorOpen(true);
-  };
-
-  const buildReceiptFromCheckout = (
-    result: SessionCheckoutResult,
-    tableNumber: number
-  ) => {
-    const summary = result.receiptSummary;
-    const allItems =
-      result.payments?.flatMap((p) => p.receipt?.items || []) ||
-      result.payment?.receipt?.items ||
-      [];
-
-    return {
-      receiptNumber: summary.receiptNumber || result.payment?.receipt?.receiptNumber || "N/A",
-      issuedAt: summary.issuedAt || new Date().toISOString(),
-      table: { number: tableNumber, location: result.table?.location || "indoor" },
-      items: allItems.length
-        ? allItems
-        : [{ name: "Cuenta de mesa", quantity: 1, price: summary.total, subtotal: summary.total }],
-      subtotal: summary.subtotal,
-      discountTotal: summary.discountTotal,
-      total: summary.total,
-      method: summary.method as "cash" | "transfer" | "card" | "split",
-      change: summary.change,
-      processedBy: { name: "Caja", role: "staff" },
-      maintenanceUntil: summary.maintenanceUntil,
-    };
-  };
-
-  const [activeLocation, setActiveLocation] = useState<string>("all");
-
-  const filteredTables = activeLocation === "all" 
-    ? tables 
-    : tables.filter(t => t.location === activeLocation);
-
+  // Deep-link desde searchParams
   useEffect(() => {
     const tableId = searchParams.get("table");
     if (!tableId || tables.length === 0) return;
@@ -468,152 +195,344 @@ export default function TablesPage() {
     }
   }, [searchParams, tables]);
 
+  // ── CRUD ──────────────────────────────────────────────────────
+  const handleOpen = async (id: string) => {
+    const table = tables.find((t) => t._id === id);
+    if (!table)                          return setError("Mesa no encontrada");
+    if (table.status === "occupied")     return setError("Esta mesa ya está abierta");
+    if (table.status === "maintenance")  return setError("Mesa en mantenimiento");
+    if (table.status === "reserved")     return seatTableReservation(table);
+
+    try {
+      // openTable ahora devuelve la tabla con tableCode y currentSessionId ya adjuntos
+      const updated = await openTable(id);
+      setSelectedTable(updated);
+      setTables((prev) => prev.map((t) => t._id === id ? updated : t));
+      setIsOrderOpen(true);
+    } catch (err: any) {
+      setError(err?.message ?? "Error al abrir la mesa");
+    }
+  };
+
+  const seatTableReservation = async (table: Table) => {
+    if (!table.currentReservation) return setError("Sin reserva vinculada");
+    try {
+      setError(null);
+      await updateReservationStatus(String(table.currentReservation), "seated");
+      const list = await getTables();
+      setTables(list);
+      const updated = list.find((t) => t._id === table._id);
+      if (updated) { setSelectedTable(updated); setIsOrderOpen(true); }
+    } catch (err: any) {
+      setError(err?.message ?? "No se pudo sentar la reserva");
+    }
+  };
+
+  const handleClose = async (id: string) => {
+    const table = tables.find((t) => t._id === id);
+    if (!table)                       return setError("Mesa no encontrada");
+    if (table.status !== "occupied")  return setError("Solo puedes cerrar mesas ocupadas");
+
+    const totalAmount = table.orders?.reduce((s, o) => s + (o.total || 0), 0) || 0;
+    const totalPaid   = table.totalPayments || 0;
+    if (totalAmount > 0 && totalPaid < totalAmount) {
+      if (!confirm(`Saldo pendiente $${(totalAmount - totalPaid).toFixed(2)}. ¿Cerrar igual?`)) return;
+    }
+    try { await closeTable(id); } catch (err: any) { setError("Error al cerrar mesa"); }
+  };
+
+  const handleSave = async (tableData: Table) => {
+    if (!tableData.number || tableData.number <= 0) return setError("Número de mesa requerido");
+    if (!tableData.capacity || tableData.capacity <= 0) return setError("Capacidad requerida");
+    if (!tableData.location) return setError("Ubicación requerida");
+    if (!tableData._id && tables.some((t) => t.number === tableData.number)) {
+      return setError(`Mesa #${tableData.number} ya existe`);
+    }
+    try {
+      if (tableData._id) await updateTable(tableData._id, tableData);
+      else               await createTable(tableData);
+      setIsFormOpen(false);
+      fetchTables();
+    } catch (err: any) { setError("Error al guardar la mesa"); }
+  };
+
+  const handleDelete = async (id: string) => {
+    const table = tables.find((t) => t._id === id);
+    if (!table) return setError("Mesa no encontrada");
+    if (table.status === "occupied")  return setError("Cierra la mesa antes de eliminarla");
+    if (table.status === "reserved")  return setError("Cancela la reserva antes de eliminarla");
+    if (!confirm(`¿Eliminar Mesa #${table.number}? Esta acción no se puede deshacer.`)) return;
+    try { await deleteTable(id); setSelectedTable(null); }
+    catch (err: any) { setError("Error al eliminar la mesa"); }
+  };
+
+  const handleTableLayoutChange = async (id: string, x: number, y: number) => {
+    setTables((prev) => prev.map((t) => t._id === id ? { ...t, x, y } : t));
+    if (selectedTable?._id === id) setSelectedTable((p) => p ? { ...p, x, y } : null);
+    try { await updateTableLayout(id, { x, y }); }
+    catch { setError("Error al guardar posición"); }
+  };
+
+  const handleViewPaymentHistory = async () => {
+    if (!selectedTable) return;
+    try {
+      const data = await getTablePayments(selectedTable._id!, selectedTable.currentSessionId || undefined);
+      setPayments(data || []);
+      setIsPaymentHistoryOpen(true);
+    } catch { setError("Error al cargar historial de pagos"); }
+  };
+
+  const handleViewReceipt = async (paymentId: string) => {
+    try {
+      const receipt = await generateReceipt(paymentId);
+      setSelectedReceipt(receipt);
+      setIsReceiptModalOpen(true);
+    } catch { setError("Error al generar recibo"); }
+  };
+
+  const handlePaymentSelector = () => {
+    if (!selectedTable) return;
+    if (!selectedTable.currentSessionId) return setError("Sin sesión activa");
+    const openOrders = selectedTable.orders?.filter((o) => o.sessionStatus === "open") || [];
+    if (!openOrders.length) return setError("No hay órdenes abiertas");
+    if (openOrders.some((o) => o.status === "pending" || o.status === "in-progress"))
+      return setError("Hay pedidos en preparación. Esperá antes de cobrar.");
+    const totalAmount = selectedTable.totalAmount ?? openOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const balanceDue  = selectedTable.balanceDue !== undefined
+      ? selectedTable.balanceDue
+      : Math.max(0, totalAmount - (selectedTable.totalPaid || 0));
+    if (balanceDue <= 0) return setError("No hay saldo pendiente");
+    setSessionBalanceDue(balanceDue);
+    setIsPaymentSelectorOpen(true);
+  };
+
+  const buildReceiptFromCheckout = (result: SessionCheckoutResult, tableNumber: number) => {
+    const summary = result.receiptSummary;
+    const allItems = result.payments?.flatMap((p) => p.receipt?.items || []) || result.payment?.receipt?.items || [];
+    return {
+      receiptNumber: summary.receiptNumber || result.payment?.receipt?.receiptNumber || "N/A",
+      issuedAt: summary.issuedAt || new Date().toISOString(),
+      table: { number: tableNumber, location: result.table?.location || "indoor" },
+      items: allItems.length ? allItems : [{ name: "Cuenta de mesa", quantity: 1, price: summary.total, subtotal: summary.total }],
+      subtotal: summary.subtotal, discountTotal: summary.discountTotal, total: summary.total,
+      method: summary.method as any, change: summary.change,
+      processedBy: { name: "Caja", role: "staff" },
+      maintenanceUntil: summary.maintenanceUntil,
+    };
+  };
+
+  // ── Stats ─────────────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const total      = tables.length;
+    const available  = tables.filter((t) => t.status === "available").length;
+    const occupied   = tables.filter((t) => t.status === "occupied").length;
+    const reserved   = tables.filter((t) => t.status === "reserved").length;
+    const maintenance= tables.filter((t) => t.status === "maintenance").length;
+    const totalRevenue = tables.reduce((s, t) => s + (t.totalAmount ?? 0), 0);
+    return { total, available, occupied, reserved, maintenance, totalRevenue };
+  }, [tables]);
+
+  // ── Filtrado ──────────────────────────────────────────────────
+  const filteredTables = activeLocation === "all"
+    ? tables
+    : tables.filter((t) => t.location === activeLocation);
+
+  const LOCATIONS = [
+    { value: "all",     label: "Todas"    },
+    { value: "indoor",  label: "Interior" },
+    { value: "outdoor", label: "Terraza"  },
+    { value: "bar",     label: "Barra"    },
+  ];
+
+  // ── Render ────────────────────────────────────────────────────
   return (
     <div className="nebula-salon-root flex flex-col h-full min-h-0 bg-bg gap-4 overflow-hidden relative">
       <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-50" />
+
       <SalonFlowTutorial
         isOpen={salonTutorialOpen}
         onClose={closeSalonTutorial}
         onComplete={completeSalonTutorial}
       />
-      
-      {/* TOP COMMAND BAR - RESPONSIVE */}
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 flex-shrink-0">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
-              <Sparkles size={16} />
-            </div>
-            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">
-              Nebula · Salón
+
+      {/* ── HEADER ─────────────────────────────────────────────── */}
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-gold/30 to-amber-500/20 border border-gold/20 shadow-[0_0_20px_rgba(212,163,64,0.15)]">
+            <Sparkles className="text-gold" size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-ivory">Mesas</h1>
+            <p className="text-xs text-muted mt-0.5">
+              {stats.total} mesas · {stats.occupied} ocupadas · {stats.available} disponibles
             </p>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
-            Mesas y plano
-          </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Desktop-only stats */}
-          {salonMode === "advanced" && (
-            <div className="hidden lg:block">
-              <TableStats tables={tables} />
-            </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ModeToggle mode={mode} onChange={setMode} />
+
+          {/* Toggle vista grid/espacial */}
+          <button
+            type="button"
+            onClick={toggleView}
+            title={view === "grid" ? "Cambiar a vista espacial" : "Cambiar a vista grid"}
+            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+          >
+            {view === "grid" ? <Map size={15} /> : <Grid3X3 size={15} />}
+            <span className="hidden sm:inline">{view === "grid" ? "Espacial" : "Cuadrícula"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={fetchTables}
+            title="Sincronizar"
+            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+          >
+            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
+          </button>
+
+          <button
+            type="button"
+            onClick={openSalonTutorial}
+            title="Tutorial"
+            className="flex items-center gap-1 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-violet-300 hover:border-violet/20 transition-colors"
+          >
+            <HelpCircle size={15} />
+            <span className="hidden sm:inline">Tutorial</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(true)}
+            className="nebula-btn-primary flex items-center gap-2 px-4 py-2"
+          >
+            <Plus size={16} />
+            <span className="text-xs font-bold uppercase tracking-wider">Nueva mesa</span>
+          </button>
+        </div>
+      </header>
+
+      {/* ── KPIs adaptativos por modo ───────────────────────────── */}
+      {mode !== "basic" && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
+          <KPIBox
+            label="Total"
+            value={stats.total}
+            icon={<LayoutGrid size={17} />}
+            colorCls="from-violet-500/15 border-violet-500/25 bg-gradient-to-br"
+          />
+          <KPIBox
+            label="Ocupadas"
+            value={stats.occupied}
+            icon={<Users size={17} />}
+            colorCls="from-amber-500/15 border-amber-500/25 bg-gradient-to-br"
+            pulse={stats.occupied > 0}
+          />
+          {mode === "advanced" && (
+            <>
+              <KPIBox
+                label="Disponibles"
+                value={stats.available}
+                icon={<CheckCircle2 size={17} />}
+                colorCls="from-emerald-500/15 border-emerald-500/25 bg-gradient-to-br"
+              />
+              <KPIBox
+                label="Facturado"
+                value={`$${stats.totalRevenue.toFixed(0)}`}
+                icon={<DollarSign size={17} />}
+                colorCls="from-gold/15 border-gold/25 bg-gradient-to-br"
+              />
+            </>
           )}
-
-          <div className="nebula-mode-toggle">
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
-              onClick={() => setSalonMode("simple")}
-            >
-              Simple
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
-              onClick={() => setSalonMode("advanced")}
-            >
-              Avanzado
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={fetchTables}
-              className="btn btn-ghost !p-3 rounded-xl hover:bg-white/5 border border-white/5"
-              title="Sincronizar"
-            >
-              <RefreshCcw size={18} className={loading ? "animate-spin" : "opacity-50"} />
-            </button>
-
-            <button
-              type="button"
-              onClick={openSalonTutorial}
-              className="btn btn-ghost !p-3 rounded-xl hover:bg-white/5 border border-white/5 flex items-center gap-1.5 text-xs"
-              title="Tutorial"
-            >
-              <HelpCircle size={16} />
-              <span className="hidden sm:inline">Tutorial</span>
-            </button>
-
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="btn btn-gold px-6 py-3 rounded-xl shadow-gold-glow flex items-center gap-2 text-xs font-black uppercase tracking-widest"
-            >
-              <Plus size={18} />
-              <span className="hidden sm:inline">Registrar Mesa</span>
-            </button>
-          </div>
+          {mode === "standard" && (
+            <>
+              <KPIBox
+                label="Reservadas"
+                value={stats.reserved}
+                icon={<Clock size={17} />}
+                colorCls="from-blue-500/15 border-blue-500/25 bg-gradient-to-br"
+              />
+              <KPIBox
+                label="Mantenimiento"
+                value={stats.maintenance}
+                icon={<Activity size={17} />}
+                colorCls="from-red-500/15 border-red-500/25 bg-gradient-to-br"
+              />
+            </>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* MOBILE FILTER BAR */}
-      <div className="flex gap-2 p-2 bg-white/5 border border-white/5 rounded-xl self-start md:hidden overflow-x-auto">
-        {["all", "indoor", "outdoor", "bar"].map((loc) => (
+      {/* ── Stats avanzados (solo modo advanced) ─────────────────── */}
+      {mode === "advanced" && (
+        <div className="flex-shrink-0">
+          <TableStats tables={tables} />
+        </div>
+      )}
+
+      {/* ── Filtro de ubicaciones ────────────────────────────────── */}
+      <div className="flex gap-1.5 flex-shrink-0">
+        {LOCATIONS.map((loc) => (
           <button
-            key={loc}
-            onClick={() => setActiveLocation(loc)}
-            className={`
-              px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap
-              ${activeLocation === loc 
-                ? "bg-gold text-black shadow-gold-glow" 
-                : "text-muted hover:text-white hover:bg-white/5"
-              }
-            `}
+            key={loc.value}
+            type="button"
+            onClick={() => setActiveLocation(loc.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+              activeLocation === loc.value
+                ? "bg-gold/20 border-gold/40 text-gold"
+                : "bg-white/4 border-white/8 text-muted hover:border-white/18 hover:text-ivory"
+            }`}
           >
-            {loc === "all" ? "Todos" : loc === "indoor" ? "Interior" : loc === "outdoor" ? "Terraza" : "Barra"}
+            {loc.label}
+            <span className={`ml-1.5 text-[9px] px-1.5 py-0.5 rounded-full ${
+              activeLocation === loc.value ? "bg-gold/20 text-gold" : "bg-white/5 text-muted/60"
+            }`}>
+              {loc.value === "all"
+                ? tables.length
+                : tables.filter((t) => t.location === loc.value).length}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* DESKTOP FILTER BAR */}
-      <div className="hidden md:flex gap-2 p-2 bg-white/5 border border-white/5 rounded-xl self-start">
-        {["all", "indoor", "outdoor", "bar"].map((loc) => (
-          <button
-            key={loc}
-            onClick={() => setActiveLocation(loc)}
-            className={`
-              px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
-              ${activeLocation === loc 
-                ? "bg-gold text-black shadow-gold-glow" 
-                : "text-muted hover:text-white hover:bg-white/5"
-              }
-            `}
-          >
-            {loc === "all" ? "Todos" : loc === "indoor" ? "Interior" : loc === "outdoor" ? "Terraza" : "Barra"}
-          </button>
-        ))}
-      </div>
-
-      {/* ERROR FEEDBACK */}
+      {/* ── Error ───────────────────────────────────────────────── */}
       <AnimatePresence>
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden flex-shrink-0"
           >
-            <div className="glass-red p-4 rounded-2xl flex items-center justify-between border border-red-500/20">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="text-red-500" size={18} />
-                <p className="text-xs font-bold text-red-200/80 uppercase tracking-widest">{error}</p>
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
+              <div className="flex items-center gap-2">
+                <AlertCircle size={15} />
+                <span>{error}</span>
               </div>
-              <button onClick={() => setError(null)} className="text-red-400 hover:text-white p-1">
-                <X size={16} />
+              <button type="button" onClick={() => setError(null)}>
+                <X size={14} />
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <SalonNextStepBanner table={selectedTable} onAction={handleBannerAction} />
+      <SalonNextStepBanner
+        table={selectedTable}
+        onAction={() => {
+          if (!selectedTable) return;
+          if (selectedTable.status === "available") handleOpen(selectedTable._id!);
+          else if (selectedTable.status === "reserved") seatTableReservation(selectedTable);
+          else if (selectedTable.status === "occupied") setIsOrderOpen(true);
+        }}
+      />
 
-      {/* MAIN OPERATIONS CENTER - RESPONSIVE */}
-      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
-        
-        <div className="flex-1 flex flex-col min-h-0 relative">
+      {/* ── ZONA PRINCIPAL ──────────────────────────────────────── */}
+      <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
+
+        {/* FloorPlan — FIX: el contenedor necesita h-0 para que flex-1 funcione */}
+        <div className="flex-1 flex flex-col min-w-0 h-0 min-h-0 flex-shrink-0" style={{ flexBasis: 0, flexGrow: 1 }}>
           <FloorPlan
             tables={filteredTables}
             loading={loading}
@@ -622,119 +541,125 @@ export default function TablesPage() {
               setSelectedTable(table);
               if (isMobile) setIsInspectorOpen(true);
             }}
-            viewType="grid"
+            viewType={view === "spatial" ? "spatial" : "grid"}
             isEditMode={false}
             onTableLayoutChange={handleTableLayoutChange}
           />
         </div>
 
-        {/* INSPECTOR SIDEBAR - RESPONSIVE */}
+        {/* Inspector sidebar */}
         <AnimatePresence mode="wait">
-          {(isInspectorOpen || (!isMobile && selectedTable)) && (
-            <>
-              {/* Desktop: Always show when table selected */}
-              {(!isMobile && selectedTable) && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="hidden md:flex flex-col min-w-[380px] max-w-[420px] min-h-0"
-                >
-                  <TableInspector
-                    table={selectedTable}
-                    tables={tables}
-                    onOpen={handleOpen}
-                    onClose={handleClose}
-                    onSave={handleSave}
-                    onDelete={handleDelete}
-                    onOrder={() => setIsOrderOpen(true)}
-                    onViewPaymentHistory={handleViewPaymentHistory}
-                    onViewAnalytics={handleViewAnalytics}
-                    onPaymentSelector={handlePaymentSelector}
-                  />
-                </motion.div>
-              )}
-
-              {/* Mobile: Slide-in panel */}
-              {isMobile && (
-                <motion.div
-                  initial={{ opacity: 0, x: '100%' }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: '100%' }}
-                  className="md:hidden fixed inset-y-0 right-0 w-80 bg-surface-2 border-l border-white/10 z-50 overflow-y-auto custom-scrollbar"
-                >
-                  <div className="sticky top-0 bg-surface-2/95 backdrop-blur-md p-4 border-b border-white/10 flex justify-between items-center">
-                    <h3 className="text-sm font-black text-white">Detalles Mesa</h3>
-                    <button onClick={() => setIsInspectorOpen(false)} className="p-2 rounded-lg bg-white/5">
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <TableInspector
-                      table={selectedTable}
-                      tables={tables}
-                      onOpen={handleOpen}
-                      onClose={handleClose}
-                      onSave={handleSave}
-                      onDelete={handleDelete}
-                      onOrder={() => {
-                        setIsInspectorOpen(false);
-                        setIsOrderOpen(true);
-                      }}
-                      onViewPaymentHistory={() => {
-                        setIsInspectorOpen(false);
-                        handleViewPaymentHistory();
-                      }}
-                      onViewAnalytics={() => {
-                        setIsInspectorOpen(false);
-                        handleViewAnalytics();
-                      }}
-                      onPaymentSelector={() => {
-                        setIsInspectorOpen(false);
-                        handlePaymentSelector();
-                      }}
-                      onSeatReservation={handleSeatFromInspector}
-                      onViewReservation={handleViewReservation}
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </>
+          {!isMobile && selectedTable && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="hidden md:flex flex-col w-[380px] xl:w-[420px] min-h-0 flex-shrink-0"
+            >
+              <TableInspector
+                table={selectedTable}
+                tables={tables}
+                onOpen={handleOpen}
+                onClose={handleClose}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onOrder={() => setIsOrderOpen(true)}
+                onViewPaymentHistory={handleViewPaymentHistory}
+                onViewAnalytics={() => setIsAnalyticsOpen(true)}
+                onPaymentSelector={handlePaymentSelector}
+                onSeatReservation={() => seatTableReservation(selectedTable)}
+                onViewReservation={() => {
+                  if (selectedTable.currentReservation)
+                    navigate(`/reservations?highlight=${selectedTable.currentReservation}`);
+                }}
+              />
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* MOBILE TABLE SELECTOR (when no inspector) */}
+      {/* Inspector mobile slide-in */}
+      <AnimatePresence>
+        {isMobile && isInspectorOpen && selectedTable && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-40 md:hidden"
+              onClick={() => setIsInspectorOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              className="fixed inset-y-0 right-0 w-80 bg-surface-2 border-l border-white/10 z-50 flex flex-col md:hidden"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
+                <h3 className="text-sm font-black text-ivory">Mesa #{selectedTable.number}</h3>
+                <button type="button" onClick={() => setIsInspectorOpen(false)} className="p-2 rounded-lg bg-white/5">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <TableInspector
+                  table={selectedTable}
+                  tables={tables}
+                  onOpen={handleOpen}
+                  onClose={handleClose}
+                  onSave={handleSave}
+                  onDelete={handleDelete}
+                  onOrder={() => { setIsInspectorOpen(false); setIsOrderOpen(true); }}
+                  onViewPaymentHistory={() => { setIsInspectorOpen(false); handleViewPaymentHistory(); }}
+                  onViewAnalytics={() => { setIsInspectorOpen(false); setIsAnalyticsOpen(true); }}
+                  onPaymentSelector={() => { setIsInspectorOpen(false); handlePaymentSelector(); }}
+                  onSeatReservation={() => seatTableReservation(selectedTable)}
+                  onViewReservation={() => {
+                    if (selectedTable.currentReservation)
+                      navigate(`/reservations?highlight=${selectedTable.currentReservation}`);
+                  }}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile bottom button */}
       {isMobile && !isInspectorOpen && (
-        <motion.div 
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-2 border-t border-white/10 p-4 z-40"
+        <motion.div
+          initial={{ y: 80 }}
+          animate={{ y: 0 }}
+          className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-surface-2/95 backdrop-blur-md border-t border-white/10 z-30"
         >
           <button
-            onClick={() => selectedTable && setIsInspectorOpen(true)}
+            type="button"
             disabled={!selectedTable}
-            className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest disabled:opacity-50"
+            onClick={() => selectedTable && setIsInspectorOpen(true)}
+            className="w-full nebula-btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-40"
           >
-            {selectedTable ? `Ver Mesa #${selectedTable.number}` : "Selecciona una mesa"}
+            {selectedTable ? `Ver Mesa #${selectedTable.number}` : "Seleccioná una mesa"}
           </button>
         </motion.div>
       )}
 
-      {/* OVERLAYS & MODALS */}
+      {/* ── Modales ──────────────────────────────────────────────── */}
       <AnimatePresence>
+        {/* TableForm */}
         {isFormOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-8"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
           >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar"
+            <motion.div
+              initial={{ scale: 0.95, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 16, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="w-full max-w-2xl"
             >
               <TableForm
                 existingTables={tables}
@@ -765,82 +690,52 @@ export default function TablesPage() {
         )}
 
         {isReceiptModalOpen && selectedReceipt && (
-          <ReceiptModal
-            receipt={selectedReceipt}
-            onClose={() => setIsReceiptModalOpen(false)}
-          />
+          <ReceiptModal receipt={selectedReceipt} onClose={() => setIsReceiptModalOpen(false)} />
         )}
 
         {isAnalyticsOpen && selectedTable && (
-          <TableAnalyticsDashboard
-            tableId={selectedTable._id!}
-            onClose={() => setIsAnalyticsOpen(false)}
-          />
+          <TableAnalyticsDashboard tableId={selectedTable._id!} onClose={() => setIsAnalyticsOpen(false)} />
         )}
 
         {paymentSuccessMessage && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm font-bold">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm font-bold shadow-lg">
             {paymentSuccessMessage}
           </div>
         )}
 
-        {isPaymentSelectorOpen && selectedTable && selectedTable.currentSessionId && (
+        {isPaymentSelectorOpen && selectedTable?.currentSessionId && (
           <PaymentMethodSelector
             tableId={selectedTable._id!}
             sessionId={selectedTable.currentSessionId}
-            balanceDue={sessionBalanceDue > 0 ? sessionBalanceDue : 0}
+            balanceDue={sessionBalanceDue}
             onSelect={async (method, data) => {
               try {
                 setError(null);
                 setLoading(true);
-
-                const checkoutMethod = method as "cash" | "transfer" | "card" | "split";
-
-                const paymentDetails: Record<string, unknown> = {};
-                if (method === "cash") {
-                  paymentDetails.amountPaid = data?.amountPaid ?? sessionBalanceDue;
-                }
-                if (method === "card" && data?.cardDetails) {
-                  paymentDetails.cardDetails = data.cardDetails;
-                }
-                if (method === "split" && data?.totalSplits) {
-                  paymentDetails.totalSplits = data.totalSplits;
-                }
-                if (data?.notes) paymentDetails.notes = data.notes;
-
                 const response = await createSessionCheckout({
-                  tableId: selectedTable._id!,
+                  tableId:   selectedTable._id!,
                   sessionId: selectedTable.currentSessionId!,
-                  method: checkoutMethod,
-                  paymentDetails,
+                  method:    method as any,
+                  paymentDetails: {
+                    amountPaid:  data?.amountPaid  ?? sessionBalanceDue,
+                    notes:       data?.notes,
+                    totalSplits: data?.totalSplits,
+                    cardDetails: data?.cardDetails,
+                  },
                 });
-
                 await fetchTables();
-                setSelectedReceipt(
-                  buildReceiptFromCheckout(response, selectedTable.number)
-                );
+                setSelectedReceipt(buildReceiptFromCheckout(response, selectedTable.number));
                 setIsReceiptModalOpen(true);
                 const mins = response.receiptSummary?.maintenanceUntil
-                  ? Math.max(
-                      1,
-                      Math.round(
-                        (new Date(response.receiptSummary.maintenanceUntil).getTime() -
-                          Date.now()) /
-                          60000
-                      )
-                    )
+                  ? Math.max(1, Math.round((new Date(response.receiptSummary.maintenanceUntil).getTime() - Date.now()) / 60000))
                   : 5;
-                setPaymentSuccessMessage(
-                  `Cuenta cerrada. Mesa en mantenimiento ~${mins} min.`
-                );
+                setPaymentSuccessMessage(`Cuenta cerrada. Mesa en mantenimiento ~${mins} min.`);
                 setTimeout(() => setPaymentSuccessMessage(null), 6000);
                 setIsPaymentSelectorOpen(false);
               } catch (err: any) {
-                if (err instanceof PaymentServiceError) {
-                  setError(getPaymentErrorMessage(err));
-                } else {
-                  setError(err.message || "Error al procesar el pago");
-                }
+                setError(err instanceof PaymentServiceError
+                  ? getPaymentErrorMessage(err)
+                  : err?.message || "Error al procesar el pago");
               } finally {
                 setLoading(false);
               }
@@ -849,7 +744,6 @@ export default function TablesPage() {
           />
         )}
       </AnimatePresence>
-
     </div>
   );
 }

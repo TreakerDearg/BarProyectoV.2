@@ -16,29 +16,15 @@ export const getPublicPromotions = async (req, res, next) => {
     const promotions = await Promotion.find({
       isActive: true,
       $or: [
-        // Sin restricción de fecha
         { startDate: { $exists: false }, endDate: { $exists: false } },
-        // Dentro del rango de fechas
-        {
-          startDate: { $lte: now },
-          endDate: { $gte: now }
-        },
-        // Solo startDate definido y ya pasó
-        {
-          startDate: { $lte: now },
-          endDate: { $exists: false }
-        },
-        // Solo endDate definido y no ha pasado
-        {
-          startDate: { $exists: false },
-          endDate: { $gte: now }
-        }
+        { startDate: { $lte: now }, endDate: { $gte: now } },
+        { startDate: { $lte: now }, endDate: { $exists: false } },
+        { startDate: { $exists: false }, endDate: { $gte: now } },
       ]
     })
     .populate("applicableProducts", "name price image available")
     .sort({ createdAt: -1 });
 
-    // Transformar a DTO público (ocultar campos internos)
     const publicPromotions = promotions.map(promo => ({
       id: promo._id.toString(),
       name: promo.name,
@@ -50,7 +36,7 @@ export const getPublicPromotions = async (req, res, next) => {
         name: p.name,
         price: p.price,
         image: p.image,
-        available: p.available
+        available: p.available,
       })) || [],
       applicableCategories: promo.applicableCategories || [],
       schedule: promo.schedule ? {
@@ -58,9 +44,9 @@ export const getPublicPromotions = async (req, res, next) => {
         startTime: promo.schedule.startTime,
         endTime: promo.schedule.endTime,
         startDate: promo.schedule.startDate,
-        endDate: promo.schedule.endDate
+        endDate: promo.schedule.endDate,
       } : null,
-      active: promo.isActive
+      active: promo.isActive,
     }));
 
     return ok(res, publicPromotions);
@@ -85,6 +71,72 @@ export const createPromotion = async (req, res, next) => {
     });
 
     return ok(res, promotion, "Promoción creada correctamente");
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   UPDATE PROMOTION — PUT /:id
+   Edita todos los campos de una promoción existente.
+========================================================= */
+export const updatePromotion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const ALLOWED = [
+      "name", "description", "type", "value",
+      "schedule", "applicableProducts", "applicableCategories", "isActive",
+    ];
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
+    );
+
+    if (Object.keys(updates).length === 0) {
+      return badRequest(res, "No hay campos válidos para actualizar");
+    }
+
+    const promotion = await Promotion.findByIdAndUpdate(
+      id, updates, { new: true, runValidators: true }
+    ).populate("applicableProducts", "name price image available");
+
+    if (!promotion) return notFound(res, "Promoción no encontrada");
+
+    await PricingEvent.create({
+      type: "PROMOTION_ACTIVATED",
+      title: "Promoción actualizada",
+      detail: `Promoción '${promotion.name}' actualizada.`,
+      level: "info",
+      createdBy: req.user.id,
+    }).catch(() => {}); // No fallar si PricingEvent falla
+
+    return ok(res, promotion, "Promoción actualizada correctamente");
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   TOGGLE PROMOTION — PATCH /:id/toggle
+   Activa o desactiva sin eliminar.
+========================================================= */
+export const togglePromotion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const promotion = await Promotion.findById(id);
+    if (!promotion) return notFound(res, "Promoción no encontrada");
+
+    promotion.isActive = !promotion.isActive;
+    await promotion.save();
+
+    const action = promotion.isActive ? "activada" : "desactivada";
+
+    await PricingEvent.create({
+      type: "PROMOTION_ACTIVATED",
+      title: `Promoción ${action}`,
+      detail: `Promoción '${promotion.name}' ${action} por ${req.user.name || req.user.id}.`,
+      level: promotion.isActive ? "info" : "warning",
+      createdBy: req.user.id,
+    }).catch(() => {});
+
+    return ok(res, { isActive: promotion.isActive }, `Promoción ${action} correctamente`);
   } catch (error) { throw error; }
 };
 

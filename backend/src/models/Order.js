@@ -188,6 +188,15 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
     },
 
+    /** El cliente que hizo el pedido (rol client).
+     *  Distinto de createdBy que es el empleado que lo procesó en el Desktop. */
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
     servedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

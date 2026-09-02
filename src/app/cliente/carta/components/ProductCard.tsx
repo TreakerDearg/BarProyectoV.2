@@ -3,6 +3,8 @@
 import { memo, useState } from "react";
 import type { ProductPublicDTO } from "@/lib/types/api";
 import type { ProductPromotion } from "@/hooks/usePromotions";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useClienteStore } from "@/stores/useClienteStore";
 import styles from "./ProductCard.module.css";
 
 // ─────────────────────────────────────────────────────────────────
@@ -30,6 +32,11 @@ export const ProductCard = memo(function ProductCard({
   onOpenDetail,
 }: ProductCardProps) {
   const [imgError, setImgError] = useState(false);
+
+  // Favoritos — solo disponible si está autenticado
+  const user = useClienteStore((s) => s.user);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favActive = user ? isFavorite(product.id) : false;
 
   const isAvailable = product.available !== false;
   const basePrice = product.dynamicPrice ?? product.price;
@@ -114,7 +121,7 @@ export const ProductCard = memo(function ProductCard({
           <p className={styles.description}>{product.description}</p>
         )}
 
-        {/* Footer: precio + botón */}
+        {/* Footer: precio + botón favorito + botón agregar */}
         <div className={styles.footer}>
           <div className={styles.priceBlock}>
             {strikePrice != null && (
@@ -130,33 +137,51 @@ export const ProductCard = memo(function ProductCard({
             </span>
           </div>
 
-          {/* Botón agregar */}
-          <button
-            type="button"
-            className={`${styles.addBtn} ${cartQty > 0 ? styles.addBtnActive : ""}`}
-            onClick={() => onAdd(product)}
-            disabled={!isAvailable}
-            aria-label={
-              cartQty > 0
-                ? `${cartQty} en el pedido — agregar otro`
-                : `Agregar ${product.name} al pedido`
-            }
-          >
-            {cartQty > 0 ? (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5"
-                    strokeLinecap="round" strokeLinejoin="round" />
+          <div className={styles.footerActions}>
+            {/* Botón favorito — solo si hay sesión */}
+            {user && (
+              <button
+                type="button"
+                className={`${styles.favBtn} ${favActive ? styles.favBtnActive : ""}`}
+                onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id); }}
+                aria-label={favActive ? `Quitar ${product.name} de favoritos` : `Guardar ${product.name} en favoritos`}
+                aria-pressed={favActive}
+              >
+                <svg viewBox="0 0 24 24" fill={favActive ? "currentColor" : "none"} className={styles.addBtnIcon} aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+                    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span>{cartQty}</span>
-              </>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5"
-                  strokeLinecap="round" />
-              </svg>
+              </button>
             )}
-          </button>
+
+            {/* Botón agregar */}
+            <button
+              type="button"
+              className={`${styles.addBtn} ${cartQty > 0 ? styles.addBtnActive : ""}`}
+              onClick={() => onAdd(product)}
+              disabled={!isAvailable}
+              aria-label={
+                cartQty > 0
+                  ? `${cartQty} en el pedido — agregar otro`
+                  : `Agregar ${product.name} al pedido`
+              }
+            >
+              {cartQty > 0 ? (
+                <>
+                  <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span>{cartQty}</span>
+                </>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" className={styles.addBtnIcon} aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5"
+                    strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </article>

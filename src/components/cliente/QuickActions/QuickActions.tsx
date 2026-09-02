@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { UtensilsCrossed, ShoppingCart, Calendar, Sparkles, MapPin } from "lucide-react";
+import { UtensilsCrossed, ShoppingCart, Calendar, Sparkles, UserCircle } from "lucide-react";
 import styles from "./QuickActions.module.css";
 
 const quickActions = [
   {
     icon: UtensilsCrossed,
-    label: "Ver menú",
+    label: "Ver carta",
     href: "/cliente/carta",
   },
   {
     icon: ShoppingCart,
     label: "Hacer pedido",
-    href: "/cliente/carta",
+    href: "/cliente/pedido",
   },
   {
     icon: Calendar,
@@ -22,13 +22,13 @@ const quickActions = [
   },
   {
     icon: Sparkles,
-    label: "Promociones",
+    label: "Ruleta",
     href: "/cliente/ruleta",
   },
   {
-    icon: MapPin,
-    label: "Ver local",
-    href: "/cliente",
+    icon: UserCircle,
+    label: "Mi cuenta",
+    href: "/cliente/cuenta",
   },
 ];
 

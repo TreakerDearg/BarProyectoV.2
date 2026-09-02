@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
   getOrders, getOrderById, createOrder, updateOrderStatus,
-  updateOrderItemStatus, deleteOrder, applyDiscount, updateOrderItems
+  updateOrderItemStatus, deleteOrder, applyDiscount, updateOrderItems,
+  getMyOrderHistory,
 } from "../controllers/order.controller.js";
 import { validate } from "../middlewares/validate.js";
 import {
@@ -17,9 +18,15 @@ const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
 
 /* =========================================================
+   HISTORIAL DEL CLIENTE AUTENTICADO
+   Debe ir antes de /:id para evitar colisión de rutas
+========================================================= */
+router.get("/my-history", protect, asyncHandler(getMyOrderHistory));
+
+/* =========================================================
    READ
 ========================================================= */
-router.get("/", asyncHandler(getOrders));
+router.get("/",    asyncHandler(getOrders));
 router.get("/:id", asyncHandler(getOrderById));
 
 /* =========================================================

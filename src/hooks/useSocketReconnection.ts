@@ -1,74 +1,52 @@
 /**
- * Hook for handling Socket.IO reconnection and state synchronization
- * Based on REALTIME_CONTRACT.md reconnection strategy
+ * Hook for handling Socket.IO reconnection and state synchronization.
+ *
+ * IMPORTANTE: Los clientes NO se unen a orders:global (staff only).
+ * Al reconectar se unen a user:{userId} para recibir actualizaciones
+ * de sus propios pedidos en tiempo real.
  */
 
 import { useEffect, useCallback } from "react";
 import { useClienteStore } from "@/stores/useClienteStore";
-import { joinUserRoom, joinOrdersGlobal, isConnected } from "@/lib/realtime/socket";
+import { joinUserRoom, isConnected } from "@/lib/realtime/socket";
 
-/**
- * Custom hook to handle socket reconnection and state sync
- * Automatically rejoins rooms and triggers state refresh on reconnection
- */
 export function useSocketReconnection() {
   const user = useClienteStore((state) => state.user);
 
   useEffect(() => {
-    // Handle reconnection event
     const handleReconnect = () => {
-      console.log("[Reconnection] Socket reconnected, rejoining rooms...");
-      
-      // Re-join orders global room
-      joinOrdersGlobal();
-      
-      // Re-join user room if authenticated
+      // Re-join user room si está autenticado
       if (user?._id) {
         joinUserRoom(user._id);
       }
-
-      // Emit custom event for components to sync their state
+      // Disparar sync de estado en los componentes que lo escuchan
       window.dispatchEvent(new CustomEvent("socket:state-sync"));
     };
 
-    // Handle disconnect event (fallback to polling)
     const handleDisconnect = () => {
-      console.log("[Reconnection] Socket disconnected, components should enable polling");
+      // Los componentes que escuchan este evento pueden activar polling
     };
 
-    // Handle fallback event (max reconnection attempts reached)
     const handleFallback = () => {
-      console.log("[Reconnection] Switching to polling fallback mode");
+      // Max reconnect intentos — componentes pueden activar polling
     };
 
     window.addEventListener("socket:reconnected", handleReconnect);
-    window.addEventListener("socket:disconnect", handleDisconnect);
-    window.addEventListener("socket:fallback", handleFallback);
+    window.addEventListener("socket:disconnect",  handleDisconnect);
+    window.addEventListener("socket:fallback",    handleFallback);
 
     return () => {
       window.removeEventListener("socket:reconnected", handleReconnect);
-      window.removeEventListener("socket:disconnect", handleDisconnect);
-      window.removeEventListener("socket:fallback", handleFallback);
+      window.removeEventListener("socket:disconnect",  handleDisconnect);
+      window.removeEventListener("socket:fallback",    handleFallback);
     };
   }, [user]);
 
-  /**
-   * Manual trigger for state synchronization
-   * Call this when you want to refresh data after reconnection
-   */
   const triggerStateSync = useCallback(() => {
     window.dispatchEvent(new CustomEvent("socket:state-sync"));
   }, []);
 
-  /**
-   * Check if socket is currently connected
-   */
-  const checkConnection = useCallback(() => {
-    return isConnected();
-  }, []);
+  const checkConnection = useCallback(() => isConnected(), []);
 
-  return {
-    triggerStateSync,
-    checkConnection,
-  };
+  return { triggerStateSync, checkConnection };
 }

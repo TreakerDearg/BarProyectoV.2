@@ -100,6 +100,10 @@ function setupDefaultNamespace(io) {
               socket.join(room);
               authorizedRooms.push(room);
               logger.info(`[Socket] Usuario ${user.id} (${user.role}) unido a orders:global`);
+            } else if (user && user.role === "client") {
+              // Los clientes NO se unen a orders:global.
+              // El backend ya emite a user:{userId} cuando hay un cambio en su pedido.
+              logger.info(`[Socket] Cliente ${user.id} — orders:global denegado, usar user:${user.id}`);
             } else {
               logger.warn(`[Socket] Usuario sin autorización para orders:global: ${user?.role}`);
             }

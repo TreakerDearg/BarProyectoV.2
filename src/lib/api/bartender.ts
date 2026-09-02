@@ -291,3 +291,124 @@ export async function getProductCategories(params?: { type?: "drink" | "food" })
     return []; // No romper la Carta si falla
   }
 }
+
+/* =========================================================
+   PERFIL DEL CLIENTE
+========================================================= */
+
+/** Actualizar nombre y/o teléfono del perfil propio */
+export async function updateMyProfile(body: {
+  name?: string;
+  phone?: string;
+}) {
+  try {
+    const res = await api.patch("/auth/profile", body);
+    return extractData<{ _id: string; name: string; email: string; phone: string | null; avatar: string | null; role: string }>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+/** Cambiar contraseña (solo cuentas locales) */
+export async function changeMyPassword(body: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  try {
+    const res = await api.patch("/auth/password", body);
+    return extractData<null>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+/** Historial de pedidos del cliente autenticado */
+export async function getMyOrderHistory(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  try {
+    const qs = new URLSearchParams();
+    if (params?.page)   qs.set("page",   String(params.page));
+    if (params?.limit)  qs.set("limit",  String(params.limit));
+    if (params?.status) qs.set("status", params.status);
+    const res = await api.get(`/orders/my-history?${qs.toString()}`);
+    return extractData<{
+      data: Array<{
+        _id: string;
+        status: string;
+        total: number;
+        subtotal: number;
+        itemCount: number;
+        items: Array<{ name: string; quantity: number; status: string }>;
+        createdAt: string;
+        tableNumber: number | null;
+        notes: string | null;
+      }>;
+      total: number;
+      page: number;
+      limit: number;
+    }>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+/* =========================================================
+   FAVORITOS
+========================================================= */
+
+export async function getMyFavorites() {
+  try {
+    const res = await api.get("/auth/favorites");
+    return extractData<ProductPublicDTO[]>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+export async function addFavorite(productId: string) {
+  try {
+    const res = await api.post("/auth/favorites", { productId });
+    return extractData<null>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+export async function removeFavorite(productId: string) {
+  try {
+    const res = await api.delete(`/auth/favorites/${productId}`);
+    return extractData<null>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
+  }
+}
+
+/* =========================================================
+   RESERVAS DEL CLIENTE
+========================================================= */
+
+export async function getMyReservations(params?: {
+  upcoming?: boolean;
+  limit?: number;
+}) {
+  try {
+    const qs = new URLSearchParams();
+    if (params?.upcoming) qs.set("upcoming", "true");
+    if (params?.limit)    qs.set("limit", String(params.limit));
+    const res = await api.get(`/reservations/my-history?${qs.toString()}`);
+    return extractData<Array<{
+      _id: string;
+      status: string;
+      startTime: string;
+      endTime: string;
+      guests: number;
+      tableNumber?: number;
+      notes?: string;
+    }>>(res);
+  } catch {
+    return []; // silencioso — aún no implementado en backend
+  }
+}

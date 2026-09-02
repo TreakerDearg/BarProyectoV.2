@@ -644,3 +644,181 @@ export const redeemSSOToken = async (req, res, next) => {
     return serverError(res, "Error al canjear token SSO");
   }
 };
+
+/* =========================================================
+   UPDATE PROFILE
+   PATCH /auth/profile
+   Permite al usuario autenticado editar su propio perfil.
+   Solo name y phone. El email NO es editable (es la identidad).
+========================================================= */
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const ALLOWED = ["name", "phone"];
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
+    );
+
+    if (updates.name !== undefined) {
+      const name = String(updates.name).trim();
+      if (name.length < 2 || name.length > 50) {
+        return badRequest(res, "El nombre debe tener entre 2 y 50 caracteres");
+      }
+      updates.name = name;
+    }
+
+    if (updates.phone !== undefined) {
+      const phone = String(updates.phone).trim();
+      if (phone && phone.length > 30) {
+        return badRequest(res, "El teléfono no puede superar 30 caracteres");
+      }
+      updates.phone = phone || null;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return badRequest(res, "No hay campos válidos para actualizar");
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      { new: true, runValidators: true }
+    ).select("_id name email phone avatar role lastLogin").lean();
+
+    if (!user) return unauthorized(res, "Usuario no encontrado");
+
+    logger.info(`[Auth] Perfil actualizado: ${userId}`);
+    return ok(res, user, "Perfil actualizado correctamente");
+  } catch (error) {
+    logger.error("[Auth] Error en updateProfile:", error);
+    throw error;
+  }
+};
+
+/* =========================================================
+   CHANGE PASSWORD (propio usuario)
+   PATCH /auth/password
+   Solo para cuentas con provider === 'local'.
+   Requiere la contraseña actual para confirmar identidad.
+========================================================= */
+export const changeOwnPassword = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return badRequest(res, "Se requieren currentPassword y newPassword");
+    }
+
+    if (newPassword.length < 6) {
+      return badRequest(res, "La nueva contraseña debe tener al menos 6 caracteres");
+    }
+
+    if (currentPassword === newPassword) {
+      return badRequest(res, "La nueva contraseña debe ser diferente a la actual");
+    }
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) return unauthorized(res, "Usuario no encontrado");
+
+    // Usuarios OAuth no tienen contraseña local
+    if (!user.password) {
+      return badRequest(res,
+        `Tu cuenta fue creada con ${user.provider || "Google"}. ` +
+        "No podés cambiar contraseña aquí."
+      );
+    }
+
+    // Verificar contraseña actual
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return unauthorized(res, "La contraseña actual es incorrecta");
+    }
+
+    user.password = newPassword;
+    await user.save(); // el pre-save hook hashea automáticamente
+
+    logger.info(`[Auth] Contraseña cambiada por el propio usuario: ${userId}`);
+    return ok(res, null, "Contraseña actualizada correctamente");
+  } catch (error) {
+    logger.error("[Auth] Error en changeOwnPassword:", error);
+    throw error;
+  }
+};
+
+/* =========================================================
+   GET FAVORITES
+   GET /auth/favorites
+   Lista los productos favoritos del usuario autenticado.
+========================================================= */
+export const getFavorites = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const user = await User.findById(userId)
+      .select("favorites")
+      .populate("favorites", "name price image category type available featured dynamicPrice")
+      .lean();
+
+    if (!user) return unauthorized(res, "Usuario no encontrado");
+
+    return ok(res, user.favorites || []);
+  } catch (error) {
+    logger.error("[Auth] Error en getFavorites:", error);
+    throw error;
+  }
+};
+
+/* =========================================================
+   ADD FAVORITE
+   POST /auth/favorites
+   body: { productId }
+========================================================= */
+export const addFavorite = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const { productId } = req.body;
+    if (!productId) return badRequest(res, "productId requerido");
+
+    // addToSet evita duplicados sin necesidad de verificación previa
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { favorites: productId },
+    });
+
+    logger.info(`[Auth] Favorito agregado: ${productId} → usuario ${userId}`);
+    return ok(res, null, "Producto agregado a favoritos");
+  } catch (error) {
+    logger.error("[Auth] Error en addFavorite:", error);
+    throw error;
+  }
+};
+
+/* =========================================================
+   REMOVE FAVORITE
+   DELETE /auth/favorites/:productId
+========================================================= */
+export const removeFavorite = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const { productId } = req.params;
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { favorites: productId },
+    });
+
+    logger.info(`[Auth] Favorito eliminado: ${productId} → usuario ${userId}`);
+    return ok(res, null, "Producto eliminado de favoritos");
+  } catch (error) {
+    logger.error("[Auth] Error en removeFavorite:", error);
+    throw error;
+  }
+};

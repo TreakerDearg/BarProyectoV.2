@@ -14,6 +14,10 @@ export type AuthUser = {
   name: string;
   email: string;
   role: string;
+  /** Teléfono de contacto — editable por el propio usuario */
+  phone?: string | null;
+  /** URL del avatar — de OAuth o upload propio */
+  avatar?: string | null;
 };
 
 // Respuesta completa del Identity Decision Engine (POST /auth/login, GET /auth/google/callback)

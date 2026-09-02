@@ -40,6 +40,20 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    /* ================= CONTACT ================= */
+    phone: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: 30,
+    },
+
+    /* ================= FAVORITES ================= */
+    favorites: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+      default: [],
+    },
+
     /* ================= ROLE ================= */
     role: {
       type: String,

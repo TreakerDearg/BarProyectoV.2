@@ -533,3 +533,291 @@
   .cartBanner,
   .logoutBtn { transition: none; }
 }
+
+/* ── AVATAR IMG (OAuth) ──────────────────────────────────────── */
+.avatarImg {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold-border);
+  flex-shrink: 0;
+}
+
+/* ── PROFILE CARD HEADER ─────────────────────────────────────── */
+.profileCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+}
+
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  background: var(--gold-a08);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editBtn:hover {
+  background: var(--gold-a20);
+  color: var(--gold-light);
+}
+
+/* ── PROFILE EDIT FORM ───────────────────────────────────────── */
+.profileEditForm {
+  padding: 4px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profileInputLabel {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-disabled);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+.profileInput {
+  width: 100%;
+  padding: 10px 13px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.profileInput:focus {
+  border-color: var(--gold-a65);
+  background: var(--surface-3);
+}
+
+.profileError {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--red-light);
+  margin: 0;
+}
+
+.profileSuccess {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--green-light);
+  margin: 0;
+}
+
+.profileEditActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.cancelEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelEditBtn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.saveEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--grad-gold);
+  border: none;
+  color: var(--bg-deep);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  box-shadow: var(--glow-gold-sm);
+}
+
+.saveEditBtn:hover:not(:disabled) { filter: brightness(1.08); }
+.saveEditBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── SECURITY CARD ───────────────────────────────────────────── */
+.securityCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.changePassBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 18px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.changePassBtn:hover { color: var(--gold); }
+
+.oauthNote {
+  padding: 12px 18px 16px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.passwordInputWrap { position: relative; }
+
+.inputWithIcon { position: relative; }
+
+.inputWithIcon .profileInput { padding-right: 40px; }
+
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.12s ease;
+}
+
+.eyeBtn:hover { color: var(--text); }
+
+/* ── RESERVATION BANNER ──────────────────────────────────────── */
+.reservationBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-xl);
+  background: var(--gold-a08);
+  border: 1px solid var(--border-gold);
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.reservationBanner:hover {
+  background: var(--gold-a12);
+  transform: translateY(-1px);
+}
+
+.reservationIcon { color: var(--gold); flex-shrink: 0; }
+
+.reservationInfo { flex: 1; min-width: 0; }
+
+.reservationLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.reservationDetail {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reservationBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.reservBadgeConfirmed {
+  background: var(--green-soft);
+  border-color: var(--green-border);
+  color: var(--green-light);
+}
+
+.reservBadgePending {
+  background: var(--gold-a12);
+  border-color: var(--border-gold);
+  color: var(--gold-light);
+}
+
+/* ── FAVORITES LINK ──────────────────────────────────────────── */
+.favoritesLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.favoritesLink:hover {
+  background: var(--surface-2);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+
+.favoritesLink svg { color: var(--red); }
+.favoritesLink:hover svg { color: var(--red-light); }
+.favoritesLink > svg:last-child { margin-left: auto; }

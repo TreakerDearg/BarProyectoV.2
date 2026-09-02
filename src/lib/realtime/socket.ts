@@ -118,26 +118,24 @@ function setupSocketListeners(socket: Socket): void {
 }
 
 /**
- * Join user-specific room
+ * Join user-specific room for real-time order updates.
+ * Clients use this instead of orders:global (which is staff-only).
  */
 export function joinUserRoom(userId: string): void {
   const socket = getSocket();
   if (socket) {
-    socket.emit("join", {
-      rooms: [`user:${userId}`]
-    });
+    socket.emit("join", { rooms: [`user:${userId}`] });
   }
 }
 
 /**
- * Join orders global room for order updates
+ * Join orders:global — only authorized for staff roles.
+ * Clients should use joinUserRoom() instead.
  */
 export function joinOrdersGlobal(): void {
   const socket = getSocket();
   if (socket) {
-    socket.emit("join", {
-      rooms: ["orders:global"]
-    });
+    socket.emit("join", { rooms: ["orders:global"] });
   }
 }
 

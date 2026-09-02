@@ -211,7 +211,15 @@ export const updateTableLayout = async (
 
 export const openTable = async (id: string): Promise<Table> => {
   const result = await safeRequest<any>(api.post(`/tables/${id}/open`));
-  return result.table ? result.table : result;
+  // El backend devuelve { table, sessionId, tableCode, alreadyActive }
+  // Normalizar para que siempre se devuelva la tabla con tableCode adjunto
+  if (result && typeof result === "object" && result.table) {
+    const table: Table = result.table;
+    if (result.tableCode) table.tableCode = result.tableCode;
+    if (result.sessionId) table.currentSessionId = result.sessionId;
+    return table;
+  }
+  return result as Table;
 };
 
 export const closeTable = async (

@@ -19,7 +19,7 @@ import type { TableRow, ProductBrief } from "@/lib/types/api";
 import { useClienteStore } from "@/stores/useClienteStore";
 import { useOrdersStore } from "@/stores/useOrdersStore";
 import {
-  initSocket, joinOrdersGlobal, joinUserRoom, onOrderStatus,
+  initSocket, joinUserRoom, onOrderStatus,
 } from "@/lib/realtime/socket";
 import { useSocketReconnection } from "@/hooks/useSocketReconnection";
 import type { OrderStatus } from "@/lib/realtime/types";
@@ -126,13 +126,14 @@ export default function PedidoPage() {
   // ── Socket.IO ─────────────────────────────────────────────────
   useEffect(() => {
     initSocket();
-    joinOrdersGlobal();
+    // Clientes se unen a su propio room user:{userId} — NO a orders:global
+    // El backend emite order:update / order:created a user:{userId} cuando
+    // el pedido pertenece al cliente autenticado (userId guardado en Order).
     if (user?._id) joinUserRoom(user._id);
 
     const unsub = onOrderStatus((data) => {
       const order = data.order;
       if (!order) return;
-      // updateOrderStatus espera el enum OrderStatus — casteamos desde string
       updateOrderStatus(
         order._id,
         order.status as OrderStatus,
@@ -148,7 +149,8 @@ export default function PedidoPage() {
 
   useEffect(() => {
     const handler = () => {
-      joinOrdersGlobal();
+      // Reconectar al room del usuario propio (no orders:global — restringido a staff)
+      if (user?._id) joinUserRoom(user._id);
       loadTables();
       loadProducts();
     };

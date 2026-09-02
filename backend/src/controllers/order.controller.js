@@ -8,7 +8,7 @@ import ActivityLog  from "../models/ActivityLog.js";
 import { io }       from "../server.js";
 import { logger }   from "../config/logger.js";
 import {
-  ok, created, badRequest, notFound, serverError, forbidden,
+  ok, created, badRequest, notFound, serverError, forbidden, unauthorized,
 } from "../utils/response.js";
 import { calculateProductPrice } from "../utils/pricingEngine.js";
 
@@ -32,10 +32,16 @@ const validateActiveTableSession = async (tableId, sessionId, dbSession) => {
 
 /* =========================================================
    SOCKET HELPERS — Emisión centralizada
+   Emite a: tabla, orders:global, roles relevantes
+   Y también al usuario cliente si la orden tiene userId.
 ========================================================= */
 const emitOrderUpdate = (order) => {
   io.emit(`table:${order.table}`, { event: "order:update", order });
   io.to("orders:global").emit("order:update", order);
+  // Emitir al cliente propietario del pedido (tiempo real para el cliente web)
+  if (order.userId) {
+    io.to(`user:${order.userId}`).emit("order:update", { event: "order:update", order });
+  }
 };
 
 const emitOrderCreate = (order) => {
@@ -43,6 +49,10 @@ const emitOrderCreate = (order) => {
   io.to("orders:global").emit("order:created",  order);
   io.to("role:kitchen").emit("order:new",        order);
   io.to("role:bartender").emit("order:new",      order);
+  // Emitir al cliente propietario del pedido
+  if (order.userId) {
+    io.to(`user:${order.userId}`).emit("order:created", { event: "order:created", order });
+  }
 };
 
 const emitOrderDelete = (order) => {
@@ -218,6 +228,9 @@ const [order] = await Order.create(
     status: "pending",
     discountTotal: 0,
     createdBy: req.user?.id || null,
+    // Si el usuario autenticado es cliente (role=client), guardarlo como userId
+    // para poder filtrar su historial posteriormente.
+    userId: (req.user?.role === "client") ? (req.user.id || null) : null,
   }],
   { session }
 );
@@ -651,3 +664,57 @@ export const closeOrderWithPayment = async (req, res, next) => {
 };
 
 
+
+/* =========================================================
+   GET MY ORDER HISTORY
+   GET /orders/my-history
+   Devuelve el historial de órdenes del usuario autenticado.
+   Filtra por userId (campo agregado en createOrder).
+   Solo accesible por el propio usuario (protect middleware).
+========================================================= */
+export const getMyOrderHistory = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return unauthorized(res, "No autenticado");
+
+    const { limit = 20, page = 1, status } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filter = { userId };
+    if (status && ORDER_STATUS.includes(status)) filter.status = status;
+
+    const [orders, total] = await Promise.all([
+      Order.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("table", "number location")
+        .select("_id status total subtotal items createdAt table sessionId notes")
+        .lean(),
+      Order.countDocuments(filter),
+    ]);
+
+    // Mapear a DTO ligero para el cliente — sin información interna
+    const data = orders.map((o) => ({
+      _id:         o._id,
+      status:      o.status,
+      total:       o.total ?? 0,
+      subtotal:    o.subtotal ?? 0,
+      itemCount:   o.items?.length ?? 0,
+      // Solo nombre y cantidad — sin precio interno para cada ítem
+      items: (o.items ?? []).map((i) => ({
+        name:     i.name,
+        quantity: i.quantity,
+        status:   i.status,
+      })),
+      createdAt:   o.createdAt,
+      tableNumber: o.table?.number ?? null,
+      notes:       o.notes || null,
+    }));
+
+    return ok(res, { data, total, page: Number(page), limit: Number(limit) });
+  } catch (error) {
+    logger.error("[Order] Error en getMyOrderHistory:", error);
+    throw error;
+  }
+};

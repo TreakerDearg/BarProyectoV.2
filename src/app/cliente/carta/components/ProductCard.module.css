@@ -262,3 +262,50 @@
   .card, .image, .addBtn { transition: none; }
   .card:hover, .card:hover .image, .addBtn:hover:not(:disabled) { transform: none; }
 }
+
+/* ── Footer actions row (favorito + agregar) ─────────────────── */
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Botón favorito */
+.favBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.favBtn:hover {
+  background: var(--red-soft);
+  border-color: var(--red-border);
+  color: var(--red-light);
+  transform: scale(1.1);
+}
+
+.favBtnActive {
+  background: var(--red-soft);
+  border-color: var(--red-border);
+  color: var(--red-light);
+}
+
+.favBtnActive:hover {
+  background: rgba(217,92,92,0.18);
+  transform: scale(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favBtn:hover, .favBtnActive:hover { transform: none; }
+}
