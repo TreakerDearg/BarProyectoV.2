@@ -2,6 +2,7 @@
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import type { SalesData } from "../../services/dashboardService";
+import { TrendingUp } from "lucide-react";
 
 interface Props {
   data: SalesData[];
@@ -17,11 +18,17 @@ export default function RevenueStreamChart({ data }: Props) {
   const peakSales = chartData.length > 0 ? Math.max(...chartData.map(d => d.sales)) : 0;
   const totalSales = chartData.reduce((sum, d) => sum + d.sales, 0);
 
-  // Si no hay datos, mostrar mensaje
+  // Si no hay datos, mostrar mensaje mejorado
   if (chartData.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-muted text-sm">
-        No hay datos de ventas disponibles
+      <div className="h-full flex flex-col items-center justify-center py-12 opacity-40">
+        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+          <TrendingUp size={32} className="text-muted" />
+        </div>
+        <p className="text-sm font-semibold text-muted uppercase tracking-wider mb-2">Sin datos de ventas</p>
+        <p className="text-xs text-muted/60 text-center max-w-xs">
+          No hay ventas registradas en este período. El gráfico se actualizará cuando haya datos disponibles.
+        </p>
       </div>
     );
   }

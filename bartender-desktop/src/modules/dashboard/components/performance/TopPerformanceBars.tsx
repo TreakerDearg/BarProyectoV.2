@@ -1,7 +1,7 @@
 "use client";
 
 import type { TopProduct } from "../../services/dashboardService";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BarChart3 } from "lucide-react";
 
 interface Props {
   items: TopProduct[];
@@ -15,8 +15,12 @@ export default function TopPerformanceBars({ items, color, bgBar }: Props) {
 
   if (safeItems.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center opacity-20 py-10">
-         <p className="text-[10px] font-black uppercase tracking-widest">Sin Datos de Venta</p>
+      <div className="h-full flex flex-col items-center justify-center py-10 opacity-40">
+        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+          <BarChart3 size={24} className="text-muted" />
+        </div>
+        <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Sin datos de venta</p>
+        <p className="text-[10px] text-muted/60">No hay ventas registradas en este período</p>
       </div>
     );
   }

@@ -12,8 +12,11 @@ export default function InventoryAlerts({ lowStock, outOfStock }: Props) {
   if (outOfStock === 0 && lowStock === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center opacity-40">
-        <PackageSearch size={32} className="text-emerald-400 mb-3" />
-        <p className="text-[10px] font-black text-ivory uppercase tracking-[0.3em]">Bóveda Íntegra</p>
+        <div className="w-14 h-14 rounded-full bg-emerald-400/10 flex items-center justify-center mb-4 border border-emerald-400/20">
+          <PackageSearch size={24} className="text-emerald-400" />
+        </div>
+        <p className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-1">Inventario estable</p>
+        <p className="text-xs text-muted/60">No existen alertas críticas de stock</p>
       </div>
     );
   }

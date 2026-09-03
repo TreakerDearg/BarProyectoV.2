@@ -107,6 +107,10 @@ export default function ServiceDashboard({
       className={`grid gap-6 dashboard-animate-fade-in-up ${
         isSimple ? "grid-cols-1" : "grid-cols-12"
       }`}
+      style={{
+        gridTemplateRows: isSimple ? "auto auto auto" : "auto auto 1fr",
+        minHeight: isSimple ? "auto" : "calc(100vh - 400px)",
+      }}
     >
       {/* Executive Summary - All modes, simplified in simple mode */}
       <motion.div
@@ -114,6 +118,7 @@ export default function ServiceDashboard({
         initial={{ opacity: 0, y: -20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className="col-span-12 dashboard-panel p-6 bg-violet-500/5 border-violet-400/20"
+        style={{ minHeight: isSimple ? "auto" : "140px" }}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -145,8 +150,8 @@ export default function ServiceDashboard({
         </div>
       </motion.div>
 
-      <motion.div layout className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
-        <motion.div layout className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart">
+      <motion.div layout className={isSimple ? "space-y-6" : "col-span-12 lg:col-span-8 space-y-6"} style={{ minHeight: isSimple ? "auto" : "100%" }}>
+        <motion.div layout className="dashboard-panel p-6 md:p-8" data-tutorial="revenue-chart" style={{ minHeight: isSimple ? "300px" : "400px" }}>
           <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h3 className="text-lg font-bold text-ivory">Ventas por hora - Hoy</h3>
@@ -159,7 +164,7 @@ export default function ServiceDashboard({
               En vivo
             </span>
           </div>
-          <motion.div layout className={isSimple ? "h-[260px]" : "h-[320px]"}>
+          <motion.div layout className="flex-1 min-h-0" style={{ height: isSimple ? "220px" : "280px" }}>
             <RevenueStreamChart data={data.salesData} />
           </motion.div>
           {Array.isArray(data.salesData) && data.salesData.length > 0 && (
@@ -188,8 +193,9 @@ export default function ServiceDashboard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            style={{ minHeight: "300px" }}
           >
-            <div className="dashboard-panel p-6 md:p-8">
+            <div className="dashboard-panel p-6 md:p-8 flex flex-col" style={{ minHeight: "280px" }}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2.5 rounded-xl bg-gold/10 text-gold">
                   <Flame size={22} />
@@ -198,13 +204,15 @@ export default function ServiceDashboard({
                   Top 5 Bebidas
                 </h3>
               </div>
-              <TopPerformanceBars
-                items={data?.topDrinks || []}
-                color="text-gold"
-                bgBar="bg-grad-gold shadow-gold-glow"
-              />
+              <div className="flex-1 min-h-0">
+                <TopPerformanceBars
+                  items={data?.topDrinks || []}
+                  color="text-gold"
+                  bgBar="bg-grad-gold shadow-gold-glow"
+                />
+              </div>
             </div>
-            <div className="dashboard-panel p-6 md:p-8">
+            <div className="dashboard-panel p-6 md:p-8 flex flex-col" style={{ minHeight: "280px" }}>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2.5 rounded-xl bg-emerald-400/10 text-emerald-400">
                   <Target size={22} />
@@ -213,11 +221,13 @@ export default function ServiceDashboard({
                   Top 5 Comidas
                 </h3>
               </div>
-              <TopPerformanceBars
-                items={data?.topFoods || []}
-                color="text-emerald-400"
-                bgBar="bg-emerald-400 shadow-emerald-400/20"
-              />
+              <div className="flex-1 min-h-0">
+                <TopPerformanceBars
+                  items={data?.topFoods || []}
+                  color="text-emerald-400"
+                  bgBar="bg-emerald-400 shadow-emerald-400/20"
+                />
+              </div>
             </div>
           </motion.div>
         )}
@@ -231,20 +241,21 @@ export default function ServiceDashboard({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20, transition: { duration: 0.2 } }}
             className="col-span-12 lg:col-span-4 space-y-6"
+            style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}
           >
             {/* Improvement Suggestions - Medium and Advanced */}
             <ImprovementSuggestions suggestions={suggestions} maxVisible={2} />
             <DashboardPricingPanel />
             {/* ── Personal activo en turno — datos reales de /attendance/today ── */}
             <ActiveStaffPanel />
-            <div className="dashboard-panel p-6">
+            <div className="dashboard-panel p-6 flex-1" style={{ minHeight: "200px" }}>
               <div className="flex items-center gap-3 mb-4">
                 <Monitor size={18} className="text-violet-300" />
                 <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>
               </div>
               <ServiceHealth data={data} />
             </div>
-            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
+            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]" style={{ minHeight: "150px" }}>
               <div className="flex items-center gap-3 mb-4">
                 <ShieldAlert size={18} className="text-red" />
                 <h3 className="text-sm font-bold text-red">Alertas de inventario</h3>
@@ -271,8 +282,9 @@ export default function ServiceDashboard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10, transition: { duration: 0.1 } }}
             className="col-span-12 space-y-6"
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem" }}
           >
-            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]">
+            <div className="dashboard-panel p-6 border-red/15 bg-red/[0.03]" style={{ minHeight: "180px" }}>
               <div className="flex items-center gap-3 mb-4">
                 <ShieldAlert size={18} className="text-red" />
                 <h3 className="text-sm font-bold text-red">Alertas críticas</h3>
@@ -282,7 +294,7 @@ export default function ServiceDashboard({
                 outOfStock={data?.inventory?.outOfStock || 0}
               />
             </div>
-            <div className="dashboard-panel p-6">
+            <div className="dashboard-panel p-6" style={{ minHeight: "180px" }}>
               <div className="flex items-center gap-3 mb-4">
                 <Monitor size={18} className="text-violet-300" />
                 <h3 className="text-sm font-bold text-ivory">Estado del servicio</h3>

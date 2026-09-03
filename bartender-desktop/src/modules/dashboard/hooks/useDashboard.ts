@@ -7,9 +7,10 @@ import {
   connectSalonSockets,
   getMainSocket,
 } from "../../../services/socket";
+import { getDashboardPermissions, filterDashboardData } from "../../../utils/permissions";
 
-const POLL_MS = 45_000;
-const ORDER_REFRESH_DEBOUNCE_MS = 2_500;
+const POLL_MS = 60_000; // Increased from 45s to 60s to reduce server load
+const ORDER_REFRESH_DEBOUNCE_MS = 3_000; // Increased from 2.5s to 3s
 
 export function useDashboard(view: string = "all", range: string = "7") {
   const {
@@ -32,7 +33,7 @@ export function useDashboard(view: string = "all", range: string = "7") {
   const socketsReadyRef = useRef(false);
 
   const load = useCallback(
-    async (opts?: { silent?: boolean }) => {
+    async (opts?: { silent?: boolean; forceRefresh?: boolean }) => {
       try {
         abortRef.current?.abort();
         const controller = new AbortController();
@@ -41,8 +42,13 @@ export function useDashboard(view: string = "all", range: string = "7") {
         if (!opts?.silent) setLoading(true);
         setError(null);
 
-        const data = await fetchDashboard(controller.signal, view, range);
-        setData(data);
+        const data = await fetchDashboard(controller.signal, view, range, opts?.forceRefresh);
+        
+        // Apply permission-based filtering
+        const permissions = getDashboardPermissions();
+        const filteredData = filterDashboardData(data, permissions);
+        
+        setData(filteredData);
         setActivitiesFromReservations(data.recentReservations ?? []);
         setLastSync(data.timestamp ?? new Date().toISOString());
       } catch (err: unknown) {

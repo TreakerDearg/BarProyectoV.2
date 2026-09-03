@@ -204,6 +204,10 @@ select:focus-visible,
 .dashboard-root {
   position: relative;
   color: var(--dashboard-text-primary);
+  /* Ensure dashboard uses full available height */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-panel {
@@ -213,8 +217,152 @@ select:focus-visible,
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(12px);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  /* Ensure panels can flex properly */
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-panel:hover {
   border-color: rgba(139, 92, 246, 0.22);
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+========================================================= */
+
+/* Extra small screens (phones) */
+@media (max-width: 480px) {
+  .dashboard-root {
+    padding: 0.5rem;
+  }
+  
+  .dashboard-panel {
+    border-radius: var(--dashboard-radius-md);
+    padding: 1rem !important;
+  }
+}
+
+/* Small screens (tablets) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .dashboard-root {
+    padding: 1rem;
+  }
+  
+  .dashboard-panel {
+    padding: 1.25rem !important;
+  }
+}
+
+/* Medium screens (small laptops) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-root {
+    padding: 1.5rem;
+  }
+  
+  .dashboard-panel {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Large screens (desktops) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .dashboard-root {
+    padding: 2rem;
+  }
+  
+  .dashboard-panel {
+    padding: 1.75rem !important;
+  }
+}
+
+/* Extra large screens (big monitors) */
+@media (min-width: 1441px) {
+  .dashboard-root {
+    padding: 2.5rem;
+    max-width: 1920px;
+    margin: 0 auto;
+  }
+  
+  .dashboard-panel {
+    padding: 2rem !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE GRID ADJUSTMENTS
+========================================================= */
+
+/* Stack grids on mobile */
+@media (max-width: 768px) {
+  .dashboard-root > div > div[class*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Ensure charts scale properly on mobile */
+  .dashboard-panel canvas,
+  .dashboard-panel svg {
+    max-width: 100%;
+    height: auto !important;
+  }
+}
+
+/* Adjust grid for tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-root > div > div[class*="grid-cols-12"] {
+    grid-template-columns: repeat(8, 1fr) !important;
+  }
+  
+  .dashboard-root > div > div[class*="lg:col-span-8"] {
+    grid-column: span 5 !important;
+  }
+  
+  .dashboard-root > div > div[class*="lg:col-span-4"] {
+    grid-column: span 3 !important;
+  }
+}
+
+/* Optimize for ultra-wide screens */
+@media (min-width: 1921px) {
+  .dashboard-root > div > div[class*="grid-cols-12"] {
+    grid-template-columns: repeat(16, 1fr) !important;
+  }
+  
+  .dashboard-root > div > div[class*="lg:col-span-8"] {
+    grid-column: span 10 !important;
+  }
+  
+  .dashboard-root > div > div[class*="lg:col-span-4"] {
+    grid-column: span 6 !important;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE TYPOGRAPHY
+========================================================= */
+
+@media (max-width: 768px) {
+  .dashboard-panel h1,
+  .dashboard-panel h2,
+  .dashboard-panel h3 {
+    font-size: 0.9em !important;
+  }
+  
+  .dashboard-panel p,
+  .dashboard-panel span {
+    font-size: 0.85em !important;
+  }
+}
+
+@media (min-width: 1441px) {
+  .dashboard-panel h1 {
+    font-size: 1.2em !important;
+  }
+  
+  .dashboard-panel h2 {
+    font-size: 1.1em !important;
+  }
+  
+  .dashboard-panel h3 {
+    font-size: 1.05em !important;
+  }
 }

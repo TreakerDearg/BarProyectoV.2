@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { DashboardStats } from "../services/dashboardService";
 import type { DashboardMode, DashboardTab } from "../store/dashboardUiStore";
 import KpiSkeleton from "./skeletons/KpiSkeleton";
+import { AlertTriangle } from "lucide-react";
 
 interface KpiItem {
   label: string;
@@ -39,7 +40,7 @@ function formatTrend(pct: number | null | undefined): { text: string; direction:
   return { text: "= 0%", direction: "same" };
 }
 
-function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
+function buildKpis(tab: DashboardTab, data: DashboardStats, mode: DashboardMode): KpiItem[] {
   const inv = data.inventory;
   const t = data.trends;
   const avgMin = data.avgOrderTimeMin;
@@ -47,6 +48,62 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
   switch (tab) {
     case "operation":
       const activeOrders = data.activeOrdersCount ?? 0;
+      
+      // Simple mode: Only essential operational KPIs
+      if (mode === "simple") {
+        return [
+          {
+            label: "Pedidos ahora",
+            value: String(activeOrders),
+            hint: "Pedidos en cocina o barra actualmente",
+            comparisonPeriod: "actual",
+            accent: "emerald",
+            status: activeOrders > 30 ? "warning" : activeOrders > 50 ? "critical" : "good",
+          },
+          {
+            label: "Estado servicio",
+            value: getOperationStatusText(data.kitchenLoad, data.barLoad),
+            hint: "Estado general de operación",
+            comparisonPeriod: "tiempo real",
+            accent: getOperationStatusAccent(data.kitchenLoad, data.barLoad),
+            status: getOperationStatusSeverity(data.kitchenLoad, data.barLoad),
+          },
+        ];
+      }
+      
+      // Medium mode: Essential + some operational details
+      if (mode === "medium") {
+        return [
+          {
+            label: "Pedidos ahora",
+            value: String(activeOrders),
+            hint: "Pedidos en cocina o barra actualmente",
+            trend: formatTrend(t?.ordersPct),
+            comparisonPeriod: "vs ayer",
+            accent: "emerald",
+            status: activeOrders > 30 ? "warning" : activeOrders > 50 ? "critical" : "good",
+          },
+          {
+            label: "Reservas",
+            value: String(data.reservationsToday ?? 0),
+            hint: "Reservas confirmadas para hoy",
+            comparisonPeriod: "hoy",
+            accent: "violet",
+            status: "good",
+          },
+          {
+            label: "Ventas hoy",
+            value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
+            hint: "Ventas totales del día",
+            trend: formatTrend(t?.salesPct),
+            comparisonPeriod: "vs ayer",
+            accent: "gold",
+            status: (data.totalSales ?? 0) > 30000 ? "good" : "warning",
+          },
+        ];
+      }
+      
+      // Advanced mode: Full operational KPIs with trends
       return [
         {
           label: "Pedidos ahora",
@@ -84,6 +141,61 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
         },
       ];
     case "analytics":
+      // Simple mode: Basic sales metrics
+      if (mode === "simple") {
+        return [
+          {
+            label: "Ventas",
+            value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
+            hint: "Ventas acumuladas en el periodo",
+            comparisonPeriod: "periodo actual",
+            accent: "gold",
+            status: (data.totalSales ?? 0) > 40000 ? "good" : "warning",
+          },
+          {
+            label: "Cuentas",
+            value: String(data.totalOrders ?? 0),
+            hint: "Total de cuentas procesadas",
+            comparisonPeriod: "periodo actual",
+            accent: "emerald",
+            status: "good",
+          },
+        ];
+      }
+      
+      // Medium mode: Add average ticket
+      if (mode === "medium") {
+        return [
+          {
+            label: "Ventas",
+            value: `$${(data.totalSales ?? 0).toLocaleString("es-MX", { maximumFractionDigits: 0 })}`,
+            hint: "Ventas acumuladas en el periodo",
+            trend: formatTrend(t?.salesPct),
+            comparisonPeriod: "vs ayer",
+            accent: "gold",
+            status: (data.totalSales ?? 0) > 40000 ? "good" : "warning",
+          },
+          {
+            label: "Promedio cuenta",
+            value: data.avgTicket != null ? `$${data.avgTicket.toFixed(2)}` : "$0.00",
+            hint: "Valor promedio por cuenta",
+            comparisonPeriod: "periodo actual",
+            accent: "cyan",
+            status: (data.avgTicket ?? 0) > 150 ? "good" : "warning",
+          },
+          {
+            label: "Cuentas",
+            value: String(data.totalOrders ?? 0),
+            hint: "Total de cuentas procesadas",
+            trend: formatTrend(t?.ordersPct),
+            comparisonPeriod: "vs ayer",
+            accent: "emerald",
+            status: "good",
+          },
+        ];
+      }
+      
+      // Advanced mode: Full analytics with discounts
       return [
         {
           label: "Ventas",
@@ -124,6 +236,44 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
     case "inventory":
       const lowStock = inv?.lowStock ?? 0;
       const outOfStock = inv?.outOfStock ?? 0;
+      
+      // Simple mode: Only critical inventory
+      if (mode === "simple") {
+        return [
+          {
+            label: "Alertas stock",
+            value: String(lowStock + outOfStock),
+            hint: "Productos con stock crítico",
+            comparisonPeriod: "actual",
+            accent: "ember",
+            status: (lowStock + outOfStock) > 0 ? "critical" : "good",
+          },
+        ];
+      }
+      
+      // Medium mode: Add stock value
+      if (mode === "medium") {
+        return [
+          {
+            label: "Por terminar",
+            value: String(lowStock),
+            hint: "Productos con stock por agotarse",
+            comparisonPeriod: "actual",
+            accent: "ember",
+            status: lowStock > 10 ? "warning" : lowStock > 20 ? "critical" : "good",
+          },
+          {
+            label: "Sin stock",
+            value: String(outOfStock),
+            hint: "Productos sin stock disponible",
+            comparisonPeriod: "actual",
+            accent: "ember",
+            status: outOfStock > 0 ? "critical" : "good",
+          },
+        ];
+      }
+      
+      // Advanced mode: Full inventory metrics
       return [
         {
           label: "Por terminar",
@@ -155,6 +305,28 @@ function buildKpis(tab: DashboardTab, data: DashboardStats): KpiItem[] {
   }
 }
 
+// Helper functions for operation status
+function getOperationStatusText(kitchenLoad?: number, barLoad?: number): string {
+  const load = Math.max(kitchenLoad || 0, barLoad || 0);
+  if (load > 80) return "Crítico";
+  if (load > 50) return "Ocupado";
+  return "Normal";
+}
+
+function getOperationStatusAccent(kitchenLoad?: number, barLoad?: number): "gold" | "emerald" | "cyan" | "ember" | "violet" {
+  const load = Math.max(kitchenLoad || 0, barLoad || 0);
+  if (load > 80) return "ember";
+  if (load > 50) return "gold";
+  return "emerald";
+}
+
+function getOperationStatusSeverity(kitchenLoad?: number, barLoad?: number): "good" | "warning" | "critical" {
+  const load = Math.max(kitchenLoad || 0, barLoad || 0);
+  if (load > 80) return "critical";
+  if (load > 50) return "warning";
+  return "good";
+}
+
 export default function DashboardKpiStrip({ tab, data, mode, loading = false }: Props) {
   if (loading) {
     return (
@@ -173,18 +345,22 @@ export default function DashboardKpiStrip({ tab, data, mode, loading = false }: 
     );
   }
 
-  const items = buildKpis(tab, data);
-  // In simple mode, show 2. In medium/advanced, show all.
-  const visible = mode === "simple" ? items.slice(0, 2) : items;
+  const items = buildKpis(tab, data, mode);
+  // The buildKpis function now handles mode-based filtering internally
+  const visible = items;
 
   return (
     <motion.div
       layout
       data-tutorial="kpi-strip"
       className={`grid gap-4 ${
-        visible.length <= 2
+        visible.length === 1
+          ? "grid-cols-1 max-w-md mx-auto"
+          : visible.length === 2
           ? "grid-cols-1 sm:grid-cols-2"
-          : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
+          : visible.length === 3
+          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       }`}
     >
       <AnimatePresence mode="popLayout">
@@ -275,9 +451,10 @@ const KpiCard = memo(function KpiCard({ label, value, hint, trend, accent = "gol
       </div>
       {/* Status bar */}
       {status && status !== "good" && (
-        <div className={`mt-3 pt-3 border-t ${statusClasses[status]} border rounded-lg px-2 py-1`}>
+        <div className={`mt-3 pt-3 border-t ${statusClasses[status]} border rounded-lg px-2 py-1 flex items-center gap-2`}>
+          <AlertTriangle size={12} className="text-muted" />
           <p className="text-[10px] font-semibold">
-            {status === "warning" ? "⚠ Requiere atención" : "⚠ Acción necesaria"}
+            {status === "warning" ? "Requiere atención" : "Acción necesaria"}
           </p>
         </div>
       )}

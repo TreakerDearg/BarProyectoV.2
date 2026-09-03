@@ -4,6 +4,45 @@ import api from "../../../services/api";
    TYPES
 ========================================================= */
 
+// Cache configuration
+const CACHE_TTL = 30_000; // 30 seconds cache
+const cache = new Map<string, { data: DashboardStats; timestamp: number }>();
+
+/* =========================================================
+   CACHE HELPERS
+========================================================= */
+
+function getCacheKey(view: string, range: string): string {
+  return `dashboard_${view}_${range}`;
+}
+
+function getCachedData(view: string, range: string): DashboardStats | null {
+  const key = getCacheKey(view, range);
+  const cached = cache.get(key);
+  
+  if (!cached) return null;
+  
+  const now = Date.now();
+  if (now - cached.timestamp > CACHE_TTL) {
+    cache.delete(key);
+    return null;
+  }
+  
+  return cached.data;
+}
+
+function setCachedData(view: string, range: string, data: DashboardStats): void {
+  const key = getCacheKey(view, range);
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+function clearCache(): void {
+  cache.clear();
+}
+
+// Export cache functions for manual cache management
+export { clearCache as clearDashboardCache };
+
 export interface TopProduct {
   name: string;
   qty: number;
@@ -296,12 +335,23 @@ function parseAxiosError(error: any): Error {
 export async function fetchDashboard(
   signal?: AbortSignal,
   view: string = "all",
-  range: string = "7"
+  range: string = "7",
+  forceRefresh: boolean = false
 ): Promise<DashboardStats> {
   try {
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cached = getCachedData(view, range);
+      if (cached) {
+        console.log("Dashboard: Using cached data", { view, range });
+        return cached;
+      }
+    }
+
     console.log("Fetching dashboard...", {
       view,
       range,
+      forceRefresh,
     });
 
     const response = await api.get("/dashboard", {
@@ -325,8 +375,22 @@ export async function fetchDashboard(
       return EMPTY_DASHBOARD;
     }
 
-    return normalizeDashboard(response.data);
+    const normalizedData = normalizeDashboard(response.data);
+    
+    // Cache the response
+    setCachedData(view, range, normalizedData);
+    
+    return normalizedData;
   } catch (error: any) {
+    // If request fails, try to return cached data as fallback
+    if (!forceRefresh) {
+      const cached = getCachedData(view, range);
+      if (cached) {
+        console.warn("Dashboard: Using stale cached data due to error");
+        return cached;
+      }
+    }
+    
     throw parseAxiosError(error);
   }
 }

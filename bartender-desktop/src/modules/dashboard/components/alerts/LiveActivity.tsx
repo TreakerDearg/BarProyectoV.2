@@ -57,15 +57,15 @@ export default function LiveActivity({
   }
 
   if (list.length === 0) {
-    list = [
-      {
-        id: "idle",
-        title: "En espera",
-        desc: "Sin actividad reciente",
-        time: "Ahora",
-        type: "system",
-      },
-    ];
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center opacity-40">
+        <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+          <Activity size={24} className="text-muted" />
+        </div>
+        <p className="text-sm font-semibold text-muted uppercase tracking-wider mb-1">Sin actividad reciente</p>
+        <p className="text-xs text-muted/60">No hay eventos registrados en este momento</p>
+      </div>
+    );
   }
 
   return (

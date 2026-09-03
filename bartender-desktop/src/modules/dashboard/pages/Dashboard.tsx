@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [showActivityLog, setShowActivityLog] = useState(false);
   const [showAnalyticsReport, setShowAnalyticsReport] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Enable keyboard shortcuts
   useKeyboardShortcuts();
@@ -57,6 +58,15 @@ export default function Dashboard() {
     socketConnected,
     reload,
   } = useDashboard(activeTab, range);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await reload({ forceRefresh: true });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   const { mode, setMode } = useDashboardUiStore();
   const {
     isOpen: tutorialOpen,
@@ -86,7 +96,7 @@ export default function Dashboard() {
         <p className="text-sm text-red text-center max-w-md">{error}</p>
         <button
           type="button"
-          onClick={() => reload()}
+          onClick={() => reload({ forceRefresh: true })}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600/30 border border-violet-400/30 text-sm font-semibold text-ivory hover:bg-violet-600/40"
         >
           <RefreshCw size={16} />
@@ -131,6 +141,16 @@ export default function Dashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={isRefreshing || loading}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Actualizar manualmente"
+          >
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+            {isRefreshing ? "Actualizando..." : "Actualizar"}
+          </button>
           <button
             type="button"
             onClick={openTutorial}

@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { EmployeeModal } from "@/app/cliente/cuenta/components/EmployeeModal";
+import { AlertTriangle } from "lucide-react";
 import styles from "./AuthCallback.module.css";
 
 type CallbackStatus = "loading" | "employee_prompt" | "error";
@@ -107,7 +108,9 @@ export default function AuthCallbackPage() {
     return (
       <div className={styles.wrapper}>
         <div className={styles.card}>
-          <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
+          <div className={styles.errorIcon} aria-hidden="true">
+            <AlertTriangle size={32} />
+          </div>
           <h1 className={styles.errorTitle}>Error al iniciar sesión</h1>
           <p className={styles.errorDesc}>{errorMsg || "Algo salió mal con la autenticación."}</p>
           <a href="/cliente/cuenta" className={styles.retryLink}>
