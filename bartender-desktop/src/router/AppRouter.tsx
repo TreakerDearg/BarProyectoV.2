@@ -21,6 +21,10 @@ import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
 import OrdersPage from "../modules/orders/pages/OrdersPage";
 import DiscountsSuite from "../modules/discounts/pages/DiscountsSuite";
+import DiscountEventsPage from "../modules/discounts/pages/DiscountEventsPage";
+import DynamicPricingPage from "../modules/discounts/pages/DynamicPricingPage";
+import DiscountPage from "../modules/discounts/pages/DiscountPage";
+import PromotionsPage from "../modules/promotions/pages/PromotionsPage";
 
 /* ==============================
    ADMIN MODULE ROUTES
@@ -88,6 +92,14 @@ export default function AppRouter() {
             </Route>
             <Route element={<RoleRoute path="/discounts" />}>
               <Route path="/discounts" element={<DiscountsSuite />} />
+              <Route path="/discounts/events" element={<DiscountEventsPage />} />
+              <Route path="/discounts/dynamic" element={<DynamicPricingPage />} />
+              <Route path="/discounts/apply" element={<DiscountPage />} />
+            </Route>
+
+            {/* ── PROMOTIONS ─────────────────────────────────── */}
+            <Route element={<RoleRoute path="/promotions" />}>
+              <Route path="/promotions" element={<PromotionsPage />} />
             </Route>
             <Route element={<RoleRoute path="/reservations" />}>
               <Route path="/reservations" element={<ReservationsPage />} />

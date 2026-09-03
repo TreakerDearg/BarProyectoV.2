@@ -8,6 +8,7 @@ import ShiftMetricsPage from "../modules/admin/pages/ShiftMetricsPage";
 import SettingsPage from "../modules/admin/pages/SettingsPage";
 import WorkforceDashboardPage from "../modules/admin/features/employees/pages/WorkforceDashboardPage";
 import EmployeeDetailPage from "../modules/admin/features/employees/pages/EmployeeDetailPage";
+import AlertsConfigurationPage from "../modules/admin/pages/AlertsConfigurationPage";
 
 export const adminRoutes = [
   {
@@ -49,5 +50,10 @@ export const adminRoutes = [
   {
     path: "/settings",
     element: SettingsPage,
+  },
+  // ── Alertas de configuración ─────────────────────────────────────
+  {
+    path: "/settings/alerts",
+    element: AlertsConfigurationPage,
   },
 ];

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { memo, useEffect, useState, useCallback } from "react";
+import { memo, useEffect, useState, useCallback, useRef } from "react";
 import {
   ChefHat, ShoppingBag, CalendarDays, Sparkles,
   ClipboardList, ChevronRight, CheckCircle2,
@@ -345,6 +345,8 @@ export const AccountView = memo(function AccountView({ user, onLogout }: Props) 
   const [loadingHistory,    setLoadingHistory]    = useState(false);
   const [activeOrderId,     setActiveOrderId]     = useState<string | null>(null);
   const [activeOrderStatus, setActiveOrderStatus] = useState<string | null>(null);
+  const activeOrderIdRef = useRef<string | null>(null);
+  activeOrderIdRef.current = activeOrderId;
 
   // Iniciales del avatar
   const initials = user.name
@@ -402,11 +404,11 @@ export const AccountView = memo(function AccountView({ user, onLogout }: Props) 
       const order = data.order;
       if (!order) return;
       updateOrderStatus(order._id, order.status, order.updatedAt ?? new Date().toISOString());
-      if (order._id === activeOrderId) setActiveOrderStatus(order.status);
+      if (order._id === activeOrderIdRef.current) setActiveOrderStatus(order.status);
     });
 
     return () => { unsub(); };
-  }, [user._id, activeOrderId, updateOrderStatus]);
+  }, [user._id, updateOrderStatus]);
 
   // Estado en tiempo real del pedido activo
   const realtimeStatus = activeOrderId

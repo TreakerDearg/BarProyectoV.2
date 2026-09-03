@@ -6,7 +6,7 @@ import { memo } from "react";
 import ui from "../../../app/cliente/cliente-ui.module.css";
 
 function Footer() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2026;
 
   return (
     <footer className={ui.footer} role="contentinfo">

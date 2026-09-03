@@ -84,6 +84,6 @@ export const useClienteStore = create<State>()(
         set({ cart: get().cart.map((l) => l.productId === productId ? { ...l, price } : l) });
       },
     }),
-    { name: "bartender-client" },
+    { name: "bartender-client", skipHydration: true },
   ),
 );

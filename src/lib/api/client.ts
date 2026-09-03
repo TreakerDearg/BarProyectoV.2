@@ -95,11 +95,17 @@ api.interceptors.response.use(
           refreshToken,
         });
 
-        const { token, refreshToken: newRefreshToken } = response.data;
+        const body = response.data as { token?: string; refreshToken?: string; data?: { token?: string; refreshToken?: string } };
+        const payload = body?.data ?? body;
+        const token = payload?.token;
+        const newRefreshToken = payload?.refreshToken;
 
-        // Guardar nuevos tokens
+        if (!token) {
+          throw new Error("No se obtuvo un nuevo token de acceso");
+        }
+
         saveAccessToken(token);
-        saveRefreshToken(newRefreshToken);
+        if (newRefreshToken) saveRefreshToken(newRefreshToken);
 
         // Actualizar header de la petición original
         if (originalRequest.headers) {

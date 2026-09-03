@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   ShoppingCart, CheckCircle2, Clock3, ChefHat,
-  Hash, AlertCircle, RefreshCcw, Loader2, Send,
+  Hash, AlertCircle, Loader2, Send,
   Minus, Plus, Trash2, PartyPopper,
 } from "lucide-react";
 
@@ -83,10 +83,12 @@ export default function PedidoPage() {
   const [currentOrderId,   setCurrentOrderId]   = useState<string | null>(null);
   const [currentOrderStatus, setCurrentOrderStatus] = useState<string | null>(null);
 
-  // Socket reconnection
-  const { triggerStateSync } = useSocketReconnection();
+  useSocketReconnection();
 
-  // ── Notificación temporal ─────────────────────────────────────
+  const currentOrderIdRef = useRef(currentOrderId);
+  currentOrderIdRef.current = currentOrderId;
+  const userId = user?._id;
+
   const notify = useCallback(
     (type: "ok" | "err" | "info", msg: string, ms = 4000) => {
       setToast({ type, msg });
@@ -95,10 +97,8 @@ export default function PedidoPage() {
     [],
   );
 
-  // ── Carga datos ───────────────────────────────────────────────
   const loadTables = useCallback(async () => {
     try {
-      setLoadingTables(true);
       setTables(await getTables());
     } catch (e: any) {
       notify("err", e.message);
@@ -109,7 +109,6 @@ export default function PedidoPage() {
 
   const loadProducts = useCallback(async () => {
     try {
-      setLoadingProducts(true);
       setProducts(await getProducts({ available: true, isActiveForPOS: true }));
     } catch (e: any) {
       notify("err", e.message);
@@ -123,13 +122,9 @@ export default function PedidoPage() {
     loadProducts();
   }, [loadTables, loadProducts]);
 
-  // ── Socket.IO ─────────────────────────────────────────────────
   useEffect(() => {
     initSocket();
-    // Clientes se unen a su propio room user:{userId} — NO a orders:global
-    // El backend emite order:update / order:created a user:{userId} cuando
-    // el pedido pertenece al cliente autenticado (userId guardado en Order).
-    if (user?._id) joinUserRoom(user._id);
+    if (userId) joinUserRoom(userId);
 
     const unsub = onOrderStatus((data) => {
       const order = data.order;
@@ -139,24 +134,13 @@ export default function PedidoPage() {
         order.status as OrderStatus,
         order.updatedAt || new Date().toISOString(),
       );
-      if (order._id === currentOrderId) {
+      if (order._id === currentOrderIdRef.current) {
         setCurrentOrderStatus(order.status as string);
       }
     });
 
     return () => { unsub(); };
-  }, [user, currentOrderId, updateOrderStatus]);
-
-  useEffect(() => {
-    const handler = () => {
-      // Reconectar al room del usuario propio (no orders:global — restringido a staff)
-      if (user?._id) joinUserRoom(user._id);
-      loadTables();
-      loadProducts();
-    };
-    window.addEventListener("socket:state-sync", handler);
-    return () => window.removeEventListener("socket:state-sync", handler);
-  }, [loadTables, loadProducts]);
+  }, [userId, updateOrderStatus]);
 
   // Estado en tiempo real desde el store
   const realtimeStatus = currentOrderId

@@ -11,16 +11,13 @@ import { useClienteStore } from "@/stores/useClienteStore";
 import { joinUserRoom, isConnected } from "@/lib/realtime/socket";
 
 export function useSocketReconnection() {
-  const user = useClienteStore((state) => state.user);
+  const userId = useClienteStore((state) => state.user?._id);
 
   useEffect(() => {
     const handleReconnect = () => {
-      // Re-join user room si está autenticado
-      if (user?._id) {
-        joinUserRoom(user._id);
+      if (userId) {
+        joinUserRoom(userId);
       }
-      // Disparar sync de estado en los componentes que lo escuchan
-      window.dispatchEvent(new CustomEvent("socket:state-sync"));
     };
 
     const handleDisconnect = () => {
@@ -40,7 +37,7 @@ export function useSocketReconnection() {
       window.removeEventListener("socket:disconnect",  handleDisconnect);
       window.removeEventListener("socket:fallback",    handleFallback);
     };
-  }, [user]);
+  }, [userId]);
 
   const triggerStateSync = useCallback(() => {
     window.dispatchEvent(new CustomEvent("socket:state-sync"));
