@@ -203,13 +203,51 @@ export default function TableNode({
     textureStyle = "from-amber-900/70 to-neutral-950/95 border-amber-800/20";
   }
 
-  // Estilos de posicionamiento espacial absoluto
+  // Posicionamiento espacial seguro con fallback armónico
+  const getSafeCoordinates = () => {
+    if (
+      typeof table.x === "number" &&
+      typeof table.y === "number" &&
+      !isNaN(table.x) &&
+      !isNaN(table.y) &&
+      (table.x > 0 || table.y > 0)
+    ) {
+      return {
+        x: Math.max(8, Math.min(92, table.x)),
+        y: Math.max(10, Math.min(90, table.y)),
+      };
+    }
+
+    // Distribución armónica basada en número de mesa y ubicación si no hay coordenadas
+    const num = Math.max(1, table.number || 1);
+    const index = num - 1;
+    const cols = 5;
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+
+    let baseX = 14 + col * 18;
+    let baseY = 20 + row * 22;
+
+    if (table.location === "bar") {
+      baseY = 78;
+      baseX = 18 + (index % 4) * 22;
+    } else if (table.location === "outdoor") {
+      baseX = Math.min(88, 48 + (col % 3) * 18);
+    }
+
+    return {
+      x: Math.max(8, Math.min(92, baseX)),
+      y: Math.max(10, Math.min(90, baseY)),
+    };
+  };
+
+  const safeCoords = getSafeCoordinates();
   const widthVal = table.width || 120;
   const heightVal = table.height || 120;
   const spatialStyle = viewType === "spatial" ? {
     position: "absolute" as const,
-    left: `${table.x}%`,
-    top: `${table.y}%`,
+    left: `${safeCoords.x}%`,
+    top: `${safeCoords.y}%`,
     width: `${widthVal}px`,
     height: `${heightVal}px`,
     marginLeft: `-${widthVal / 2}px`,

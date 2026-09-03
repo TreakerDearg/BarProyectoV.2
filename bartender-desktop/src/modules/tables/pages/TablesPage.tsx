@@ -106,6 +106,7 @@ export default function TablesPage() {
   const [isMobile,       setIsMobile]       = useState(false);
   const [isInspectorOpen,setIsInspectorOpen]= useState(false);
   const [activeLocation, setActiveLocation] = useState<string>("all");
+  const [isEditMode,     setIsEditMode]     = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -372,16 +373,35 @@ export default function TablesPage() {
         <div className="flex flex-wrap items-center gap-2">
           <ModeToggle mode={mode} onChange={setMode} />
 
-          {/* Toggle vista grid/espacial */}
-          <button
-            type="button"
-            onClick={toggleView}
-            title={view === "grid" ? "Cambiar a vista espacial" : "Cambiar a vista grid"}
-            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
-          >
-            {view === "grid" ? <Map size={15} /> : <Grid3X3 size={15} />}
-            <span className="hidden sm:inline">{view === "grid" ? "Espacial" : "Cuadrícula"}</span>
-          </button>
+          {/* Segmented View Toggle: Cuadrícula vs Espacial */}
+          <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1">
+            <button
+              type="button"
+              onClick={() => { setView("grid"); setIsEditMode(false); }}
+              title="Vista en cuadrícula"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                view === "grid"
+                  ? "bg-gold/20 text-gold border border-gold/30"
+                  : "text-muted hover:text-ivory"
+              }`}
+            >
+              <Grid3X3 size={14} />
+              <span className="hidden sm:inline">Cuadrícula</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("spatial")}
+              title="Vista de plano espacial"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                view === "spatial"
+                  ? "bg-gold/20 text-gold border border-gold/30"
+                  : "text-muted hover:text-ivory"
+              }`}
+            >
+              <Map size={14} />
+              <span className="hidden sm:inline">Espacial</span>
+            </button>
+          </div>
 
           <button
             type="button"
@@ -531,8 +551,8 @@ export default function TablesPage() {
       {/* ── ZONA PRINCIPAL ──────────────────────────────────────── */}
       <div className="flex-1 flex gap-4 min-h-0 overflow-hidden">
 
-        {/* FloorPlan — FIX: el contenedor necesita h-0 para que flex-1 funcione */}
-        <div className="flex-1 flex flex-col min-w-0 h-0 min-h-0 flex-shrink-0" style={{ flexBasis: 0, flexGrow: 1 }}>
+        {/* FloorPlan Container */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden">
           <FloorPlan
             tables={filteredTables}
             loading={loading}
@@ -542,8 +562,11 @@ export default function TablesPage() {
               if (isMobile) setIsInspectorOpen(true);
             }}
             viewType={view === "spatial" ? "spatial" : "grid"}
-            isEditMode={false}
+            isEditMode={view === "spatial" && isEditMode}
+            onToggleEditMode={() => setIsEditMode((prev) => !prev)}
             onTableLayoutChange={handleTableLayoutChange}
+            onCreateTable={() => setIsFormOpen(true)}
+            onRetry={fetchTables}
           />
         </div>
 

@@ -43,8 +43,8 @@ export default function DashboardLayout({ children }: Props) {
         </header>
 
         {/* CONTENT */}
-        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 md:p-4 lg:p-6 relative z-10">
-          <div className="relative z-10 w-full">
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 md:p-4 lg:p-6 relative z-10 flex flex-col">
+          <div className="relative z-10 w-full flex-1 flex flex-col min-h-0 h-full">
             {children}
           </div>
         </main>
