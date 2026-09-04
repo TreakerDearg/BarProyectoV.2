@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useClienteStore } from "@/stores/useClienteStore";
 import {
   getMyFavorites,
@@ -17,6 +17,14 @@ interface UseFavoritesReturn {
   toggleFavorite: (productId: string) => Promise<void>;
 }
 
+/**
+ * useFavorites
+ * Mantiene el listado de favoritos del usuario autenticado.
+ *
+ * IMPORTANTE: el backend devuelve _id (Mongoose), pero ProductPublicDTO usa id.
+ * La normalización se hace en getMyFavorites() dentro de bartender.ts.
+ * Aquí solo asumimos que todos los objetos tienen `id: string` válido.
+ */
 export function useFavorites(): UseFavoritesReturn {
   const user  = useClienteStore((s) => s.user);
   const token = useClienteStore((s) => s.token);
@@ -26,7 +34,7 @@ export function useFavorites(): UseFavoritesReturn {
 
   const isAuthenticated = !!token && !!user;
 
-  // Cargar favoritos cuando hay sesión activa
+  // ── Cargar favoritos cuando hay sesión activa ─────────────────
   useEffect(() => {
     if (!isAuthenticated) {
       setFavorites([]);
@@ -34,16 +42,23 @@ export function useFavorites(): UseFavoritesReturn {
     }
     setLoading(true);
     getMyFavorites()
-      .then(setFavorites)
+      .then((data) => {
+        // Filtrar entradas sin id válido (guardia defensiva)
+        setFavorites(data.filter((f) => !!f?.id));
+      })
       .catch(() => setFavorites([]))
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  const favoriteIds = new Set(favorites.map((f) => f.id));
+  // Memoizar el Set para evitar recalcular en cada render
+  const favoriteIds = useMemo(
+    () => new Set(favorites.map((f) => f.id).filter(Boolean)),
+    [favorites]
+  );
 
   const isFavorite = useCallback(
     (productId: string) => favoriteIds.has(productId),
-    [favorites] // eslint-disable-line react-hooks/exhaustive-deps
+    [favoriteIds]
   );
 
   const toggleFavorite = useCallback(
@@ -52,14 +67,15 @@ export function useFavorites(): UseFavoritesReturn {
 
       const wasFav = favoriteIds.has(productId);
 
-      // Optimistic update
+      // Optimistic update — usamos un placeholder mínimo válido
       if (wasFav) {
         setFavorites((prev) => prev.filter((f) => f.id !== productId));
       } else {
-        // Agregar un placeholder mínimo para que el Set se actualice
         setFavorites((prev) => [
           ...prev,
-          { id: productId } as ProductPublicDTO,
+          { id: productId, name: "", description: "", price: 0, dynamicPrice: 0,
+            image: "", type: "drink", drinkStyle: "classic", available: true,
+            featured: false, category: "", tags: [], dietaryRestrictions: [] } satisfies ProductPublicDTO,
         ]);
       }
 
@@ -70,15 +86,15 @@ export function useFavorites(): UseFavoritesReturn {
           await apiAddFavorite(productId);
           // Recargar para obtener los datos completos del producto
           const updated = await getMyFavorites();
-          setFavorites(updated);
+          setFavorites(updated.filter((f) => !!f?.id));
         }
       } catch {
         // Revertir si falla
         if (wasFav) {
-          setFavorites((prev) => [
-            ...prev,
-            { id: productId } as ProductPublicDTO,
-          ]);
+          // Al revertir, volvemos a cargar desde el servidor (más seguro que replicar el objeto)
+          getMyFavorites()
+            .then((data) => setFavorites(data.filter((f) => !!f?.id)))
+            .catch(() => {});
         } else {
           setFavorites((prev) => prev.filter((f) => f.id !== productId));
         }

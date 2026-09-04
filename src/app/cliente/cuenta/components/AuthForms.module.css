@@ -363,3 +363,46 @@
   .submitBtn:hover:not(:disabled) { transform: none; }
   .btnSpinner { animation: none; opacity: 0.6; }
 }
+
+/* ── Botón "Empleado" — alias rediseñado ─────────────────────────
+   Compact, dorado suave. El usuario lo presiona para abrir el modal
+   de empleados (EmployeeModal) — no redirige directamente al Desktop.
+──────────────────────────────────────────────────────────────── */
+.employeeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 24px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  color: var(--gold-soft);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  letter-spacing: var(--tracking-wide);
+  transition:
+    background   var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    color        var(--duration-base) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.employeeBtn:hover:not(:disabled) {
+  background:    var(--gold-a08);
+  border-color:  var(--gold-a50);
+  color:         var(--gold-light);
+}
+
+.employeeBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.employeeBtn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.employeeIcon { width: 16px; height: 16px; flex-shrink: 0; }

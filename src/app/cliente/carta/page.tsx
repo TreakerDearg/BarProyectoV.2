@@ -109,7 +109,7 @@ export default function CartaPage() {
 
   // ── Productos a mostrar: normales o favoritos ─────────────────
   const displayProducts = showFavs
-    ? menu.products.filter((p) => isFavorite(p.id))
+    ? menu.products.filter((p) => p?.id && isFavorite(p.id))
     : menu.filteredProducts;
 
   const grouped = groupByCategory(displayProducts);

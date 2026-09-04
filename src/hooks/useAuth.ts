@@ -1,15 +1,7 @@
-
 "use client";
 
 // ─────────────────────────────────────────────────────────────────
 // useAuth — hook centralizado de autenticación para el cliente web
-//
-// Wrapper sobre useClienteStore. Agrega:
-//   - Lógica de Decision Engine (canAccess, identityStatus, employee)
-//   - clearTokens() en logout
-//   - refreshToken guardado en register
-//   - Google OAuth initiation
-//   - Mapeo de errores a mensajes humanos
 // ─────────────────────────────────────────────────────────────────
 
 import { useState, useCallback } from "react";
@@ -24,7 +16,6 @@ import type { AuthUser, IdentityDecisionResponse } from "@/lib/types/api";
 export type AuthTab = "login" | "register";
 
 export interface EmployeeDecision {
-  /** La ruta del Decision Engine (admin, desktop, etc.) */
   employeeDestination: string;
   identityStatus: string;
   identityStatusLabel: string;
@@ -34,45 +25,35 @@ export interface EmployeeDecision {
 export type AuthError = string | null;
 
 export interface UseAuthReturn {
-  // Estado derivado del store
   isAuthenticated: boolean;
-  user: AuthUser | null;
-  token: string | null;
-  // Estado propio del hook
-  loading: boolean;
-  error: AuthError;
-  /** Si != null, el usuario es empleado y hay que mostrar el EmployeeModal */
+  user:            AuthUser | null;
+  token:           string | null;
+  loading:         boolean;
+  error:           AuthError;
   employeeDecision: EmployeeDecision | null;
-  // Acciones
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  initiateGoogleOAuth: () => Promise<void>;
-  /** Procesar respuesta del callback de OAuth (URL params) */
+  login:           (email: string, password: string) => Promise<void>;
+  register:        (name: string, email: string, password: string) => Promise<void>;
+  logout:          () => void;
+  initiateGoogleOAuth:  () => Promise<void>;
   processOAuthCallback: (params: URLSearchParams) => Promise<{ redirectTo: string } | null>;
-  /** Después del EmployeeModal: el usuario eligió continuar como cliente */
-  continueAsClient: () => void;
-  /** Después del EmployeeModal: el usuario eligió ir al sistema de empleados */
-  goToEmployeeSystem: () => Promise<string>;
-  clearError: () => void;
-  clearEmployeeDecision: () => void;
+  continueAsClient:     () => void;
+  goToEmployeeSystem:   () => Promise<string>;
+  clearError:           () => void;
+  clearEmployeeDecision:() => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
 
 function humanizeError(message: string | undefined, status?: number): string {
   if (!message && !status) return "Algo salió mal. Intentá de nuevo.";
-
   const msg = (message ?? "").toLowerCase();
 
-  // Mensaje específico de cuenta OAuth — darle prioridad antes de los genéricos
-  if (msg.includes("google") || msg.includes("botón de google") || msg.includes("fue creada con"))
+  if (msg.includes("google") || msg.includes("fue creada con"))
     return message!;
-
   if (msg.includes("credenciales") || msg.includes("contraseña") || status === 401)
     return "El email o la contraseña no son correctos.";
   if (msg.includes("bloqueada") || msg.includes("locked"))
-    return "Tu cuenta está bloqueada temporalmente. Intentá más tarde.";
+    return "Tu cuenta está bloqueada temporalmente.";
   if (msg.includes("inactiv"))
     return "Tu cuenta está desactivada. Contactá al soporte.";
   if (msg.includes("ya está registrado") || msg.includes("email") || status === 409)
@@ -80,14 +61,11 @@ function humanizeError(message: string | undefined, status?: number): string {
   if (msg.includes("contraseña") && msg.includes("mínimo"))
     return "La contraseña debe tener al menos 6 caracteres.";
   if (msg.includes("network") || msg.includes("fetch"))
-    return "No pudimos conectar con el servidor. Verificá tu conexión.";
+    return "No pudimos conectar con el servidor.";
   if (status === 500)
     return "Error en el servidor. Intentá en unos minutos.";
-
-  // Si es un mensaje ya legible del backend, usarlo directamente
   if (message && message.length < 100 && !message.includes("Error:") && !message.includes("AxiosError"))
     return message;
-
   return "Algo salió mal. Intentá de nuevo.";
 }
 
@@ -95,16 +73,45 @@ function apiAuthUrl(path: string): string {
   return `${resolveApiBaseUrl()}${path}`;
 }
 
-/** Determina si tras el login hay que mostrar el modal de empleado.
- *  Usa SOLO el campo isEmployee del backend — nunca infiere del rol. */
+/**
+ * Extrae los campos del payload de identidad.
+ * El backend envuelve la respuesta en { success, data }.
+ * Soporta ambos formatos: plano y envuelto.
+ */
+function unwrapIdentity(raw: any): IdentityDecisionResponse {
+  // Si el backend usa ok(res, identityDecision) → { success, data: {...} }
+  // Si hay serialización doble  → { success, data: { success, data: {...} } }
+  const payload = raw?.data ?? raw;
+  return payload as IdentityDecisionResponse;
+}
+
+/**
+ * Extrae el user normalizado a AuthUser desde cualquier forma del payload.
+ * Soporta: payload.user.id, payload.user._id
+ */
+function extractAuthUser(payload: any): AuthUser | null {
+  const rawUser = payload?.user;
+  if (!rawUser) return null;
+
+  const id = rawUser._id ?? rawUser.id;
+  if (!id) return null;
+
+  return {
+    _id:    String(id),
+    name:   rawUser.name   ?? "",
+    email:  rawUser.email  ?? "",
+    role:   rawUser.role   ?? "client",
+    phone:  rawUser.phone  ?? null,
+    avatar: rawUser.avatar ?? null,
+  };
+}
+
 function buildEmployeeDecision(data: IdentityDecisionResponse): EmployeeDecision | null {
-  // Cliente → nunca mostrar modal, siempre a /cliente
-  if (data.user.role === "client") return null;
-  // Solo mostrar modal si el backend confirma explícitamente que es empleado
+  if (data.user?.role === "client") return null;
   if (!data.isEmployee) return null;
   return {
     employeeDestination: data.destination || "/admin",
-    identityStatus: data.identityStatus,
+    identityStatus:      data.identityStatus,
     identityStatusLabel: data.identityStatusLabel,
     desktopAccessMessage: data.desktopAccessMessage,
   };
@@ -115,11 +122,11 @@ function buildEmployeeDecision(data: IdentityDecisionResponse): EmployeeDecision
 export function useAuth(): UseAuthReturn {
   const { token, user, setAuth, logout: storeLogout } = useClienteStore();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<AuthError>(null);
+  const [loading, setLoading]                   = useState(false);
+  const [error, setError]                       = useState<AuthError>(null);
   const [employeeDecision, setEmployeeDecision] = useState<EmployeeDecision | null>(null);
 
-  // ── Login ────────────────────────────────────────────────────────
+  // ── Login ─────────────────────────────────────────────────────
   const login = useCallback(async (email: string, password: string): Promise<void> => {
     setLoading(true);
     setError(null);
@@ -127,33 +134,43 @@ export function useAuth(): UseAuthReturn {
 
     try {
       const res = await fetch(apiAuthUrl("/auth/login"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Platform": "web",
-        },
-        body: JSON.stringify({ email, password }),
+        method:  "POST",
+        headers: { "Content-Type": "application/json", "X-Platform": "web" },
+        body:    JSON.stringify({ email, password }),
       });
 
-      const data: IdentityDecisionResponse = await res.json();
+      const raw = await res.json();
 
-      if (!data.success) {
-        setError(humanizeError(data.message, res.status));
+      // El backend usa ok(res, identityDecision) → { success: true, data: {...} }
+      const data = unwrapIdentity(raw);
+
+      // Verificar éxito a nivel HTTP
+      if (!raw.success) {
+        const msg = raw.message || raw.data?.message || data.message;
+        setError(humanizeError(msg, res.status));
         return;
       }
 
-      // Guardar tokens
-      saveAccessToken(data.token);
-      saveRefreshToken(data.refreshToken);
+      // Extraer tokens — pueden estar en la raíz del data o en data.data
+      const accessToken  = data.token        || (raw.data?.token);
+      const refreshTkn   = data.refreshToken || (raw.data?.refreshToken);
 
-      // Convertir user del engine (usa id) a AuthUser (usa _id)
-      const authUser: AuthUser = {
-        _id: data.user.id,
-        name: data.user.name,
-        email: data.user.email,
-        role: data.user.role,
-      };
-      setAuth(data.token, authUser);
+      if (!accessToken) {
+        setError("No se recibió token de acceso.");
+        return;
+      }
+
+      saveAccessToken(accessToken);
+      if (refreshTkn) saveRefreshToken(refreshTkn);
+
+      // Extraer usuario con guardia defensiva
+      const authUser = extractAuthUser(data);
+      if (!authUser) {
+        setError("No se pudo obtener la información del usuario.");
+        return;
+      }
+
+      setAuth(accessToken, authUser);
 
       // Cuenta bloqueada / inactiva
       if (!data.canAccess && data.blockMessage) {
@@ -161,14 +178,14 @@ export function useAuth(): UseAuthReturn {
         return;
       }
 
-      // Empleado → mostrar modal
+      // Empleado → mostrar modal para que decida
       const decision = buildEmployeeDecision(data);
       if (decision) {
         setEmployeeDecision(decision);
-        return; // No redirigir automáticamente — el modal lo maneja
+        return;
       }
 
-      // Cliente normal → señal de éxito sin redirección (el caller redirige)
+      // Cliente normal → éxito (el caller redirige)
     } catch (e) {
       setError(humanizeError(e instanceof Error ? e.message : undefined));
     } finally {
@@ -176,31 +193,28 @@ export function useAuth(): UseAuthReturn {
     }
   }, [setAuth]);
 
-  // ── Register ─────────────────────────────────────────────────────
+  // ── Register ──────────────────────────────────────────────────
   const register = useCallback(async (name: string, email: string, password: string): Promise<void> => {
     setLoading(true);
     setError(null);
 
     try {
       const res = await fetch(apiAuthUrl("/auth/register"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Platform": "web",
-        },
-        body: JSON.stringify({ name, email, password }),
+        method:  "POST",
+        headers: { "Content-Type": "application/json", "X-Platform": "web" },
+        body:    JSON.stringify({ name, email, password }),
       });
 
-      const data = await res.json();
+      const raw = await res.json();
 
-      if (!data.success && !data.token) {
-        setError(humanizeError(data.message, res.status));
+      if (!raw.success && !raw.token && !raw.data?.token) {
+        setError(humanizeError(raw.message, res.status));
         return;
       }
 
-      // Registro devuelve token+user directo (no Decision Engine)
-      const rawToken = data.data?.token ?? data.token;
-      const rawUser = data.data?.user ?? data.user;
+      // register devuelve { success, data: { token, user } } vía created()
+      const rawToken = raw.data?.token ?? raw.token;
+      const rawUser  = raw.data?.user  ?? raw.user;
 
       if (!rawToken || !rawUser) {
         setError("No pudimos completar el registro. Intentá de nuevo.");
@@ -208,14 +222,13 @@ export function useAuth(): UseAuthReturn {
       }
 
       saveAccessToken(rawToken);
-      // Registro no devuelve refreshToken — guardar null (el interceptor Axios lo manejará)
 
-      const authUser: AuthUser = {
-        _id: rawUser._id ?? rawUser.id,
-        name: rawUser.name,
-        email: rawUser.email,
-        role: rawUser.role ?? "client",
-      };
+      const authUser = extractAuthUser({ user: rawUser });
+      if (!authUser) {
+        setError("No se pudo obtener la información del usuario.");
+        return;
+      }
+
       setAuth(rawToken, authUser);
     } catch (e) {
       setError(humanizeError(e instanceof Error ? e.message : undefined));
@@ -224,22 +237,27 @@ export function useAuth(): UseAuthReturn {
     }
   }, [setAuth]);
 
-  // ── Logout ───────────────────────────────────────────────────────
+  // ── Logout ────────────────────────────────────────────────────
   const logout = useCallback(() => {
-    clearTokens(); // Limpiar localStorage (fix del bug original)
-    storeLogout(); // Limpiar Zustand
+    clearTokens();
+    storeLogout();
     setEmployeeDecision(null);
     setError(null);
   }, [storeLogout]);
 
-  // ── Google OAuth ─────────────────────────────────────────────────
+  // ── Google OAuth ──────────────────────────────────────────────
+  // IMPORTANTE: solo para clientes web. NO redirigir empleados al Desktop.
+  // Los empleados acceden al Desktop desde el botón "Sistema de empleados"
+  // en el LoginForm — que abre directamente la URL del Desktop sin OAuth.
   const initiateGoogleOAuth = useCallback(async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
+      // Enviamos X-Platform: web explícitamente para que el backend
+      // genere un state con platform=web y nunca redirija a bartender://
       const res = await fetch(apiAuthUrl("/auth/google"), {
-        method: "GET",
-        headers: { "X-Platform": "web" },
+        method:  "GET",
+        headers: { "X-Platform": "web", "X-Audience": "client" },
       });
       const data = await res.json();
       const authUrl = data.data?.authorizationUrl ?? data.authorizationUrl;
@@ -256,56 +274,50 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
-  // ── Procesar callback OAuth ───────────────────────────────────────
+  // ── Procesar callback OAuth ───────────────────────────────────
   const processOAuthCallback = useCallback(async (
     params: URLSearchParams
   ): Promise<{ redirectTo: string } | null> => {
     const tokenParam        = params.get("token");
     const refreshTokenParam = params.get("refreshToken");
     const identityStatus    = params.get("identityStatus");
-    const error             = params.get("error");
+    const errorParam        = params.get("error");
 
-    if (error || !tokenParam || !refreshTokenParam) return null;
+    if (errorParam || !tokenParam || !refreshTokenParam) return null;
 
     saveAccessToken(tokenParam);
     saveRefreshToken(refreshTokenParam);
 
     try {
-      // Fuente de verdad: el perfil real del usuario desde el backend.
-      // NO confiamos en destination/isEmployee de la URL — pueden estar
-      // corruptos o desactualizados. Preguntamos directamente al backend.
-      const res = await fetch(apiAuthUrl("/auth/me"), {
+      const res  = await fetch(apiAuthUrl("/auth/me"), {
         headers: { Authorization: `Bearer ${tokenParam}` },
       });
-      const data = await res.json();
-      if (!data.success) return null;
+      const raw  = await res.json();
+      if (!raw.success) return null;
 
-      const profile = data.data;
-      const authUser: AuthUser = {
-        _id: profile._id ?? profile.id,
-        name: profile.name,
-        email: profile.email,
-        role: profile.role ?? "client",
-      };
+      // /auth/me devuelve el payload de perfil en raw.data
+      const profileRaw = raw.data ?? raw;
+      const authUser = extractAuthUser({ user: profileRaw });
+      if (!authUser) return null;
+
       setAuth(tokenParam, authUser);
 
-      // ── Regla simple y sin ambigüedad ───────────────────────────
-      // Cliente → siempre a cuenta, sin modal, sin preguntas.
+      // Cliente → siempre a /cliente/cuenta. Sin modal, sin preguntas.
       if (authUser.role === "client") {
         return { redirectTo: "/cliente/cuenta" };
       }
 
-      // Cuenta bloqueada/inactiva → volver al login
+      // Bloqueado / inactivo → volver al login con mensaje
       if (identityStatus === "INACTIVE" || identityStatus === "LOCKED") {
         return { redirectTo: "/cliente/cuenta?error=account_blocked" };
       }
 
-      // Cualquier otro rol (empleado, admin, etc.) → mostrar EmployeeModal
-      // Dejar que el usuario decida si accede al sistema o continúa como cliente
+      // Empleado/Admin que accedió con Google desde la web →
+      // mostrar el modal para que decida si continúa como cliente o va al Desktop.
       const dest = authUser.role === "admin" ? "/admin" : "/desktop";
       setEmployeeDecision({
         employeeDestination: dest,
-        identityStatus: identityStatus || "EMPLOYEE",
+        identityStatus:      identityStatus || "EMPLOYEE",
         identityStatusLabel: identityStatus || "Empleado",
         desktopAccessMessage: null,
       });
@@ -316,10 +328,9 @@ export function useAuth(): UseAuthReturn {
     }
   }, [setAuth]);
 
-  // ── Acciones del EmployeeModal ─────────────────────────────────────
+  // ── Acciones del EmployeeModal ────────────────────────────────
   const continueAsClient = useCallback(() => {
     setEmployeeDecision(null);
-    // El caller muestra la cuenta cliente.
   }, []);
 
   const goToEmployeeSystem = useCallback(async (): Promise<string> => {
@@ -330,8 +341,8 @@ export function useAuth(): UseAuthReturn {
 
   return {
     isAuthenticated: !!token && !!user,
-    user: user ?? null,
-    token: token ?? null,
+    user:            user ?? null,
+    token:           token ?? null,
     loading,
     error,
     employeeDecision,
@@ -342,7 +353,7 @@ export function useAuth(): UseAuthReturn {
     processOAuthCallback,
     continueAsClient,
     goToEmployeeSystem,
-    clearError: () => setError(null),
+    clearError:            () => setError(null),
     clearEmployeeDecision: () => setEmployeeDecision(null),
   };
 }

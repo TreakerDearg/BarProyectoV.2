@@ -359,10 +359,27 @@ export async function getMyOrderHistory(params?: {
    FAVORITOS
 ========================================================= */
 
-export async function getMyFavorites() {
+export async function getMyFavorites(): Promise<ProductPublicDTO[]> {
   try {
     const res = await api.get("/auth/favorites");
-    return extractData<ProductPublicDTO[]>(res);
+    const raw: any[] = extractData<any[]>(res) ?? [];
+    // El backend devuelve productos populados con _id (Mongoose).
+    // Normalizamos a ProductPublicDTO que usa 'id' (sin guión bajo).
+    return raw.map((item) => ({
+      id:                 String(item._id ?? item.id ?? ""),
+      name:               item.name        ?? "",
+      description:        item.description ?? "",
+      price:              item.price        ?? 0,
+      dynamicPrice:       item.dynamicPrice ?? item.price ?? 0,
+      image:              item.image        ?? "",
+      type:               item.type         ?? "drink",
+      drinkStyle:         item.drinkStyle   ?? "classic",
+      available:          item.available    !== false,
+      featured:           item.featured     ?? false,
+      category:           item.category     ?? "",
+      tags:               item.tags         ?? [],
+      dietaryRestrictions:item.dietaryRestrictions ?? [],
+    }));
   } catch (e) {
     throw new Error(errMessage(e));
   }

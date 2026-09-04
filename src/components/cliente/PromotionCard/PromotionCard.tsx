@@ -67,7 +67,8 @@ export function PromotionCard() {
             {promotions.map((promo) => {
               // Tomar el primer producto aplicable
               const product = promo.applicableProducts?.[0];
-              const basePrice = product?.price ?? 0;
+              if (!product?.id) return null; // guardia: producto sin datos válidos
+              const basePrice = product.price ?? 0;
               const discountedPrice = calcDiscountedPrice(basePrice, promo.type, promo.value);
 
               // Etiqueta del descuento

@@ -128,7 +128,7 @@ export function ModernProductCard() {
     getPublicProducts({ available: true })
       .then((data) => {
         // Priorizar featured, luego por nombre
-        const sorted = [...data].sort((a, b) => {
+        const sorted = [...data].filter((p) => p?.id).sort((a, b) => {
           if (a.featured !== b.featured) return a.featured ? -1 : 1;
           return a.name.localeCompare(b.name, "es");
         });

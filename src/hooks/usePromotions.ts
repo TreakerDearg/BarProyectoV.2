@@ -114,7 +114,8 @@ export function usePromotions(): UsePromotionsState & UsePromotionsActions {
     for (const promo of promotions) {
       if (!promo.active) continue;
       for (const ap of promo.applicableProducts) {
-        // Si ya hay una promo para este producto, quedarse con la de mayor descuento
+        // Guardia defensiva — ap puede ser undefined o sin id si el backend falla
+        if (!ap?.id) continue;
         const existing = map.get(ap.id);
         if (!existing) {
           map.set(ap.id, promo);

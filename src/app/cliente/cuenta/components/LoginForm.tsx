@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import type { AuthError } from "@/hooks/useAuth";
 import styles from "./AuthForms.module.css";
-
-// ─────────────────────────────────────────────────────────────────
-// LoginForm
-// ─────────────────────────────────────────────────────────────────
 
 interface LoginFormProps {
   loading: boolean;
@@ -27,8 +22,8 @@ export function LoginForm({
   onEmployeeSystemOpen,
   onSwitchToRegister,
 }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email,        setEmail]        = useState("");
+  const [password,     setPassword]     = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = useCallback(
@@ -47,7 +42,7 @@ export function LoginForm({
     >
       {/* Heading */}
       <div className={styles.heading}>
-        <h1 className={styles.title}>Bienvenido nuevamente</h1>
+        <h1 className={styles.title}>Bienvenido</h1>
         <p className={styles.subtitle}>
           Entrá para continuar tu experiencia en Nebula.
         </p>
@@ -74,13 +69,10 @@ export function LoginForm({
         )}
       </AnimatePresence>
 
-      {/* Formulario */}
+      {/* Formulario email/password */}
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        {/* Email */}
         <div className={styles.field}>
-          <label htmlFor="login-email" className={styles.label}>
-            Email
-          </label>
+          <label htmlFor="login-email" className={styles.label}>Email</label>
           <input
             id="login-email"
             type="email"
@@ -95,13 +87,8 @@ export function LoginForm({
           />
         </div>
 
-        {/* Contraseña */}
         <div className={styles.field}>
-          <div className={styles.labelRow}>
-            <label htmlFor="login-password" className={styles.label}>
-              Contraseña
-            </label>
-          </div>
+          <label htmlFor="login-password" className={styles.label}>Contraseña</label>
           <div className={styles.inputWrapper}>
             <input
               id="login-password"
@@ -120,7 +107,6 @@ export function LoginForm({
               className={styles.togglePassword}
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              tabIndex={0}
             >
               {showPassword ? (
                 <svg viewBox="0 0 24 24" fill="none" className={styles.eyeIcon} aria-hidden="true">
@@ -138,7 +124,6 @@ export function LoginForm({
           </div>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading || !email || !password}
@@ -146,31 +131,28 @@ export function LoginForm({
           aria-busy={loading}
         >
           {loading ? (
-            <>
-              <span className={styles.btnSpinner} aria-hidden="true" />
-              Ingresando…
-            </>
+            <><span className={styles.btnSpinner} aria-hidden="true" />Ingresando…</>
           ) : (
             "Iniciar sesión"
           )}
         </button>
       </form>
 
-      {/* Divider + Google */}
+      {/* Divider */}
       <div className={styles.divider} aria-hidden="true">
         <span className={styles.dividerLine} />
         <span className={styles.dividerText}>o continuar con</span>
         <span className={styles.dividerLine} />
       </div>
 
+      {/* Google — SOLO para clientes. Los empleados usan el botón de abajo. */}
       <button
         type="button"
         onClick={onGoogleLogin}
         disabled={loading}
         className={styles.googleBtn}
-        aria-label="Continuar con Google"
+        aria-label="Continuar con Google como cliente"
       >
-        {/* SVG de Google */}
         <svg className={styles.googleIcon} viewBox="0 0 24 24" aria-hidden="true">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -180,30 +162,29 @@ export function LoginForm({
         Continuar con Google
       </button>
 
+      {/* ── BOTÓN EMPLEADO — abre modal de empleados ─────────────
+          No redirige al Desktop directamente. Muestra un modal donde
+          el usuario puede elegir ir al sistema Nebula o continuar
+          como cliente en la web.                                    */}
       <button
         type="button"
         onClick={onEmployeeSystemOpen}
         disabled={loading}
-        className={styles.employeeSystemBtn}
-        aria-label="Abrir sistema de empleados"
+        className={styles.employeeBtn}
+        aria-label="Acceder como empleado"
       >
-        <svg viewBox="0 0 24 24" fill="none" className={styles.employeeSystemIcon} aria-hidden="true">
-          <rect x="3" y="4" width="18" height="13" rx="2"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <path d="M8 21h8M12 17v4M8 9h8"
+        <svg viewBox="0 0 24 24" fill="none" className={styles.employeeIcon} aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="7" r="4"
             stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        Sistema de empleados
+        Empleado
       </button>
 
-      {/* Switch a registro */}
       <p className={styles.switchText}>
         ¿No tenés cuenta?{" "}
-        <button
-          type="button"
-          className={styles.switchLink}
-          onClick={onSwitchToRegister}
-        >
+        <button type="button" className={styles.switchLink} onClick={onSwitchToRegister}>
           Crear cuenta
         </button>
       </p>
