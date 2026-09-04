@@ -1,8 +1,7 @@
 import { io } from "socket.io-client";
+import { resolveSocketBaseUrl } from "./network";
 
-const socketUrl = process.env.NEXT_PUBLIC_API_URL 
-  ? process.env.NEXT_PUBLIC_API_URL.replace("/api", "") 
-  : "http://localhost:5000";
+const socketUrl = resolveSocketBaseUrl();
 
 const socket = io(socketUrl, {
   withCredentials: true,

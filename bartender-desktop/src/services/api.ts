@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getAccessToken, getRefreshToken, saveTokens, removeTokens } from "../utils/tokenStorage";
+import { resolveApiBaseUrl } from "./socketConfig";
 
 /* =========================================================
    NORMALIZER GLOBAL
@@ -33,15 +34,7 @@ const normalizePayload = (data: any) => {
 /* =========================================================
    AXIOS INSTANCE
 ========================================================= */
-const rawApiUrl =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.VITE_BACKEND_URL
-    ? `${import.meta.env.VITE_BACKEND_URL}/api`
-    : "http://localhost:5000/api");
-
-const baseURL = rawApiUrl.replace(/\/$/, "").endsWith("/api")
-  ? rawApiUrl.replace(/\/$/, "")
-  : `${rawApiUrl.replace(/\/$/, "")}/api`;
+const baseURL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL,

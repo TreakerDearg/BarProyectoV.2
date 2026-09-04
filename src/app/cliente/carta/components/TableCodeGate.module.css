@@ -1,0 +1,196 @@
+/* ================================================================
+   TableCodeGate — NightGold
+================================================================ */
+
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(212,163,64,0.07) 0%, transparent 60%),
+    var(--bg-deep, #060608);
+}
+
+.gateBackground {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-deep, #060608);
+  z-index: -1;
+}
+
+/* ── Card ─────────────────────────────────────────────────────── */
+.gateCard {
+  width: min(90vw, 400px);
+  background: var(--surface, #15161A);
+  border: 1px solid var(--border-gold, rgba(212,163,64,0.22));
+  border-radius: 2rem;
+  padding: 3rem 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 60px rgba(212,163,64,0.08);
+  text-align: center;
+}
+
+/* ── Icon ─────────────────────────────────────────────────────── */
+.gateIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--gold-a12, rgba(212,163,64,0.12));
+  border: 1px solid var(--border-gold, rgba(212,163,64,0.3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold, #D4AF37);
+  box-shadow: 0 0 30px rgba(212,163,64,0.15);
+}
+
+/* ── Text ─────────────────────────────────────────────────────── */
+.gateText { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.gateTitle {
+  font-family: var(--font-sans);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 800;
+  color: var(--cream, #F4E9D0);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.gateSub {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--text-dim, #B7B5AE);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Código ───────────────────────────────────────────────────── */
+.codeRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.codeDigit {
+  width: 72px;
+  height: 80px;
+  border-radius: 1.25rem;
+  background: var(--surface-2, #1C1D22);
+  border: 2px solid var(--border, #292A30);
+  color: var(--cream, #F4E9D0);
+  font-family: monospace;
+  font-size: 2.25rem;
+  font-weight: 800;
+  text-align: center;
+  caret-color: var(--gold, #D4AF37);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.codeDigit:focus {
+  border-color: var(--gold, #D4AF37);
+  box-shadow: 0 0 0 3px rgba(212,163,64,0.18);
+}
+
+.codeDigitFilled {
+  border-color: var(--gold, #D4AF37);
+  background: var(--gold-a08, rgba(212,163,64,0.08));
+}
+
+.codeDigitError {
+  border-color: var(--red, #D95C5C) !important;
+  box-shadow: 0 0 0 3px rgba(217,92,92,0.18) !important;
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0);  }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px);  }
+}
+
+.codeDigit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Success ──────────────────────────────────────────────────── */
+.successBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  background: var(--green-soft, rgba(76,175,120,0.12));
+  border: 1px solid var(--green-border, rgba(76,175,120,0.28));
+  color: var(--green-light, #6DC992);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.successDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-light, #6DC992);
+  animation: pulseDot 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%,100% { box-shadow: 0 0 0 0 rgba(76,175,120,0.5); }
+  50%     { box-shadow: 0 0 0 5px rgba(76,175,120,0); }
+}
+
+/* ── Error ────────────────────────────────────────────────────── */
+.errorMsg {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--red-light, #EE7878);
+  background: var(--red-soft, rgba(217,92,92,0.10));
+  border: 1px solid var(--red-border, rgba(217,92,92,0.25));
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  width: 100%;
+  margin: 0;
+}
+
+/* ── Loading ──────────────────────────────────────────────────── */
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gold, #D4AF37);
+}
+
+/* ── Skip ─────────────────────────────────────────────────────── */
+.skipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted, #7D7B75);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.skipBtn:hover { color: var(--text-dim, #B7B5AE); }
+
+@media (prefers-reduced-motion: reduce) {
+  .codeDigitError { animation: none; }
+  .successDot     { animation: none; }
+}

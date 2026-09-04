@@ -4,6 +4,7 @@
  */
 
 import { logger } from "../config/logger.js";
+import { isAllowedOrigin } from "../config/network.js";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import {
@@ -222,13 +223,11 @@ export const socketAuthMiddleware = async (socket, next) => {
  */
 export const socketConfig = {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      process.env.CLIENT_URL,
-      process.env.DESKTOP_URL,
-    ].filter(Boolean),
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      return callback(new Error(`CORS bloqueado en Socket.IO: ${origin}`));
+    },
     credentials: true,
   },
   transports: ["websocket", "polling"],

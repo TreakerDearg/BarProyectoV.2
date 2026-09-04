@@ -8,7 +8,7 @@
   "author": "Proyecto Bartender",
   "scripts": {
     "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
-    "dev:react": "vite",
+    "dev:react": "vite --host 0.0.0.0",
     "dev:electron": "npm run build:electron && wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
     "build": "vite build && npm run build:electron",
     "build:web": "vite build",

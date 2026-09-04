@@ -9,6 +9,7 @@ import { Server } from "socket.io";
 
 import { connectDB }    from "./config/db.js";
 import { logger }       from "./config/logger.js";
+import { corsOriginCallback, getAllowedOrigins, getServerBindHost, isAllowedOrigin } from "./config/network.js";
 import apiRoutes        from "./routes/index.js";
 import { initializeSocketEvents } from "./utils/socketEvents.js";
 import { initializeSocketNamespaces } from "./socket/index.js";
@@ -40,40 +41,12 @@ const server = http.createServer(app);
 /* =========================================================
    CORS CONFIGURATION (Must be first to handle preflight OPTIONS requests)
 ========================================================= */
-const extraOrigins = (process.env.ALLOWED_ORIGINS || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const allowedOrigins = new Set(
-  [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://bar-proyecto-v-2-kns78t85g-treakerdeargs-projects.vercel.app",
-    "https://barproyectov-2.onrender.com",
-    "https://bar-proyecto-v-2.vercel.app",
-    process.env.CLIENT_URL,
-    process.env.DESKTOP_URL,
-    ...extraOrigins,
-  ].filter(Boolean)
-);
-
-const isVercelPreviewOrigin = (origin = "") =>
-  /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i.test(origin);
-
-const isAllowedOrigin = (origin) =>
-  allowedOrigins.has(origin) || isVercelPreviewOrigin(origin);
+const allowedOrigins = getAllowedOrigins();
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      /* Electron no envía origin → permitir */
-      if (!origin) return callback(null, true);
-      if (isAllowedOrigin(origin)) return callback(null, true);
-
-      logger.warn(`[CORS] Bloqueado: ${origin}`);
-      return callback(new Error(`CORS bloqueado: ${origin}`));
+      return corsOriginCallback(origin, callback);
     },
     credentials: true,
   })
@@ -273,10 +246,12 @@ app.use(errorHandler);
    START SERVER
 ========================================================= */
 const PORT = process.env.PORT || 5000;
+const HOST = getServerBindHost();
 
 try {
-  server.listen(PORT, () => {
-    logger.info(`🚀 Bartender API corriendo en http://localhost:${PORT}`);
+  server.listen(PORT, HOST, () => {
+    logger.info(`🚀 Bartender API escuchando en ${HOST}:${PORT}`);
+    logger.info(`🔗 URL local: http://localhost:${PORT}`);
     logger.info(`🌍 NODE_ENV: ${process.env.NODE_ENV || "development"}`);
     logger.info(`🔧 Middleware preset: ${env}`);
     logger.info(`📊 Métricas habilitadas: /metrics`);
@@ -313,4 +288,3 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error('[Server] Unhandled Rejection:', reason);
   process.exit(1);
 });
-

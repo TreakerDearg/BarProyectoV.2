@@ -3,14 +3,14 @@
 // ─────────────────────────────────────────────────────────────────
 // /cliente/cuenta — Autenticación + perfil
 //
-// Si el usuario YA está autenticado, se queda en esta página (AccountView).
-// Solo redirige a /cliente inmediatamente después de un login/registro
-// nuevo — no cuando entra a "Mi cuenta" desde el navbar.
+// Si el usuario ya está autenticado como cliente, se queda en esta página
+// y ve AccountView. Si es empleado, se abre EmployeeModal.
 // ─────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { resolveEmployeeSystemUrl } from "@/lib/api/network";
 import { AuthLayout } from "./components/AuthLayout";
 import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
@@ -22,7 +22,6 @@ type Tab = "login" | "register";
 export default function CuentaPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
-  const justSignedIn = useRef(false);
 
   const {
     isAuthenticated,
@@ -58,7 +57,6 @@ export default function CuentaPage() {
   const handleLogin = useCallback(
     async (email: string, password: string) => {
       clearError();
-      justSignedIn.current = true;
       await login(email, password);
     },
     [login, clearError]
@@ -67,37 +65,29 @@ export default function CuentaPage() {
   const handleRegister = useCallback(
     async (name: string, email: string, password: string) => {
       clearError();
-      justSignedIn.current = true;
       await register(name, email, password);
     },
     [register, clearError]
   );
 
-  useEffect(() => {
-    if (
-      !justSignedIn.current ||
-      !isAuthenticated ||
-      employeeDecision ||
-      loading ||
-      user?.role !== "client"
-    ) {
-      return;
-    }
-    justSignedIn.current = false;
-    router.replace("/cliente");
-  }, [isAuthenticated, employeeDecision, loading, user?.role, router]);
-
   const handleGoToSystem = useCallback(() => {
     goToEmployeeSystem().then((dest) => {
-      if (dest && dest !== "/cliente") {
-        router.replace(dest);
+      if (!dest) return;
+      if (/^https?:\/\//i.test(dest)) {
+        window.location.href = dest;
+        return;
       }
+      router.replace(dest);
     });
   }, [goToEmployeeSystem, router]);
 
+  const handleOpenEmployeeSystem = useCallback(() => {
+    window.location.href = resolveEmployeeSystemUrl();
+  }, []);
+
   const handleContinueAsClient = useCallback(() => {
     continueAsClient();
-    router.replace("/cliente");
+    router.replace("/cliente/cuenta");
   }, [continueAsClient, router]);
 
   const handleLogout = useCallback(() => {
@@ -139,6 +129,7 @@ export default function CuentaPage() {
             error={error}
             onLogin={handleLogin}
             onGoogleLogin={initiateGoogleOAuth}
+            onEmployeeSystemOpen={handleOpenEmployeeSystem}
             onSwitchToRegister={switchToRegister}
           />
         ) : (

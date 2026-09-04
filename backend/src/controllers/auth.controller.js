@@ -2,6 +2,7 @@ import jwt    from "jsonwebtoken";
 import crypto from "crypto";
 import User   from "../models/User.js";
 import { logger } from "../config/logger.js";
+import { isAllowedOrigin } from "../config/network.js";
 import {
   ok, created, badRequest,
   unauthorized, forbidden, conflict, serverError, locked,
@@ -382,6 +383,7 @@ export const googleAuth = async (req, res, next) => {
     const oauthService = (await import('../identity/oauth/OAuthService.js')).default;
     const sessionInfo = {
       platform: req.headers['x-platform'] || 'web',
+      origin: req.headers.origin || null,
       userAgent: req.headers['user-agent'],
       ip: req.ip,
     };
@@ -406,8 +408,13 @@ export const googleAuth = async (req, res, next) => {
    GOOGLE OAUTH CALLBACK
    Procesa el callback de Google OAuth con Decision Engine
 ========================================================= */
-const frontendCallback = (query) => {
-  const base = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`;
+const getFrontendOrigin = (oauthOrigin = null) => {
+  if (oauthOrigin && isAllowedOrigin(oauthOrigin)) return oauthOrigin;
+  return process.env.FRONTEND_URL || process.env.CLIENT_URL || 'https://bar-proyecto-v-2.vercel.app';
+};
+
+const frontendCallback = (query, oauthOrigin = null) => {
+  const base = `${getFrontendOrigin(oauthOrigin)}/auth/callback`;
   return `${base}?${new URLSearchParams(query).toString()}`;
 };
 
@@ -446,6 +453,7 @@ export const googleCallback = async (req, res, next) => {
     const oauthService = (await import('../identity/oauth/OAuthService.js')).default;
     const sessionInfo = {
       platform: origin.platform,
+      origin: origin.origin,
       userAgent: req.headers['user-agent'],
       ip: req.ip,
     };
@@ -454,18 +462,18 @@ export const googleCallback = async (req, res, next) => {
 
     if (!response.success) {
       logger.warn(`[Auth] googleCallback falló: ${response.message}`);
-      return res.redirect(frontendCallback({ error: response.message || 'oauth_error' }));
+      return res.redirect(frontendCallback({ error: response.message || 'oauth_error' }, origin.origin));
     }
 
     const userId = response.user?.id ?? response.user?._id;
     if (!userId) {
       logger.error('[Auth] googleCallback: user sin id en response:', response.user);
-      return res.redirect(frontendCallback({ error: 'oauth_error' }));
+      return res.redirect(frontendCallback({ error: 'oauth_error' }, origin.origin));
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.redirect(frontendCallback({ error: 'oauth_error' }));
+      return res.redirect(frontendCallback({ error: 'oauth_error' }, origin.origin));
     }
 
     const isClient = user.role === 'client';
@@ -485,12 +493,12 @@ export const googleCallback = async (req, res, next) => {
           identityStatus: 'CLIENT',
           isEmployee: 'false',
           role: 'client',
-        }));
+        }, origin.origin));
       }
 
       const loginCheck = canLogin(user);
       if (!loginCheck.canLogin) {
-        return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }));
+        return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }, origin.origin));
       }
 
       const ssoToken = issueSsoToken(user);
@@ -500,7 +508,7 @@ export const googleCallback = async (req, res, next) => {
 
     const loginCheck = canLogin(user);
     if (!loginCheck.canLogin) {
-      return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }));
+      return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }, origin.origin));
     }
 
     const session = await refreshTokenService.generateRefreshToken(user._id, sessionInfo);
@@ -528,7 +536,7 @@ export const googleCallback = async (req, res, next) => {
       identityStatus: isClient ? 'CLIENT' : (identityDecision.identityStatus || 'EMPLOYEE'),
       isEmployee: isClient ? 'false' : String(isEmployeeForWeb),
       role: user.role || 'client',
-    }));
+    }, origin.origin));
   } catch (error) {
     logger.error("[Auth] Error en googleCallback:", error);
     return res.redirect(frontendCallback({ error: 'oauth_error' }));

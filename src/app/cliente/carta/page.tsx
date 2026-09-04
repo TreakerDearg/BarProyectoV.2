@@ -1,28 +1,11 @@
 "use client";
 
-// ─────────────────────────────────────────────────────────────────
-// CartaPage — Carta del cliente
-//
-// Layout global (Navbar + Footer) provisto por ClienteShell.
-// Esta página solo orquesta la experiencia de la carta.
-//
-// Arquitectura:
-//   CartaPage (composición)
-//     → useMenu         (productos, categorías, filtrado, búsqueda)
-//     → usePromotions   (promociones activas, mapeo producto→promo)
-//     → useClienteStore (carrito)
-//       → MenuHero
-//       → PromotionSection     (condicional: solo si hay promos activas)
-//       → SearchBar
-//       → CategoryScroller
-//       → ProductGrid + ProductCard
-//       → ProductDetailDrawer  (bottom-sheet/drawer)
-//       → MenuEmptyState / MenuErrorState / SkeletonGrid
-// ─────────────────────────────────────────────────────────────────
-
 import { useState, useCallback } from "react";
-import { useMenu } from "@/hooks/useMenu";
+import { Heart } from "lucide-react";
+
+import { useMenu }       from "@/hooks/useMenu";
 import { usePromotions } from "@/hooks/usePromotions";
+import { useFavorites }  from "@/hooks/useFavorites";
 import { useClienteStore } from "@/stores/useClienteStore";
 import type { ProductPublicDTO } from "@/lib/types/api";
 
@@ -35,11 +18,10 @@ import { ProductDetailDrawer } from "./components/ProductDetailDrawer";
 import { SkeletonGrid }        from "./components/SkeletonGrid";
 import { MenuEmptyState }      from "./components/MenuEmptyState";
 import { MenuErrorState }      from "./components/MenuErrorState";
+import { TableCodeGate }       from "./components/TableCodeGate";
 import styles from "./Carta.module.css";
 
-// ─────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────
 
 function groupByCategory(
   products: ProductPublicDTO[]
@@ -47,9 +29,7 @@ function groupByCategory(
   const map = new Map<string, ProductPublicDTO[]>();
   for (const p of products) {
     const cat = p.category?.trim() || "Otros";
-    const group = map.get(cat) ?? [];
-    group.push(p);
-    map.set(cat, group);
+    map.set(cat, [...(map.get(cat) ?? []), p]);
   }
   return Array.from(map.entries()).map(([category, products]) => ({
     category,
@@ -57,18 +37,28 @@ function groupByCategory(
   }));
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Página
-// ─────────────────────────────────────────────────────────────────
+// ── Página ────────────────────────────────────────────────────────
 
 export default function CartaPage() {
-  // ── Datos ──────────────────────────────────────────────────────
-  const menu = useMenu();
+  const menu  = useMenu();
   const promos = usePromotions();
+  const { isFavorite, favorites, loading: favsLoading } = useFavorites();
 
-  // ── Carrito ────────────────────────────────────────────────────
-  const cart = useClienteStore((s) => s.cart);
-  const addToCart = useClienteStore((s) => s.addToCart);
+  // Carrito
+  const cart       = useClienteStore((s) => s.cart);
+  const addToCart  = useClienteStore((s) => s.addToCart);
+  const tableCode  = useClienteStore((s) => s.tableCode);
+  const user       = useClienteStore((s) => s.user);
+
+  // Modo favoritos
+  const [showFavs, setShowFavs]   = useState(false);
+  // Control del gate: true = omitir gate aunque no haya tableCode
+  const [gateSkipped, setGateSkipped] = useState(false);
+
+  const isLoggedIn        = !!user;
+  const hasTableSession   = !!tableCode;
+  // Mostrar gate solo si el usuario está autenticado y no tiene código de mesa
+  const showGate = isLoggedIn && !hasTableSession && !gateSkipped;
 
   const getCartQty = (productId: string) =>
     cart.find((l) => l.productId === productId)?.quantity ?? 0;
@@ -77,32 +67,24 @@ export default function CartaPage() {
 
   const handleAdd = useCallback(
     (product: ProductPublicDTO) => {
-      const price = product.dynamicPrice ?? product.price;
       addToCart({
         productId: product.id,
-        name: product.name,
-        quantity: 1,
-        notes: "",
-        price,
+        name:      product.name,
+        quantity:  1,
+        notes:     "",
+        price:     product.dynamicPrice ?? product.price,
       });
     },
     [addToCart]
   );
 
-  // ── Drawer de detalle ──────────────────────────────────────────
-  const handleOpenDetail = useCallback(
-    (product: ProductPublicDTO) => menu.selectProduct(product),
-    [menu]
-  );
-  const handleCloseDetail = useCallback(
-    () => menu.selectProduct(null),
-    [menu]
-  );
+  const handleOpenDetail  = useCallback((p: ProductPublicDTO) => menu.selectProduct(p),  [menu]);
+  const handleCloseDetail = useCallback(() => menu.selectProduct(null),                  [menu]);
+
   const handleAddFromDetail = useCallback(
     (product: ProductPublicDTO) => {
       setIsAdding(true);
       handleAdd(product);
-      // Pequeño delay para el feedback visual
       setTimeout(() => {
         setIsAdding(false);
         menu.selectProduct(null);
@@ -111,25 +93,38 @@ export default function CartaPage() {
     [handleAdd, menu]
   );
 
-  // ── Navegar a producto desde promo ─────────────────────────────
   const handlePromoProductClick = useCallback(
     (productId: string) => {
-      const product = menu.products.find((p) => p.id === productId);
-      if (product) menu.selectProduct(product);
+      const p = menu.products.find((x) => x.id === productId);
+      if (p) menu.selectProduct(p);
     },
     [menu]
   );
 
-  // ── Clear filters ──────────────────────────────────────────────
   const handleClearFilters = useCallback(() => {
     menu.setActiveCategory("all");
     menu.setSearchQuery("");
+    setShowFavs(false);
   }, [menu]);
 
-  // ─────────────────────────────────────────────────────────────
-  // Estados de carga y error
-  // ─────────────────────────────────────────────────────────────
+  // ── Productos a mostrar: normales o favoritos ─────────────────
+  const displayProducts = showFavs
+    ? menu.products.filter((p) => isFavorite(p.id))
+    : menu.filteredProducts;
 
+  const grouped = groupByCategory(displayProducts);
+
+  // ── Gate ───────────────────────────────────────────────────────
+  if (showGate) {
+    return (
+      <TableCodeGate
+        onUnlocked={() => { /* store ya se actualizó en el componente */ }}
+        onSkip={() => setGateSkipped(true)}
+      />
+    );
+  }
+
+  // ── Loading / Error ────────────────────────────────────────────
   if (menu.loading) {
     return (
       <main className={styles.page}>
@@ -150,21 +145,16 @@ export default function CartaPage() {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // Experiencia principal
-  // ─────────────────────────────────────────────────────────────
-
-  const grouped = groupByCategory(menu.filteredProducts);
-
+  // ── Render ────────────────────────────────────────────────────
   return (
     <main className={styles.page}>
-      {/* ── Hero ───────────────────────────────────────────────────*/}
+      {/* Hero */}
       <MenuHero
         totalProducts={menu.totalCount}
         totalCategories={menu.categories.length}
       />
 
-      {/* ── Promociones activas (condicional) ──────────────────────*/}
+      {/* Promociones activas */}
       {!promos.loading && promos.promotions.length > 0 && (
         <section className={styles.promoSection}>
           <PromotionSection
@@ -174,7 +164,7 @@ export default function CartaPage() {
         </section>
       )}
 
-      {/* ── Controles: búsqueda + sort ──────────────────────────────*/}
+      {/* Controles: búsqueda + sort */}
       <div className={styles.controls}>
         <SearchBar
           query={menu.searchQuery}
@@ -185,33 +175,114 @@ export default function CartaPage() {
         />
       </div>
 
-      {/* ── Categorías ─────────────────────────────────────────────*/}
+      {/* Categorías + filtro favoritos */}
       <div className={styles.categories}>
         <CategoryScroller
           categories={menu.categories}
-          activeCategory={menu.activeCategory}
-          onSelect={menu.setActiveCategory}
+          activeCategory={showFavs ? "__favs__" : menu.activeCategory}
+          onSelect={(cat) => {
+            setShowFavs(false);
+            menu.setActiveCategory(cat);
+          }}
           totalCount={menu.totalCount}
         />
+
+        {/* Pill de favoritos — solo si hay sesión */}
+        {isLoggedIn && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowFavs((v) => !v);
+              if (!showFavs) {
+                menu.setActiveCategory("all");
+                menu.setSearchQuery("");
+              }
+            }}
+            className={`${styles.favPill} ${showFavs ? styles.favPillActive : ""}`}
+            aria-pressed={showFavs}
+            aria-label="Mostrar mis favoritos"
+          >
+            <Heart size={13} className={showFavs ? styles.favHeartFilled : styles.favHeart} />
+            <span>Mis favoritos</span>
+            {favorites.length > 0 && (
+              <span className={styles.favCount}>{favorites.length}</span>
+            )}
+          </button>
+        )}
       </div>
 
-      {/* ── Productos ──────────────────────────────────────────────*/}
+      {/* Productos */}
       <div className={styles.productsSection} id="menu">
-        {!menu.hasResults ? (
+        {/* Empty de favoritos */}
+        {showFavs && displayProducts.length === 0 && (
+          <div className={styles.favsEmpty}>
+            <Heart size={32} className={styles.favsEmptyIcon} aria-hidden="true" />
+            <p className={styles.favsEmptyText}>Todavía no guardaste favoritos</p>
+            <p className={styles.favsEmptySub}>
+              Tocá el corazón en cualquier producto de la carta para guardarlo
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowFavs(false)}
+              className={styles.favsEmptyBtn}
+            >
+              Ver carta completa
+            </button>
+          </div>
+        )}
+
+        {!showFavs && !menu.hasResults && (
           <MenuEmptyState
             isFiltered={menu.isFiltered}
             searchQuery={menu.searchQuery}
             onClearFilters={handleClearFilters}
             onRetry={menu.retry}
           />
-        ) : menu.activeCategory === "all" && !menu.searchQuery ? (
-          /* Vista agrupada por categoría */
-          <div className={styles.groupedView}>
-            {grouped.map(({ category, products }) => (
-              <section key={category} className={styles.categorySection}>
-                <h2 className={styles.categoryHeading}>{category}</h2>
+        )}
+
+        {(showFavs ? displayProducts.length > 0 : menu.hasResults) && (
+          <>
+            {/* Vista agrupada — solo cuando no hay filtros activos ni favoritos */}
+            {!showFavs && menu.activeCategory === "all" && !menu.searchQuery ? (
+              <div className={styles.groupedView}>
+                {grouped.map(({ category, products }) => (
+                  <section key={category} className={styles.categorySection}>
+                    <h2 className={styles.categoryHeading}>{category}</h2>
+                    <div className={styles.grid}>
+                      {products.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          promotion={promos.getProductPromotion(
+                            product.id,
+                            product.dynamicPrice ?? product.price
+                          )}
+                          cartQty={getCartQty(product.id)}
+                          onAdd={handleAdd}
+                          onOpenDetail={handleOpenDetail}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              /* Vista plana: filtrado, búsqueda o favoritos */
+              <div className={styles.flatView}>
+                {showFavs && (
+                  <p className={styles.resultCount} aria-live="polite">
+                    {displayProducts.length} favorito{displayProducts.length !== 1 ? "s" : ""}
+                  </p>
+                )}
+                {!showFavs && menu.searchQuery.trim() && (
+                  <p className={styles.resultCount} aria-live="polite">
+                    {displayProducts.length}{" "}
+                    {displayProducts.length === 1 ? "resultado" : "resultados"}
+                    {` para "${menu.searchQuery}"`}
+                  </p>
+                )}
                 <div className={styles.grid}>
-                  {products.map((product) => (
+                  {displayProducts.map((product) => (
                     <ProductCard
                       key={product.id}
                       product={product}
@@ -225,39 +296,13 @@ export default function CartaPage() {
                     />
                   ))}
                 </div>
-              </section>
-            ))}
-          </div>
-        ) : (
-          /* Vista plana: filtrado o búsqueda activa */
-          <div className={styles.flatView}>
-            {menu.searchQuery.trim() && (
-              <p className={styles.resultCount} aria-live="polite">
-                {menu.filteredProducts.length}{" "}
-                {menu.filteredProducts.length === 1 ? "resultado" : "resultados"}
-                {menu.searchQuery ? ` para "${menu.searchQuery}"` : ""}
-              </p>
+              </div>
             )}
-            <div className={styles.grid}>
-              {menu.filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  promotion={promos.getProductPromotion(
-                    product.id,
-                    product.dynamicPrice ?? product.price
-                  )}
-                  cartQty={getCartQty(product.id)}
-                  onAdd={handleAdd}
-                  onOpenDetail={handleOpenDetail}
-                />
-              ))}
-            </div>
-          </div>
+          </>
         )}
       </div>
 
-      {/* ── Drawer de detalle ──────────────────────────────────────*/}
+      {/* Drawer de detalle */}
       <ProductDetailDrawer
         product={menu.selectedProduct}
         promotion={

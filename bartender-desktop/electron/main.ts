@@ -1,11 +1,33 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+
 const isDev = !app.isPackaged;
+const PROD_API_FALLBACK = "https://barproyectov-2.onrender.com/api";
+
+function stripTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function resolveApiBaseUrl(): string {
+  const explicitApiUrl = process.env.VITE_API_URL?.trim();
+  if (explicitApiUrl) return stripTrailingSlash(explicitApiUrl);
+
+  const explicitBackendUrl = process.env.VITE_BACKEND_URL?.trim();
+  if (explicitBackendUrl) return `${stripTrailingSlash(explicitBackendUrl)}/api`;
+
+  if (isDev && process.env.VITE_USE_LOCAL_BACKEND === "true") {
+    return "http://localhost:5000/api";
+  }
+
+  return PROD_API_FALLBACK;
+}
 
 // ── Custom protocol: bartender://
 // Permite que la web abra el desktop con un SSO token.
@@ -78,9 +100,7 @@ async function handleDeepLink(url: string) {
     if (!ssoToken) return;
 
     // Canjear el SSO token contra el backend
-    const apiBase = isDev
-      ? "http://localhost:5000/api"
-      : (process.env.VITE_API_URL || "https://barproyectov-2.onrender.com/api");
+    const apiBase = resolveApiBaseUrl();
 
     const response = await fetch(`${apiBase}/auth/sso-token/redeem`, {
       method: "POST",

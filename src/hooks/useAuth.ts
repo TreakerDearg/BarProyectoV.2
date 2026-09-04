@@ -16,6 +16,7 @@ import { useState, useCallback } from "react";
 import { useClienteStore } from "@/stores/useClienteStore";
 import { saveAccessToken, saveRefreshToken, clearTokens } from "@/lib/auth/tokenStorage";
 import { isStaffRole } from "@/lib/auth/roles";
+import { resolveApiBaseUrl, resolveEmployeeSystemUrl } from "@/lib/api/network";
 import type { AuthUser, IdentityDecisionResponse } from "@/lib/types/api";
 
 // ── Tipos ─────────────────────────────────────────────────────────
@@ -90,6 +91,10 @@ function humanizeError(message: string | undefined, status?: number): string {
   return "Algo salió mal. Intentá de nuevo.";
 }
 
+function apiAuthUrl(path: string): string {
+  return `${resolveApiBaseUrl()}${path}`;
+}
+
 /** Determina si tras el login hay que mostrar el modal de empleado.
  *  Usa SOLO el campo isEmployee del backend — nunca infiere del rol. */
 function buildEmployeeDecision(data: IdentityDecisionResponse): EmployeeDecision | null {
@@ -121,7 +126,7 @@ export function useAuth(): UseAuthReturn {
     setEmployeeDecision(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const res = await fetch(apiAuthUrl("/auth/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +182,7 @@ export function useAuth(): UseAuthReturn {
     setError(null);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const res = await fetch(apiAuthUrl("/auth/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -232,7 +237,7 @@ export function useAuth(): UseAuthReturn {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`, {
+      const res = await fetch(apiAuthUrl("/auth/google"), {
         method: "GET",
         headers: { "X-Platform": "web" },
       });
@@ -269,7 +274,7 @@ export function useAuth(): UseAuthReturn {
       // Fuente de verdad: el perfil real del usuario desde el backend.
       // NO confiamos en destination/isEmployee de la URL — pueden estar
       // corruptos o desactualizados. Preguntamos directamente al backend.
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      const res = await fetch(apiAuthUrl("/auth/me"), {
         headers: { Authorization: `Bearer ${tokenParam}` },
       });
       const data = await res.json();
@@ -285,14 +290,9 @@ export function useAuth(): UseAuthReturn {
       setAuth(tokenParam, authUser);
 
       // ── Regla simple y sin ambigüedad ───────────────────────────
-      // Cliente → siempre a /cliente, sin modal, sin preguntas.
+      // Cliente → siempre a cuenta, sin modal, sin preguntas.
       if (authUser.role === "client") {
-        return { redirectTo: "/cliente" };
-      }
-
-      // Empleado fuera de turno → off-shift
-      if (identityStatus === "EMPLOYEE_OFF_SHIFT") {
-        return { redirectTo: "/auth/off-shift" };
+        return { redirectTo: "/cliente/cuenta" };
       }
 
       // Cuenta bloqueada/inactiva → volver al login
@@ -319,43 +319,14 @@ export function useAuth(): UseAuthReturn {
   // ── Acciones del EmployeeModal ─────────────────────────────────────
   const continueAsClient = useCallback(() => {
     setEmployeeDecision(null);
-    // El caller redirige a /cliente
+    // El caller muestra la cuenta cliente.
   }, []);
 
   const goToEmployeeSystem = useCallback(async (): Promise<string> => {
     const dest = employeeDecision?.employeeDestination ?? "/admin";
     setEmployeeDecision(null);
-
-    // Si el destino es el desktop, intentar SSO handoff vía deep link bartender://
-    // Esto evita que el empleado tenga que loguearse de nuevo en el desktop.
-    if (dest === "/desktop" || dest.startsWith("/desktop")) {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sso-token`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
-        const ssoToken = data.data?.ssoToken ?? data.ssoToken;
-
-        if (ssoToken) {
-          // Abrir el desktop via custom protocol — el main process de Electron
-          // recibe el deep link, canjea el SSO token y hace auto-login.
-          window.location.href = `bartender://auth?t=${ssoToken}`;
-          // Devolver "/" como fallback por si el protocolo no está registrado
-          // (el usuario verá la pantalla de inicio del cliente)
-          return "/cliente";
-        }
-      } catch {
-        // Si falla la generación del SSO token, redirigir al admin web como fallback
-      }
-      return "/admin";
-    }
-
-    return dest;
-  }, [employeeDecision, token]);
+    return resolveEmployeeSystemUrl(dest);
+  }, [employeeDecision]);
 
   return {
     isAuthenticated: !!token && !!user,

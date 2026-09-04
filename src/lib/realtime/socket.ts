@@ -5,6 +5,7 @@
 
 import { io, Socket } from "socket.io-client";
 import { getAccessToken } from "@/lib/auth/tokenStorage";
+import { resolveSocketBaseUrl } from "@/lib/api/network";
 import type { SocketConfig } from "./types";
 import { handleOrderStatusEvent, handleOrderCreatedEvent } from "./events";
 
@@ -25,11 +26,8 @@ export function initSocket(): Socket {
     return socketInstance;
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
-  const socketUrl = apiUrl.replace("/api", "");
-
   const config: SocketConfig = {
-    url: socketUrl,
+    url: resolveSocketBaseUrl(),
     options: {
       transports: ["websocket", "polling"],
       reconnection: true,

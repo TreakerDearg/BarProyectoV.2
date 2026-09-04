@@ -41,6 +41,7 @@ class OAuthService {
       const state = providerInstance.generateState({
         platform,
         audience: platform === 'desktop' ? 'staff' : 'client',
+        origin: sessionInfo.origin,
       });
 
       // Guardar sesión OAuth temporal (en producción usar Redis)

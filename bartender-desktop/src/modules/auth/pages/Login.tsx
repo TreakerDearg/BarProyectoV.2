@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { saveTokens } from "../../../utils/tokenStorage";
 import { setAuthToken } from "../../../services/api";
+import { resolveApiBaseUrl } from "../../../services/socketConfig";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Login() {
       saveTokens(tokenParam, refreshTokenParam);
       setAuthToken(tokenParam);
 
-      fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+      fetch(`${resolveApiBaseUrl()}/auth/me`, {
         headers: { Authorization: `Bearer ${tokenParam}` },
       })
         .then((res) => res.json())
@@ -131,7 +132,7 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/google`, {
+      const response = await fetch(`${resolveApiBaseUrl()}/auth/google`, {
         method: "GET",
         headers: { "X-Platform": "desktop" },
       });

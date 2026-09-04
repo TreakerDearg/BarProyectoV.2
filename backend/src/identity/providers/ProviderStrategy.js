@@ -63,6 +63,7 @@ export class ProviderStrategy {
         random: Math.random().toString(36).substring(2),
         platform: extra.platform === 'desktop' ? 'desktop' : 'web',
         audience: extra.audience || (extra.platform === 'desktop' ? 'staff' : 'client'),
+        origin: extra.origin || null,
       })
     ).toString('base64');
   }
@@ -83,6 +84,7 @@ export class ProviderStrategy {
         provider: decoded.provider,
         platform: decoded.platform === 'desktop' ? 'desktop' : 'web',
         audience: decoded.audience === 'staff' ? 'staff' : 'client',
+        origin: typeof decoded.origin === 'string' ? decoded.origin : null,
       };
     } catch {
       return null;

@@ -4,15 +4,18 @@
  */
 
 import axios from 'axios';
+import { resolveApiBaseUrl } from '@/lib/api/network';
 import type { WorkspaceDefinition, WorkspaceResponse } from '../types/WorkspaceDefinition';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+function apiUrl(path: string): string {
+  return `${resolveApiBaseUrl()}${path}`;
+}
 
 /**
  * Obtiene el Workspace completo
  */
 export const getWorkspace = async (token: string, platform: string = 'web'): Promise<WorkspaceDefinition> => {
-  const response = await axios.get<WorkspaceResponse>(`${API_URL}/workspace`, {
+  const response = await axios.get<WorkspaceResponse>(apiUrl('/workspace'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Platform': platform,
@@ -30,7 +33,7 @@ export const getWorkspace = async (token: string, platform: string = 'web'): Pro
  * Obtiene solo la navegación del Workspace
  */
 export const getWorkspaceNavigation = async (token: string, platform: string = 'web') => {
-  const response = await axios.get(`${API_URL}/workspace/navigation`, {
+  const response = await axios.get(apiUrl('/workspace/navigation'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Platform': platform,
@@ -48,7 +51,7 @@ export const getWorkspaceNavigation = async (token: string, platform: string = '
  * Obtiene solo los widgets del Workspace
  */
 export const getWorkspaceWidgets = async (token: string, platform: string = 'web') => {
-  const response = await axios.get(`${API_URL}/workspace/widgets`, {
+  const response = await axios.get(apiUrl('/workspace/widgets'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Platform': platform,
@@ -66,7 +69,7 @@ export const getWorkspaceWidgets = async (token: string, platform: string = 'web
  * Obtiene solo las funcionalidades del Workspace
  */
 export const getWorkspaceFeatures = async (token: string, platform: string = 'web') => {
-  const response = await axios.get(`${API_URL}/workspace/features`, {
+  const response = await axios.get(apiUrl('/workspace/features'), {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Platform': platform,

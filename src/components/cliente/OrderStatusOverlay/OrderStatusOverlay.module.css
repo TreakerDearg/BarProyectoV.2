@@ -1,0 +1,196 @@
+/* ================================================================
+   OrderStatusOverlay — NightGold Edition
+   Tres fases: pending (dorado) · in-progress (naranja) · completed (verde)
+================================================================ */
+
+/* ── Backdrop ─────────────────────────────────────────────────── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+/* ── Panel ────────────────────────────────────────────────────── */
+.panel {
+  position: relative;
+  width: min(92vw, 380px);
+  border-radius: 2rem;
+  padding: 3rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+
+/* ── Variantes de fase ────────────────────────────────────────── */
+.phasePending {
+  background: linear-gradient(145deg, #1a1610 0%, #0f0e09 100%);
+  border-color: rgba(212, 163, 64, 0.35);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(212, 163, 64, 0.12),
+    inset 0 1px 0 rgba(212, 163, 64, 0.1);
+}
+
+.phasePending .iconWrap { color: var(--gold, #D4AF37); }
+.phasePending .headline { color: var(--gold-light, #E6C766); }
+.phasePending .timerBar { background: var(--gold, #D4AF37); }
+.phasePending .particle { background: var(--gold, #D4AF37); }
+.phasePending .orderId  { color: rgba(212, 163, 64, 0.6); }
+
+.phasePrep {
+  background: linear-gradient(145deg, #1a1208 0%, #100d05 100%);
+  border-color: rgba(224, 120, 40, 0.35);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(224, 120, 40, 0.12),
+    inset 0 1px 0 rgba(224, 120, 40, 0.1);
+}
+
+.phasePrep .iconWrap { color: #E07828; }
+.phasePrep .headline { color: #F09040; }
+.phasePrep .timerBar { background: #E07828; }
+.phasePrep .particle { background: #E07828; }
+.phasePrep .orderId  { color: rgba(224, 120, 40, 0.6); }
+
+/* Flame pulse para in-progress */
+.phasePrep .iconWrap > svg {
+  animation: flamePulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes flamePulse {
+  from { transform: scale(1) rotate(-3deg); filter: drop-shadow(0 0 6px #E07828); }
+  to   { transform: scale(1.1) rotate(3deg); filter: drop-shadow(0 0 16px #F09040); }
+}
+
+.phaseDone {
+  background: linear-gradient(145deg, #0d1a0d 0%, #090f09 100%);
+  border-color: rgba(52, 185, 100, 0.35);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(52, 185, 100, 0.12),
+    inset 0 1px 0 rgba(52, 185, 100, 0.1);
+}
+
+.phaseDone .iconWrap { color: #34B964; }
+.phaseDone .headline { color: #4AD07C; }
+.phaseDone .timerBar { background: #34B964; }
+.phaseDone .particle { background: #34B964; }
+.phaseDone .orderId  { color: rgba(52, 185, 100, 0.6); }
+
+/* ── Botón de cierre ──────────────────────────────────────────── */
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Ícono ────────────────────────────────────────────────────── */
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid currentColor;
+  position: relative;
+  flex-shrink: 0;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 20px currentColor);
+}
+
+/* ── Partículas decorativas ───────────────────────────────────── */
+.particles {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* ── Texto ────────────────────────────────────────────────────── */
+.textBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.headline {
+  font-family: var(--font-sans);
+  font-size: clamp(1.375rem, 4vw, 1.625rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.sub {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.orderId {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+/* ── Barra de auto-descarte ───────────────────────────────────── */
+.timerBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 0 0 2rem 2rem;
+  transform-origin: left;
+  opacity: 0.7;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .phasePrep .iconWrap > svg { animation: none; }
+}

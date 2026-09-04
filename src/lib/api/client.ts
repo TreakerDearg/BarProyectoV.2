@@ -1,8 +1,8 @@
 import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { getAccessToken, saveAccessToken, saveRefreshToken, clearTokens, getRefreshToken } from "../auth/tokenStorage";
+import { resolveApiBaseUrl } from "./network";
 
-const baseURL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+const baseURL = resolveApiBaseUrl();
 
 export const api = axios.create({
   baseURL,
