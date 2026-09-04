@@ -7,7 +7,6 @@
 import { useState, useCallback } from "react";
 import { useClienteStore } from "@/stores/useClienteStore";
 import { saveAccessToken, saveRefreshToken, clearTokens } from "@/lib/auth/tokenStorage";
-import { isStaffRole } from "@/lib/auth/roles";
 import { resolveApiBaseUrl, resolveEmployeeSystemUrl } from "@/lib/api/network";
 import type { AuthUser, IdentityDecisionResponse } from "@/lib/types/api";
 

@@ -37,10 +37,12 @@ export function getAllowedOrigins() {
       "http://localhost:3000",
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "https://bar-proyecto-v-2-kns78t85g-treakerdeargs-projects.vercel.app",
+      // Producción: cliente web y desktop
+      "https://bar-proyecto-v-2-xst7.vercel.app",  // cliente
+      "https://bar-proyecto-v-2.vercel.app",        // desktop
       "https://barproyectov-2.onrender.com",
-      "https://bar-proyecto-v-2.vercel.app",
       process.env.CLIENT_URL,
+      process.env.CLIENT_WEB_URL,
       process.env.DESKTOP_URL,
       ...parseCsv(process.env.ALLOWED_ORIGINS || ""),
     ].filter(Boolean)

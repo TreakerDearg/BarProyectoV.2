@@ -3,14 +3,14 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   ShoppingCart, CheckCircle2, AlertCircle, Loader2, Send,
-  Minus, Plus, Trash2, ChevronRight, GlassWater, ChefHat,
+  Minus, Plus, Trash2, GlassWater, ChefHat,
 } from "lucide-react";
 
 import {
-  getTables, getProducts, openTableSession, createOrder, getTableByCode,
+  getProducts, createOrder,
 } from "@/lib/api/bartender";
 
-import type { TableRow, ProductBrief } from "@/lib/types/api";
+import type { ProductBrief } from "@/lib/types/api";
 import { useClienteStore }    from "@/stores/useClienteStore";
 import { useOrdersStore }     from "@/stores/useOrdersStore";
 import { initSocket, joinUserRoom, onOrderStatus } from "@/lib/realtime/socket";

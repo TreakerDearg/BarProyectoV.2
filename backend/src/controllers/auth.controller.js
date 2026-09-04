@@ -408,9 +408,22 @@ export const googleAuth = async (req, res, next) => {
    GOOGLE OAUTH CALLBACK
    Procesa el callback de Google OAuth con Decision Engine
 ========================================================= */
+// ── URL resolver ─────────────────────────────────────────────────
+// CLIENT_WEB_URL  → web del cliente (bar-proyecto-v-2-xst7.vercel.app)
+// DESKTOP_URL     → sistema interno (bar-proyecto-v-2.vercel.app)
+// Prioridades para el callback web:
+//   CLIENT_WEB_URL > CLIENT_URL > FRONTEND_URL > hardcoded cliente
+const CLIENT_WEB_URL =
+  process.env.CLIENT_WEB_URL ||
+  process.env.CLIENT_URL ||
+  process.env.FRONTEND_URL ||
+  'https://bar-proyecto-v-2-xst7.vercel.app';
+
 const getFrontendOrigin = (oauthOrigin = null) => {
+  // Si el origin proviene del OAuth y está permitido, usarlo (dev)
   if (oauthOrigin && isAllowedOrigin(oauthOrigin)) return oauthOrigin;
-  return process.env.FRONTEND_URL || process.env.CLIENT_URL || 'https://bar-proyecto-v-2.vercel.app';
+  // En producción siempre al cliente web
+  return CLIENT_WEB_URL;
 };
 
 const frontendCallback = (query, oauthOrigin = null) => {
@@ -449,7 +462,9 @@ export const googleCallback = async (req, res, next) => {
       return badRequest(res, "Código o estado faltante");
     }
 
+    // Parsear el estado para saber origen (web o desktop)
     const origin = await parseOAuthOrigin(state);
+
     const oauthService = (await import('../identity/oauth/OAuthService.js')).default;
     const sessionInfo = {
       platform: origin.platform,
@@ -476,41 +491,22 @@ export const googleCallback = async (req, res, next) => {
       return res.redirect(frontendCallback({ error: 'oauth_error' }, origin.origin));
     }
 
-    const isClient = user.role === 'client';
-
-    if (origin.platform === 'desktop') {
-      if (isClient) {
-        const session = await refreshTokenService.generateRefreshToken(user._id, {
-          ...sessionInfo,
-          platform: 'web',
-        });
-        logger.info(`[Auth] Google desktop → cuenta cliente, redirigiendo a web: ${user.email}`);
-        return res.redirect(frontendCallback({
-          token: String(response.token || ''),
-          refreshToken: session.refreshToken,
-          destination: '/cliente',
-          canAccess: 'true',
-          identityStatus: 'CLIENT',
-          isEmployee: 'false',
-          role: 'client',
-        }, origin.origin));
-      }
-
-      const loginCheck = canLogin(user);
-      if (!loginCheck.canLogin) {
-        return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }, origin.origin));
-      }
-
-      const ssoToken = issueSsoToken(user);
-      logger.info(`[Auth] Google OAuth desktop: ${user.email} (${user.role}) -> bartender://`);
-      return res.redirect(`bartender://auth?t=${ssoToken}`);
-    }
-
     const loginCheck = canLogin(user);
     if (!loginCheck.canLogin) {
       return res.redirect(frontendCallback({ error: loginCheck.reason || 'oauth_error' }, origin.origin));
     }
 
+    // ── DESKTOP flow: usa SSO deep link, NUNCA redirige a la web del cliente ──
+    // Esto solo se activa si alguien inicia OAuth desde el Desktop con X-Platform: desktop
+    if (origin.platform === 'desktop' && user.role !== 'client') {
+      const ssoToken = issueSsoToken(user);
+      logger.info(`[Auth] Google OAuth desktop (SSO deep link): ${user.email} (${user.role})`);
+      return res.redirect(`bartender://auth?t=${ssoToken}`);
+    }
+
+    // ── WEB flow: SIEMPRE va a CLIENT_WEB_URL/auth/callback ──────────────────
+    // Esto incluye: clientes, empleados que usan Google desde la web del bar,
+    // y cualquier usuario que haya iniciado OAuth con X-Platform: web (o sin header).
     const session = await refreshTokenService.generateRefreshToken(user._id, sessionInfo);
 
     const identityDecision = await executeLoginDecision(user, session, {
@@ -519,24 +515,24 @@ export const googleCallback = async (req, res, next) => {
       expiresIn: response.expiresIn,
     });
 
-    // ── Regla clara: clientes siempre a /cliente, empleados al decision engine
-    // isEmployee=true SOLO si el usuario es realmente un empleado (no admin que visita la web)
-    const isEmployeeForWeb = user.role !== 'client' && user.isEmployee === true;
-    const destination = isClient
-      ? '/cliente'
-      : (identityDecision.destination || '/admin');
+    const isClient    = user.role === 'client';
+    const isEmployee  = !isClient && user.isEmployee === true;
+    const destination = isClient ? '/cliente' : (identityDecision.destination || '/admin');
 
-    logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) -> ${destination}`);
+    logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) → ${CLIENT_WEB_URL}/auth/callback`);
 
+    // Redirigir SIEMPRE al cliente web — incluso para empleados.
+    // El frontend mostrará el EmployeeModal para que elijan qué hacer.
     return res.redirect(frontendCallback({
-      token: String(response.token || ''),
-      refreshToken: session.refreshToken,
+      token:          String(response.token || ''),
+      refreshToken:   session.refreshToken,
       destination,
-      canAccess: isClient ? 'true' : String(identityDecision.canAccess !== false),
+      canAccess:      String(identityDecision.canAccess !== false),
       identityStatus: isClient ? 'CLIENT' : (identityDecision.identityStatus || 'EMPLOYEE'),
-      isEmployee: isClient ? 'false' : String(isEmployeeForWeb),
-      role: user.role || 'client',
-    }, origin.origin));
+      isEmployee:     String(isEmployee),
+      role:           user.role || 'client',
+    }, null)); // <-- null fuerza usar CLIENT_WEB_URL, ignorando el origin del state
+
   } catch (error) {
     logger.error("[Auth] Error en googleCallback:", error);
     return res.redirect(frontendCallback({ error: 'oauth_error' }));

@@ -1,40 +1,93 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useRef, useState, useEffect, useCallback } from "react";
 import {
   GlassWater, ShoppingCart, User, Menu, X,
-  Home, ChefHat, Dices, CalendarDays,
+  Home, ChefHat, Dices, CalendarDays, Monitor,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import styles from "./ModernNavbar.module.css";
 import { useClienteStore } from "@/stores/useClienteStore";
+import { EmployeeModal } from "@/app/cliente/cuenta/components/EmployeeModal";
+import { resolveEmployeeSystemUrl } from "@/lib/api/network";
+import type { EmployeeDecision } from "@/hooks/useAuth";
+import { clearTokens } from "@/lib/auth/tokenStorage";
+
+// ── Constantes ────────────────────────────────────────────────────
 
 const navLinks = [
-  { href: "/cliente",          label: "Inicio",    icon: Home,         exact: true },
-  { href: "/cliente/carta",    label: "Carta",     icon: ChefHat },
-  { href: "/cliente/ruleta",   label: "Ruleta",    icon: Dices },
-  { href: "/cliente/reservas", label: "Reservas",  icon: CalendarDays },
+  { href: "/cliente",          label: "Inicio",   icon: Home,         exact: true  },
+  { href: "/cliente/carta",    label: "Carta",    icon: ChefHat                    },
+  { href: "/cliente/ruleta",   label: "Ruleta",   icon: Dices                      },
+  { href: "/cliente/reservas", label: "Reservas", icon: CalendarDays               },
 ];
+
+/** Roles que NO son clientes — deben ver el EmployeeModal */
+const STAFF_ROLES = new Set([
+  "admin", "manager", "bartender", "waiter",
+  "cashier", "kitchen", "employee",
+]);
+
+function isStaff(role?: string | null): boolean {
+  return !!role && STAFF_ROLES.has(role.toLowerCase());
+}
+
+// ── Componente ────────────────────────────────────────────────────
 
 export function ModernNavbar() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
+  const router   = useRouter();
+  const navRef   = useRef<HTMLElement>(null);
 
-  // Leer auth del store
+  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [navHeight,   setNavHeight]   = useState(72);
+
+  // Estado del EmployeeModal — se activa cuando el store tiene un usuario con rol de staff
+  const [employeeModal, setEmployeeModal] = useState<EmployeeDecision | null>(null);
+  // Controla si el usuario staff ya eligió "continuar como cliente" esta sesión
+  const [staffDismissed, setStaffDismissed] = useState(false);
+
   const cartItemCount = useClienteStore((s) =>
     s.cart.reduce((sum, item) => sum + item.quantity, 0)
   );
-  const user = useClienteStore((s) => s.user);
-  const firstName = user?.name?.split(" ")[0] ?? null;
+  const user  = useClienteStore((s) => s.user);
+  const token = useClienteStore((s) => s.token);
 
-  // Cerrar menu en cambio de ruta
+  const firstName   = user?.name?.split(" ")[0] ?? null;
+  const userIsStaff = isStaff(user?.role);
+
+  // ── Mostrar EmployeeModal cuando el usuario autenticado es staff ──
+  // Se activa en dos casos:
+  //   A) Login con email/password → el hook useAuth ya lo detecta, pero
+  //      si el usuario navega a otro componente, el modal puede haberse cerrado.
+  //      Lo re-abrimos aquí basado en el store persistido.
+  //   B) Login con Google → el callback redirige a /auth/callback con params,
+  //      que dispara useAuth.processOAuthCallback → setEmployeeDecision en el hook.
+  //      Eso se maneja en CuentaPage. Aquí lo complementamos con el store.
   useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+    if (!token || !user || staffDismissed) return;
+    if (!userIsStaff) return;
 
-  // Cerrar menu con Escape
+    // Solo mostrar si estamos en rutas del cliente (no en /auth/callback ni /cliente/cuenta)
+    const isAuthRoute    = pathname.startsWith("/auth");
+    const isAccountRoute = pathname === "/cliente/cuenta";
+    if (isAuthRoute || isAccountRoute) return;
+
+    // Mostrar el modal con la decisión genérica para staff
+    setEmployeeModal({
+      employeeDestination:  resolveEmployeeSystemUrl(),
+      identityStatus:       user.role?.toUpperCase() ?? "EMPLOYEE",
+      identityStatusLabel:  user.role ?? "Empleado",
+      desktopAccessMessage: null,
+    });
+  }, [token, user, staffDismissed, userIsStaff, pathname]);
+
+  // Cerrar menú en cambio de ruta
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  // Cerrar menú con Escape
   useEffect(() => {
     if (!mobileOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -44,20 +97,41 @@ export function ModernNavbar() {
     return () => window.removeEventListener("keydown", handler);
   }, [mobileOpen]);
 
+  // Calcular altura real del navbar para el top del mobileMenu
+  useEffect(() => {
+    if (navRef.current) setNavHeight(navRef.current.getBoundingClientRect().height);
+  }, []);
+
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname.startsWith(href + "/") || pathname === href;
 
-  // Altura real del navbar para el top del mobileMenu
-  const [navHeight, setNavHeight] = useState(72);
-  useEffect(() => {
-    if (navRef.current) {
-      setNavHeight(navRef.current.getBoundingClientRect().height);
+  // ── Acciones del EmployeeModal ────────────────────────────────
+  const handleGoToSystem = useCallback(() => {
+    setEmployeeModal(null);
+    setStaffDismissed(true);
+    const dest = resolveEmployeeSystemUrl();
+    // Intentar abrir en el navegador o redirigir
+    if (/^https?:\/\//.test(dest)) {
+      window.open(dest, "_blank", "noopener,noreferrer");
+    } else {
+      router.push(dest);
     }
+  }, [router]);
+
+  const handleContinueAsClient = useCallback(() => {
+    setEmployeeModal(null);
+    setStaffDismissed(true);
+    // No cerrar sesión — el usuario staff puede seguir en el cliente web
   }, []);
 
   return (
     <>
-      <nav ref={navRef} className={styles.navbar} aria-label="Navegación principal">
+      {/* ── NAVBAR ────────────────────────────────────────────── */}
+      <nav
+        ref={navRef}
+        className={`${styles.navbar} ${userIsStaff ? styles.navbarEmployee : ""}`}
+        aria-label="Navegación principal"
+      >
         <div className={styles.navbarContainer}>
 
           {/* Logo */}
@@ -71,7 +145,7 @@ export function ModernNavbar() {
             </div>
           </Link>
 
-          {/* Desktop nav links */}
+          {/* Links desktop */}
           <div className={styles.navLinks} role="list">
             {navLinks.map(({ href, label, icon: Icon, exact }) => (
               <Link
@@ -87,9 +161,8 @@ export function ModernNavbar() {
             ))}
           </div>
 
-          {/* Desktop actions */}
+          {/* Acciones */}
           <div className={styles.navActions}>
-            {/* Carrito — solo visible en desktop (en mobile está en el dock) */}
             <Link
               href="/cliente/pedido"
               className={styles.cartButton}
@@ -103,17 +176,40 @@ export function ModernNavbar() {
               )}
             </Link>
 
-            {/* Cuenta con nombre si está autenticado */}
-            <Link href="/cliente/cuenta" className={styles.accountButton} aria-label="Mi cuenta">
-              {firstName ? (
-                <span className={styles.accountName}>{firstName}</span>
-              ) : (
-                <User className="h-5 w-5" aria-hidden="true" />
-              )}
-            </Link>
+            {/* Botón de cuenta — si es staff, muestra badge especial */}
+            {userIsStaff ? (
+              <button
+                type="button"
+                onClick={() => setEmployeeModal({
+                  employeeDestination:  resolveEmployeeSystemUrl(),
+                  identityStatus:       user!.role?.toUpperCase() ?? "EMPLOYEE",
+                  identityStatusLabel:  user!.role ?? "Empleado",
+                  desktopAccessMessage: null,
+                })}
+                className={styles.employeeBadgeBtn}
+                aria-label="Cuenta de empleado — abrir opciones"
+                title="Sos un empleado — elegí dónde continuar"
+              >
+                <Monitor className="h-4 w-4" aria-hidden="true" />
+                <span className={styles.employeeBadgeName}>
+                  {firstName ?? "Empleado"}
+                </span>
+              </button>
+            ) : (
+              <Link
+                href="/cliente/cuenta"
+                className={styles.accountButton}
+                aria-label="Mi cuenta"
+              >
+                {firstName
+                  ? <span className={styles.accountName}>{firstName}</span>
+                  : <User className="h-5 w-5" aria-hidden="true" />
+                }
+              </Link>
+            )}
           </div>
 
-          {/* Mobile hamburger — oculto en ≥1024px porque el dock ya navega */}
+          {/* Hamburguesa mobile */}
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className={styles.mobileMenuButton}
@@ -121,56 +217,114 @@ export function ModernNavbar() {
             aria-expanded={mobileOpen}
           >
             {mobileOpen
-              ? <X className="h-5 w-5" aria-hidden="true" />
+              ? <X className="h-5 w-5"    aria-hidden="true" />
               : <Menu className="h-5 w-5" aria-hidden="true" />
             }
           </button>
         </div>
+
+        {/* Banner de staff — si hay empleado autenticado sin modal */}
+        {userIsStaff && staffDismissed && (
+          <div className={styles.staffBanner}>
+            <Monitor size={13} aria-hidden="true" />
+            <span>
+              Navegás como <strong>{user?.role}</strong> —{" "}
+            </span>
+            <button
+              type="button"
+              className={styles.staffBannerBtn}
+              onClick={() => {
+                setStaffDismissed(false);
+                setEmployeeModal({
+                  employeeDestination:  resolveEmployeeSystemUrl(),
+                  identityStatus:       user!.role?.toUpperCase() ?? "EMPLOYEE",
+                  identityStatusLabel:  user!.role ?? "Empleado",
+                  desktopAccessMessage: null,
+                });
+              }}
+            >
+              acceder al sistema
+            </button>
+          </div>
+        )}
       </nav>
 
-      {/* Mobile Menu — top calculado dinámicamente */}
-      {mobileOpen && (
-        <div
-          className={styles.mobileMenu}
-          style={{ top: navHeight }}
-          role="dialog"
-          aria-label="Menú de navegación"
-        >
-          <div className={styles.mobileMenuLinks}>
-            {navLinks.map(({ href, label, icon: Icon, exact }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className={`${styles.mobileLink} ${isActive(href, exact) ? styles.mobileLinkActive : ""}`}
-                aria-current={isActive(href, exact) ? "page" : undefined}
-              >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                {label}
-              </Link>
-            ))}
-          </div>
+      {/* ── MENÚ MOBILE ──────────────────────────────────────── */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            className={styles.mobileMenu}
+            style={{ top: navHeight }}
+            role="dialog"
+            aria-label="Menú de navegación"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className={styles.mobileMenuLinks}>
+              {navLinks.map(({ href, label, icon: Icon, exact }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`${styles.mobileLink} ${isActive(href, exact) ? styles.mobileLinkActive : ""}`}
+                  aria-current={isActive(href, exact) ? "page" : undefined}
+                >
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  {label}
+                </Link>
+              ))}
+            </div>
 
-          <div className={styles.mobileActions}>
-            <Link
-              href="/cliente/pedido"
-              onClick={() => setMobileOpen(false)}
-              className={styles.mobileActionButton}
-            >
-              <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-              Carrito {cartItemCount > 0 && `(${cartItemCount})`}
-            </Link>
-            <Link
-              href="/cliente/cuenta"
-              onClick={() => setMobileOpen(false)}
-              className={styles.mobileActionButton}
-            >
-              <User className="h-5 w-5" aria-hidden="true" />
-              {firstName ? firstName : "Cuenta"}
-            </Link>
-          </div>
-        </div>
-      )}
+            <div className={styles.mobileActions}>
+              <Link
+                href="/cliente/pedido"
+                onClick={() => setMobileOpen(false)}
+                className={styles.mobileActionButton}
+              >
+                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                Carrito {cartItemCount > 0 && `(${cartItemCount})`}
+              </Link>
+
+              {userIsStaff ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setEmployeeModal({
+                      employeeDestination:  resolveEmployeeSystemUrl(),
+                      identityStatus:       user!.role?.toUpperCase() ?? "EMPLOYEE",
+                      identityStatusLabel:  user!.role ?? "Empleado",
+                      desktopAccessMessage: null,
+                    });
+                  }}
+                  className={styles.mobileActionButton}
+                >
+                  <Monitor className="h-5 w-5" aria-hidden="true" />
+                  {firstName ?? "Empleado"}
+                </button>
+              ) : (
+                <Link
+                  href="/cliente/cuenta"
+                  onClick={() => setMobileOpen(false)}
+                  className={styles.mobileActionButton}
+                >
+                  <User className="h-5 w-5" aria-hidden="true" />
+                  {firstName ?? "Cuenta"}
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── EMPLOYEE MODAL ───────────────────────────────────── */}
+      <EmployeeModal
+        decision={employeeModal}
+        onGoToSystem={handleGoToSystem}
+        onContinueAsClient={handleContinueAsClient}
+      />
     </>
   );
 }
