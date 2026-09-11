@@ -16,6 +16,7 @@ interface RecipeLibraryProps {
   recipes: Recipe[];
   onRecipeSelect?: (recipe: Recipe) => void;
   onRecipeEdit?: (recipe: Recipe) => void;
+  onNewRecipe?: () => void;
   hideNavigator?: boolean;
   onNavigate?: (mode: string) => void;
 } // Prop para ocultar el sidebar interno cuando se usa navegación compartida
@@ -24,7 +25,14 @@ interface RecipeLibraryProps {
  * RecipeLibrary - Componente principal de biblioteca profesional
  * Rediseñado estilo Steam/Spotify con visual premium
  */
-export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSelect, onRecipeEdit, hideNavigator = false, onNavigate }: RecipeLibraryProps) {
+export const RecipeLibrary = memo(function RecipeLibrary({
+  recipes,
+  onRecipeSelect,
+  onRecipeEdit,
+  onNewRecipe,
+  hideNavigator = false,
+  onNavigate,
+}: RecipeLibraryProps) {
   const [activeSection, setActiveSection] = useState('library');
   const [selectedCollection, setSelectedCollection] = useState<string | undefined>();
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
@@ -37,7 +45,10 @@ export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSele
     const matchesSearch = searchQuery === '' || 
       recipe.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       recipe.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      recipe.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      recipe.tags?.some((tag) => {
+        const label = typeof tag === 'string' ? tag : tag.name;
+        return label?.toLowerCase().includes(searchQuery.toLowerCase());
+      });
     return matchesSearch;
   });
 
@@ -53,7 +64,7 @@ export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSele
   };
 
   const handleNewRecipe = () => {
-    // TODO: Implement new recipe creation
+    onNewRecipe?.();
   };
 
   const handleImport = () => {
@@ -206,4 +217,3 @@ export const RecipeLibrary = memo(function RecipeLibrary({ recipes, onRecipeSele
     </div>
   );
 });
-

@@ -467,3 +467,30 @@
 }
 
 .staffBannerBtn:hover { color: var(--gold-light); }
+
+/* ── Botón de logout ─────────────────────────────────────────── */
+.logoutButton {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--red-border, rgba(217,92,92,0.25));
+  border-radius: var(--radius-md);
+  color: var(--red-light, #EE7878);
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.logoutButton:hover {
+  background: var(--red-soft, rgba(217,92,92,0.10));
+  border-color: var(--red, #D95C5C);
+  color: var(--red-light, #EE7878);
+}
+
+.logoutButton:focus-visible {
+  outline: 2px solid var(--red, #D95C5C);
+  outline-offset: 2px;
+}

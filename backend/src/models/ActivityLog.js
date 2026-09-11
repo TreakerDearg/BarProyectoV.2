@@ -13,6 +13,10 @@ const ACTIVITY_TYPES = [
   "table_assigned",
   "menu_viewed",
   "recipe_accessed",
+  "recipe_created",
+  "recipe_updated",
+  "recipe_deleted",
+  "recipe_variant_created",
   "roulette_used",
   "permission_change",
   "settings_updated",
@@ -89,6 +93,12 @@ const activityLogSchema = new mongoose.Schema(
       index: true,
     },
 
+    recipeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      index: true,
+    },
+
     /* ================= SESSION ================= */
     sessionId: {
       type: String,
@@ -138,7 +148,34 @@ activityLogSchema.statics.logIdentityDecision = async function (decision) {
   }
 };
 
-// Calcular métricas de actividad para un usuario
+// Registrar actividad de receta (create, update, delete, variant)
+activityLogSchema.statics.logRecipeActivity = async function ({
+  userId,
+  userName,
+  userRole,
+  activityType,
+  description,
+  recipeId,
+  metadata = {},
+  shift = null,
+  sessionId = null,
+}) {
+  try {
+    await this.create({
+      userId,
+      userName:  userName || "Sistema",
+      userRole:  userRole  || "admin",
+      activityType,
+      description,
+      recipeId:  recipeId || null,
+      metadata,
+      shift,
+      sessionId,
+    });
+  } catch (err) {
+    console.error("[ActivityLog] Error en logRecipeActivity:", err.message);
+  }
+};
 activityLogSchema.statics.calculateMetrics = async function (userId, startDate, endDate) {
   const match = {
     userId: new mongoose.Types.ObjectId(userId),

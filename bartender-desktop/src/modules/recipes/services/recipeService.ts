@@ -200,3 +200,130 @@ export const createRecipeVariant = async (parentRecipeId: string, payload: { pro
     throw error;
   }
 };
+
+/* =========================
+   DASHBOARD STATS
+========================= */
+export const getDashboardStats = async () => {
+  const { data } = await api.get("/recipes/dashboard/stats");
+  return data as {
+    stats: {
+      totalRecipes: number;
+      primaryRecipes: number;
+      variantRecipes: number;
+      drinkRecipes: number;
+      foodRecipes: number;
+      avgCost: number;
+      avgMargin: number;
+      categoryCounts: Record<string, number>;
+      totalBeverages: number;
+      beveragesWithRecipe: number;
+      beveragesWithoutRecipe: number;
+      coveragePercentage: number;
+    };
+  };
+};
+
+/* =========================
+   DASHBOARD RECENT
+========================= */
+export const getDashboardRecent = async (limit = 10) => {
+  const { data } = await api.get(`/recipes/dashboard/recent?limit=${limit}`);
+  return data as Array<{
+    _id: string;
+    name: string;
+    image: string;
+    category: string;
+    type: string;
+    price: number;
+    totalCost: number;
+    margin: number;
+    createdAt: string;
+  }>;
+};
+
+/* =========================
+   DASHBOARD WARNINGS
+========================= */
+export const getDashboardWarnings = async () => {
+  const { data } = await api.get("/recipes/dashboard/warnings");
+  return data as Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    severity: "low" | "medium" | "high";
+    count: number;
+    items: any[];
+  }>;
+};
+
+/* =========================
+   DASHBOARD SUGGESTIONS
+========================= */
+export const getDashboardSuggestions = async () => {
+  const { data } = await api.get("/recipes/dashboard/suggestions");
+  return data as Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    recipeId?: string;
+    recipeName?: string;
+  }>;
+};
+
+/* =========================
+   RECIPE ANALYTICS
+========================= */
+export const getRecipeAnalytics = async (id: string) => {
+  const { data } = await api.get(`/recipes/analytics/${id}`);
+  return data;
+};
+
+/* =========================
+   RECIPE TIMELINE (de backend)
+========================= */
+export const getRecipeTimeline = async (id: string) => {
+  const { data } = await api.get(`/recipes/${id}/timeline`);
+  return data as Array<{
+    _id: string;
+    version: string;
+    type: string;
+    date: string;
+    author: string;
+    description: string;
+    changes: string[];
+  }>;
+};
+
+/* =========================
+   RECIPE LOGS (activity)
+========================= */
+export const getRecipeLogs = async (params?: {
+  limit?: number;
+  page?: number;
+  recipeId?: string;
+}) => {
+  const qs = new URLSearchParams();
+  if (params?.limit)    qs.set("limit",    String(params.limit));
+  if (params?.page)     qs.set("page",     String(params.page));
+  if (params?.recipeId) qs.set("recipeId", params.recipeId);
+  const { data } = await api.get(`/recipes/dashboard/logs?${qs.toString()}`);
+  return data as {
+    data: Array<{
+      _id: string;
+      activityType: string;
+      description: string;
+      userName: string;
+      userRole: string;
+      userAvatar: string | null;
+      recipeId: string | null;
+      metadata: Record<string, any>;
+      createdAt: string;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+  };
+};

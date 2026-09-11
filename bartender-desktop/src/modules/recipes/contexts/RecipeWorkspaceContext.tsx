@@ -60,12 +60,36 @@ interface RecipeWorkspaceContextValue {
 
 const RecipeWorkspaceContext = createContext<RecipeWorkspaceContextValue | undefined>(undefined);
 
+function getRecipeValidationError(recipe: Recipe): string | null {
+  if (!recipe.product || (typeof recipe.product !== 'string' && !recipe.product._id)) {
+    return 'La receta debe estar asociada a un producto';
+  }
+
+  if (!recipe.ingredients || recipe.ingredients.length === 0) {
+    return 'La receta debe tener al menos un ingrediente';
+  }
+
+  if (!recipe.type) {
+    return 'La receta debe tener un tipo (drink/food)';
+  }
+
+  const invalidIngredients = recipe.ingredients.filter(
+    (ing) => !ing.inventoryItem || (typeof ing.inventoryItem !== 'string' && !ing.inventoryItem._id)
+  );
+
+  if (invalidIngredients.length > 0) {
+    return 'Todos los ingredientes deben estar asociados a items del inventario';
+  }
+
+  return null;
+}
+
 interface RecipeWorkspaceProviderProps {
   children: ReactNode;
   initialRecipe: Recipe;
   inventoryItems: any[];
   masterRecipe?: Recipe;
-  onSave?: (recipe: Recipe) => Promise<void>;
+  onSave?: (recipe: Recipe) => Promise<Recipe | void>;
   isNew?: boolean;
 }
 
@@ -113,12 +137,14 @@ export function RecipeWorkspaceProvider({
 
     // Set new timeout for autosave (2 seconds)
     saveTimeoutRef.current = setTimeout(async () => {
-      if (onSave) {
+      if (onSave && !getRecipeValidationError(recipe)) {
         setIsSaving(true);
         setSaveError(null);
         try {
-          await onSave(recipe);
-          lastSavedRecipeRef.current = recipe;
+          const savedRecipe = await onSave(recipe);
+          const nextRecipe = savedRecipe || recipe;
+          setRecipe(nextRecipe);
+          lastSavedRecipeRef.current = nextRecipe;
         } catch (error) {
           setSaveError(error instanceof Error ? error.message : 'Error al guardar');
         } finally {
@@ -261,36 +287,26 @@ export function RecipeWorkspaceProvider({
     setSaveError(null);
     
     try {
-      // Validar que la receta tenga los campos requeridos
-      if (!recipe.product || (typeof recipe.product !== 'string' && !recipe.product._id)) {
-        throw new Error('La receta debe estar asociada a un producto');
-      }
-
-      if (!recipe.ingredients || recipe.ingredients.length === 0) {
-        throw new Error('La receta debe tener al menos un ingrediente');
-      }
-
-      if (!recipe.type) {
-        throw new Error('La receta debe tener un tipo (drink/food)');
-      }
-
-      // Validar que todos los ingredientes tengan inventoryItem válido
-      const invalidIngredients = recipe.ingredients.filter(ing => !ing.inventoryItem || (typeof ing.inventoryItem !== 'string' && !ing.inventoryItem._id));
-      if (invalidIngredients.length > 0) {
-        throw new Error('Todos los ingredientes deben estar asociados a items del inventario');
-      }
+      const validationError = getRecipeValidationError(recipe);
+      if (validationError) throw new Error(validationError);
 
       // Si se proporcionó un callback onSave personalizado, usarlo
       if (onSave) {
-        await onSave(recipe);
+        const savedRecipe = await onSave(recipe);
+        if (savedRecipe) {
+          setRecipe(savedRecipe);
+          lastSavedRecipeRef.current = savedRecipe;
+        }
       } else {
         // Guardado automático usando recipeService
         if (isNew || !recipe._id) {
           const savedRecipe = await createRecipe(recipe);
           setRecipe(savedRecipe);
+          lastSavedRecipeRef.current = savedRecipe;
         } else {
           const updatedRecipe = await updateRecipe(recipe._id, recipe);
           setRecipe(updatedRecipe);
+          lastSavedRecipeRef.current = updatedRecipe;
         }
       }
     } catch (error: any) {

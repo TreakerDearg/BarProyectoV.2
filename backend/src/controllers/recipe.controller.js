@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Recipe        from "../models/Recipe.js";
 import InventoryItem from "../models/InventoryItem.js";
 import Product       from "../models/Product.js";
+import ActivityLog   from "../models/ActivityLog.js";
 import { logger }    from "../config/logger.js";
 import { deleteImage } from "../config/cloudinary.js";
 import {
@@ -173,6 +174,20 @@ export const createRecipe = async (req, res, next) => {
 
     emitRecipeEvent(RECIPE_EVENTS.CREATED, populated);
 
+    // Log de actividad
+    ActivityLog.logRecipeActivity({
+      userId:       req.user?.id,
+      userName:     req.user?.name,
+      userRole:     req.user?.role,
+      activityType: isPrimary ? "recipe_created" : "recipe_variant_created",
+      description:  isPrimary
+        ? `Creó la receta de "${productDoc.name}"`
+        : `Creó variante "${variantName || productDoc.name}" para "${productDoc.name}"`,
+      recipeId:     recipe._id,
+      metadata:     { productId: product, type, category, isPrimary, parentId },
+      sessionId:    req.user?.sessionId,
+    }).catch(() => {});
+
     return created(res, populated, isPrimary ? "Receta creada correctamente" : "Variante creada correctamente");
   } catch (error) {
     logger.error("[Recipe] Error creando receta:", error);
@@ -246,6 +261,18 @@ export const updateRecipe = async (req, res, next) => {
 
     emitRecipeEvent(RECIPE_EVENTS.UPDATED, populated);
 
+    // Log de actividad
+    ActivityLog.logRecipeActivity({
+      userId:       req.user?.id,
+      userName:     req.user?.name,
+      userRole:     req.user?.role,
+      activityType: "recipe_updated",
+      description:  `Modificó la receta del producto "${populated.product?.name || id}"`,
+      recipeId:     id,
+      metadata:     { fieldsUpdated: Object.keys(updates), productId: updated.product },
+      sessionId:    req.user?.sessionId,
+    }).catch(() => {});
+
     return ok(res, populated, "Receta actualizada correctamente");
   } catch (error) {
     logger.error("[Recipe] Error actualizando receta:", error);
@@ -297,6 +324,18 @@ export const deleteRecipe = async (req, res, next) => {
     logger.info(`[Recipe] Eliminada: ${id}`);
 
     emitRecipeEvent(RECIPE_EVENTS.DELETED, { id, productId });
+
+    // Log de actividad
+    ActivityLog.logRecipeActivity({
+      userId:       req.user?.id,
+      userName:     req.user?.name,
+      userRole:     req.user?.role,
+      activityType: "recipe_deleted",
+      description:  `Eliminó la receta #${id.slice(-6)}`,
+      recipeId:     null, // ya no existe
+      metadata:     { deletedRecipeId: id, productId },
+      sessionId:    req.user?.sessionId,
+    }).catch(() => {});
 
     return ok(res, null, "Receta eliminada correctamente");
   } catch (error) { throw error; }
@@ -850,6 +889,18 @@ export const createRecipeVariant = async (req, res, next) => {
       Recipe.findById(variantRecipe._id)
     ).lean();
 
+    // Log de actividad
+    ActivityLog.logRecipeActivity({
+      userId:       req.user?.id,
+      userName:     req.user?.name,
+      userRole:     req.user?.role,
+      activityType: "recipe_variant_created",
+      description:  `Creó variante "${variantName || product.name}" derivada de la receta padre`,
+      recipeId:     variantRecipe._id,
+      metadata:     { parentRecipeId, productId, variantName },
+      sessionId:    req.user?.sessionId,
+    }).catch(() => {});
+
     return ok(res, populatedVariant, "Variante creada exitosamente");
   } catch (error) { throw error; }
 };
@@ -861,3 +912,56 @@ function calculateMargin(price, cost) {
   if (!price || price === 0) return 0;
   return Number(((price - cost) / price * 100).toFixed(2));
 }
+
+/* =========================================================
+   RECIPE LOGS — historial de actividad de recetas
+   GET /recipes/dashboard/logs?limit=50&recipeId=xxx
+========================================================= */
+export const getRecipeLogs = async (req, res, next) => {
+  try {
+    const { limit = 50, recipeId, page = 1 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const filter = {
+      activityType: {
+        $in: [
+          "recipe_created",
+          "recipe_updated",
+          "recipe_deleted",
+          "recipe_variant_created",
+          "recipe_accessed",
+        ],
+      },
+    };
+
+    if (recipeId && isValidId(recipeId)) {
+      filter.recipeId = recipeId;
+    }
+
+    const [logs, total] = await Promise.all([
+      mongoose.model("ActivityLog")
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .populate("userId", "name email role avatar")
+        .lean(),
+      mongoose.model("ActivityLog").countDocuments(filter),
+    ]);
+
+    // Enriquecer con nombre del usuario si no vino del populate
+    const enriched = logs.map((l) => ({
+      _id:          l._id,
+      activityType: l.activityType,
+      description:  l.description,
+      userName:     l.userId?.name || l.userName,
+      userRole:     l.userId?.role || l.userRole,
+      userAvatar:   l.userId?.avatar || null,
+      recipeId:     l.recipeId,
+      metadata:     l.metadata,
+      createdAt:    l.createdAt,
+    }));
+
+    return ok(res, { data: enriched, total, page: Number(page), limit: Number(limit) });
+  } catch (error) { throw error; }
+};

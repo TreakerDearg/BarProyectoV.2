@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, useEffect, useCallback } from "react";
 import {
   GlassWater, ShoppingCart, User, Menu, X,
-  Home, ChefHat, Dices, CalendarDays, Monitor,
+  Home, ChefHat, Dices, CalendarDays, Monitor, LogOut,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import styles from "./ModernNavbar.module.css";
@@ -105,7 +105,16 @@ export function ModernNavbar() {
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname.startsWith(href + "/") || pathname === href;
 
-  // ── Acciones del EmployeeModal ────────────────────────────────
+  // ── Logout ──────────────────────────────────────────────────────
+  const handleLogout = useCallback(() => {
+    setEmployeeModal(null);
+    setStaffDismissed(false);
+    clearTokens();
+    // Limpiar store
+    useClienteStore.getState().logout?.();
+    // Redirigir al login
+    router.push("/cliente/cuenta");
+  }, [router]);
   const handleGoToSystem = useCallback(() => {
     setEmployeeModal(null);
     setStaffDismissed(true);
@@ -206,6 +215,19 @@ export function ModernNavbar() {
                   : <User className="h-5 w-5" aria-hidden="true" />
                 }
               </Link>
+            )}
+
+            {/* Botón de logout — solo si hay sesión activa */}
+            {user && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.logoutButton}
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+              </button>
             )}
           </div>
 

@@ -5,10 +5,11 @@ import {
   getRecipesWithVariants, getDrinkProductsWithRecipes,
   getDashboardStats, getDashboardRecent, getDashboardWarnings,
   getDashboardSuggestions, getRecipeAnalytics, getRecipeTimeline,
-  createRecipeVariant
+  createRecipeVariant, getRecipeLogs,
 } from "../controllers/recipe.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { uploadSingle } from "../middlewares/upload.js";
+import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = Router();
 const adminOnly = [protect, authorizeRoles("admin", "manager")];
@@ -26,10 +27,11 @@ router.get("/drinks/with-recipes", getDrinkProductsWithRecipes);
 /* =========================================================
    DASHBOARD ENDPOINTS
 ========================================================= */
-router.get("/dashboard/stats", getDashboardStats);
-router.get("/dashboard/recent", getDashboardRecent);
-router.get("/dashboard/warnings", getDashboardWarnings);
-router.get("/dashboard/suggestions", getDashboardSuggestions);
+router.get("/dashboard/stats",       asyncHandler(getDashboardStats));
+router.get("/dashboard/recent",      asyncHandler(getDashboardRecent));
+router.get("/dashboard/warnings",    asyncHandler(getDashboardWarnings));
+router.get("/dashboard/suggestions", asyncHandler(getDashboardSuggestions));
+router.get("/dashboard/logs",        asyncHandler(getRecipeLogs));
 
 /* =========================================================
    ANALYTICS ENDPOINTS
