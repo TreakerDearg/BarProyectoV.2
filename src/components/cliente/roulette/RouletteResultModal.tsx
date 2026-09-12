@@ -124,7 +124,7 @@ function RecipeAccordion({ recipe }: { recipe: NonNullable<RouletteDrinkRow["rec
               <div className={styles.recipeSection}>
                 <p className={styles.recipeSectionTitle}>Ingredientes</p>
                 <ul className={styles.ingredientsList}>
-                  {recipe.ingredients.map((ing, i) => (
+                  {recipe.ingredients?.map((ing, i) => (
                     <li key={i} className={styles.ingredientItem}>
                       <span className={styles.ingredientBullet} aria-hidden="true" />
                       <span className={styles.ingredientName}>{ing.name}</span>
@@ -142,7 +142,7 @@ function RecipeAccordion({ recipe }: { recipe: NonNullable<RouletteDrinkRow["rec
               <div className={styles.recipeSection}>
                 <p className={styles.recipeSectionTitle}>Preparación</p>
                 <ol className={styles.stepsList}>
-                  {recipe.steps.map((s) => (
+                  {recipe.steps?.map((s) => (
                     <li key={s.stepNumber} className={styles.stepItem}>
                       <span className={styles.stepNumber}>{s.stepNumber}</span>
                       <span className={styles.stepText}>{s.instruction}</span>

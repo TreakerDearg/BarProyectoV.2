@@ -111,7 +111,7 @@ export default function RecipeQuickView({
                     </span>
                   </div>
                   <div className="space-y-1.5">
-                    {recipe.ingredients.map((ing, i) => (
+                    {recipe.ingredients?.map((ing, i) => (
                       <div key={i} className="flex items-center justify-between gap-3 py-1.5 border-b border-white/5 last:border-0">
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-gold/40 flex-shrink-0" />
@@ -138,7 +138,7 @@ export default function RecipeQuickView({
                     </span>
                   </div>
                   <div className="space-y-3">
-                    {recipe.steps.map((step) => (
+                    {recipe.steps?.map((step) => (
                       <div key={step.stepNumber} className="flex items-start gap-3">
                         <div className="w-5 h-5 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <span className="text-[8px] font-black text-gold">{step.stepNumber}</span>
