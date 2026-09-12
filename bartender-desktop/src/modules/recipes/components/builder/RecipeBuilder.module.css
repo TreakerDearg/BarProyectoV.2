@@ -1,88 +1,62 @@
-.recipe-builder {
+/* ── RecipeBuilder.module.css ────────────────────────────────────
+   Layout sin overflow-y interno — el DashboardLayout.main scrollea
+──────────────────────────────────────────────────────────────────── */
+
+.recipeBuilder {
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
-  background: #050816;
-  overflow: hidden;
-}
-
-/* Main Layout - CSS Grid con paneles redimensionables */
-.builder-layout {
-  display: grid;
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(280px, 360px);
-  flex: 1;
-  min-width: 0;
+  /* NO height:100%, NO overflow:hidden — deja que el padre scrollee */
+  background: linear-gradient(180deg, #070B18 0%, #0A0E1A 100%);
   min-height: 0;
-  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.builderHeader {
+  /* mantiene posición fija en el viewport al hacer scroll */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+/* ── Main grid ───────────────────────────────────────────────── */
+.builderLayout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) minmax(280px, 340px);
+  flex: 1;
+  min-height: 600px;
   gap: 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-/* When recipe has content: Navigation | Explorer | Formula | Inspector */
-.builder-layout.has-content {
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) minmax(280px, 360px);
+.builderLayout.hasContent {
+  grid-template-columns: 220px minmax(0, 1fr) minmax(280px, 340px);
 }
 
-/* When recipe is empty: Navigation | Explorer (spans 2 columns) */
-.builder-layout.empty-recipe {
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+.builderLayout.emptyRecipe {
+  grid-template-columns: 220px minmax(0, 1fr);
 }
 
-/* Responsive */
-@media (max-width: 1400px) {
-  .builder-layout {
-    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(260px, 320px);
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .builderLayout,
+  .builderLayout.hasContent {
+    grid-template-columns: 200px minmax(0, 1fr) minmax(260px, 300px);
   }
 }
 
 @media (max-width: 1024px) {
-  .builder-layout {
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  .builderLayout,
+  .builderLayout.hasContent {
+    grid-template-columns: 200px minmax(0, 1fr);
   }
 }
 
-@media (max-width: 768px) {
-  .recipe-builder {
-    min-height: 100vh;
-  }
-
-  .builder-layout {
+@media (max-width: 640px) {
+  .builderLayout,
+  .builderLayout.hasContent,
+  .builderLayout.emptyRecipe {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
   }
-}
-
-/* Empty Workspace State */
-.empty-workspace {
-  grid-column: 2 / 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(5, 8, 22, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
-  border-left: 1px solid rgba(148, 163, 184, 0.1);
-  border-right: 1px solid rgba(148, 163, 184, 0.1);
-}
-
-.empty-workspace-content {
-  text-align: center;
-  padding: 3rem;
-  max-width: 400px;
-}
-
-.empty-icon {
-  color: rgba(148, 163, 184, 0.4);
-  margin-bottom: 1.5rem;
-}
-
-.empty-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #f8fafc;
-  margin-bottom: 0.75rem;
-}
-
-.empty-description {
-  font-size: 0.95rem;
-  color: rgba(148, 163, 184, 0.8);
-  line-height: 1.6;
 }

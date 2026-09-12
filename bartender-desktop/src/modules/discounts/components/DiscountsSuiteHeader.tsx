@@ -1,69 +1,57 @@
 "use client";
 
-import { HelpCircle, Sparkles } from "lucide-react";
+import { Percent, TrendingUp, Megaphone, Calendar, HelpCircle } from "lucide-react";
+
+type DiscountView = "manual" | "dynamic-pricing" | "promotions" | "events";
 
 interface Props {
-  title: string;
-  subtitle: string;
-  currentView: string;
-  onViewChange: (view: string) => void;
+  title:          string;
+  subtitle:       string;
+  currentView:    string;
+  onViewChange:   (view: DiscountView) => void;
   onOpenTutorial: () => void;
 }
 
-export default function DiscountsSuiteHeader({ 
-  title, 
-  subtitle, 
-  currentView, 
-  onViewChange, 
-  onOpenTutorial 
+const VIEWS: { id: DiscountView; label: string; icon: React.ElementType }[] = [
+  { id: "manual",          label: "Manual",           icon: Percent    },
+  { id: "dynamic-pricing", label: "Precios dinámicos", icon: TrendingUp },
+  { id: "promotions",      label: "Promociones",       icon: Megaphone  },
+  { id: "events",          label: "Eventos",           icon: Calendar   },
+];
+
+export default function DiscountsSuiteHeader({
+  currentView, onViewChange, onOpenTutorial,
 }: Props) {
-  const views = [
-    { id: "manual", label: "Manual" },
-    { id: "dynamic-pricing", label: "Precios Dinámicos" },
-    { id: "promotions", label: "Promociones" },
-    { id: "events", label: "Eventos" },
-  ];
-
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
-          <Sparkles className="text-violet-200" size={28} />
-        </div>
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
-            {title}
-          </h1>
-          <p className="text-xs text-muted mt-1">{subtitle}</p>
-        </div>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 flex-shrink-0">
+      {/* Tabs de navegación */}
+      <div className="flex items-center gap-1 p-1 bg-white/4 border border-white/8 rounded-2xl overflow-x-auto scrollbar-none">
+        {VIEWS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onViewChange(id)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              currentView === id
+                ? "bg-gold/15 text-gold border border-gold/25 shadow-[0_2px_8px_rgba(212,163,64,0.12)]"
+                : "text-muted hover:text-ivory hover:bg-white/5"
+            }`}
+          >
+            <Icon size={13} className={currentView === id ? "text-gold" : "text-muted"} />
+            {label}
+          </button>
+        ))}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex gap-2 p-1 bg-white/5 rounded-xl border border-white/10">
-          {views.map((view) => (
-            <button
-              key={view.id}
-              onClick={() => onViewChange(view.id)}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-                currentView === view.id
-                  ? "bg-cyan text-black shadow-lg"
-                  : "text-white/50 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              {view.label}
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={onOpenTutorial}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-          title="Tutorial"
-        >
-          <HelpCircle size={16} />
-          Tutorial
-        </button>
-      </div>
+      {/* Ayuda */}
+      <button
+        type="button"
+        onClick={onOpenTutorial}
+        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/8 text-xs text-muted hover:text-ivory hover:border-white/14 transition-colors flex-shrink-0"
+      >
+        <HelpCircle size={13} />
+        <span className="hidden sm:inline">Ayuda</span>
+      </button>
     </div>
   );
 }

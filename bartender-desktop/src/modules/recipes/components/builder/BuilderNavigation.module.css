@@ -1,148 +1,131 @@
+/* ── BuilderNavigation.module.css ───────────────────────────── */
+
 .builderNavigation {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.3);
-  border-radius: 12px;
-  padding: 20px;
-  overflow: hidden;
+  background: rgba(6, 8, 18, 0.8);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  min-height: 0;
 }
 
 .navigationHeader {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  flex-shrink: 0;
 }
 
 .navigationTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f8fafc;
-  margin: 0 0 4px 0;
-  letter-spacing: -0.025em;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0;
 }
 
 .navigationSubtitle {
-  font-size: 12px;
-  color: rgba(148, 163, 184, 0.6);
-  margin: 0;
+  font-size: 9px;
+  color: rgba(255,255,255,0.2);
+  margin: 3px 0 0;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .navigationTabs {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.navigationTabs::-webkit-scrollbar {
-  width: 4px;
-}
-
-.navigationTabs::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.navigationTabs::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 2px;
-}
-
-.navigationTabs::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.4);
+  gap: 2px;
+  padding: 10px 8px;
 }
 
 .navTab {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
+  transition: all 0.18s;
+  background: transparent;
+  border: 1px solid transparent;
   text-align: left;
+  width: 100%;
 }
 
 .navTab:hover {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.06);
 }
 
 .navTab.active {
-  background: rgba(139, 92, 246, 0.15);
+  background: rgba(212,163,64,0.08);
+  border-color: rgba(212,163,64,0.18);
 }
 
-.navTab.active .navIcon {
-  color: #8b5cf6;
-}
-
-.navTab.active .navLabel {
-  color: #f8fafc;
-}
-
-.navIcon {
-  color: rgba(148, 163, 184, 0.6);
+.tabIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  transition: color 0.2s ease;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.3);
+  transition: all 0.18s;
 }
 
-.navLabel {
+.navTab.active .tabIcon {
+  background: rgba(212,163,64,0.12);
+  border-color: rgba(212,163,64,0.2);
+  color: #D4AF37;
+}
+
+.navTab:hover .tabIcon {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+}
+
+.tabContent {
   flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(148, 163, 184, 0.8);
-  transition: color 0.2s ease;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.navCount {
+.tabLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(148, 163, 184, 0.6);
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: rgba(30, 41, 59, 0.5);
-  min-width: 24px;
-  text-align: center;
-  transition: all 0.2s ease;
+  color: rgba(255,255,255,0.4);
+  transition: color 0.18s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.navTab.active .navCount {
-  background: rgba(139, 92, 246, 0.2);
-  color: #8b5cf6;
+.navTab.active .tabLabel { color: #D4AF37; }
+.navTab:hover .tabLabel  { color: rgba(255,255,255,0.8); }
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.3);
+  flex-shrink: 0;
 }
 
-.navCount.loading {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.navCount.error {
-  color: rgba(239, 68, 68, 0.8);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.navIndicator {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 24px;
-  background: #8b5cf6;
-  border-radius: 0 2px 2px 0;
+.navTab.active .tabCount {
+  background: rgba(212,163,64,0.1);
+  border-color: rgba(212,163,64,0.2);
+  color: #D4AF37;
 }

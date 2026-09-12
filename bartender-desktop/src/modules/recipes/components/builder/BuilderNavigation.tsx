@@ -1,5 +1,8 @@
 import { memo } from 'react';
-import { Package, UtensilsCrossed, Palette, Sparkles, GitBranch, Folder } from 'lucide-react';
+import {
+  Package, FlaskConical, Paintbrush2, Flower2,
+  GitBranch, Folder,
+} from 'lucide-react';
 import styles from './BuilderNavigation.module.css';
 
 type ExplorerTab = 'products' | 'ingredients' | 'techniques' | 'decorations' | 'variants' | 'collections';
@@ -7,59 +10,36 @@ type ExplorerTab = 'products' | 'ingredients' | 'techniques' | 'decorations' | '
 interface BuilderNavigationProps {
   activeTab: ExplorerTab;
   onTabChange: (tab: ExplorerTab) => void;
-  counts: {
-    products: number | null;
-    ingredients: number | null;
-    techniques: number | null;
-    decorations: number | null;
-    variants: number | null;
-    collections: number | null;
-  };
-  loading: {
-    products: boolean;
-    ingredients: boolean;
-    techniques: boolean;
-    decorations: boolean;
-    variants: boolean;
-    collections: boolean;
-  };
-  errors: {
-    products: boolean;
-    ingredients: boolean;
-    techniques: boolean;
-    decorations: boolean;
-    variants: boolean;
-    collections: boolean;
-  };
+  counts: Record<ExplorerTab, number | null>;
+  loading: Record<ExplorerTab, boolean>;
+  errors:  Record<ExplorerTab, boolean>;
 }
 
-const tabs = [
-  { id: 'products' as ExplorerTab, icon: Package, label: 'Productos' },
-  { id: 'ingredients' as ExplorerTab, icon: UtensilsCrossed, label: 'Ingredientes' },
-  { id: 'techniques' as ExplorerTab, icon: Palette, label: 'Técnicas' },
-  { id: 'decorations' as ExplorerTab, icon: Sparkles, label: 'Decoraciones' },
-  { id: 'variants' as ExplorerTab, icon: GitBranch, label: 'Variantes' },
-  { id: 'collections' as ExplorerTab, icon: Folder, label: 'Colecciones' },
+const TABS: { id: ExplorerTab; icon: React.ElementType; label: string }[] = [
+  { id: 'products',     icon: Package,      label: 'Productos'    },
+  { id: 'ingredients',  icon: FlaskConical, label: 'Ingredientes' },
+  { id: 'techniques',   icon: Paintbrush2,  label: 'Técnicas'     },
+  { id: 'decorations',  icon: Flower2,      label: 'Decoraciones' },
+  { id: 'variants',     icon: GitBranch,    label: 'Variantes'    },
+  { id: 'collections',  icon: Folder,       label: 'Colecciones'  },
 ];
 
-/**
- * BuilderNavigation - Sidebar de navegación del Explorer
- * Solo muestra los tabs con contadores, sin cards
- */
-export const BuilderNavigation = memo(function BuilderNavigation({
-  activeTab,
-  onTabChange,
-  counts,
-  loading,
-  errors,
-}: BuilderNavigationProps) {
-  const getCountDisplay = (tab: ExplorerTab) => {
-    if (loading[tab]) return '•'; // Loading indicator
-    if (errors[tab]) return '—'; // Error indicator
-    const count = counts[tab];
-    return count !== null ? count : '•';
-  };
+function CountBadge({ tab, counts, loading, errors }: {
+  tab: ExplorerTab;
+  counts: Record<ExplorerTab, number | null>;
+  loading: Record<ExplorerTab, boolean>;
+  errors:  Record<ExplorerTab, boolean>;
+}) {
+  if (loading[tab]) return <span className={styles.tabCount}>•</span>;
+  if (errors[tab])  return <span className={styles.tabCount}>—</span>;
+  const count = counts[tab];
+  if (count === null) return <span className={styles.tabCount}>•</span>;
+  return <span className={styles.tabCount}>{count}</span>;
+}
 
+export const BuilderNavigation = memo(function BuilderNavigation({
+  activeTab, onTabChange, counts, loading, errors,
+}: BuilderNavigationProps) {
   return (
     <div className={styles.builderNavigation}>
       <div className={styles.navigationHeader}>
@@ -68,26 +48,22 @@ export const BuilderNavigation = memo(function BuilderNavigation({
       </div>
 
       <div className={styles.navigationTabs}>
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const countDisplay = getCountDisplay(tab.id);
-
-          return (
-            <button
-              key={tab.id}
-              className={`${styles.navTab} ${isActive ? styles.active : ''}`}
-              onClick={() => onTabChange(tab.id)}
-            >
-              <Icon size={18} className={styles.navIcon} />
-              <span className={styles.navLabel}>{tab.label}</span>
-              <span className={`${styles.navCount} ${loading[tab.id] ? styles.loading : ''} ${errors[tab.id] ? styles.error : ''}`}>
-                {countDisplay}
-              </span>
-              {isActive && <span className={styles.navIndicator} />}
-            </button>
-          );
-        })}
+        {TABS.map(({ id, icon: Icon, label }) => (
+          <button
+            key={id}
+            type="button"
+            className={`${styles.navTab} ${activeTab === id ? styles.active : ''}`}
+            onClick={() => onTabChange(id)}
+          >
+            <div className={styles.tabIcon}>
+              <Icon size={14} />
+            </div>
+            <div className={styles.tabContent}>
+              <span className={styles.tabLabel}>{label}</span>
+            </div>
+            <CountBadge tab={id} counts={counts} loading={loading} errors={errors} />
+          </button>
+        ))}
       </div>
     </div>
   );

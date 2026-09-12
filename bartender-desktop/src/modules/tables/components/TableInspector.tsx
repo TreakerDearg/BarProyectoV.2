@@ -19,7 +19,11 @@ import {
   Calendar,
   TrendingUp,
   Wallet,
-  Maximize
+  Maximize,
+  Tag,
+  Percent,
+  Megaphone,
+  CheckCircle2,
 } from "lucide-react";
 
 import TableForm from "./TableForm";
@@ -125,8 +129,22 @@ export default function TableInspector({
   const totalPaid = table.totalPaid || table.totalPayments || 0;
   const balanceDue = table.balanceDue !== undefined ? table.balanceDue : Math.max(0, totalAmount - totalPaid);
 
+  // ── Calcular descuentos aplicados desde las órdenes abiertas ──
   const openOrders = table.orders?.filter((o) => o.sessionStatus === "open") || [];
   const hasPendingOrInProgress = openOrders.some((o) => o.status === "pending" || o.status === "in-progress");
+
+  // Leer descuentos de cada orden (si el backend los expone)
+  type OrderWithDiscount = typeof openOrders[number] & {
+    discountAmount?: number;
+    discountType?: string;
+    discountReason?: string;
+    promotionName?: string;
+    originalTotal?: number;
+  };
+  const ordersWithDiscount = (openOrders as OrderWithDiscount[]).filter(
+    (o) => (o.discountAmount ?? 0) > 0
+  );
+  const totalDiscount = ordersWithDiscount.reduce((s, o) => s + (o.discountAmount ?? 0), 0);
 
   return (
     <motion.div 
@@ -367,6 +385,80 @@ export default function TableInspector({
           </section>
         )}
 
+        {/* ── DESCUENTOS & PROMOCIONES ────────────────────────── */}
+        {table.status === "occupied" && (
+          <section>
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
+              <Tag size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
+              <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
+                Descuentos &amp; Promociones
+              </h4>
+            </div>
+
+            {totalDiscount > 0 ? (
+              <div className="space-y-2">
+                {/* Banner total de ahorro */}
+                <div className="flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl bg-gold/8 border border-gold/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
+                      <Percent size={13} className="text-gold" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] md:text-[10px] font-black text-gold/60 uppercase tracking-widest">Ahorro total</p>
+                      <p className="text-base md:text-lg font-extrabold text-gold leading-none mt-0.5">
+                        −${totalDiscount.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <CheckCircle2 size={16} className="text-gold/50 flex-shrink-0" />
+                </div>
+
+                {/* Detalle por orden */}
+                {ordersWithDiscount.map((o, idx) => (
+                  <div key={o._id}
+                    className="p-3 rounded-xl bg-white/4 border border-white/7 space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        {o.promotionName
+                          ? <Megaphone size={11} className="text-violet-400 flex-shrink-0" />
+                          : <Percent    size={11} className="text-gold/60  flex-shrink-0" />
+                        }
+                        <span className="text-[10px] font-bold text-ivory truncate">
+                          {o.promotionName ?? (o.discountType === "PERCENT" ? `Descuento ${o.discountAmount}%` : `Descuento fijo`)}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-extrabold text-gold flex-shrink-0">
+                        −${(o.discountAmount ?? 0).toFixed(2)}
+                      </span>
+                    </div>
+                    {o.discountReason && (
+                      <p className="text-[9px] text-muted/50 italic pl-4">
+                        Motivo: {o.discountReason}
+                      </p>
+                    )}
+                    {o.originalTotal != null && (
+                      <div className="flex items-center gap-2 pl-4">
+                        <span className="text-[9px] text-muted/40 line-through">${o.originalTotal.toFixed(2)}</span>
+                        <span className="text-[9px] text-emerald-400 font-bold">${o.total.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center flex-shrink-0">
+                  <Tag size={12} className="text-muted/40" />
+                </div>
+                <p className="text-[9px] md:text-[10px] text-muted/40 font-bold uppercase tracking-widest">
+                  Sin descuentos aplicados
+                </p>
+              </div>
+            )}
+          </section>
+        )}
+
         {/* PAYMENTS SECTION */}
         <section>
           <div className="flex items-center gap-2 mb-3 md:mb-4">
@@ -377,6 +469,18 @@ export default function TableInspector({
           <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 space-y-2 md:space-y-3">
             {totalAmount > 0 ? (
               <>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Subtotal</span>
+                    <span className="text-sm font-black text-white/60">${(totalAmount + totalDiscount).toFixed(2)}</span>
+                  </div>
+                )}
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Descuentos</span>
+                    <span className="text-sm font-black text-gold">−${totalDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total Cuenta</span>
                   <span className="text-base md:text-lg font-black text-white/80">${totalAmount.toFixed(2)}</span>
