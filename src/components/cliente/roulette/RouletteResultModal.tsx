@@ -120,7 +120,7 @@ function RecipeAccordion({ recipe }: { recipe: NonNullable<RouletteDrinkRow["rec
             transition={{ duration: 0.25 }}
           >
             {/* Ingredientes */}
-            {recipe.ingredients?.length > 0 && (
+            {(recipe.ingredients?.length ?? 0) > 0 && (
               <div className={styles.recipeSection}>
                 <p className={styles.recipeSectionTitle}>Ingredientes</p>
                 <ul className={styles.ingredientsList}>
@@ -138,7 +138,7 @@ function RecipeAccordion({ recipe }: { recipe: NonNullable<RouletteDrinkRow["rec
             )}
 
             {/* Preparación */}
-            {recipe.steps?.length > 0 && (
+            {(recipe.steps?.length ?? 0) > 0 && (
               <div className={styles.recipeSection}>
                 <p className={styles.recipeSectionTitle}>Preparación</p>
                 <ol className={styles.stepsList}>

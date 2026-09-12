@@ -102,7 +102,7 @@ export default function RecipeQuickView({
             <div className="px-5 pb-5 space-y-5 border-t border-white/5">
 
               {/* Ingredientes */}
-              {recipe.ingredients?.length > 0 && (
+              {(recipe.ingredients?.length ?? 0) > 0 && (
                 <div className="space-y-2 pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Beaker size={12} className="text-gold" />
@@ -129,7 +129,7 @@ export default function RecipeQuickView({
               )}
 
               {/* Pasos */}
-              {recipe.steps?.length > 0 && (
+              {(recipe.steps?.length ?? 0) > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 mb-3">
                     <ListOrdered size={12} className="text-gold" />
