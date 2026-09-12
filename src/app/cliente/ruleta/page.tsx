@@ -117,6 +117,7 @@ export default function RulettePage() {
           <RouletteStatus
             phase={phase}
             winnerName={result?.drink?.name}
+            winnerRarity={result?.drink?.rarity}
           />
 
           <RouletteSpinButton

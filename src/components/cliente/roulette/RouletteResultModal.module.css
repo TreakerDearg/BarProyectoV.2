@@ -3,14 +3,37 @@
    Mobile: bottom sheet. Desktop: modal centrado.
 ================================================================ */
 
+/* ── Confetti ────────────────────────────────────────────────────*/
+
+.confettiContainer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1002;
+  overflow: hidden;
+}
+
+.confettiParticle {
+  position: absolute;
+  top: -20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  will-change: transform, opacity;
+}
+
+/* ── Backdrop ────────────────────────────────────────────────────*/
+
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(9, 9, 11, 0.82);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
 }
+
+/* ── Panel ───────────────────────────────────────────────────────*/
 
 .panel {
   position: fixed;
@@ -24,11 +47,18 @@
   padding: 12px 24px 40px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-height: 92vh;
+  gap: 18px;
+  max-height: 94vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+/* Panel brillante para rarezas altas */
+.panelGlow {
+  box-shadow:
+    0 -4px 32px rgba(212, 175, 55, 0.12),
+    0 -1px 0 rgba(212, 175, 55, 0.3);
 }
 
 .dragHandle {
@@ -59,24 +89,13 @@
   transition: all var(--duration-base) var(--ease-out);
 }
 
-.closeButton:hover {
-  background: var(--surface-3);
-  color: var(--text);
-}
-
-.closeButton:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-}
-
+.closeButton:hover { background: var(--surface-3); color: var(--text); }
+.closeButton:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .closeIcon { width: 16px; height: 16px; }
 
 /* ── Header ──────────────────────────────────────────────────────*/
 
-.header {
-  text-align: center;
-  padding-top: 8px;
-}
+.header { text-align: center; padding-top: 8px; }
 
 .sparkleRow {
   display: flex;
@@ -85,17 +104,22 @@
   gap: 10px;
 }
 
-.sparkle { font-size: 1.1rem; }
+.sparkle { font-size: 1.15rem; }
 
-/* Label con DM Serif Display — editorial premium */
 .resultLabel {
   font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: 400;
   letter-spacing: var(--tracking-widest);
   text-transform: uppercase;
-  /* Dorado — identidad del resultado */
   color: var(--gold);
+}
+
+.resultLabelGold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ── Drink card ──────────────────────────────────────────────────*/
@@ -104,17 +128,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .imageWrapper {
-  width: 140px;
-  height: 140px;
+  width: 128px;
+  height: 128px;
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--surface-2);
   border: 1px solid var(--border-gold);
   flex-shrink: 0;
+}
+
+.imageWrapperGlow {
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+  border-color: var(--gold-a50);
 }
 
 .image { width: 100%; height: 100%; object-fit: cover; }
@@ -128,11 +157,7 @@
   background: linear-gradient(135deg, var(--surface-2) 0%, var(--bg) 100%);
 }
 
-.placeholderIcon {
-  width: 48px;
-  height: 48px;
-  color: var(--gold-a35);
-}
+.placeholderEmoji { font-size: 3rem; }
 
 .drinkInfo {
   text-align: center;
@@ -142,12 +167,10 @@
   align-items: center;
 }
 
-/* Nombre con DM Serif Display — editorial */
 .drinkName {
   font-family: var(--font-display);
-  font-size: clamp(1.4rem, 5vw, 1.75rem);
+  font-size: clamp(1.35rem, 5vw, 1.7rem);
   font-weight: 400;
-  /* Crema — nombre del trago es protagonista */
   color: var(--cream);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
@@ -155,8 +178,15 @@
   text-transform: capitalize;
 }
 
-/* ── Rareza — sistema de colores semánticos ──────────────────────*/
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
+/* Rareza */
 .rarity {
   display: inline-block;
   padding: 3px 12px;
@@ -168,33 +198,21 @@
   text-transform: uppercase;
 }
 
-/* COMMON — carbón neutro */
-.rarityCommon {
-  background: var(--surface-3);
-  border: 1px solid var(--border-strong);
-  color: var(--text-muted);
-}
+.rarityCommon   { background: var(--surface-3); border: 1px solid var(--border-strong); color: var(--text-muted); }
+.rarityRare     { background: var(--bronze-soft); border: 1px solid var(--bronze-border); color: var(--bronze-light); }
+.rarityEpic     { background: var(--gold-a12); border: 1px solid var(--border-gold); color: var(--gold-light); }
+.rarityLegendary { background: var(--gold-a20); border: 1px solid var(--gold-a50); color: var(--cream); box-shadow: var(--glow-gold-sm); }
 
-/* RARE — bronce */
-.rarityRare {
-  background: var(--bronze-soft);
-  border: 1px solid var(--bronze-border);
-  color: var(--bronze-light);
-}
-
-/* EPIC — dorado */
-.rarityEpic {
-  background: var(--gold-a12);
-  border: 1px solid var(--border-gold);
-  color: var(--gold-light);
-}
-
-/* LEGENDARY — crema + glow dorado */
-.rarityLegendary {
-  background: var(--gold-a20);
-  border: 1px solid var(--gold-a50);
-  color: var(--cream);
-  box-shadow: var(--glow-gold-sm);
+.category {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-transform: capitalize;
 }
 
 .drinkDescription {
@@ -206,14 +224,162 @@
   max-width: 280px;
 }
 
-/* Precio en dorado — prominente */
 .drinkPrice {
   font-family: var(--font-sans);
-  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-size: clamp(1.2rem, 4vw, 1.45rem);
   font-weight: var(--font-extrabold);
   color: var(--gold);
   letter-spacing: var(--tracking-tight);
   margin: 0;
+}
+
+/* ── Recipe accordion ────────────────────────────────────────────*/
+
+.recipeAccordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.recipeToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--duration-base) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.recipeToggle:hover { background: var(--surface-3); }
+.recipeToggle:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+
+.recipeToggleIcon { font-size: 1rem; flex-shrink: 0; }
+
+.recipeToggleLabel {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+}
+
+.recipeMethod {
+  font-weight: var(--font-normal);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.recipeChevron {
+  font-size: 0.9rem;
+  color: var(--gold);
+  display: inline-block;
+  line-height: 1;
+}
+
+.recipeBody {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+}
+
+.recipeSection {
+  padding: 14px 16px;
+}
+
+.recipeSection + .recipeSection {
+  border-top: 1px solid var(--border);
+}
+
+.recipeSectionTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+
+/* Ingredientes */
+.ingredientsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ingredientItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+
+.ingredientBullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold-a50);
+  flex-shrink: 0;
+}
+
+.ingredientName {
+  flex: 1;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.ingredientQty {
+  color: var(--gold);
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+}
+
+/* Pasos */
+.stepsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gold-a12);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepText {
+  color: var(--text-dim);
+  line-height: var(--leading-normal);
+  padding-top: 2px;
 }
 
 /* ── Acciones ────────────────────────────────────────────────────*/
@@ -224,7 +390,6 @@
   gap: 10px;
 }
 
-/* Primaria — gradiente dorado, texto negro */
 .primaryAction {
   display: inline-flex;
   align-items: center;
@@ -245,17 +410,11 @@
   touch-action: manipulation;
 }
 
-.primaryAction:hover:not(:disabled) {
-  filter: brightness(1.08);
-  box-shadow: var(--glow-gold-md);
-  transform: translateY(-1px);
-}
-
+.primaryAction:hover:not(:disabled) { filter: brightness(1.08); box-shadow: var(--glow-gold-md); transform: translateY(-1px); }
 .primaryAction:active:not(:disabled) { transform: scale(0.98); }
 .primaryAction:disabled { opacity: 0.6; cursor: not-allowed; }
 .primaryAction:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-/* Secundaria — ghost */
 .secondaryAction {
   display: inline-flex;
   align-items: center;
@@ -275,12 +434,7 @@
   touch-action: manipulation;
 }
 
-.secondaryAction:hover:not(:disabled) {
-  background: var(--surface-2);
-  border-color: var(--border-gold);
-  color: var(--text);
-}
-
+.secondaryAction:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-gold); color: var(--text); }
 .secondaryAction:disabled { opacity: 0.4; cursor: not-allowed; }
 .secondaryAction:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -310,24 +464,20 @@
     bottom: auto;
     right: auto;
     width: 100%;
-    max-width: 480px;
+    max-width: 520px;
     border-radius: var(--radius-2xl);
     border: 1px solid var(--border-gold);
     padding: 32px;
-    max-height: 88vh;
+    max-height: 90vh;
   }
 
   .dragHandle { display: none; }
 
-  .drinkCard {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px;
-  }
-
+  .drinkCard { flex-direction: row; align-items: flex-start; gap: 20px; }
   .imageWrapper { width: 120px; height: 120px; flex-shrink: 0; }
   .drinkInfo { text-align: left; align-items: flex-start; }
   .drinkDescription { max-width: none; }
+  .metaRow { justify-content: flex-start; }
   .actions { flex-direction: row; }
   .primaryAction, .secondaryAction { flex: 1; }
 }
@@ -336,4 +486,5 @@
   .primaryAction, .secondaryAction { transition: none; }
   .primaryAction:hover:not(:disabled) { transform: none; }
   .actionSpinner { animation: none; opacity: 0.6; }
+  .confettiParticle { display: none; }
 }

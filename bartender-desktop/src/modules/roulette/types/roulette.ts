@@ -8,32 +8,65 @@ export type RouletteCategory =
 
 export type RouletteRarity = "COMMON" | "RARE" | "EPIC" | "LEGENDARY";
 
+export interface RecipeIngredient {
+  name:     string;
+  quantity: number;
+  unit:     string;
+}
+
+export interface RecipeStep {
+  stepNumber:  number;
+  instruction: string;
+  time?:       number;
+}
+
+export interface DrinkRecipe {
+  _id:        string;
+  method?:    string;
+  drinkStyle?: "author" | "classic";
+  totalCost?: number;
+  steps?:     RecipeStep[];
+  ingredients: RecipeIngredient[];
+}
+
 export interface RouletteDrink {
   _id: string;
 
-  name: string;
+  name:     string;
   category: RouletteCategory;
-  rarity: RouletteRarity;
+  rarity:   RouletteRarity;
 
-  weight: number;
-  probability?: number; 
+  weight:       number;
+  probability?: number;
   pityThreshold?: number;
 
   active: boolean;
-  color: string;
+  color:  string;
 
   price?: number;
 
   product?: {
-    _id: string;
-    name: string;
-    type?: string;
-    available?: boolean;
+    _id:            string;
+    name:           string;
+    type?:          string;
+    available?:     boolean;
     isActiveForPOS?: boolean;
-    stock?: number;
+    stock?:         number;
+    image?:         string;
+    description?:   string;
+    dynamicPrice?:  number;
+    recipeId?:      string;
   } | string | null;
 
-  totalSpins?: number;
+  /** Receta adjuntada por el backend al listar */
+  recipe?: DrinkRecipe | null;
+
+  baseWeight?:      number;
+  stockMultiplier?: number;
+  luckMultiplier?:  number;
+
+  totalSpins?:     number;
+  totalWins?:      number;
   lastSelectedAt?: string;
 
   createdAt?: string;
@@ -43,8 +76,10 @@ export interface RouletteDrink {
 export interface RouletteSpinResult {
   result: RouletteDrink;
   meta: {
-    totalOptions: number;
-    totalWeight: number;
-    rarity: RouletteRarity;
+    totalOptions:  number;
+    totalWeight:   number;
+    rarity:        RouletteRarity;
+    pityTriggered: boolean;
+    kpiScore?:     number;
   };
 }

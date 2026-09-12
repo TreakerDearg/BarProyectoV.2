@@ -6,9 +6,10 @@
   "scripts": {
     "dev":          "nodemon src/server.js",
     "start":        "node src/server.js",
-    "seed":         "node src/seeds/seed.js",
-    "seed:recipes": "node src/seeds/seed-recipes.js",
-    "seed:menu":    "node src/seeds/seed-menu.js"
+    "seed":          "node src/seeds/seed.js",
+    "seed:recipes":  "node src/seeds/seed-recipes.js",
+    "seed:menu":     "node src/seeds/seed-menu.js",
+    "seed:roulette": "node src/seeds/seedRoulette.js"
   },
   "keywords": [],
   "author": "",

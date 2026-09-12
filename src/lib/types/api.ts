@@ -179,7 +179,17 @@ export type RouletteDrinkRow = {
   rarity?: string;
   probability?: number;
   active?: boolean;
+  category?: string;
   product?: ProductBrief | null;
+  /** Receta vinculada — adjuntada por el backend en /roulette/public */
+  recipe?: {
+    _id:        string;
+    method?:    string;
+    drinkStyle?: string;
+    totalCost?: number;
+    steps?: Array<{ stepNumber: number; instruction: string; time?: number }>;
+    ingredients: Array<{ name: string; quantity: number; unit: string }>;
+  } | null;
 };
 
 export type PromotionPublicDTO = {
