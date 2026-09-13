@@ -429,12 +429,14 @@ export default function ProductsPage() {
 
       {/* ── Formulario ─────────────────────────────────────────── */}
       {pageView === "form" && (
-        <ProductForm
-          product={selectedProduct}
-          onSave={handleSave}
-          onClose={() => { setPageView("list"); setSelectedProduct(null); }}
-          categoryNames={derivedCategories.map((c) => c.name)}
-        />
+        <div className="absolute inset-0 z-30 bg-surface-2 flex flex-col">
+          <ProductForm
+            product={selectedProduct}
+            onSave={handleSave}
+            onClose={() => { setPageView("list"); setSelectedProduct(null); }}
+            categoryNames={derivedCategories.map((c) => c.name)}
+          />
+        </div>
       )}
 
       {/* ── Drawer de detalle ───────────────────────────────────── */}

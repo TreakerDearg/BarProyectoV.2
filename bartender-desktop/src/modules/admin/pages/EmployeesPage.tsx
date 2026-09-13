@@ -254,52 +254,48 @@ export default function EmployeesPage() {
   }
 
   /* =====================================================
-     KPI CARD COMPONENT
+     KPI CARD COMPONENT (gold+minimal)
   ===================================================== */
   function KPICard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
-    const colorConfig = {
-      violet: { bg: "from-violet/20 to-purple/10", border: "border-violet/30", text: "text-violet-400" },
-      emerald: { bg: "from-emerald/20 to-green/10", border: "border-emerald/30", text: "text-emerald-400" },
-      orange: { bg: "from-orange/20 to-red/10", border: "border-orange/30", text: "text-orange-400" },
-      gold: { bg: "from-gold/20 to-amber/10", border: "border-gold/30", text: "text-gold" },
+    const cfg: Record<string, { border: string; bg: string; text: string }> = {
+      violet:  { border: "border-violet-500/25",  bg: "bg-violet-500/6",  text: "text-violet-300"  },
+      emerald: { border: "border-emerald-500/25", bg: "bg-emerald-500/6", text: "text-emerald-300" },
+      orange:  { border: "border-orange-500/25",  bg: "bg-orange-500/6",  text: "text-orange-300"  },
+      gold:    { border: "border-gold/25",         bg: "bg-gold/6",        text: "text-gold"        },
     };
-    
-    const config = colorConfig[color as keyof typeof colorConfig] || colorConfig.violet;
-
+    const c = cfg[color] ?? cfg.violet;
     return (
-      <div className={`bg-gradient-to-br ${config.bg} border ${config.border} rounded-xl p-4`}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">{label}</span>
-          <div className={config.text}>{icon}</div>
+      <div className={`rounded-2xl border p-4 flex flex-col gap-1 ${c.border} ${c.bg}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{label}</span>
+          <span className={c.text}>{icon}</span>
         </div>
-        <p className={`text-2xl font-bold ${config.text}`}>{value}</p>
+        <p className={`text-2xl font-extrabold ${c.text}`}>{value}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 bg-gradient-to-br from-surface-2 to-surface-3 p-6 rounded-3xl border border-white/10 relative overflow-hidden">
+    <div className="w-full space-y-5 relative">
 
       {/* Atmospheric Glow */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-gold/10 via-violet/10 to-cyan/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-gold/6 via-violet-500/6 to-cyan-500/6 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       {/* Header */}
-      <div className="flex items-end justify-between relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-gold/20 via-violet/20 to-cyan/20 border border-gold/30">
-            <ShieldCheck size={28} className="text-gold" />
+      <div className="flex items-center justify-between relative z-10 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gold/10 border border-gold/20">
+            <ShieldCheck size={20} className="text-gold" />
           </div>
           <div>
-            <p className="text-xs text-gold font-bold uppercase tracking-wider mb-1">
-              Nebula · Personal
-            </p>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
+            <h1 className="text-xl font-bold text-ivory tracking-tight">
               Directorio de Colaboradores
             </h1>
+            <p className="text-[11px] text-muted mt-0.5">
+              {stats.total} empleados · {stats.active} activos
+            </p>
             {error && (
-              <p className="text-[10px] text-red-400 font-bold tracking-wider mt-2 bg-red/10 px-2 py-1 rounded">
-                {error}
-              </p>
+              <p className="text-[10px] text-red-400 font-bold mt-1">{error}</p>
             )}
           </div>
         </div>

@@ -1018,7 +1018,7 @@ export default function ProductForm({
       </div>
 
       {/* CONTENIDO PRINCIPAL */}
-      <div className="p-6 md:p-8 flex-1 overflow-y-auto pb-28 nebula-forms-scroll">
+      <div className="p-6 md:p-8 flex-1 overflow-y-auto pb-6 nebula-forms-scroll">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto">
 
           {/* COLUMNA IZQUIERDA — Imagen + Identidad (7 columnas) */}
@@ -1071,7 +1071,7 @@ export default function ProductForm({
       </div>
 
       {/* FOOTER FIJO */}
-      <div className="fixed bottom-0 right-0 left-0 h-[68px] bg-black/80 backdrop-blur-xl border-t border-white/10 px-6 md:px-12 flex items-center justify-between z-20">
+      <div className="sticky bottom-0 left-0 right-0 h-[68px] bg-surface-2/95 backdrop-blur-xl border-t border-white/10 px-6 md:px-12 flex items-center justify-between z-20 flex-shrink-0">
         {/* Estado de guardado */}
         <div className="flex items-center gap-3">
           {saved && (

@@ -69,12 +69,12 @@ export default function NebulaDynamicPricingPage() {
   const colors = multColors(multiplier);
   const sliderPct = ((multiplier - 0.5) / 2.5) * 100;
 
-  /* ── KPI calculados ─────────────────────────────────────────── */
+  /* ── KPI calculados (price puede ser undefined si el backend falla) ── */
   const avgOriginal = products.length
-    ? products.reduce((s, p) => s + p.price, 0) / products.length
+    ? products.reduce((s, p) => s + (p.price ?? 0), 0) / products.length
     : 0;
   const avgAdjusted = avgOriginal * multiplier;
-  const totalImpact = products.reduce((s, p) => s + (p.price * multiplier - p.price), 0);
+  const totalImpact = products.reduce((s, p) => s + ((p.price ?? 0) * multiplier - (p.price ?? 0)), 0);
 
   /* ── render ─────────────────────────────────────────────────── */
   if (loading) {
@@ -294,16 +294,17 @@ export default function NebulaDynamicPricingPage() {
             ) : (
               <div className="space-y-2 flex-1">
                 {products.map((prod) => {
-                  const adjusted = prod.price * multiplier;
-                  const delta    = adjusted - prod.price;
-                  const isUp     = delta >= 0;
+                  const basePrice = prod.price ?? 0;
+                  const adjusted  = basePrice * multiplier;
+                  const delta     = adjusted - basePrice;
+                  const isUp      = delta >= 0;
                   return (
                     <div key={prod._id}
                       className="flex items-center gap-3 p-3 rounded-xl bg-white/4 border border-white/6 hover:border-white/10 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-ivory truncate">{prod.name}</p>
-                        <p className="text-[10px] text-muted mt-0.5">${prod.price.toFixed(2)} base</p>
+                        <p className="text-[10px] text-muted mt-0.5">${basePrice.toFixed(2)} base</p>
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className={`text-sm font-extrabold ${colors.text}`}>${adjusted.toFixed(2)}</p>

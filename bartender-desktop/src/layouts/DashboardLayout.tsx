@@ -2,49 +2,54 @@
 
 import type { ReactNode } from "react";
 import Sidebar from "../components/ui/Sidebar";
-import Header from "../components/ui/Header";
+import Header  from "../components/ui/Header";
 import { useUIStore } from "../store/uiStore";
 
-interface Props {
-  children: ReactNode;
-}
+interface Props { children: ReactNode }
 
 export default function DashboardLayout({ children }: Props) {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#030209] text-white">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#06060A] text-white">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* ── Sidebar ──────────────────────────────────────────── */}
       <aside
         className={`
-          ${collapsed ? "w-20" : "w-64"}
+          ${collapsed ? "w-[64px]" : "w-[230px]"}
           transition-all duration-300 ease-in-out
-          flex-shrink-0 
-          bg-slate-950/80 border-r border-violet-500/10
-          shadow-[4px_0_24px_rgba(139,92,246,0.05)]
-          relative z-20
+          flex-shrink-0 relative z-20
+          bg-[#09090E]/90
+          border-r border-white/[0.05]
+          shadow-[1px_0_0_rgba(255,255,255,0.03)]
         `}
       >
         <Sidebar />
       </aside>
 
-      {/* ================= MAIN ================= */}
-      <div className="flex flex-col flex-1 min-w-0 min-h-0 relative">
+      {/* ── Main column ───────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 relative overflow-hidden">
 
-        {/* NEBULA ATMOSPHERE GLOW */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="nebula-aurora opacity-60" />
-        </div>
+        {/* Ambient glow — muy sutil, no distrae */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 55% 35% at 65% 15%, rgba(212,163,64,0.04) 0%, transparent 70%)," +
+              "radial-gradient(ellipse 40% 30% at 10% 80%, rgba(139,92,246,0.03) 0%, transparent 70%)",
+          }}
+        />
 
-        {/* HEADER */}
-        <header className="flex-shrink-0 bg-slate-950/50 backdrop-blur-xl border-b border-violet-500/10 relative z-10">
+        {/* ── Header ────────────────────────────────────────── */}
+        <header className="flex-shrink-0 relative z-10 bg-[#09090E]/80 border-b border-white/[0.05] backdrop-blur-xl">
           <Header />
         </header>
 
-        {/* CONTENT */}
-        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-3 md:p-4 lg:p-6 relative z-10 flex flex-col">
-          <div className="relative z-10 w-full flex-1 flex flex-col min-h-0 h-full">
+        {/* ── Scrollable content ────────────────────────────── */}
+        <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden relative z-10">
+          {/* Inner wrapper con padding y max-width contenido */}
+          <div className="w-full h-full p-4 md:p-5 lg:p-6 flex flex-col">
             {children}
           </div>
         </main>

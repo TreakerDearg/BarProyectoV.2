@@ -3,63 +3,100 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Play,
-  Wrench,
-  Pencil,
-  Trash2,
-  ClipboardList,
-  Users,
-  MapPin,
-  Info,
-  DollarSign,
-  Clock,
-  ShieldCheck,
-  CreditCard,
-  Receipt,
-  Calendar,
-  TrendingUp,
-  Wallet,
-  Maximize,
-  Tag,
-  Percent,
-  Megaphone,
-  CheckCircle2,
+  Play, Wrench, Pencil, Trash2, ClipboardList,
+  Users, MapPin, Info, DollarSign, Clock, CreditCard,
+  Receipt, Calendar, TrendingUp, Wallet, Tag,
+  Percent, Megaphone, CheckCircle2, ChevronDown,
+  ChevronRight, AlertTriangle, Maximize, Shield,
 } from "lucide-react";
 
 import TableForm from "./TableForm";
 import type { Table } from "../types/table";
 
-// ── Componente de código numérico ──────────────────────────────────
+/* ── Tiny helpers ─────────────────────────────────────────────── */
+const fmtCurrency = (v: number) => `$${(v ?? 0).toFixed(2)}`;
+const fmtTime     = (iso?: string | null) =>
+  iso ? new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "—";
+
+/* ── Status config ────────────────────────────────────────────── */
+const STATUS: Record<string, { label: string; dot: string; badge: string }> = {
+  available:   { label: "LIBRE",          dot: "bg-gold",        badge: "bg-gold/10    border-gold/25    text-gold"        },
+  occupied:    { label: "OCUPADA",        dot: "bg-amber-400",   badge: "bg-amber-400/10 border-amber-400/25 text-amber-300" },
+  reserved:    { label: "RESERVADA",      dot: "bg-blue-400",    badge: "bg-blue-400/10 border-blue-400/25 text-blue-300"  },
+  maintenance: { label: "MANTENIMIENTO",  dot: "bg-red-400",     badge: "bg-red-500/10 border-red-500/25 text-red-300"    },
+};
+
+/* ── Código de mesa ───────────────────────────────────────────── */
 function TableCodeBadge({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
+  const copy = () => {
     navigator.clipboard?.writeText(code).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 1800);
     });
   };
-
   return (
-    <div className="flex flex-col gap-1.5 p-4 rounded-2xl bg-gold/10 border border-gold/30 text-center relative overflow-hidden">
-      {/* Glow decorativo */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-transparent pointer-events-none" />
-      <p className="text-[9px] font-black text-gold/60 uppercase tracking-[0.3em]">Código de mesa</p>
-      <p className="text-5xl font-black text-grad-gold tracking-[0.2em] leading-none">{code}</p>
-      <p className="text-[8px] text-muted/60 leading-relaxed">
+    <div className="rounded-2xl border border-gold/25 bg-gold/6 p-4 flex flex-col items-center gap-2">
+      <p className="text-[9px] font-black text-gold/50 uppercase tracking-[0.3em]">Código de mesa</p>
+      <p className="text-5xl font-black text-gold tracking-[0.22em] leading-none">{code}</p>
+      <p className="text-[9px] text-muted/50 text-center leading-relaxed max-w-[160px]">
         El cliente ingresa este código en su dispositivo
       </p>
       <button
         type="button"
-        onClick={handleCopy}
-        className="mt-1 py-1.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-gold/20 text-gold hover:bg-gold/10 active:scale-95"
+        onClick={copy}
+        className="mt-0.5 px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-gold/20 text-gold hover:bg-gold/10 active:scale-95 transition-all"
       >
-        {copied ? "✓ Copiado" : "Copiar código"}
+        {copied ? "Copiado" : "Copiar"}
       </button>
     </div>
   );
 }
 
+/* ── Section wrapper ──────────────────────────────────────────── */
+function Section({
+  icon: Icon, title, children, collapsible = false, defaultOpen = true,
+}: {
+  icon: React.ElementType; title: string; children: React.ReactNode;
+  collapsible?: boolean; defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        disabled={!collapsible}
+        onClick={() => collapsible && setOpen((p) => !p)}
+        className={`w-full flex items-center gap-2 ${collapsible ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+      >
+        <Icon size={11} className="text-muted/40 flex-shrink-0" />
+        <span className="text-[9px] font-black text-muted/40 uppercase tracking-[0.22em] flex-1 text-left">{title}</span>
+        {collapsible && (
+          open
+            ? <ChevronDown size={11} className="text-muted/30" />
+            : <ChevronRight size={11} className="text-muted/30" />
+        )}
+      </button>
+      {open && children}
+    </div>
+  );
+}
+
+/* ── Row ──────────────────────────────────────────────────────── */
+function Row({
+  label, value, valueColor = "text-ivory/70",
+}: {
+  label: string; value: React.ReactNode; valueColor?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+      <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">{label}</span>
+      <span className={`text-[11px] font-bold ${valueColor} text-right`}>{value}</span>
+    </div>
+  );
+}
+
+/* ── Props ────────────────────────────────────────────────────── */
 interface Props {
   table: Table | null;
   tables: Table[];
@@ -75,571 +112,411 @@ interface Props {
   onViewReservation?: () => void;
 }
 
-const statusConfig: any = {
-  available: { label: "LIBRE", color: "text-gold", bg: "bg-gold/10", border: "border-gold/20", glow: "shadow-gold-glow/20" },
-  occupied: { label: "OCUPADA", color: "text-orange", bg: "bg-orange/10", border: "border-orange/20", glow: "shadow-orange-glow/20" },
-  reserved: { label: "RESERVADA", color: "text-blue", bg: "bg-blue/10", border: "border-blue/20", glow: "shadow-blue-glow/20" },
-  maintenance: { label: "MANTENIMIENTO", color: "text-red", bg: "bg-red/10", border: "border-red/20", glow: "shadow-red-glow/20" },
-};
+/* ── Empty state ──────────────────────────────────────────────── */
+function EmptyState() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+        <Info size={22} className="text-muted" />
+      </div>
+      <h3 className="text-sm font-bold text-muted">Sin mesa seleccionada</h3>
+      <p className="text-[10px] text-muted/50 mt-1.5">Hacé clic en una mesa del plano</p>
+    </div>
+  );
+}
 
+/* ── Main ─────────────────────────────────────────────────────── */
 export default function TableInspector({
-  table,
-  tables,
-  onOpen,
-  onClose,
-  onSave,
-  onDelete,
-  onOrder,
-  onViewPaymentHistory,
-  onViewAnalytics,
-  onPaymentSelector,
-  onSeatReservation,
-  onViewReservation,
+  table, tables, onOpen, onClose, onSave, onDelete,
+  onOrder, onViewPaymentHistory, onViewAnalytics,
+  onPaymentSelector, onSeatReservation, onViewReservation,
 }: Props) {
   const [editing, setEditing] = useState(false);
 
-  if (!table) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-4 md:p-8 glass rounded-2xl md:rounded-[2.5rem] border-white/5 opacity-40">
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/5 flex items-center justify-center mb-4 md:mb-6">
-          <Info size={32} className="w-6 h-6 md:w-8 md:h-8 text-muted" />
-        </div>
-        <h3 className="text-sm md:text-lg font-black text-white/50 uppercase tracking-widest">Panel de Control</h3>
-        <p className="text-[9px] md:text-[10px] text-muted font-bold uppercase tracking-[0.2em] mt-2">Selecciona un activo del plano</p>
-      </div>
-    );
-  }
+  if (!table) return (
+    <div className="h-full rounded-3xl glass border border-white/5 overflow-hidden">
+      <EmptyState />
+    </div>
+  );
 
   if (editing) {
     return (
       <TableForm
         table={table}
         existingTables={tables}
-        onSave={(t) => {
-          onSave(t);
-          setEditing(false);
-        }}
+        onSave={(t) => { onSave(t); setEditing(false); }}
         onClose={() => setEditing(false)}
       />
     );
   }
 
-  const config = statusConfig[table.status] || statusConfig.maintenance;
-  const totalAmount = table.totalAmount || (table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0);
-  const totalPaid = table.totalPaid || table.totalPayments || 0;
-  const balanceDue = table.balanceDue !== undefined ? table.balanceDue : Math.max(0, totalAmount - totalPaid);
+  const cfg = STATUS[table.status] ?? STATUS.maintenance;
 
-  // ── Calcular descuentos aplicados desde las órdenes abiertas ──
-  const openOrders = table.orders?.filter((o) => o.sessionStatus === "open") || [];
+  /* Financials */
+  const totalAmount  = table.totalAmount  ?? (table.orders?.reduce((s, o) => s + (o.total ?? 0), 0) ?? 0);
+  const totalPaid    = table.totalPaid    ?? table.totalPayments ?? 0;
+  const balanceDue   = table.balanceDue   ?? Math.max(0, totalAmount - totalPaid);
+
+  /* Orders */
+  const openOrders            = table.orders?.filter((o) => o.sessionStatus === "open") ?? [];
   const hasPendingOrInProgress = openOrders.some((o) => o.status === "pending" || o.status === "in-progress");
 
-  // Leer descuentos de cada orden (si el backend los expone)
+  /* Discounts */
   type OrderWithDiscount = typeof openOrders[number] & {
-    discountAmount?: number;
-    discountType?: string;
-    discountReason?: string;
-    promotionName?: string;
-    originalTotal?: number;
+    discountAmount?: number; discountType?: string;
+    discountReason?: string; promotionName?: string; originalTotal?: number;
   };
-  const ordersWithDiscount = (openOrders as OrderWithDiscount[]).filter(
-    (o) => (o.discountAmount ?? 0) > 0
-  );
-  const totalDiscount = ordersWithDiscount.reduce((s, o) => s + (o.discountAmount ?? 0), 0);
+  const ordersWithDiscount = (openOrders as OrderWithDiscount[]).filter((o) => (o.discountAmount ?? 0) > 0);
+  const totalDiscount      = ordersWithDiscount.reduce((s, o) => s + (o.discountAmount ?? 0), 0);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
+    <motion.div
+      initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
-      className="h-full flex flex-col glass rounded-2xl md:rounded-[2.5rem] border-white/5 overflow-hidden shadow-2xl relative"
+      className="h-full flex flex-col glass rounded-3xl border border-white/[0.06] overflow-hidden shadow-2xl"
     >
-      {/* HEADER DECOR */}
-      <div className={`absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 blur-[60px] md:blur-[80px] opacity-20 pointer-events-none ${config.bg}`} />
-
-      {/* HEADER - RESPONSIVE */}
-      <div className="p-4 md:p-8 pb-3 md:pb-4 relative">
-        <div className="flex justify-between items-start mb-4 md:mb-6 gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-1.5 md:w-2 h-1.5 md:h-2 rounded-full bg-gold shadow-gold-glow" />
-              <p className="text-[8px] md:text-[10px] font-black text-muted uppercase tracking-[0.3em]">Asset Inspector</p>
-            </div>
-            <h2 className="text-2xl md:text-4xl font-black text-grad-gold tracking-tighter leading-tight">
-              MESA <span className="text-white">{table.number}</span>
+      {/* ── HEADER ────────────────────────────────────────────── */}
+      <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-white/[0.05]">
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <p className="text-[9px] font-black text-muted/40 uppercase tracking-[0.25em] mb-1">Mesa</p>
+            <h2 className="text-4xl font-extrabold text-ivory tracking-tight leading-none">
+              #{table.number}
             </h2>
           </div>
-          <div className={`px-2 md:px-4 py-1 md:py-1.5 rounded-full border flex-shrink-0 ${config.bg} ${config.border} ${config.glow} backdrop-blur-md`}>
-            <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-widest ${config.color}`}>
-              {config.label}
-            </span>
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${cfg.badge}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+            {cfg.label}
           </div>
         </div>
 
-        {/* QUICK STATS - RESPONSIVE GRID */}
-        <div className="grid grid-cols-2 gap-2 md:gap-3">
-          <div className="bg-white/5 rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/5">
-            <p className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-widest mb-1">Capacidad</p>
-            <div className="flex items-center gap-2">
-              <Users size={16} className="w-4 h-4 md:w-5 md:h-5 text-gold" />
-              <span className="text-base md:text-lg font-black text-white/80">{table.capacity} <span className="text-[9px] md:text-[10px] opacity-40 uppercase">Pax</span></span>
+        {/* Quick stats grid */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.05]">
+            <Users size={14} className="text-gold flex-shrink-0" />
+            <div>
+              <p className="text-[8px] text-muted uppercase tracking-wider leading-none mb-0.5">Capacidad</p>
+              <p className="text-sm font-bold text-ivory">{table.capacity} <span className="text-[9px] text-muted/50">pax</span></p>
             </div>
           </div>
-          <div className="bg-white/5 rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/5">
-            <p className="text-[8px] md:text-[9px] font-black text-muted uppercase tracking-widest mb-1">Cuenta Actual</p>
-            <div className="flex items-center gap-2">
-              <DollarSign size={16} className="w-4 h-4 md:w-5 md:h-5 text-green-400" />
-              <span className="text-base md:text-lg font-black text-white/80">${totalAmount.toFixed(0)}</span>
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.05]">
+            <DollarSign size={14} className="text-emerald-400 flex-shrink-0" />
+            <div>
+              <p className="text-[8px] text-muted uppercase tracking-wider leading-none mb-0.5">Cuenta</p>
+              <p className="text-sm font-bold text-emerald-300">{fmtCurrency(totalAmount)}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* BODY - SCROLLABLE */}
-      <div className="flex-1 p-4 md:p-8 pt-3 md:pt-4 space-y-4 md:space-y-8 overflow-y-auto custom-scrollbar">
-        {/* DETAILS SECTION */}
-        <section>
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <Info size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-            <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Especificaciones</h4>
-          </div>
-          
-          <div className="space-y-2 md:space-y-4">
-            <div className="flex justify-between items-center px-3 md:px-4 py-2 md:py-3 bg-white/5 rounded-lg md:rounded-xl border border-white/5">
-              <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Ubicación</span>
-              <span className="text-[10px] md:text-xs font-black text-white/70 uppercase tracking-widest flex items-center gap-1 md:gap-2">
-                <MapPin size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold" />
-                {table.location}
-              </span>
-            </div>
-            
-            <div className="flex justify-between items-center px-3 md:px-4 py-2 md:py-3 bg-white/5 rounded-lg md:rounded-xl border border-white/5">
-              <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Último Cierre</span>
-              <span className="text-[10px] md:text-xs font-black text-white/70 uppercase tracking-widest flex items-center gap-1 md:gap-2">
-                <Clock size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold" />
-                {table.closedAt ? new Date(table.closedAt).toLocaleTimeString() : 'N/A'}
-              </span>
-            </div>
-          </div>
-        </section>
+      {/* ── SCROLLABLE BODY ───────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 custom-scrollbar">
 
-        {/* CÓDIGO DE MESA — visible solo cuando está ocupada */}
+        {/* Código de mesa (occupied) */}
         {table.status === "occupied" && table.tableCode && (
-          <section>
-            <TableCodeBadge code={table.tableCode} />
-          </section>
+          <TableCodeBadge code={table.tableCode} />
         )}
 
-        {/* NOTES & TAGS */}
-        <section>
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <ShieldCheck size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-            <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Notas de Servicio</h4>
-          </div>
-
-          <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 min-h-[60px] md:min-h-[80px]">
-            {table.notes ? (
-              <p className="text-[10px] md:text-xs text-dim italic leading-relaxed">"{table.notes}"</p>
-            ) : (
-              <p className="text-[9px] md:text-[10px] text-muted/30 italic">No hay notas de servicio registradas para este activo.</p>
+        {/* Especificaciones */}
+        <Section icon={Info} title="Especificaciones">
+          <div className="space-y-1.5">
+            <Row label="Ubicación"     value={<span className="flex items-center gap-1"><MapPin size={10} className="text-gold" />{table.location}</span>} />
+            <Row label="Último cierre" value={fmtTime(table.closedAt)} />
+            {table.notes && (
+              <div className="px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                <p className="text-[10px] text-muted/60 italic leading-relaxed">"{table.notes}"</p>
+              </div>
             )}
           </div>
-        </section>
+        </Section>
 
-        {/* DIMENSIONES RÁPIDAS DE PLANO (Ajuste Humano) */}
-        <section className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <Maximize size={12} className="text-gold opacity-50" />
-            <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Dimensiones de Salón</h4>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5 p-3 bg-black/20 rounded-xl border border-white/5">
-              <span className="text-[8px] font-black text-muted uppercase tracking-wider">Ancho ({table.width || 120}px)</span>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => onSave({ ...table, width: Math.max(60, (table.width || 120) - 10) })}
-                  className="flex-1 py-1 rounded bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 text-[10px] font-black text-white transition-all"
-                >
-                  -10px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSave({ ...table, width: Math.min(250, (table.width || 120) + 10) })}
-                  className="flex-1 py-1 rounded bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 text-[10px] font-black text-white transition-all"
-                >
-                  +10px
-                </button>
-              </div>
+        {/* Notas de servicio */}
+        {!table.notes && (
+          <Section icon={Shield} title="Notas de servicio">
+            <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+              <p className="text-[10px] text-muted/30 italic">Sin notas de servicio</p>
             </div>
+          </Section>
+        )}
 
-            <div className="flex flex-col gap-1.5 p-3 bg-black/20 rounded-xl border border-white/5">
-              <span className="text-[8px] font-black text-muted uppercase tracking-wider">Alto ({table.height || 120}px)</span>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => onSave({ ...table, height: Math.max(60, (table.height || 120) - 10) })}
-                  className="flex-1 py-1 rounded bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 text-[10px] font-black text-white transition-all"
-                >
-                  -10px
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSave({ ...table, height: Math.min(250, (table.height || 120) + 10) })}
-                  className="flex-1 py-1 rounded bg-white/5 hover:bg-white/10 active:scale-95 border border-white/5 text-[10px] font-black text-white transition-all"
-                >
-                  +10px
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* RESERVATION SECTION */}
+        {/* Reserva actual */}
         {table.status === "reserved" && table.currentReservation && (
-          <section>
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <Calendar size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-              <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Reserva Actual</h4>
-            </div>
-
-            <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-blue/10 border border-blue/20 space-y-2 md:space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Estado</span>
-                <span className="text-[10px] md:text-xs font-black text-blue-400 uppercase tracking-widest">Confirmada</span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">ID Reserva</span>
-                <span className="text-[10px] md:text-xs font-black text-white/70 uppercase tracking-widest">
-                  {table.currentReservation.toString().slice(-8)}
-                </span>
-              </div>
-
-              <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+          <Section icon={Calendar} title="Reserva actual">
+            <div className="rounded-xl border border-blue-400/20 bg-blue-400/6 p-3 space-y-2">
+              <Row label="Estado"    value="Confirmada"    valueColor="text-blue-300" />
+              <Row label="ID"        value={table.currentReservation.toString().slice(-8).toUpperCase()} />
+              <div className="flex flex-col gap-1.5 pt-1">
                 {onViewReservation && (
-                  <button
-                    type="button"
-                    onClick={onViewReservation}
-                    className="w-full py-2 rounded-lg text-[10px] font-semibold text-violet-300 border border-violet-400/25 hover:bg-violet-500/10"
-                  >
+                  <button type="button" onClick={onViewReservation}
+                    className="w-full py-2 rounded-lg text-[10px] font-bold text-violet-300 border border-violet-400/20 hover:bg-violet-500/10 transition-colors uppercase tracking-wide">
                     Ver en Reservas
                   </button>
                 )}
                 {onSeatReservation && (
-                  <button
-                    type="button"
-                    onClick={onSeatReservation}
-                    className="w-full py-2.5 rounded-lg nebula-btn-primary text-[10px] font-semibold uppercase tracking-wide"
-                  >
+                  <button type="button" onClick={onSeatReservation}
+                    className="w-full py-2.5 rounded-lg nebula-btn-primary text-[10px] font-bold uppercase tracking-wide">
                     Sentar clientes
                   </button>
                 )}
               </div>
             </div>
-          </section>
+          </Section>
         )}
 
-        {/* ORDERS SUMMARY SECTION */}
+        {/* Resumen de pedidos (occupied) */}
         {table.status === "occupied" && (
-          <section>
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <ClipboardList size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-              <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Resumen de Pedidos</h4>
-            </div>
-
-            <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 space-y-2 md:space-y-3">
-              {table.totalAmount && table.totalAmount > 0 ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total de Pedidos</span>
-                    <span className="text-base md:text-lg font-black text-green-400">${table.totalAmount.toFixed(2)}</span>
-                  </div>
-
-                  {table.totalItems && table.totalItems > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total de Items</span>
-                      <span className="text-base md:text-lg font-black text-blue-400">{table.totalItems}</span>
-                    </div>
-                  )}
-
-                  {table.itemCounts && Object.keys(table.itemCounts).length > 0 && (
-                    <div className="pt-2 border-t border-white/10">
-                      <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase block mb-2">Items por Producto</span>
-                      <div className="space-y-1">
-                        {Object.entries(table.itemCounts).map(([name, count]) => (
-                          <div key={name} className="flex justify-between items-center text-[10px] md:text-xs">
-                            <span className="text-white/70">{name}</span>
-                            <span className="font-black text-white">{count as number}</span>
-                          </div>
-                        ))}
+          <Section icon={ClipboardList} title="Pedidos">
+            {(totalAmount > 0) ? (
+              <div className="space-y-1.5">
+                <Row label="Total pedidos"  value={fmtCurrency(totalAmount)} valueColor="text-emerald-300" />
+                {(table.totalItems ?? 0) > 0 && (
+                  <Row label="Ítems" value={String(table.totalItems)} valueColor="text-cyan-300" />
+                )}
+                {table.itemCounts && Object.keys(table.itemCounts).length > 0 && (
+                  <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] divide-y divide-white/[0.04]">
+                    {Object.entries(table.itemCounts).map(([name, count]) => (
+                      <div key={name} className="flex justify-between items-center px-3 py-2 text-[10px]">
+                        <span className="text-muted/70 truncate">{name}</span>
+                        <span className="font-bold text-ivory flex-shrink-0 ml-2">{count as number}</span>
                       </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-2">
-                  <span className="text-[9px] md:text-[10px] font-bold text-muted/50 uppercase">Sin pedidos registrados</span>
-                </div>
-              )}
-            </div>
-          </section>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+                <p className="text-[10px] text-muted/30 uppercase tracking-wider">Sin pedidos</p>
+              </div>
+            )}
+          </Section>
         )}
 
-        {/* ── DESCUENTOS & PROMOCIONES ────────────────────────── */}
+        {/* Descuentos & Promociones (occupied) */}
         {table.status === "occupied" && (
-          <section>
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <Tag size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-              <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
-                Descuentos &amp; Promociones
-              </h4>
-            </div>
-
+          <Section icon={Tag} title="Descuentos y Promociones" collapsible defaultOpen={totalDiscount > 0}>
             {totalDiscount > 0 ? (
               <div className="space-y-2">
-                {/* Banner total de ahorro */}
-                <div className="flex items-center justify-between p-3 md:p-4 rounded-xl md:rounded-2xl bg-gold/8 border border-gold/20">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
-                      <Percent size={13} className="text-gold" />
+                {/* Banner ahorro */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gold/6 border border-gold/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-gold/12 border border-gold/20 flex items-center justify-center">
+                      <Percent size={12} className="text-gold" />
                     </div>
                     <div>
-                      <p className="text-[9px] md:text-[10px] font-black text-gold/60 uppercase tracking-widest">Ahorro total</p>
-                      <p className="text-base md:text-lg font-extrabold text-gold leading-none mt-0.5">
-                        −${totalDiscount.toFixed(2)}
-                      </p>
+                      <p className="text-[9px] text-gold/50 uppercase tracking-widest font-black">Ahorro total</p>
+                      <p className="text-base font-extrabold text-gold leading-none">−{fmtCurrency(totalDiscount)}</p>
                     </div>
                   </div>
-                  <CheckCircle2 size={16} className="text-gold/50 flex-shrink-0" />
+                  <CheckCircle2 size={15} className="text-gold/40" />
                 </div>
-
-                {/* Detalle por orden */}
-                {ordersWithDiscount.map((o, idx) => (
-                  <div key={o._id}
-                    className="p-3 rounded-xl bg-white/4 border border-white/7 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
+                {/* Detalle */}
+                {ordersWithDiscount.map((o) => (
+                  <div key={o._id} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         {o.promotionName
-                          ? <Megaphone size={11} className="text-violet-400 flex-shrink-0" />
-                          : <Percent    size={11} className="text-gold/60  flex-shrink-0" />
+                          ? <Megaphone size={10} className="text-violet-400 flex-shrink-0" />
+                          : <Percent   size={10} className="text-gold/60  flex-shrink-0" />
                         }
-                        <span className="text-[10px] font-bold text-ivory truncate">
-                          {o.promotionName ?? (o.discountType === "PERCENT" ? `Descuento ${o.discountAmount}%` : `Descuento fijo`)}
+                        <span className="text-[10px] font-semibold text-ivory truncate">
+                          {o.promotionName ?? (o.discountType === "PERCENT" ? `Descuento ${o.discountAmount ?? 0}%` : "Descuento fijo")}
                         </span>
                       </div>
                       <span className="text-[10px] font-extrabold text-gold flex-shrink-0">
-                        −${(o.discountAmount ?? 0).toFixed(2)}
+                        −{fmtCurrency(o.discountAmount ?? 0)}
                       </span>
                     </div>
                     {o.discountReason && (
-                      <p className="text-[9px] text-muted/50 italic pl-4">
-                        Motivo: {o.discountReason}
-                      </p>
+                      <p className="text-[9px] text-muted/40 italic pl-4">Motivo: {o.discountReason}</p>
                     )}
                     {o.originalTotal != null && (
                       <div className="flex items-center gap-2 pl-4">
-                        <span className="text-[9px] text-muted/40 line-through">${o.originalTotal.toFixed(2)}</span>
-                        <span className="text-[9px] text-emerald-400 font-bold">${o.total.toFixed(2)}</span>
+                        <span className="text-[9px] text-muted/30 line-through">{fmtCurrency(o.originalTotal)}</span>
+                        <span className="text-[9px] text-emerald-400 font-bold">{fmtCurrency(o.total)}</span>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center flex-shrink-0">
-                  <Tag size={12} className="text-muted/40" />
-                </div>
-                <p className="text-[9px] md:text-[10px] text-muted/40 font-bold uppercase tracking-widest">
-                  Sin descuentos aplicados
-                </p>
+              <div className="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <Tag size={13} className="text-muted/25" />
+                <p className="text-[10px] text-muted/35 uppercase tracking-wider font-semibold">Sin descuentos aplicados</p>
               </div>
             )}
-          </section>
+          </Section>
         )}
 
-        {/* PAYMENTS SECTION */}
-        <section>
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <CreditCard size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-            <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Pagos de Sesión</h4>
-          </div>
-
-          <div className="p-3 md:p-4 rounded-xl md:rounded-2xl bg-black/20 border border-white/5 space-y-2 md:space-y-3">
-            {totalAmount > 0 ? (
-              <>
-                {totalDiscount > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Subtotal</span>
-                    <span className="text-sm font-black text-white/60">${(totalAmount + totalDiscount).toFixed(2)}</span>
-                  </div>
-                )}
-                {totalDiscount > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Descuentos</span>
-                    <span className="text-sm font-black text-gold">−${totalDiscount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total Cuenta</span>
-                  <span className="text-base md:text-lg font-black text-white/80">${totalAmount.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Total Pagado</span>
-                  <span className="text-base md:text-lg font-black text-blue-400">${totalPaid.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Saldo Pendiente</span>
-                  <span className={`text-base md:text-lg font-black ${balanceDue > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
-                    ${balanceDue.toFixed(2)}
-                  </span>
-                </div>
-
-                {table.lastPaymentAt && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9px] md:text-[10px] font-bold text-muted uppercase">Último Pago</span>
-                    <span className="text-[10px] md:text-xs font-black text-white/70">
-                      {new Date(table.lastPaymentAt).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-2">
-                <span className="text-[9px] md:text-[10px] font-bold text-muted/50 uppercase">Sin pagos registrados</span>
+        {/* Pagos */}
+        <Section icon={CreditCard} title="Pagos de sesión">
+          {totalAmount > 0 ? (
+            <div className="space-y-1.5">
+              {totalDiscount > 0 && (
+                <Row label="Subtotal" value={fmtCurrency(totalAmount + totalDiscount)} valueColor="text-muted/60" />
+              )}
+              {totalDiscount > 0 && (
+                <Row label="Descuentos" value={`−${fmtCurrency(totalDiscount)}`} valueColor="text-gold" />
+              )}
+              <Row label="Total cuenta" value={fmtCurrency(totalAmount)} />
+              <Row label="Total pagado" value={fmtCurrency(totalPaid)} valueColor="text-blue-300" />
+              <div className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border ${
+                balanceDue > 0
+                  ? "bg-amber-500/8 border-amber-500/20"
+                  : "bg-emerald-500/8 border-emerald-500/20"
+              }`}>
+                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Saldo pendiente</span>
+                <span className={`text-base font-extrabold ${balanceDue > 0 ? "text-amber-300" : "text-emerald-300"}`}>
+                  {fmtCurrency(balanceDue)}
+                </span>
               </div>
-            )}
+              {table.lastPaymentAt && (
+                <Row label="Último pago" value={new Date(table.lastPaymentAt).toLocaleString("es-AR", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })} />
+              )}
+            </div>
+          ) : (
+            <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+              <p className="text-[10px] text-muted/30 uppercase tracking-wider">Sin pagos registrados</p>
+            </div>
+          )}
 
-            <button
-              onClick={onViewPaymentHistory}
-              className="w-full py-2 rounded-lg md:rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1 md:gap-2"
-            >
-              <Receipt size={12} className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Ver Historial de Pagos</span>
-              <span className="sm:hidden">Historial Pagos</span>
+          {onViewPaymentHistory && (
+            <button type="button" onClick={onViewPaymentHistory}
+              className="w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-xl bg-white/[0.04] border border-white/[0.07] text-[10px] font-bold text-muted hover:text-ivory hover:bg-white/[0.07] transition-all uppercase tracking-wider">
+              <Receipt size={12} />
+              Ver historial
             </button>
-          </div>
-        </section>
+          )}
+        </Section>
 
-        {/* ANALYTICS SECTION */}
-        <section>
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <TrendingUp size={12} className="w-3 h-3 md:w-4 md:h-4 text-gold opacity-50" />
-            <h4 className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Analytics de Rendimiento</h4>
+        {/* Dimensiones del plano */}
+        <Section icon={Maximize} title="Dimensiones" collapsible defaultOpen={false}>
+          <div className="grid grid-cols-2 gap-2">
+            {(["width", "height"] as const).map((dim) => (
+              <div key={dim} className="flex flex-col gap-1.5 p-2.5 bg-white/[0.03] rounded-xl border border-white/[0.05]">
+                <span className="text-[8px] font-black text-muted uppercase tracking-wider">
+                  {dim === "width" ? "Ancho" : "Alto"} ({table[dim] ?? 120}px)
+                </span>
+                <div className="flex gap-1">
+                  <button type="button"
+                    onClick={() => onSave({ ...table, [dim]: Math.max(60, (table[dim] ?? 120) - 10) })}
+                    className="flex-1 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-muted hover:text-ivory border border-white/5 transition-all">
+                    −10
+                  </button>
+                  <button type="button"
+                    onClick={() => onSave({ ...table, [dim]: Math.min(250, (table[dim] ?? 120) + 10) })}
+                    className="flex-1 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-muted hover:text-ivory border border-white/5 transition-all">
+                    +10
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+        </Section>
 
-          <button
-            onClick={onViewAnalytics}
-            className="w-full p-3 md:p-4 rounded-xl md:rounded-2xl bg-gold/10 border border-gold/20 text-gold text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-gold/20 transition-all flex items-center justify-center gap-1 md:gap-2"
-          >
-            <TrendingUp size={16} className="w-4 h-4 md:w-5 md:h-5" />
-            <span className="hidden sm:inline">Ver Analytics de Mesa</span>
-            <span className="sm:hidden">Analytics</span>
-          </button>
-        </section>
+        {/* Analytics */}
+        {onViewAnalytics && (
+          <Section icon={TrendingUp} title="Analytics">
+            <button type="button" onClick={onViewAnalytics}
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gold/6 border border-gold/15 text-gold text-[10px] font-bold uppercase tracking-wider hover:bg-gold/12 transition-all">
+              <TrendingUp size={14} />
+              Ver analytics de mesa
+            </button>
+          </Section>
+        )}
       </div>
 
-      {/* FOOTER ACTIONS - RESPONSIVE */}
-      <div className="p-4 md:p-8 bg-surface-2 border-t border-white/5 space-y-3 md:space-y-4">
-        {table.status === "available" ? (
+      {/* ── FOOTER ACTIONS ────────────────────────────────────── */}
+      <div className="flex-shrink-0 border-t border-white/[0.05] p-4 space-y-2 bg-[#09090E]/60 backdrop-blur-sm">
+        {table.status === "available" && (
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            type="button"
             onClick={() => onOpen(table._id!)}
-            className="w-full btn btn-gold !py-3 md:!py-4 !rounded-xl md:!rounded-2xl flex items-center justify-center gap-2 md:gap-3"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gold text-bg font-bold text-xs uppercase tracking-wider shadow-[0_4px_16px_rgba(212,163,64,0.25)] hover:brightness-110 transition-all"
           >
-            <Play size={18} className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" />
-            <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Abrir Mesa</span>
+            <Play size={15} fill="currentColor" />
+            Abrir mesa
           </motion.button>
-        ) : table.status === "occupied" ? (
-          <div className="space-y-2 md:space-y-3">
+        )}
+
+        {table.status === "occupied" && (
+          <>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              type="button"
               onClick={onOrder}
-              className="w-full btn btn-ghost !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 border border-white/10"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-ivory font-bold text-xs uppercase tracking-wider hover:bg-white/8 transition-all"
             >
-              <ClipboardList size={16} className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Nueva Orden</span>
+              <ClipboardList size={14} />
+              Nueva orden
             </motion.button>
 
             <motion.button
               whileHover={hasPendingOrInProgress ? {} : { scale: 1.02 }}
               whileTap={hasPendingOrInProgress ? {} : { scale: 0.98 }}
+              type="button"
               onClick={hasPendingOrInProgress ? undefined : onPaymentSelector}
               disabled={hasPendingOrInProgress}
-              className={`w-full btn !py-2 md:!py-3 !rounded-lg md:!rounded-xl flex items-center justify-center gap-1 md:gap-2 transition-all ${
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
                 hasPendingOrInProgress
-                  ? "bg-white/5 border border-white/5 text-muted cursor-not-allowed opacity-50"
-                  : "btn-gold shadow-gold-glow"
+                  ? "bg-white/4 border border-white/5 text-muted cursor-not-allowed"
+                  : "bg-gold text-bg shadow-[0_4px_16px_rgba(212,163,64,0.22)] hover:brightness-110"
               }`}
             >
-              <Wallet size={16} className="w-4 h-4 md:w-5 md:h-5" />
-              <span className="font-black uppercase tracking-widest text-[10px] md:text-xs">Procesar Pago</span>
+              <Wallet size={14} />
+              Procesar pago
             </motion.button>
 
             {hasPendingOrInProgress && (
-              <p className="text-[9px] text-orange-400 font-bold text-center uppercase tracking-wider">
-                * Hay pedidos en preparación. Espere para cobrar.
-              </p>
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
+                <AlertTriangle size={11} className="text-amber-400 flex-shrink-0" />
+                <p className="text-[9px] text-amber-300 font-semibold">Hay pedidos en preparación — esperá para cobrar</p>
+              </div>
             )}
 
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+              type="button"
               onClick={() => onClose(table._id!)}
-              className="w-full py-2 md:py-3 rounded-lg md:rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-red-500/20 transition-all flex items-center justify-center gap-1 md:gap-2"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-red-500/8 border border-red-500/15 text-red-300 font-bold text-xs uppercase tracking-wider hover:bg-red-500/14 transition-all"
             >
-              <Wrench size={16} className="w-4 h-4 md:w-5 md:h-5" />
-              Cerrar Mesa
+              <Wrench size={13} />
+              Cerrar mesa
             </motion.button>
-          </div>
-        ) : table.status === "reserved" ? (
-          onSeatReservation ? (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onSeatReservation}
-              className="w-full nebula-btn-primary !py-3 md:!py-4 !rounded-xl flex items-center justify-center gap-2"
-            >
-              <Users size={18} />
-              <span className="font-semibold uppercase tracking-wide text-[10px] md:text-xs">
-                Sentar clientes
-              </span>
-            </motion.button>
-          ) : null
-        ) : (
-          <div className="text-center py-3 md:py-4">
-            <p className="text-[9px] md:text-[10px] text-muted/50 uppercase tracking-widest">
-              En mantenimiento
-            </p>
+          </>
+        )}
+
+        {table.status === "reserved" && onSeatReservation && (
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+            type="button"
+            onClick={onSeatReservation}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl nebula-btn-primary font-bold text-xs uppercase tracking-wider"
+          >
+            <Users size={14} />
+            Sentar clientes
+          </motion.button>
+        )}
+
+        {table.status === "maintenance" && (
+          <div className="text-center py-2">
+            <p className="text-[10px] text-muted/40 uppercase tracking-widest font-bold">En mantenimiento</p>
           </div>
         )}
 
-        {/* ADMIN ACTIONS */}
-        <div className="pt-3 md:pt-4 border-t border-white/10 flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setEditing(true)}
-            className="flex-1 p-2 md:p-3 rounded-lg md:rounded-xl bg-white/5 hover:bg-white/10 transition-all flex items-center justify-center gap-1 md:gap-2"
-          >
-            <Pencil size={14} className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted" />
-            <span className="hidden md:inline text-[10px] font-black text-muted uppercase">Editar</span>
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onDelete(table._id!)}
-            className="flex-1 p-2 md:p-3 rounded-lg md:rounded-xl bg-red-500/5 hover:bg-red-500/10 transition-all flex items-center justify-center gap-1 md:gap-2"
-          >
-            <Trash2 size={14} className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-500/50" />
-            <span className="hidden md:inline text-[10px] font-black text-red-500/50 uppercase">Eliminar</span>
-          </motion.button>
+        {/* Admin actions */}
+        <div className="flex gap-2 pt-1">
+          <button type="button" onClick={() => setEditing(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white/4 hover:bg-white/7 border border-white/6 text-muted hover:text-ivory text-[10px] font-bold uppercase tracking-wider transition-all">
+            <Pencil size={12} />
+            Editar
+          </button>
+          <button type="button" onClick={() => onDelete(table._id!)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500/50 hover:text-red-400 text-[10px] font-bold uppercase tracking-wider transition-all">
+            <Trash2 size={12} />
+            Eliminar
+          </button>
         </div>
       </div>
     </motion.div>

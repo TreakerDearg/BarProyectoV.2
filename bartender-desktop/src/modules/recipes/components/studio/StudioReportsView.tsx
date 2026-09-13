@@ -227,7 +227,7 @@ export function StudioReportsView() {
               Sin datos todavía
             </div>
           ) : (
-            <div className="flex-1" style={{ minHeight: 192 }}>
+            <div style={{ height: 192, width: '100%' }}>
               <ResponsiveContainer width="100%" height={192}>
                 <BarChart data={barData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />

@@ -168,21 +168,21 @@ export function StudioDashboard({ onNavigate }: Props) {
         ) : stats ? (
           <>
             <KpiCard
-              label="Total de recetas" value={stats.totalRecipes}
-              sub={`${stats.primaryRecipes} primarias · ${stats.variantRecipes} variantes`}
+              label="Total de recetas" value={stats.totalRecipes ?? 0}
+              sub={`${stats.primaryRecipes ?? 0} primarias · ${stats.variantRecipes ?? 0} variantes`}
               icon={<BookOpen size={16} />}
               borderColor="border-violet-500/25" iconBg="bg-violet-500/15" textColor="text-violet-300"
               trend={12}
             />
             <KpiCard
-              label="Variantes activas" value={stats.variantRecipes}
-              sub={`de ${stats.totalRecipes} recetas totales`}
+              label="Variantes activas" value={stats.variantRecipes ?? 0}
+              sub={`de ${stats.totalRecipes ?? 0} recetas totales`}
               icon={<Layers size={16} />}
               borderColor="border-cyan-500/25" iconBg="bg-cyan-500/15" textColor="text-cyan-300"
               trend={6}
             />
             <KpiCard
-              label="Ingredientes" value={stats.totalRecipes > 0 ? '28+' : '0'}
+              label="Ingredientes" value={(stats.totalRecipes ?? 0) > 0 ? '28+' : '0'}
               sub="ítems de inventario vinculados"
               icon={<FlaskConical size={16} />}
               borderColor="border-gold/25" iconBg="bg-gold/15" textColor="text-gold"
@@ -190,7 +190,7 @@ export function StudioDashboard({ onNavigate }: Props) {
             />
             <KpiCard
               label="Categorías" value={Object.keys(stats.categoryCounts ?? {}).length}
-              sub={`${stats.coveragePercentage}% de bebidas cubiertas`}
+              sub={`${stats.coveragePercentage ?? 0}% de bebidas cubiertas`}
               icon={<Tag size={16} />}
               borderColor="border-emerald-500/25" iconBg="bg-emerald-500/15" textColor="text-emerald-300"
               trend={null}
@@ -289,8 +289,8 @@ export function StudioDashboard({ onNavigate }: Props) {
                 ))}
               </div>
             ) : barData.length > 0 ? (
-              <div className="flex-1" style={{ minHeight: 160 }}>
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="w-full" style={{ height: 160 }}>
+                <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={barData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                     <XAxis
                       dataKey="name"
