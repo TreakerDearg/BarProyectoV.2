@@ -62,19 +62,26 @@ export default function CuentaPage() {
   const handleGoToSystem = useCallback(() => {
     // Cerrar ambos modales
     setShowEmployeeEntryModal(false);
-    // goToEmployeeSystem retorna la URL del sistema Desktop
+
     if (employeeDecision) {
       goToEmployeeSystem().then((dest) => {
         if (!dest) return;
+        // dest es siempre una URL de otro dominio (bartender-desktop)
         if (/^https?:\/\//i.test(dest)) {
-          window.location.href = dest;
-          return;
+          // Abrir en nueva pestaña — no se puede router.replace a otro dominio
+          window.open(dest, "_blank", "noopener,noreferrer");
+        } else if (dest !== "/cliente/cuenta") {
+          router.replace(dest);
         }
-        router.replace(dest);
       });
     } else {
-      // Redirección directa al Desktop cuando viene del botón "Empleado"
-      window.location.href = resolveEmployeeSystemUrl();
+      // Redirección directa al Desktop cuando viene del botón "Empleado" sin login
+      const dest = resolveEmployeeSystemUrl();
+      if (/^https?:\/\//i.test(dest)) {
+        window.open(dest, "_blank", "noopener,noreferrer");
+      } else {
+        window.location.href = dest;
+      }
     }
   }, [employeeDecision, goToEmployeeSystem, router]);
 

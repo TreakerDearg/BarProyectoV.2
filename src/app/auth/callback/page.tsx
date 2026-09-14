@@ -90,10 +90,16 @@ export default function AuthCallbackPage() {
 
   const handleGoToSystem = () => {
     goToEmployeeSystem().then((dest) => {
-      // Si ya lanzamos bartender://, dest es "/cliente" — no hacemos redirect adicional.
-      // Si es /admin u otro, navegamos.
-      if (dest && dest !== "/cliente") {
+      if (!dest) return;
+      // Siempre abrir en nueva pestaña — es otro dominio (bartender-desktop)
+      if (/^https?:\/\//i.test(dest)) {
+        window.open(dest, "_blank", "noopener,noreferrer");
+        // Redirigir al cliente mientras tanto
+        router.replace("/cliente");
+      } else if (dest !== "/cliente") {
         router.replace(dest);
+      } else {
+        router.replace("/cliente");
       }
     });
   };

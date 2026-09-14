@@ -294,10 +294,45 @@ export function useAuth(): UseAuthReturn {
       const raw  = await res.json();
       if (!raw.success) return null;
 
-      // /auth/me devuelve el payload de perfil en raw.data
+      // /auth/me puede devolver el perfil en distintas formas:
+      //   { success, data: { _id, name, email, role, ... } }   ← sin envoltura "user"
+      //   { success, data: { user: { _id, ... } } }             ← con envoltura "user"
+      // Normalizamos a { user: profileRaw } para extractAuthUser
       const profileRaw = raw.data ?? raw;
-      const authUser = extractAuthUser({ user: profileRaw });
-      if (!authUser) return null;
+
+      // Si profileRaw ya tiene _id directamente, es el user plano
+      const userPayloadForExtract = profileRaw._id || profileRaw.id
+        ? { user: profileRaw }
+        : profileRaw; // ya tiene la forma { user: {...} }
+
+      const authUser = extractAuthUser(userPayloadForExtract);
+      if (!authUser) {
+        // Último intento: construir el usuario directamente desde los campos planos
+        const directUser: AuthUser | null = profileRaw._id || profileRaw.id
+          ? {
+              _id:    String(profileRaw._id ?? profileRaw.id),
+              name:   profileRaw.name   ?? "",
+              email:  profileRaw.email  ?? "",
+              role:   profileRaw.role   ?? "client",
+              phone:  profileRaw.phone  ?? null,
+              avatar: profileRaw.avatar ?? null,
+            }
+          : null;
+
+        if (!directUser) return null;
+        setAuth(tokenParam, directUser);
+
+        if (directUser.role === "client") {
+          return { redirectTo: "/cliente/cuenta" };
+        }
+        setEmployeeDecision({
+          employeeDestination: resolveEmployeeSystemUrl(),
+          identityStatus:      identityStatus || "EMPLOYEE",
+          identityStatusLabel: directUser.role || "Empleado",
+          desktopAccessMessage: null,
+        });
+        return null;
+      }
 
       setAuth(tokenParam, authUser);
 
@@ -313,7 +348,7 @@ export function useAuth(): UseAuthReturn {
 
       // Empleado/Admin que accedió con Google desde la web →
       // mostrar el modal para que decida si continúa como cliente o va al Desktop.
-      const dest = authUser.role === "admin" ? "/admin" : "/desktop";
+      const dest = resolveEmployeeSystemUrl();
       setEmployeeDecision({
         employeeDestination: dest,
         identityStatus:      identityStatus || "EMPLOYEE",
