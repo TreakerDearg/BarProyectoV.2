@@ -36,12 +36,14 @@ export default function CuentaPage() {
     if (!params.get("token")) return;
     window.history.replaceState({}, "", "/cliente/cuenta");
     processOAuthCallback(params).then((result) => {
-      if (result?.redirectTo && result.redirectTo !== "/cliente/cuenta") {
+      // Solo redirigir si hay un redirectTo explícito y NO hay employeeDecision
+      // (employeeDecision indica que debe mostrarse el modal para empleados)
+      if (result?.redirectTo && result.redirectTo !== "/cliente/cuenta" && !employeeDecision) {
         router.replace(result.redirectTo);
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [employeeDecision]);
 
   const handleLogin = useCallback(async (email: string, password: string) => {
     clearError();
@@ -66,24 +68,15 @@ export default function CuentaPage() {
     if (employeeDecision) {
       goToEmployeeSystem().then((dest) => {
         if (!dest) return;
-        // dest es siempre una URL de otro dominio (bartender-desktop)
-        if (/^https?:\/\//i.test(dest)) {
-          // Abrir en nueva pestaña — no se puede router.replace a otro dominio
-          window.open(dest, "_blank", "noopener,noreferrer");
-        } else if (dest !== "/cliente/cuenta") {
-          router.replace(dest);
-        }
+        // Redirigir directamente al sistema de empleados
+        window.location.href = dest;
       });
     } else {
       // Redirección directa al Desktop cuando viene del botón "Empleado" sin login
       const dest = resolveEmployeeSystemUrl();
-      if (/^https?:\/\//i.test(dest)) {
-        window.open(dest, "_blank", "noopener,noreferrer");
-      } else {
-        window.location.href = dest;
-      }
+      window.location.href = dest;
     }
-  }, [employeeDecision, goToEmployeeSystem, router]);
+  }, [employeeDecision, goToEmployeeSystem]);
 
   const handleContinueAsClient = useCallback(() => {
     setShowEmployeeEntryModal(false);

@@ -1,5 +1,5 @@
 const PROD_API_FALLBACK = "https://barproyectov-2.onrender.com/api";
-const PROD_EMPLOYEE_SYSTEM_FALLBACK = "https://bar-proyecto-v-2-xst7.vercel.app";
+const PROD_EMPLOYEE_SYSTEM_FALLBACK = "https://bar-proyecto-v-2.vercel.app";
 const DEFAULT_BACKEND_PORT = "5000";
 
 function stripTrailingSlash(value: string): string {
