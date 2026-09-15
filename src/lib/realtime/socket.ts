@@ -18,6 +18,14 @@ let hadDisconnect = false;
 type OrderUpdatePayload = { event?: string; order: any };
 const orderStatusSubscribers = new Set<(data: OrderUpdatePayload) => void>();
 
+type TableRestrictionsPayload = {
+  tableId: string;
+  tableNumber: number;
+  guestDietaryRestrictions: any[];
+  timestamp: number;
+};
+const tableRestrictionsSubscribers = new Set<(data: TableRestrictionsPayload) => void>();
+
 export function initSocket(): Socket {
   if (socketInstance) {
     if (!socketInstance.connected) {
@@ -111,6 +119,16 @@ function setupSocketListeners(socket: Socket): void {
   });
 
   socket.on("order:created", handleOrderCreatedEvent);
+
+  socket.on("table:restrictions", (data: TableRestrictionsPayload) => {
+    tableRestrictionsSubscribers.forEach((cb) => {
+      try {
+        cb(data);
+      } catch (err) {
+        console.error("[Socket] table:restrictions subscriber error:", err);
+      }
+    });
+  });
 }
 
 export function joinUserRoom(userId: string): void {
@@ -148,5 +166,14 @@ export function onOrderStatus(
   orderStatusSubscribers.add(callback);
   return () => {
     orderStatusSubscribers.delete(callback);
+  };
+}
+
+export function onTableRestrictions(
+  callback: (data: TableRestrictionsPayload) => void
+): () => void {
+  tableRestrictionsSubscribers.add(callback);
+  return () => {
+    tableRestrictionsSubscribers.delete(callback);
   };
 }

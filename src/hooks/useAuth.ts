@@ -338,7 +338,9 @@ export function useAuth(): UseAuthReturn {
 
       // Cliente → siempre a /cliente/cuenta. Sin modal, sin preguntas.
       if (authUser.role === "client") {
-        return { redirectTo: "/cliente/cuenta" };
+        const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "";
+        const redirectPath = clientUrl ? `${clientUrl}/cliente/cuenta` : "/cliente/cuenta";
+        return { redirectTo: redirectPath };
       }
 
       // Bloqueado / inactivo → volver al login con mensaje

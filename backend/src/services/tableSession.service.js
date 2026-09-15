@@ -105,6 +105,17 @@ export async function startServiceSession(
       reservation.seatedAt = new Date();
       reservation.posSessionId = sessionId;
       await reservation.save();
+
+      // Emitir evento de restricciones dietéticas si existen
+      if (reservation.guestDietaryRestrictions && reservation.guestDietaryRestrictions.length > 0) {
+        io.emit("table:restrictions", {
+          tableId: table._id,
+          tableNumber: table.number,
+          guestDietaryRestrictions: reservation.guestDietaryRestrictions,
+          timestamp: Date.now(),
+        });
+        logger.info(`[TableSession] Emitiendo restricciones dietéticas para mesa #${table.number}`);
+      }
     }
   }
 

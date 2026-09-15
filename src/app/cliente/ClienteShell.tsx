@@ -7,6 +7,7 @@ import Header from "@/components/cliente/layout/Header";
 import MobileNavigation from "@/components/cliente/layout/MobileNavigation";
 import Footer from "@/components/cliente/layout/Footer";
 import PageTransition from "@/components/cliente/layout/PageTransition";
+import { DietaryRestrictionsToast } from "@/components/cliente/DietaryRestrictionsToast";
 import { useClienteStore } from "@/stores/useClienteStore";
 import "@/styles/cliente-tokens.css";
 import styles from "./cliente-shell.module.css";
@@ -32,6 +33,7 @@ export function ClienteShell({ children }: { children: React.ReactNode }) {
         </main>
         <MobileNavigation />
         <Footer />
+        <DietaryRestrictionsToast />
       </div>
     </Providers>
   );

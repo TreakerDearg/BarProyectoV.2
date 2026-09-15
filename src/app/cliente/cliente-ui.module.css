@@ -6967,6 +6967,20 @@
   }
 }
 
+@media (max-width: 390px) {
+  .newReservationHero {
+    padding: 1.5rem 1rem 1rem;
+  }
+  
+  .newReservationHeroTitle {
+    font-size: 1.5rem;
+  }
+  
+  .newReservationHeroSubtitle {
+    font-size: 0.8125rem;
+  }
+}
+
 .newReservationHeroGlow {
   position: absolute;
   top: 50%;
