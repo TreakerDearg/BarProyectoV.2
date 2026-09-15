@@ -64,6 +64,20 @@ const INITIAL_STATE: ReservationState = {
   availableTables: [],
 };
 
+function normalizeGuestDietaryEntries(value: unknown): GuestDietaryEntry[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.map((entry) => {
+    const candidate = entry as Partial<GuestDietaryEntry> | undefined;
+
+    return {
+      guestName: typeof candidate?.guestName === "string" ? candidate.guestName : "",
+      restrictions: Array.isArray(candidate?.restrictions) ? candidate.restrictions : [],
+      notes: typeof candidate?.notes === "string" ? candidate.notes : "",
+    };
+  });
+}
+
 export function useReservationLogic() {
   const [state, setState] = useState<ReservationState>(INITIAL_STATE);
 
@@ -74,15 +88,17 @@ export function useReservationLogic() {
   }, []);
 
   const setGuests = useCallback((guests: number) => {
+    const safeGuests = Math.max(1, Math.min(20, Number.isFinite(guests) ? guests : 1));
+
     setState((prev) => ({
       ...prev,
-      guests,
+      guests: safeGuests,
       startIso: "",
       endIso: "",
       currentStep: 0,
       completedSteps: [],
       // Sincronizar cantidad de entradas de restricciones si ya había
-      guestDietaryRestrictions: prev.guestDietaryRestrictions.slice(0, guests),
+      guestDietaryRestrictions: normalizeGuestDietaryEntries(prev.guestDietaryRestrictions).slice(0, safeGuests),
     }));
   }, []);
 
@@ -101,14 +117,17 @@ export function useReservationLogic() {
   // ── Restricciones dietéticas ──────────────────────────────────
 
   const setGuestDietaryRestrictions = useCallback((restrictions: GuestDietaryEntry[]) => {
-    setState((prev) => ({ ...prev, guestDietaryRestrictions: restrictions }));
+    setState((prev) => ({
+      ...prev,
+      guestDietaryRestrictions: normalizeGuestDietaryEntries(restrictions),
+    }));
   }, []);
 
   const updateGuestDietary = useCallback(
     (index: number, entry: GuestDietaryEntry) => {
       setState((prev) => {
-        const list = [...prev.guestDietaryRestrictions];
-        list[index] = entry;
+        const list = normalizeGuestDietaryEntries(prev.guestDietaryRestrictions);
+        list[index] = normalizeGuestDietaryEntries([entry])[0];
         return { ...prev, guestDietaryRestrictions: list };
       });
     },
@@ -149,11 +168,12 @@ export function useReservationLogic() {
       }));
 
       try {
-        const tables = await getAvailableReservationTables({
+        const tablesResponse = await getAvailableReservationTables({
           startTime: start,
           endTime: end,
           guests: state.guests,
         });
+        const tables = Array.isArray(tablesResponse) ? tablesResponse : [];
 
         setState((prev) => ({
           ...prev,
@@ -197,9 +217,13 @@ export function useReservationLogic() {
         guests:                    state.guests,
         tableId:                   state.tableId,
         notes:                     state.notes || undefined,
-        guestDietaryRestrictions:  state.guestDietaryRestrictions.filter(
-          (g) => g.guestName.trim() && g.restrictions.length > 0
-        ),
+        guestDietaryRestrictions: normalizeGuestDietaryEntries(state.guestDietaryRestrictions)
+          .filter((g) => g.guestName.trim() && g.restrictions.length > 0)
+          .map((g) => ({
+            guestName: g.guestName.trim(),
+            restrictions: g.restrictions,
+            notes: g.notes?.trim() || undefined,
+          })),
       });
 
       setState((prev) => ({

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, Sparkles } from "lucide-react";
+import { Clock, Sparkles, Utensils } from "lucide-react";
 import ui from "../../cliente-ui.module.css";
 
 export function NewReservationHero() {
@@ -38,6 +38,22 @@ export function NewReservationHero() {
         >
           Elegí cuándo venir y nosotros nos encargamos del resto.
         </motion.p>
+
+        <motion.div
+          className={ui.newReservationHeroMeta}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.42, duration: 0.55 }}
+        >
+          <span>
+            <Clock className={ui.newReservationHeroMetaIcon} />
+            Turnos desde las 18:00
+          </span>
+          <span>
+            <Utensils className={ui.newReservationHeroMetaIcon} />
+            Notificamos restricciones al bar
+          </span>
+        </motion.div>
 
         {/* Decorative */}
         <motion.div

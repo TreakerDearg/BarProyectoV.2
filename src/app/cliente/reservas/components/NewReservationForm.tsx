@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { DIETARY_OPTIONS, type GuestDietaryEntry, type DietaryRestriction } from "@/lib/types/reservation";
 import { getDietaryIcon } from "@/lib/utils/dietaryIcons";
+import ui from "../../cliente-ui.module.css";
 
 // ── Tipos ─────────────────────────────────────────────────────────
 
@@ -38,48 +39,52 @@ function GuestDietarySelector({
   onChange: (e: GuestDietaryEntry) => void;
 }) {
   const [open, setOpen] = useState(false);
-
-  const toggleRestriction = (value: DietaryRestriction) => {
-    const next = entry.restrictions.includes(value)
-      ? entry.restrictions.filter((r) => r !== value)
-      : [...entry.restrictions, value];
-    onChange({ ...entry, restrictions: next });
+  const safeEntry = {
+    guestName: entry?.guestName ?? "",
+    restrictions: Array.isArray(entry?.restrictions) ? entry.restrictions : [],
+    notes: entry?.notes ?? "",
   };
 
-  const hasRestrictions = entry.restrictions.length > 0;
-  const guestLabel = entry.guestName.trim() || `Invitado ${index + 1}`;
+  const toggleRestriction = (value: DietaryRestriction) => {
+    const next = safeEntry.restrictions.includes(value)
+      ? safeEntry.restrictions.filter((r) => r !== value)
+      : [...safeEntry.restrictions, value];
+    onChange({ ...safeEntry, restrictions: next });
+  };
+
+  const hasRestrictions = safeEntry.restrictions.length > 0;
+  const guestLabel = safeEntry.guestName.trim() || `Invitado ${index + 1}`;
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/3 overflow-hidden">
-      {/* Header del invitado */}
+    <div className={ui.reservationGuestCard}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+        className={ui.reservationGuestHeader}
       >
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-gold">{index + 1}</span>
+        <div className={ui.reservationGuestIdentity}>
+          <div className={ui.reservationGuestNumber}>
+            <span>{index + 1}</span>
           </div>
-          <div className="min-w-0 text-left">
-            <p className="text-sm font-semibold truncate">{guestLabel}</p>
+          <div className={ui.reservationGuestText}>
+            <p>{guestLabel}</p>
             {hasRestrictions ? (
-              <p className="text-xs text-gold/70 truncate flex items-center gap-1">
+              <span className={ui.reservationGuestWarning}>
                 <AlertTriangle size={10} />
-                {entry.restrictions.length} restricción{entry.restrictions.length > 1 ? "es" : ""}
-              </p>
+                {safeEntry.restrictions.length} restricción{safeEntry.restrictions.length > 1 ? "es" : ""}
+              </span>
             ) : (
-              <p className="text-xs text-muted/50">Sin restricciones</p>
+              <span className={ui.reservationGuestMuted}>Sin restricciones</span>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className={ui.reservationGuestActions}>
           {hasRestrictions && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
-              {entry.restrictions.length}
+            <span className={ui.reservationGuestBadge}>
+              {safeEntry.restrictions.length}
             </span>
           )}
-          {open ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
 
@@ -90,65 +95,60 @@ function GuestDietarySelector({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className={ui.reservationGuestBody}
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-white/6">
-              {/* Nombre del invitado */}
-              <div className="pt-3">
-                <label className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
+            <div className={ui.reservationGuestBodyInner}>
+              <div className={ui.reservationField}>
+                <label className={ui.reservationLabel}>
                   Nombre del invitado
                 </label>
-                <div className="relative">
-                  <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                <div className={ui.reservationInputWrap}>
+                  <User size={14} className={ui.reservationInputIcon} />
                   <input
                     type="text"
-                    value={entry.guestName}
-                    onChange={(e) => onChange({ ...entry, guestName: e.target.value })}
+                    value={safeEntry.guestName}
+                    onChange={(e) => onChange({ ...safeEntry, guestName: e.target.value })}
                     placeholder="Ej: María, El abuelo…"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-surface/50 border border-white/10 text-sm placeholder:text-muted/40 focus:border-gold/40 focus:ring-2 focus:ring-gold/10 outline-none transition-all"
+                    className={ui.reservationInput}
                   />
                 </div>
               </div>
 
-              {/* Grid de restricciones con iconos Lucide */}
-              <div>
-                <label className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-2">
+              <div className={ui.reservationField}>
+                <label className={ui.reservationLabel}>
                   No puede comer / beber:
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className={ui.reservationDietaryGrid}>
                   {DIETARY_OPTIONS.map((opt) => {
-                    const selected = entry.restrictions.includes(opt.value);
+                    const selected = safeEntry.restrictions.includes(opt.value);
                     return (
                       <button
                         key={opt.value}
                         type="button"
                         onClick={() => toggleRestriction(opt.value)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all text-left ${
-                          selected
-                            ? opt.color
-                            : "bg-white/4 border-white/8 text-muted hover:bg-white/8"
+                        className={`${ui.reservationDietaryChip} ${
+                          selected ? ui.reservationDietaryChipSelected : ""
                         }`}
                       >
-                        <span className="flex-shrink-0">{getDietaryIcon(opt.iconName, 13)}</span>
-                        <span className="truncate">{opt.label}</span>
-                        {selected && <Check size={11} className="ml-auto flex-shrink-0" />}
+                        <span>{getDietaryIcon(opt.iconName, 13)}</span>
+                        <span>{opt.label}</span>
+                        {selected && <Check size={11} />}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Nota libre */}
-              <div>
-                <label className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
+              <div className={ui.reservationField}>
+                <label className={ui.reservationLabel}>
                   Nota adicional (opcional)
                 </label>
                 <textarea
-                  value={entry.notes ?? ""}
-                  onChange={(e) => onChange({ ...entry, notes: e.target.value })}
+                  value={safeEntry.notes}
+                  onChange={(e) => onChange({ ...safeEntry, notes: e.target.value })}
                   placeholder="Ej: alérgico severo al maní, intolerancia confirmada…"
                   rows={2}
-                  className="w-full px-3 py-2 rounded-xl bg-surface/50 border border-white/10 text-sm placeholder:text-muted/40 focus:border-gold/40 focus:ring-2 focus:ring-gold/10 outline-none transition-all resize-none"
+                  className={ui.reservationTextarea}
                 />
               </div>
             </div>
@@ -171,34 +171,43 @@ export function NewReservationForm({
   loading,
 }: NewReservationFormProps) {
   const [showDietary, setShowDietary] = useState(false);
+  const dietaryEntries = Array.isArray(guestDietaryRestrictions) ? guestDietaryRestrictions : [];
+  const safeGuests = Math.max(1, Number.isFinite(guests) ? guests : 1);
 
-  const totalRestrictions = guestDietaryRestrictions.reduce(
-    (sum, g) => sum + g.restrictions.length,
+  const totalRestrictions = dietaryEntries.reduce(
+    (sum, g) => sum + (Array.isArray(g?.restrictions) ? g.restrictions.length : 0),
     0
   );
-  const guestsWithRestrictions = guestDietaryRestrictions.filter((g) => g.restrictions.length > 0).length;
+  const guestsWithRestrictions = dietaryEntries.filter(
+    (g) => Array.isArray(g?.restrictions) && g.restrictions.length > 0
+  ).length;
 
   return (
     <motion.div
-      className="space-y-6"
+      className={ui.reservationDataPanel}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      <div>
-        <h3 className="text-xl font-bold">Tus datos</h3>
-        <p className="text-sm text-muted mt-0.5">Completá la información para confirmar la reserva</p>
+      <div className={ui.reservationDataHeader}>
+        <div>
+          <span className={ui.reservationDataEyebrow}>Paso final</span>
+          <h3>Tus datos</h3>
+          <p>Dejanos un contacto para identificar tu mesa y avisarle al equipo si hay una ocasión especial.</p>
+        </div>
+        <div className={ui.reservationDataSeal}>
+          <Check size={16} />
+          Reserva segura
+        </div>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4" noValidate>
-
-        {/* Nombre */}
-        <div>
-          <label htmlFor="res-name" className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
-            Nombre completo <span className="text-gold">*</span>
+      <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className={ui.reservationDataForm} noValidate>
+        <div className={ui.reservationField}>
+          <label htmlFor="res-name" className={ui.reservationLabel}>
+            Nombre completo <span>*</span>
           </label>
-          <div className="relative">
-            <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+          <div className={ui.reservationInputWrap}>
+            <User size={16} className={ui.reservationInputIcon} />
             <input
               id="res-name"
               type="text"
@@ -206,18 +215,17 @@ export function NewReservationForm({
               onChange={(e) => onChange("customerName", e.target.value)}
               placeholder="Tu nombre completo"
               required
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-white/10 placeholder:text-muted/40 focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all text-sm"
+              className={ui.reservationInput}
             />
           </div>
         </div>
 
-        {/* Teléfono */}
-        <div>
-          <label htmlFor="res-phone" className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
-            Teléfono <span className="text-gold">*</span>
+        <div className={ui.reservationField}>
+          <label htmlFor="res-phone" className={ui.reservationLabel}>
+            Teléfono <span>*</span>
           </label>
-          <div className="relative">
-            <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+          <div className={ui.reservationInputWrap}>
+            <Phone size={16} className={ui.reservationInputIcon} />
             <input
               id="res-phone"
               type="tel"
@@ -225,74 +233,71 @@ export function NewReservationForm({
               onChange={(e) => onChange("customerPhone", e.target.value)}
               placeholder="+54 9 11 0000-0000"
               required
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-white/10 placeholder:text-muted/40 focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all text-sm"
+              className={ui.reservationInput}
             />
           </div>
         </div>
 
-        {/* Email */}
-        <div>
-          <label htmlFor="res-email" className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
+        <div className={ui.reservationField}>
+          <label htmlFor="res-email" className={ui.reservationLabel}>
             Email
           </label>
-          <div className="relative">
-            <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+          <div className={ui.reservationInputWrap}>
+            <Mail size={16} className={ui.reservationInputIcon} />
             <input
               id="res-email"
               type="email"
               value={values.customerEmail}
               onChange={(e) => onChange("customerEmail", e.target.value)}
               placeholder="tu@email.com"
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-white/10 placeholder:text-muted/40 focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all text-sm"
+              className={ui.reservationInput}
             />
           </div>
         </div>
 
-        {/* Notas */}
-        <div>
-          <label htmlFor="res-notes" className="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-1.5">
+        <div className={`${ui.reservationField} ${ui.reservationFieldWide}`}>
+          <label htmlFor="res-notes" className={ui.reservationLabel}>
             Comentario adicional
           </label>
-          <div className="relative">
-            <MessageSquare size={16} className="absolute left-3.5 top-3.5 text-muted" />
+          <div className={ui.reservationInputWrap}>
+            <MessageSquare size={16} className={ui.reservationTextareaIcon} />
             <textarea
               id="res-notes"
               value={values.notes}
               onChange={(e) => onChange("notes", e.target.value)}
               placeholder="Celebración especial, preferencia de zona…"
               rows={3}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-surface border border-white/10 placeholder:text-muted/40 focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all text-sm resize-none"
+              className={ui.reservationTextareaWithIcon}
             />
           </div>
         </div>
 
-        {/* ── RESTRICCIONES DIETÉTICAS ─────────────────────────── */}
-        <div className="rounded-2xl border border-white/10 overflow-hidden">
+        <div className={`${ui.reservationDietarySection} ${ui.reservationFieldWide}`}>
           <button
             type="button"
             onClick={() => setShowDietary((v) => !v)}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-white/3 hover:bg-white/6 transition-colors"
+            className={ui.reservationDietaryToggle}
           >
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/20">
-                <AlertTriangle size={15} className="text-amber-400" />
+            <div className={ui.reservationDietaryIntro}>
+              <div className={ui.reservationDietaryIconBox}>
+                <AlertTriangle size={16} />
               </div>
-              <div className="text-left">
-                <p className="text-sm font-semibold">Restricciones dietéticas</p>
-                <p className="text-xs text-muted/70">
+              <div>
+                <p>Restricciones dietéticas</p>
+                <span>
                   {totalRestrictions > 0
                     ? `${totalRestrictions} restricción${totalRestrictions > 1 ? "es" : ""} en ${guestsWithRestrictions} invitado${guestsWithRestrictions !== 1 ? "s" : ""}`
                     : `Indicá si alguien no puede comer algo`}
-                </p>
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className={ui.reservationDietaryToggleRight}>
               {totalRestrictions > 0 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
+                <span className={ui.reservationDietaryCount}>
                   {totalRestrictions}
                 </span>
               )}
-              {showDietary ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
+              {showDietary ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </div>
           </button>
 
@@ -303,18 +308,18 @@ export function NewReservationForm({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="overflow-hidden"
+                className={ui.reservationDietaryBody}
               >
-                <div className="p-4 space-y-3 border-t border-white/8">
-                  <p className="text-xs text-muted/70 flex items-center gap-1.5">
+                <div className={ui.reservationDietaryBodyInner}>
+                  <p className={ui.reservationDietaryHint}>
                     <Users size={12} />
                     Expandí cada invitado para indicar sus restricciones
                   </p>
-                  {Array.from({ length: guests }, (_, i) => (
+                  {Array.from({ length: safeGuests }, (_, i) => (
                     <GuestDietarySelector
                       key={i}
                       index={i}
-                      entry={guestDietaryRestrictions[i] ?? { guestName: "", restrictions: [], notes: "" }}
+                      entry={dietaryEntries[i] ?? { guestName: "", restrictions: [], notes: "" }}
                       onChange={(entry) => onDietaryChange(i, entry)}
                     />
                   ))}
@@ -328,12 +333,7 @@ export function NewReservationForm({
         <button
           type="submit"
           disabled={loading || !values.customerName || !values.customerPhone}
-          className="w-full py-3.5 rounded-2xl font-bold text-sm active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: "linear-gradient(135deg, var(--gold-dark,#A87C28) 0%, var(--gold,#D4A340) 50%, var(--gold-light,#E8BC5A) 100%)",
-            color: "var(--bg-deep,#08090C)",
-            boxShadow: "0 4px 20px rgba(212,163,64,0.3)",
-          }}
+          className={`${ui.reservationDataSubmit} ${ui.reservationFieldWide}`}
         >
           {loading ? "Procesando…" : "Continuar al resumen"}
         </button>

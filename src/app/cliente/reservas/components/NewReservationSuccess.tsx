@@ -24,7 +24,7 @@ export function NewReservationSuccess({
 }: NewReservationSuccessProps) {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("es-AR", {
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString("es-AR", {
       weekday: "long", day: "numeric", month: "long",
     });
   };
@@ -36,8 +36,12 @@ export function NewReservationSuccess({
     });
   };
 
-  const guestsWithRestrictions = guestDietaryRestrictions.filter(
-    (g) => g.restrictions.length > 0
+  const safeDietaryRestrictions = Array.isArray(guestDietaryRestrictions)
+    ? guestDietaryRestrictions
+    : [];
+
+  const guestsWithRestrictions = safeDietaryRestrictions.filter(
+    (g) => Array.isArray(g?.restrictions) && g.restrictions.length > 0
   );
 
   return (
@@ -47,8 +51,46 @@ export function NewReservationSuccess({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+      <motion.div
+        className={ui.newReservationSuccessAura}
+        initial={{ opacity: 0, scale: 0.75 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, duration: 0.8, ease: "easeOut" }}
+      />
+      <motion.div
+        className={ui.newReservationConfetti}
+        aria-hidden="true"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: {
+            transition: { staggerChildren: 0.04, delayChildren: 0.18 },
+          },
+        }}
+      >
+        {Array.from({ length: 10 }, (_, index) => (
+          <motion.span
+            key={index}
+            className={ui.newReservationConfettiPiece}
+            variants={{
+              hidden: { opacity: 0, y: 0, scale: 0.4, rotate: 0 },
+              show: {
+                opacity: [0, 1, 0],
+                y: [-6, -64 - (index % 3) * 16],
+                x: (index - 4.5) * 16,
+                scale: [0.4, 1, 0.8],
+                rotate: index % 2 === 0 ? 140 : -140,
+                transition: { duration: 1.1, ease: "easeOut" },
+              },
+            }}
+          />
+        ))}
+      </motion.div>
+
       {/* Ícono de éxito */}
       <motion.div
+        className={ui.newReservationSuccessIconWrap}
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", damping: 20, stiffness: 200, delay: 0.2 }}
@@ -191,7 +233,7 @@ export function NewReservationSuccess({
                         gap: "0.25rem",
                       }}
                     >
-                      {g.restrictions.map((r) => {
+                      {(Array.isArray(g.restrictions) ? g.restrictions : []).map((r) => {
                         const opt = DIETARY_OPTIONS.find((o) => o.value === r);
                         return (
                           <span

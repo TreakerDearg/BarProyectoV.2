@@ -25,12 +25,18 @@ export function NewTimeSlotSelector({ date, guests, onSelect }: NewTimeSlotSelec
   }, []);
 
   useEffect(() => {
+    setSelected(null);
+  }, [date, guests]);
+
+  useEffect(() => {
+    let active = true;
+
     async function checkAvailability() {
       if (!date) return;
 
       const loadingState: Record<string, "available" | "limited" | "unavailable" | "loading"> = {};
       slots.forEach((s) => (loadingState[s] = "loading"));
-      setAvailability(loadingState);
+      if (active) setAvailability(loadingState);
 
       const result: Record<string, "available" | "limited" | "unavailable" | "loading"> = {};
 
@@ -46,24 +52,23 @@ export function NewTimeSlotSelector({ date, guests, onSelect }: NewTimeSlotSelec
               guests,
             });
 
-            if (data.available) {
-              result[time] = Math.random() > 0.7 ? "limited" : "available";
-            } else {
-              result[time] = "unavailable";
-            }
+            result[time] = data?.available ? "available" : "unavailable";
           } catch {
             result[time] = "unavailable";
           }
         })
       );
 
-      setAvailability(result);
+      if (active) setAvailability(result);
     }
 
     checkAvailability();
     const id = setInterval(checkAvailability, 10000);
-    return () => clearInterval(id);
-  }, [date, guests]);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, [date, guests, slots]);
 
   return (
     <div className={ui.newTimeSlotSelector}>
@@ -96,6 +101,8 @@ export function NewTimeSlotSelector({ date, guests, onSelect }: NewTimeSlotSelec
                 isSelected ? ui.newTimeSlotSelected : ""
               } ${
                 state === "limited" ? ui.newTimeSlotLimited : ""
+              } ${
+                isLoading ? ui.newTimeSlotLoading : ""
               }`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -103,7 +110,13 @@ export function NewTimeSlotSelector({ date, guests, onSelect }: NewTimeSlotSelec
               whileHover={!isUnavailable && !isLoading ? { scale: 1.05 } : {}}
               whileTap={!isUnavailable && !isLoading ? { scale: 0.95 } : {}}
             >
-              {isLoading ? "..." : time}
+              <span>{isLoading ? "..." : time}</span>
+              {state === "available" && !isSelected && (
+                <span className={ui.newTimeSlotStatus}>Libre</span>
+              )}
+              {isSelected && (
+                <span className={ui.newTimeSlotStatus}>Elegido</span>
+              )}
             </motion.button>
           );
         })}
