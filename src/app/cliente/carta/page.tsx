@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Heart } from "lucide-react";
 
@@ -40,7 +40,7 @@ function groupByCategory(
 
 // ── Página ────────────────────────────────────────────────────────
 
-export default function CartaPage() {
+function CartaContent() {
   const searchParams = useSearchParams();
   const menu  = useMenu();
   const promos = usePromotions();
@@ -339,5 +339,13 @@ export default function CartaPage() {
         onClose={handleCloseDetail}
       />
     </main>
+  );
+}
+
+export default function CartaPage() {
+  return (
+    <Suspense fallback={<SkeletonGrid />}>
+      <CartaContent />
+    </Suspense>
   );
 }
