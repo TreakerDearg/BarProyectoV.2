@@ -5,8 +5,6 @@ import Link from "next/link";
 import { Home, ChefHat, Sparkles, CalendarDays, UserCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { memo } from "react";
-import { useClienteStore } from "@/stores/useClienteStore";
-import { CartDrawer } from "../CartDrawer";
 import ui from "../../../app/cliente/cliente-ui.module.css";
 
 const navItems = [
@@ -19,9 +17,6 @@ const navItems = [
 
 function MobileNavigation() {
   const pathname = usePathname();
-  const cartItemCount = useClienteStore((state) =>
-    state.cart.reduce((sum, item) => sum + item.quantity, 0)
-  );
 
   return (
     <nav className={ui.mobileNavigation} role="navigation" aria-label="Navegación móvil">
@@ -62,31 +57,6 @@ function MobileNavigation() {
           );
         })}
 
-        {/* Cart */}
-        <div className={`${ui.mobileNavLink} ${pathname === "/cliente/pedido" ? ui.mobileNavLinkActive : ""}`}>
-          <motion.div
-            className={ui.mobileNavIcon}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <CartDrawer />
-          </motion.div>
-          <span className={ui.mobileNavLabel}>Carrito</span>
-          {cartItemCount > 0 && (
-            <motion.div
-              className={ui.mobileNavBadge}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 30,
-              }}
-            >
-              {cartItemCount}
-            </motion.div>
-          )}
-        </div>
       </div>
     </nav>
   );

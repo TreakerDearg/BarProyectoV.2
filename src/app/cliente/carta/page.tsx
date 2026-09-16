@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Heart } from "lucide-react";
 
 import { useMenu }       from "@/hooks/useMenu";
@@ -40,6 +41,7 @@ function groupByCategory(
 // ── Página ────────────────────────────────────────────────────────
 
 export default function CartaPage() {
+  const searchParams = useSearchParams();
   const menu  = useMenu();
   const promos = usePromotions();
   const { isFavorite, favorites, loading: favsLoading } = useFavorites();
@@ -59,6 +61,14 @@ export default function CartaPage() {
   const hasTableSession   = !!tableCode;
   // Mostrar gate solo si el usuario está autenticado y no tiene código de mesa
   const showGate = isLoggedIn && !hasTableSession && !gateSkipped;
+  const requestedFavorites = searchParams.get("filter") === "favorites";
+
+  useEffect(() => {
+    if (!requestedFavorites) return;
+    setShowFavs(true);
+    menu.setActiveCategory("all");
+    menu.setSearchQuery("");
+  }, [requestedFavorites, menu.setActiveCategory, menu.setSearchQuery]);
 
   const getCartQty = (productId: string) =>
     cart.find((l) => l.productId === productId)?.quantity ?? 0;
@@ -188,7 +198,7 @@ export default function CartaPage() {
         />
 
         {/* Pill de favoritos — solo si hay sesión */}
-        {isLoggedIn && (
+        {isLoggedIn ? (
           <button
             type="button"
             onClick={() => {
@@ -207,6 +217,16 @@ export default function CartaPage() {
             {favorites.length > 0 && (
               <span className={styles.favCount}>{favorites.length}</span>
             )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.favPill}
+            onClick={() => setShowFavs(false)}
+            aria-label="Iniciar sesión para usar favoritos"
+          >
+            <Heart size={13} className={styles.favHeart} />
+            <span>Favoritos al iniciar sesión</span>
           </button>
         )}
       </div>

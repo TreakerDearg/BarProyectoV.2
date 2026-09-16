@@ -821,3 +821,352 @@
 .favoritesLink svg { color: var(--red); }
 .favoritesLink:hover svg { color: var(--red-light); }
 .favoritesLink > svg:last-child { margin-left: auto; }
+
+/* ================================================================
+   Account remodel pass
+================================================================ */
+
+.accountShell {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 2rem) clamp(1rem, 4vw, 2rem) 7rem;
+}
+
+.wrapper {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.wrapper::before {
+  content: "";
+  position: absolute;
+  inset: -2rem -1rem auto;
+  height: 22rem;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(212, 163, 64, 0.16), transparent 32%),
+    radial-gradient(circle at 90% 20%, rgba(58, 173, 126, 0.11), transparent 30%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 190px;
+  align-items: flex-end;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border-color: rgba(212, 163, 64, 0.22);
+  background:
+    linear-gradient(135deg, rgba(212, 163, 64, 0.17), rgba(58, 173, 126, 0.06) 42%, rgba(255, 255, 255, 0.035)),
+    rgba(11, 12, 16, 0.82);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.62), transparent 68%);
+  pointer-events: none;
+}
+
+.avatar,
+.avatarImg {
+  position: relative;
+  z-index: 1;
+  width: 78px;
+  height: 78px;
+  border-color: rgba(232, 188, 90, 0.44);
+}
+
+.avatar {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22), transparent 28%),
+    linear-gradient(135deg, rgba(212, 163, 64, 0.34), rgba(58, 173, 126, 0.12));
+}
+
+.avatarInitials {
+  color: #fff5d5;
+}
+
+.heroText {
+  position: relative;
+  z-index: 1;
+  gap: 0.3rem;
+}
+
+.greeting {
+  font-size: clamp(1.45rem, 5vw, 2.55rem);
+  letter-spacing: 0;
+}
+
+.roleLabel {
+  width: fit-content;
+  border: 1px solid rgba(212, 163, 64, 0.24);
+  border-radius: var(--radius-full);
+  background: rgba(212, 163, 64, 0.1);
+  padding: 0.25rem 0.55rem;
+  color: var(--gold-light);
+}
+
+.heroEmail {
+  color: rgba(245, 240, 232, 0.56);
+}
+
+.liveOrderBanner,
+.reservationBanner,
+.cartBanner,
+.profileCard,
+.securityCard,
+.favoritesPanel {
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.022)),
+    rgba(13, 15, 20, 0.78);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 18px 58px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.sectionLabel {
+  color: rgba(245, 240, 232, 0.48);
+}
+
+.quickGrid {
+  gap: 0.75rem;
+}
+
+.quickCard {
+  min-height: 118px;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.quickEmoji {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.quickCard_red {
+  border-color: rgba(217, 92, 92, 0.26);
+  background: rgba(217, 92, 92, 0.07);
+}
+
+.quickCard:hover.quickCard_red {
+  box-shadow: 0 18px 48px rgba(217, 92, 92, 0.12);
+}
+
+.favoritesPanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-color: rgba(217, 92, 92, 0.16);
+}
+
+.favoritesPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.favoritesPanelHeader h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  letter-spacing: 0;
+}
+
+.favoritesPanelAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(217, 92, 92, 0.22);
+  border-radius: var(--radius-full);
+  background: rgba(217, 92, 92, 0.09);
+  color: var(--red-light);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.favoritesLoading,
+.favoritesEmpty {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 1rem;
+  color: rgba(245, 240, 232, 0.58);
+}
+
+.favoritesEmpty svg {
+  color: var(--red-light);
+  flex: 0 0 auto;
+}
+
+.favoritesEmpty p {
+  margin: 0;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.favoritesEmpty span {
+  display: block;
+  margin-top: 0.2rem;
+  color: rgba(245, 240, 232, 0.48);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.favoritesPreviewGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.favoritePreviewCard {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast) var(--ease),
+    background var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.favoritePreviewCard:hover {
+  border-color: rgba(217, 92, 92, 0.3);
+  background: rgba(217, 92, 92, 0.07);
+  transform: translateY(-1px);
+}
+
+.favoritePreviewImage {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(217, 92, 92, 0.16), rgba(212, 163, 64, 0.08)),
+    rgba(255, 255, 255, 0.04);
+  color: var(--red-light);
+}
+
+.favoritePreviewImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.favoritePreviewInfo {
+  min-width: 0;
+}
+
+.favoritePreviewInfo p {
+  overflow: hidden;
+  margin: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.favoritePreviewInfo span {
+  display: block;
+  margin-top: 0.15rem;
+  color: rgba(245, 240, 232, 0.44);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.favoritePreviewCard strong {
+  color: var(--gold-light);
+  font-size: 0.86rem;
+}
+
+.profileCard,
+.securityCard {
+  overflow: hidden;
+}
+
+.profileCardHeader {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.profileInput {
+  min-height: 2.9rem;
+  border-radius: 16px;
+}
+
+.favoritesLink {
+  border-radius: 18px;
+  background: rgba(217, 92, 92, 0.06);
+  border-color: rgba(217, 92, 92, 0.16);
+}
+
+@media (min-width: 860px) {
+  .wrapper {
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    align-items: start;
+  }
+
+  .hero,
+  .liveOrderBanner,
+  .reservationBanner,
+  .cartBanner,
+  .wrapper > nav,
+  .favoritesPanel,
+  .wrapper > section:first-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .quickGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .accountShell {
+    padding-inline: 0.85rem;
+  }
+
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .favoritePreviewCard {
+    grid-template-columns: 3rem minmax(0, 1fr);
+  }
+
+  .favoritePreviewCard strong {
+    grid-column: 2;
+  }
+}

@@ -19,6 +19,7 @@ import {
   updateMyProfile, changeMyPassword,
   getMyOrderHistory, getMyReservations,
 } from "@/lib/api/bartender";
+import { useFavorites } from "@/hooks/useFavorites";
 import { clearTokens, getRefreshToken } from "@/lib/auth/tokenStorage";
 import { api } from "@/lib/api/client";
 import styles from "./AccountView.module.css";
@@ -77,6 +78,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { href: "/cliente/carta",    label: "Ver carta",   sub: "Menú completo",  icon: <ChefHat    size={26} />, accent: "gold"  },
   { href: "/cliente/pedido",   label: "Pedir",       sub: "Haz tu pedido",  icon: <ShoppingBag size={26} />, accent: "green" },
   { href: "/cliente/reservas", label: "Reservas",    sub: "Mis reservas",   icon: <CalendarDays size={26}/>, accent: "blue"  },
+  { href: "/cliente/carta?filter=favorites", label: "Favoritos", sub: "Guardados", icon: <Heart size={26} />, accent: "red" },
   { href: "/cliente/ruleta",   label: "Ruleta",      sub: "Sorpresa de bar",icon: <Sparkles   size={26} />, accent: "amber" },
 ];
 
@@ -90,6 +92,65 @@ function fmtDate(iso: string) {
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function FavoritesPanel() {
+  const { favorites, loading } = useFavorites();
+  const visibleFavorites = favorites.filter((item) => item?.id).slice(0, 3);
+
+  return (
+    <section className={styles.favoritesPanel} aria-label="Favoritos">
+      <div className={styles.favoritesPanelHeader}>
+        <div>
+          <p className={styles.sectionLabel}>Favoritos</p>
+          <h2>Tu selección guardada</h2>
+        </div>
+        <Link href="/cliente/carta?filter=favorites" className={styles.favoritesPanelAction}>
+          Ver todos
+          <ChevronRight size={15} />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className={styles.favoritesLoading}>
+          <span className={styles.ordersSpinner} aria-hidden="true" />
+          <span>Cargando favoritos...</span>
+        </div>
+      ) : visibleFavorites.length === 0 ? (
+        <div className={styles.favoritesEmpty}>
+          <Heart size={22} aria-hidden="true" />
+          <div>
+            <p>Aún no guardaste favoritos</p>
+            <span>Marcá productos con el corazón para encontrarlos rápido.</span>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.favoritesPreviewGrid}>
+          {visibleFavorites.map((product) => (
+            <Link
+              key={product.id}
+              href="/cliente/carta?filter=favorites"
+              className={styles.favoritePreviewCard}
+            >
+              <div className={styles.favoritePreviewImage}>
+                {product.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={product.image} alt="" loading="lazy" />
+                ) : (
+                  <Heart size={18} aria-hidden="true" />
+                )}
+              </div>
+              <div className={styles.favoritePreviewInfo}>
+                <p>{product.name || "Favorito guardado"}</p>
+                <span>{product.category || (product.type === "food" ? "Comida" : "Bebida")}</span>
+              </div>
+              <strong>{fmtPrice(product.dynamicPrice ?? product.price ?? 0)}</strong>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 // ── Panel: Perfil editable ────────────────────────────────────────
@@ -549,6 +610,8 @@ export const AccountView = memo(function AccountView({ user, onLogout }: Props) 
           ))}
         </div>
       </nav>
+
+      <FavoritesPanel />
 
       {/* ── 6. HISTORIAL DE PEDIDOS REAL ────────────────────────── */}
       <section>

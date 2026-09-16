@@ -309,3 +309,123 @@
 @media (prefers-reduced-motion: reduce) {
   .favBtn:hover, .favBtnActive:hover { transform: none; }
 }
+
+/* Product card polish */
+.card {
+  border-color: rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(13, 15, 20, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.card:hover {
+  border-color: rgba(212, 163, 64, 0.34);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.26);
+}
+
+.imageBtn {
+  aspect-ratio: 1 / 0.78;
+}
+
+.imageBtn::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 46%;
+  background: linear-gradient(to top, rgba(8, 9, 12, 0.72), transparent);
+  pointer-events: none;
+}
+
+.promoBadge,
+.featuredBadge {
+  z-index: 1;
+  backdrop-filter: blur(12px);
+}
+
+.content {
+  min-height: 150px;
+}
+
+.typeLabel {
+  color: rgba(232, 188, 90, 0.58);
+}
+
+.name {
+  letter-spacing: 0;
+}
+
+.footer {
+  gap: 0.65rem;
+}
+
+.priceBlock {
+  min-width: 0;
+}
+
+.price {
+  color: var(--gold-light);
+}
+
+.footerActions {
+  gap: 0.45rem;
+}
+
+.favBtn,
+.addBtn {
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.favBtn {
+  border-color: rgba(217, 92, 92, 0.18);
+}
+
+.favBtnActive {
+  background: rgba(217, 92, 92, 0.13);
+  box-shadow: 0 12px 28px rgba(217, 92, 92, 0.12);
+}
+
+.addBtn {
+  border-color: rgba(212, 163, 64, 0.26);
+  background: rgba(212, 163, 64, 0.1);
+}
+
+.addBtnActive {
+  box-shadow: 0 12px 28px rgba(58, 173, 126, 0.14);
+}
+
+@media (max-width: 420px) {
+  .card {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    min-height: 132px;
+  }
+
+  .imageBtn {
+    height: 100%;
+    min-height: 132px;
+    aspect-ratio: auto;
+  }
+
+  .content {
+    min-height: 132px;
+    padding: 0.85rem;
+  }
+
+  .description {
+    -webkit-line-clamp: 1;
+  }
+
+  .footer {
+    align-items: flex-end;
+  }
+
+  .favBtn,
+  .addBtn {
+    width: 36px;
+    height: 36px;
+  }
+}

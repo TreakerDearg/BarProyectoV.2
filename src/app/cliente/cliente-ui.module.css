@@ -8601,6 +8601,123 @@
   }
 }
 
+/* Mobile client navigation and reservation tune-up */
+@media (max-width: 767px) {
+  .mobileNavigationInner {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.25rem;
+    padding: 0.45rem;
+  }
+
+  .mobileNavLink {
+    min-width: 0;
+    padding-inline: 0.25rem;
+  }
+
+  .mobileNavLabel {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.62rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .newReservationHero {
+    min-height: 220px;
+    padding: 2rem 1rem 1.25rem;
+  }
+
+  .newReservationHeroTitle {
+    font-size: clamp(2rem, 12vw, 3.2rem);
+  }
+
+  .newReservationHeroMeta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .newReservationHeroMeta span {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .newReservationLayout {
+    padding: 0.75rem;
+  }
+
+  .newReservationMain {
+    padding: 0;
+    padding-bottom: 15.5rem;
+  }
+
+  .newDateSelector,
+  .newGuestSelector,
+  .newTimeSlotSelector,
+  .reservationDataPanel {
+    border-radius: 22px;
+    padding: 1rem;
+  }
+
+  .newDateQuickGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .newDateQuickCard {
+    min-height: 102px;
+  }
+
+  .newGuestCounter {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .newTimeSlotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .newTimeSlot {
+    min-height: 68px;
+  }
+
+  .newReservationSidebar {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 5.35rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(212, 163, 64, 0.16);
+    border-radius: 22px;
+    max-height: 32vh;
+  }
+
+  .newReservationSummary {
+    gap: 0.45rem;
+  }
+
+  .newReservationSummaryTitle {
+    margin-bottom: 0;
+    font-size: 0.76rem;
+  }
+
+  .newReservationSummaryItem {
+    padding: 0.42rem 0;
+  }
+
+  .newReservationSummaryLabel,
+  .newReservationSummaryValue {
+    font-size: 0.76rem;
+  }
+
+  .newReservationSummaryCTA {
+    margin-top: 0.35rem;
+  }
+
+  .newReservationSummaryButton {
+    min-height: 2.85rem;
+    padding: 0.75rem;
+    border-radius: 16px;
+    font-size: 0.86rem;
+  }
+}
 
 
 

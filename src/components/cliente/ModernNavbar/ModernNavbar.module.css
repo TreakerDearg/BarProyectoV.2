@@ -195,6 +195,12 @@
   outline-offset: 2px;
 }
 
+@media (max-width: 1023px) {
+  .cartButton {
+    display: none;
+  }
+}
+
 /* Badge del carrito — dorado sobre negro */
 .cartBadge {
   position: absolute;

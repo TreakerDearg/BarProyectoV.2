@@ -243,3 +243,152 @@
 }
 
 .favsEmptyBtn:hover { background: var(--gold-a20); }
+
+/* ================================================================
+   Carta visual remodel
+================================================================ */
+
+.page {
+  position: relative;
+  overflow: hidden;
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(212, 163, 64, 0.12), transparent 24%),
+    radial-gradient(circle at 92% 22%, rgba(58, 173, 126, 0.1), transparent 22%);
+  pointer-events: none;
+}
+
+.promoSection,
+.controls,
+.categories,
+.productsSection {
+  position: relative;
+  z-index: 1;
+}
+
+.controls {
+  margin: 0 clamp(0.85rem, 3vw, 2rem);
+  top: 72px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 0 22px 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+    rgba(9, 9, 11, 0.9);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.22);
+}
+
+.categories {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  overflow-x: auto;
+  margin: 0 clamp(0.85rem, 3vw, 2rem);
+  padding: 0.85rem 0 0.5rem;
+  border-bottom: 0;
+  scrollbar-width: none;
+}
+
+.categories::-webkit-scrollbar {
+  display: none;
+}
+
+.productsSection {
+  padding-top: 1rem;
+}
+
+.groupedView,
+.flatView {
+  padding-inline: clamp(0.85rem, 3vw, 2rem);
+}
+
+.categorySection {
+  gap: 1rem;
+}
+
+.categoryHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: fit-content;
+  border-left: 0;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(212, 163, 64, 0.22);
+  background: rgba(212, 163, 64, 0.08);
+  padding: 0.45rem 0.85rem;
+  color: var(--gold-light);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.categoryHeading::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--gold-light);
+  box-shadow: 0 0 16px rgba(212, 163, 64, 0.38);
+}
+
+.grid {
+  gap: 0.8rem;
+}
+
+.favPill {
+  min-height: 2.45rem;
+  border-color: rgba(217, 92, 92, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(255, 255, 255, 0.025);
+}
+
+.favPill:hover,
+.favPillActive {
+  border-color: rgba(217, 92, 92, 0.32);
+  background: rgba(217, 92, 92, 0.1);
+  color: var(--red-light);
+}
+
+.favsEmpty {
+  margin: 0 auto;
+  max-width: 520px;
+  border: 1px dashed rgba(217, 92, 92, 0.2);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(217, 92, 92, 0.08), rgba(212, 163, 64, 0.045)),
+    rgba(255, 255, 255, 0.025);
+}
+
+@media (max-width: 420px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    margin-inline: 0.75rem;
+  }
+
+  .categories,
+  .groupedView,
+  .flatView {
+    padding-inline: 0.75rem;
+    margin-inline: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .groupedView {
+    gap: 3.25rem;
+  }
+}

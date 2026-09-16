@@ -300,15 +300,6 @@ export function ModernNavbar() {
             </div>
 
             <div className={styles.mobileActions}>
-              <Link
-                href="/cliente/pedido"
-                onClick={() => setMobileOpen(false)}
-                className={styles.mobileActionButton}
-              >
-                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                Carrito {cartItemCount > 0 && `(${cartItemCount})`}
-              </Link>
-
               {userIsStaff ? (
                 <button
                   type="button"

@@ -9,6 +9,7 @@ import { LoginForm }     from "./components/LoginForm";
 import { RegisterForm }  from "./components/RegisterForm";
 import { AccountView }   from "./components/AccountView";
 import { EmployeeModal } from "./components/EmployeeModal";
+import styles from "./components/AccountView.module.css";
 
 type Tab = "login" | "register";
 
@@ -107,7 +108,7 @@ export default function CuentaPage() {
   // Vista autenticada
   if (isAuthenticated && user && !activeDecision) {
     return (
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "40px 20px 80px", width: "100%" }}>
+      <div className={styles.accountShell}>
         <AccountView user={user} onLogout={handleLogout} />
       </div>
     );
