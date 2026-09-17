@@ -381,9 +381,15 @@ export const logout = async (req, res, next) => {
 export const googleAuth = async (req, res, next) => {
   try {
     const oauthService = (await import('../identity/oauth/OAuthService.js')).default;
+    const clientOrigin =
+      req.query.origin ||
+      req.headers['x-client-origin'] ||
+      req.headers.origin ||
+      null;
+
     const sessionInfo = {
       platform: req.headers['x-platform'] || 'web',
-      origin: req.headers.origin || null,
+      origin: clientOrigin,
       userAgent: req.headers['user-agent'],
       ip: req.ip,
     };
@@ -411,19 +417,33 @@ export const googleAuth = async (req, res, next) => {
 // ── URL resolver ─────────────────────────────────────────────────
 // CLIENT_WEB_URL  → web del cliente (bar-proyecto-v-2-xst7.vercel.app)
 // DESKTOP_URL     → sistema interno (bar-proyecto-v-2.vercel.app)
-// Prioridades para el callback web:
-//   CLIENT_WEB_URL > CLIENT_URL > FRONTEND_URL > hardcoded cliente
-const CLIENT_WEB_URL =
-  process.env.CLIENT_WEB_URL ||
-  process.env.CLIENT_URL ||
-  process.env.FRONTEND_URL ||
-  'https://bar-proyecto-v-2-xst7.vercel.app';
+
+const isDesktopUrl = (url = '') => {
+  if (!url) return false;
+  const clean = String(url).trim().replace(/\/+$/, '').toLowerCase();
+  if (clean === 'https://bar-proyecto-v-2.vercel.app' || clean === 'http://bar-proyecto-v-2.vercel.app') return true;
+  if (process.env.DESKTOP_URL && clean === process.env.DESKTOP_URL.trim().replace(/\/+$/, '').toLowerCase()) return true;
+  return false;
+};
+
+const resolveClientWebBase = () => {
+  if (process.env.CLIENT_WEB_URL && !isDesktopUrl(process.env.CLIENT_WEB_URL)) {
+    return process.env.CLIENT_WEB_URL.trim().replace(/\/+$/, '');
+  }
+  if (process.env.FRONTEND_URL && !isDesktopUrl(process.env.FRONTEND_URL)) {
+    return process.env.FRONTEND_URL.trim().replace(/\/+$/, '');
+  }
+  if (process.env.CLIENT_URL && !isDesktopUrl(process.env.CLIENT_URL)) {
+    return process.env.CLIENT_URL.trim().replace(/\/+$/, '');
+  }
+  return 'https://bar-proyecto-v-2-xst7.vercel.app';
+};
 
 const getFrontendOrigin = (oauthOrigin = null) => {
-  // Si el origin proviene del OAuth y está permitido, usarlo (dev)
-  if (oauthOrigin && isAllowedOrigin(oauthOrigin)) return oauthOrigin;
-  // En producción siempre al cliente web
-  return CLIENT_WEB_URL;
+  if (oauthOrigin && isAllowedOrigin(oauthOrigin) && !isDesktopUrl(oauthOrigin)) {
+    return oauthOrigin.trim().replace(/\/+$/, '');
+  }
+  return resolveClientWebBase();
 };
 
 const frontendCallback = (query, oauthOrigin = null) => {
@@ -519,7 +539,8 @@ export const googleCallback = async (req, res, next) => {
     const isEmployee  = !isClient && user.isEmployee === true;
     const destination = isClient ? '/cliente' : (identityDecision.destination || '/admin');
 
-    logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) → ${CLIENT_WEB_URL}/auth/callback`);
+    const targetOrigin = origin?.origin || null;
+    logger.info(`[Auth] Google OAuth web: ${user.email} (${user.role}) → ${getFrontendOrigin(targetOrigin)}/auth/callback`);
 
     // Redirigir SIEMPRE al cliente web — incluso para empleados.
     // El frontend mostrará el EmployeeModal para que elijan qué hacer.
@@ -531,11 +552,11 @@ export const googleCallback = async (req, res, next) => {
       identityStatus: isClient ? 'CLIENT' : (identityDecision.identityStatus || 'EMPLOYEE'),
       isEmployee:     String(isEmployee),
       role:           user.role || 'client',
-    }, null)); // <-- null fuerza usar CLIENT_WEB_URL, ignorando el origin del state
+    }, targetOrigin));
 
   } catch (error) {
     logger.error("[Auth] Error en googleCallback:", error);
-    return res.redirect(frontendCallback({ error: 'oauth_error' }));
+    return res.redirect(frontendCallback({ error: 'oauth_error' }, origin?.origin));
   }
 };
 
