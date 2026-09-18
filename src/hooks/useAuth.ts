@@ -4,9 +4,9 @@
 // useAuth — hook centralizado de autenticación para el cliente web
 // ─────────────────────────────────────────────────────────────────
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useClienteStore } from "@/stores/useClienteStore";
-import { saveAccessToken, saveRefreshToken, getAccessToken, clearTokens } from "@/lib/auth/tokenStorage";
+import { saveAccessToken, saveRefreshToken, clearTokens } from "@/lib/auth/tokenStorage";
 import { resolveApiBaseUrl, resolveEmployeeSystemUrl } from "@/lib/api/network";
 import type { AuthUser, IdentityDecisionResponse } from "@/lib/types/api";
 
@@ -124,52 +124,6 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading]                   = useState(false);
   const [error, setError]                       = useState<AuthError>(null);
   const [employeeDecision, setEmployeeDecision] = useState<EmployeeDecision | null>(null);
-
-  // ── Auto-restaurar sesión si hay token pero no hay usuario cargado ──
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    if (!useClienteStore.persist.hasHydrated()) {
-      void useClienteStore.persist.rehydrate();
-    }
-
-    const storedToken = token || getAccessToken();
-    if (storedToken && !user && !loading) {
-      let isCancelled = false;
-      setLoading(true);
-
-      fetch(apiAuthUrl("/auth/me"), {
-        headers: { Authorization: `Bearer ${storedToken}` },
-      })
-        .then((res) => res.json())
-        .then((raw) => {
-          if (isCancelled) return;
-          if (raw?.success) {
-            const profileRaw = raw.data ?? raw;
-            const userPayloadForExtract = profileRaw._id || profileRaw.id
-              ? { user: profileRaw }
-              : profileRaw;
-            const authUser = extractAuthUser(userPayloadForExtract);
-            if (authUser) {
-              setAuth(storedToken, authUser);
-            }
-          } else {
-            clearTokens();
-            storeLogout();
-          }
-        })
-        .catch(() => {
-          // Error de red temporal — no desloguear
-        })
-        .finally(() => {
-          if (!isCancelled) setLoading(false);
-        });
-
-      return () => {
-        isCancelled = true;
-      };
-    }
-  }, [token, user, loading, setAuth, storeLogout]);
 
   // ── Login ─────────────────────────────────────────────────────
   const login = useCallback(async (email: string, password: string): Promise<void> => {
@@ -298,18 +252,11 @@ export function useAuth(): UseAuthReturn {
     setLoading(true);
     setError(null);
     try {
-      const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
-      const googleAuthEndpoint = currentOrigin
-        ? `${apiAuthUrl("/auth/google")}?origin=${encodeURIComponent(currentOrigin)}`
-        : apiAuthUrl("/auth/google");
-
-      const res = await fetch(googleAuthEndpoint, {
+      // Enviamos X-Platform: web explícitamente para que el backend
+      // genere un state con platform=web y nunca redirija a bartender://
+      const res = await fetch(apiAuthUrl("/auth/google"), {
         method:  "GET",
-        headers: {
-          "X-Platform": "web",
-          "X-Audience": "client",
-          ...(currentOrigin ? { "X-Client-Origin": currentOrigin } : {}),
-        },
+        headers: { "X-Platform": "web", "X-Audience": "client" },
       });
       const data = await res.json();
       const authUrl = data.data?.authorizationUrl ?? data.authorizationUrl;
@@ -391,7 +338,9 @@ export function useAuth(): UseAuthReturn {
 
       // Cliente → siempre a /cliente/cuenta. Sin modal, sin preguntas.
       if (authUser.role === "client") {
-        return { redirectTo: "/cliente/cuenta" };
+        const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || "";
+        const redirectPath = clientUrl ? `${clientUrl}/cliente/cuenta` : "/cliente/cuenta";
+        return { redirectTo: redirectPath };
       }
 
       // Bloqueado / inactivo → volver al login con mensaje
