@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#08090C",
     categories: ["food", "shopping"],
     icons: [
-      { src: "/brand/nebula-mark.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      { src: "/brand/nebula-mark.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }
