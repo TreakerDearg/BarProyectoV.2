@@ -13,6 +13,13 @@ export default function ClientAppHomePage() {
   const firstName = user?.name?.split(" ")[0] ?? "invitado";
   const { promotions } = usePromotions("app");
   const featuredPromotion = promotions.find((promotion) => promotion.active) ?? null;
+  const promotionLabel = featuredPromotion?.type === "PERCENT"
+    ? `-${featuredPromotion.value}%`
+    : featuredPromotion?.type === "FLAT"
+      ? `-$${featuredPromotion.value}`
+      : featuredPromotion?.type === "2X1"
+        ? "2×1"
+        : "Oferta";
 
   return (
     <div>
@@ -41,7 +48,7 @@ export default function ClientAppHomePage() {
 
       <section className={styles.promo} aria-labelledby="promo-title">
         <div className={styles.promoContent}>
-          <span className={styles.promoLabel}>{featuredPromotion ? "Exclusivo en la app" : "Beneficio de hoy"}</span>
+          <span className={styles.promoLabel}>{featuredPromotion ? `${promotionLabel} · Exclusivo en la app` : "Beneficio de hoy"}</span>
           <h2 id="promo-title" className={styles.promoTitle}>{featuredPromotion?.name ?? "Una ronda para compartir"}</h2>
           <p className={styles.promoText}>{featuredPromotion?.description ?? "Promociones exclusivas y novedades aparecerán aquí."}</p>
           <Link href="/cliente/app/carta" className={styles.promoLink}>Descubrir la carta <ArrowRight size={14} aria-hidden="true" /></Link>

@@ -432,8 +432,13 @@ function PromotionCard({
                 {TYPE_ICON[promo.type]}
                 {PROMOTION_TYPE_LABELS[promo.type]}
               </span>
+            <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-ivory truncate">{promo.name}</h3>
+              <span className="shrink-0 rounded-full border border-gold/20 bg-gold/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gold">
+                {promo.audience === "app" ? "App" : promo.audience === "web" ? "Web" : "Web + App"}
+              </span>
             </div>
-            <h3 className="text-base font-bold text-ivory truncate">{promo.name}</h3>
             {promo.description && (
               <p className="text-xs text-muted mt-0.5 line-clamp-2">{promo.description}</p>
             )}
