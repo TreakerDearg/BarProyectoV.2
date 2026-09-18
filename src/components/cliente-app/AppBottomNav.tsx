@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChefHat, Home, ShoppingBag, UserCircle } from "lucide-react";
+import { ChefHat, Dices, Home, ShoppingBag, UserCircle } from "lucide-react";
 import { useClienteStore } from "@/stores/useClienteStore";
 import styles from "./AppBottomNav.module.css";
 
@@ -10,7 +10,7 @@ const items = [
   { href: "/cliente/app", label: "Inicio", icon: Home, exact: true },
   { href: "/cliente/app/carta", label: "Pedir", icon: ChefHat },
   { href: "/cliente/app/pedido", label: "Pedido", icon: ShoppingBag },
-  { href: "/cliente/app/reservas", label: "Reservas", icon: CalendarDays },
+  { href: "/cliente/app/ruleta", label: "Ruleta", icon: Dices },
   { href: "/cliente/app/cuenta", label: "Cuenta", icon: UserCircle },
 ];
 

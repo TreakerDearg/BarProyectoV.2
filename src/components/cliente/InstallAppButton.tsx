@@ -4,6 +4,8 @@ import { Download, Share, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import styles from "./InstallAppButton.module.css";
 
+const APP_URL = "https://bar-proyecto-v-2-xst7.vercel.app/cliente/app";
+
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -38,12 +40,20 @@ export function InstallAppButton() {
   const handleInstall = async () => {
     if (installEvent) {
       await installEvent.prompt();
-      await installEvent.userChoice;
+      const choice = await installEvent.userChoice;
       setInstallEvent(null);
+      if (choice.outcome === "accepted") {
+        window.setTimeout(() => window.location.assign(APP_URL), 350);
+      }
       return;
     }
 
-    if (isIos) setShowIosHelp(true);
+    if (isIos) {
+      setShowIosHelp(true);
+      return;
+    }
+
+    window.location.assign(APP_URL);
   };
 
   if (!installEvent && !isIos) return null;

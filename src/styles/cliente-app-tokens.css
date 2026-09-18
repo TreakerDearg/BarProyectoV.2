@@ -1,0 +1,40 @@
+:root {
+  --app-bg: #08090c;
+  --app-bg-raised: #0d0f14;
+  --app-surface: #12151c;
+  --app-surface-raised: #171b24;
+  --app-surface-soft: rgba(18, 21, 28, 0.78);
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-border-strong: rgba(255, 255, 255, 0.14);
+  --app-gold: #d4a340;
+  --app-gold-bright: #f0c060;
+  --app-gold-soft: rgba(212, 163, 64, 0.13);
+  --app-red: #c83228;
+  --app-green: #34b964;
+  --app-text: #f5f0e8;
+  --app-text-soft: rgba(245, 240, 232, 0.68);
+  --app-text-muted: rgba(245, 240, 232, 0.42);
+  --app-radius-card: 22px;
+  --app-radius-control: 14px;
+  --app-shadow-card: 0 16px 45px rgba(0, 0, 0, 0.26);
+  --app-shadow-gold: 0 10px 30px rgba(212, 163, 64, 0.18);
+  --app-touch: 44px;
+}
+
+.appRoot,
+.appRoot * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.appRoot button,
+.appRoot a,
+.appRoot input,
+.appRoot textarea,
+.appRoot select {
+  -webkit-touch-callout: none;
+}
+
+.appRoot button,
+.appRoot a {
+  touch-action: manipulation;
+}

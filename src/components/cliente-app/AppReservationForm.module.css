@@ -1,0 +1,12 @@
+.form { display: grid; gap: 0.85rem; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.field { display: grid; gap: 0.35rem; }
+.label { color: var(--app-text-soft); font-size: 0.7rem; font-weight: 800; }
+.input, .select, .textarea { width: 100%; min-height: var(--app-touch); padding: 0.65rem 0.75rem; border: 1px solid var(--app-border); border-radius: var(--app-radius-control); outline: 0; background: var(--app-bg); color: var(--app-text); font: inherit; font-size: 0.82rem; }
+.textarea { min-height: 5rem; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus { border-color: rgba(212, 163, 64, 0.55); box-shadow: 0 0 0 3px var(--app-gold-soft); }
+.submit { min-height: 3rem; border: 0; border-radius: var(--app-radius-control); background: linear-gradient(135deg, var(--app-gold), var(--app-gold-bright)); color: var(--app-bg); font-weight: 800; cursor: pointer; }
+.submit:disabled { opacity: 0.5; cursor: wait; }
+.feedback { padding: 0.75rem; border-radius: var(--app-radius-control); background: rgba(52, 185, 100, 0.12); color: #70e29a; font-size: 0.78rem; }
+.error { padding: 0.75rem; border-radius: var(--app-radius-control); background: rgba(200, 50, 40, 0.12); color: #f08375; font-size: 0.78rem; }
+@media (max-width: 360px) { .row { grid-template-columns: 1fr; } }

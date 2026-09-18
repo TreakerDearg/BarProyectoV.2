@@ -10,16 +10,16 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  color: var(--text);
+  color: var(--app-text);
   text-decoration: none;
 }
 
 .mark {
   display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.65rem;
+  height: 2.65rem;
   place-items: center;
-  border-radius: var(--radius-md);
+  border-radius: var(--app-radius-control);
   background: var(--grad-gold);
   color: var(--bg-deep);
   box-shadow: var(--shadow-gold);
@@ -36,7 +36,7 @@
 }
 
 .brandCaption {
-  color: var(--gold-light);
+  color: var(--app-gold-bright);
   font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -48,10 +48,10 @@
   width: 2.65rem;
   height: 2.65rem;
   place-items: center;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-full);
-  background: var(--surface-2);
-  color: var(--text-dim);
+  border: 1px solid var(--app-border-strong);
+  border-radius: 999px;
+  background: var(--app-surface);
+  color: var(--app-text-soft);
   text-decoration: none;
 }
 

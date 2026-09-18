@@ -1,3 +1,8 @@
+/* ================================================================
+   App pages — primitives shared by secondary app screens
+   These styles belong only to /cliente/app.
+================================================================ */
+
 .page {
   display: grid;
   gap: 1rem;
@@ -9,7 +14,7 @@
 }
 
 .eyebrow {
-  color: var(--gold-light);
+  color: var(--app-gold-bright);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -17,13 +22,13 @@
 }
 
 .title {
-  color: var(--text);
+  color: var(--app-text);
   font: 400 2.1rem/1 var(--font-display), serif;
 }
 
 .description {
-  color: var(--text-dim);
-  font-size: 0.88rem;
+  color: var(--app-text-soft);
+  font-size: 0.86rem;
   line-height: 1.5;
 }
 
@@ -31,19 +36,20 @@
   display: grid;
   gap: 0.8rem;
   padding: 1.1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: rgba(18, 21, 28, 0.86);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-card);
+  background: var(--app-surface-soft);
+  box-shadow: var(--app-shadow-card);
 }
 
 .panelTitle {
-  color: var(--text);
+  color: var(--app-text);
   font-size: 1rem;
   font-weight: 800;
 }
 
 .panelText {
-  color: var(--text-dim);
+  color: var(--app-text-soft);
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -52,10 +58,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.85rem;
-  border-radius: var(--radius-md);
-  background: var(--grad-gold);
-  color: var(--bg-deep);
+  min-height: var(--app-touch);
+  gap: 0.4rem;
+  border-radius: var(--app-radius-control);
+  background: linear-gradient(135deg, var(--app-gold), var(--app-gold-bright));
+  color: var(--app-bg);
   font-size: 0.82rem;
   font-weight: 800;
   text-decoration: none;
@@ -73,14 +80,14 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  color: var(--text-dim);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-control);
+  background: var(--app-surface);
+  color: var(--app-text-soft);
   font-size: 0.82rem;
 }
 
 .amount {
-  color: var(--gold-light);
+  color: var(--app-gold-bright);
   font-weight: 800;
 }

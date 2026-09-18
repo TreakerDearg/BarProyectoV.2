@@ -5,8 +5,8 @@
   left: 0;
   z-index: 60;
   padding: 0.45rem 0.7rem calc(0.45rem + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border);
-  background: rgba(8, 9, 12, 0.92);
+  border-top: 1px solid var(--app-border);
+  background: rgba(8, 9, 12, 0.94);
   backdrop-filter: blur(22px);
   box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.38);
 }
@@ -21,12 +21,12 @@
 
 .link {
   display: grid;
-  min-height: 3.4rem;
+  min-height: var(--app-touch);
   place-items: center;
   align-content: center;
   gap: 0.25rem;
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
+  border-radius: var(--app-radius-control);
+  color: var(--app-text-muted);
   text-decoration: none;
   font-size: 0.66rem;
   font-weight: 700;
@@ -34,8 +34,8 @@
 }
 
 .linkActive {
-  color: var(--gold-light);
-  background: var(--gold-soft);
+  color: var(--app-gold-bright);
+  background: var(--app-gold-soft);
 }
 
 .link:focus-visible {
@@ -56,10 +56,10 @@
   height: 1rem;
   padding: 0 0.2rem;
   place-items: center;
-  border: 2px solid var(--bg);
-  border-radius: var(--radius-full);
-  background: var(--gold);
-  color: var(--bg-deep);
+  border: 2px solid var(--app-bg);
+  border-radius: 999px;
+  background: var(--app-gold);
+  color: var(--app-bg);
   font-size: 0.58rem;
   line-height: 1;
 }

@@ -3,16 +3,27 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0.7rem 1rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.8rem;
   border: 1px solid var(--gold-border);
   border-radius: var(--radius-full);
   background: var(--gold-soft);
   color: var(--gold-light);
-  font: 600 0.78rem/1 var(--font-sans), sans-serif;
+  font: 700 0.7rem/1 var(--font-sans), sans-serif;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: transform var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease);
+}
+
+@media (max-width: 640px) {
+  .button span {
+    display: none;
+  }
+
+  .button {
+    width: 2.5rem;
+    padding: 0;
+  }
 }
 
 .dismiss {

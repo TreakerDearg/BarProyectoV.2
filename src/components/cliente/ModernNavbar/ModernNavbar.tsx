@@ -14,6 +14,7 @@ import { EmployeeModal } from "@/app/cliente/cuenta/components/EmployeeModal";
 import { resolveEmployeeSystemUrl } from "@/lib/api/network";
 import type { EmployeeDecision } from "@/hooks/useAuth";
 import { clearTokens } from "@/lib/auth/tokenStorage";
+import { InstallAppButton } from "@/components/cliente/InstallAppButton";
 
 // ── Constantes ────────────────────────────────────────────────────
 
@@ -172,6 +173,7 @@ export function ModernNavbar() {
 
           {/* Acciones */}
           <div className={styles.navActions}>
+            <InstallAppButton />
             <Link
               href="/cliente/pedido"
               className={styles.cartButton}
