@@ -20,6 +20,7 @@ export interface Promotion {
   _id?:                  string;
   name:                  string;
   description?:          string;
+  audience?:              "web" | "app" | "both";
   type:                  PromotionType;
   value:                 number;
   schedule?:             PromotionSchedule;

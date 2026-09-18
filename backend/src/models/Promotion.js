@@ -7,6 +7,12 @@ const promotionSchema = new mongoose.Schema(
       required: true,
     },
     description: String,
+    audience: {
+      type: String,
+      enum: ["web", "app", "both"],
+      default: "both",
+      index: true,
+    },
     type: {
       type: String,
       enum: ["PERCENT", "FLAT", "2X1", "CUSTOM"],

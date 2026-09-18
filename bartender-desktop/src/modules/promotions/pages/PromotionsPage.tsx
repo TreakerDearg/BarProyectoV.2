@@ -71,6 +71,7 @@ const STATUS_LABELS: Record<string, string> = {
 const EMPTY_FORM: Omit<Promotion, "_id" | "createdAt" | "updatedAt" | "createdBy"> = {
   name:                  "",
   description:           "",
+  audience:              "both",
   type:                  "PERCENT",
   value:                 10,
   isActive:              true,
@@ -175,6 +176,22 @@ function PromotionForm({
             maxLength={200}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-ivory text-sm focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all resize-none"
           />
+        </div>
+
+        {/* Audiencia */}
+        <div>
+          <label className="block text-[11px] font-bold text-muted uppercase tracking-widest mb-1.5">
+            Mostrar en
+          </label>
+          <select
+            value={form.audience ?? "both"}
+            onChange={(e) => set("audience", e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-ivory text-sm focus:border-gold/50 outline-none transition-all"
+          >
+            <option value="both">Web y aplicación</option>
+            <option value="app">Solo aplicación</option>
+            <option value="web">Solo web</option>
+          </select>
         </div>
 
         {/* Tipo + Valor */}

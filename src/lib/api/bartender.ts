@@ -264,9 +264,9 @@ export async function checkReservationAvailability(params: {
   }
 }
 
-export async function getPublicPromotions() {
+export async function getPublicPromotions(audience: "web" | "app" = "web") {
   try {
-    const res = await api.get("/promotions/public");
+    const res = await api.get("/promotions/public", { params: { audience } });
     return extractData<PromotionPublicDTO[]>(res);
   } catch (e) {
     throw new Error(errMessage(e));

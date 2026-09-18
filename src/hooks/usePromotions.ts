@@ -74,7 +74,7 @@ function buildLabel(type: string, value: number): string {
 // Hook
 // ─────────────────────────────────────────────────────────────────
 
-export function usePromotions(): UsePromotionsState & UsePromotionsActions {
+export function usePromotions(audience: "web" | "app" = "web"): UsePromotionsState & UsePromotionsActions {
   const [promotions, setPromotions] = useState<PromotionPublicDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export function usePromotions(): UsePromotionsState & UsePromotionsActions {
   const fetchPromotions = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getPublicPromotions();
+      const data = await getPublicPromotions(audience);
       if (!aliveRef.current) return;
       setPromotions(data);
       setError(null);
@@ -97,7 +97,7 @@ export function usePromotions(): UsePromotionsState & UsePromotionsActions {
     } finally {
       if (aliveRef.current) setLoading(false);
     }
-  }, []);
+  }, [audience]);
 
   useEffect(() => {
     aliveRef.current = true;

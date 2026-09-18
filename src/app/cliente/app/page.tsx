@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarDays, ChefHat, Clock3, GlassWater, Gift, Sparkles, ShoppingBag } from "lucide-react";
 import { useClienteStore } from "@/stores/useClienteStore";
+import { usePromotions } from "@/hooks/usePromotions";
 import styles from "./page.module.css";
 
 export default function ClientAppHomePage() {
@@ -10,6 +11,8 @@ export default function ClientAppHomePage() {
   const tableCode = useClienteStore((state) => state.tableCode);
   const cartCount = useClienteStore((state) => state.cart.reduce((total, line) => total + line.quantity, 0));
   const firstName = user?.name?.split(" ")[0] ?? "invitado";
+  const { promotions } = usePromotions("app");
+  const featuredPromotion = promotions.find((promotion) => promotion.active) ?? null;
 
   return (
     <div>
@@ -38,9 +41,9 @@ export default function ClientAppHomePage() {
 
       <section className={styles.promo} aria-labelledby="promo-title">
         <div className={styles.promoContent}>
-          <span className={styles.promoLabel}>Beneficio de hoy</span>
-          <h2 id="promo-title" className={styles.promoTitle}>Una ronda para compartir</h2>
-          <p className={styles.promoText}>Promociones exclusivas y novedades aparecerán aquí.</p>
+          <span className={styles.promoLabel}>{featuredPromotion ? "Exclusivo en la app" : "Beneficio de hoy"}</span>
+          <h2 id="promo-title" className={styles.promoTitle}>{featuredPromotion?.name ?? "Una ronda para compartir"}</h2>
+          <p className={styles.promoText}>{featuredPromotion?.description ?? "Promociones exclusivas y novedades aparecerán aquí."}</p>
           <Link href="/cliente/app/carta" className={styles.promoLink}>Descubrir la carta <ArrowRight size={14} aria-hidden="true" /></Link>
         </div>
         <span className={styles.promoIcon}><Gift size={22} aria-hidden="true" /></span>

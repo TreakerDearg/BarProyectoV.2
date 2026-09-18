@@ -12,9 +12,13 @@ export const getPromotions = async (req, res, next) => {
 export const getPublicPromotions = async (req, res, next) => {
   try {
     const now = new Date();
+    const audience = req.query.audience === "app" || req.query.audience === "web"
+      ? req.query.audience
+      : "web";
 
     const promotions = await Promotion.find({
       isActive: true,
+      audience: { $in: [audience, "both"] },
       $or: [
         { startDate: { $exists: false }, endDate: { $exists: false } },
         { startDate: { $lte: now }, endDate: { $gte: now } },
@@ -29,6 +33,7 @@ export const getPublicPromotions = async (req, res, next) => {
       id: promo._id.toString(),
       name: promo.name,
       description: promo.description,
+      audience: promo.audience || "both",
       type: promo.type,
       value: promo.value,
       applicableProducts: promo.applicableProducts?.map(p => ({
@@ -83,7 +88,7 @@ export const updatePromotion = async (req, res, next) => {
     const { id } = req.params;
 
     const ALLOWED = [
-      "name", "description", "type", "value",
+      "name", "description", "audience", "type", "value",
       "schedule", "applicableProducts", "applicableCategories", "isActive",
     ];
     const updates = Object.fromEntries(

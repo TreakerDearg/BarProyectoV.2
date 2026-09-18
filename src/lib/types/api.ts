@@ -195,6 +195,7 @@ export type RouletteDrinkRow = {
 export type PromotionPublicDTO = {
   id: string;
   name: string;
+  audience?: "web" | "app" | "both";
   description: string;
   type: string;
   value: number;
