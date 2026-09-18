@@ -1,11 +1,10 @@
-// layout.tsx (SIN use client)
 import type { Metadata, Viewport } from "next";
-import { ClienteShell } from "./ClienteShell";
+import { AppShell } from "./AppShell";
 
 export const metadata: Metadata = {
-  title: "Nebula Cliente",
-  description: "Carta, pedidos y reservas de Nebula",
-  applicationName: "Nebula",
+  title: "Nebula App",
+  description: "Pide, reserva y disfruta Nebula desde tu móvil",
+  applicationName: "Nebula App",
 
   appleWebApp: {
     capable: true,
@@ -24,6 +23,6 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return <ClienteShell>{children}</ClienteShell>;
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return <AppShell>{children}</AppShell>;
 }

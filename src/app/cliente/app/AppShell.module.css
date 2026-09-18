@@ -1,0 +1,28 @@
+.shell {
+  min-height: 100dvh;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(212, 163, 64, 0.12), transparent 34%),
+    radial-gradient(circle at 0% 32%, rgba(200, 50, 40, 0.08), transparent 30%),
+    var(--bg);
+  color: var(--text);
+}
+
+.main {
+  width: min(100%, 520px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 0.85rem max(1rem, env(safe-area-inset-right)) calc(6.5rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+
+@media (min-width: 700px) {
+  .shell {
+    background:
+      radial-gradient(circle at 50% 0%, rgba(212, 163, 64, 0.12), transparent 28%),
+      var(--bg);
+  }
+  .main {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}

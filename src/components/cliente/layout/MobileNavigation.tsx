@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, ChefHat, Sparkles, CalendarDays, UserCircle } from "lucide-react";
+import { Home, ChefHat, ShoppingBag, CalendarDays, UserCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { memo } from "react";
 import ui from "../../../app/cliente/cliente-ui.module.css";
@@ -10,7 +10,7 @@ import ui from "../../../app/cliente/cliente-ui.module.css";
 const navItems = [
   { href: "/cliente", label: "Inicio", icon: Home, exact: true },
   { href: "/cliente/carta", label: "Carta", icon: ChefHat },
-  { href: "/cliente/ruleta", label: "Ruleta", icon: Sparkles },
+  { href: "/cliente/pedido", label: "Pedido", icon: ShoppingBag },
   { href: "/cliente/reservas", label: "Reservas", icon: CalendarDays },
   { href: "/cliente/cuenta", label: "Cuenta", icon: UserCircle },
 ];

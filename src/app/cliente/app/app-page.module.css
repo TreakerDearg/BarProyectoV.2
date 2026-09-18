@@ -1,0 +1,86 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.eyebrow {
+  color: var(--gold-light);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  color: var(--text);
+  font: 400 2.1rem/1 var(--font-display), serif;
+}
+
+.description {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.panel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: rgba(18, 21, 28, 0.86);
+}
+
+.panelTitle {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.panelText {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.85rem;
+  border-radius: var(--radius-md);
+  background: var(--grad-gold);
+  color: var(--bg-deep);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.amount {
+  color: var(--gold-light);
+  font-weight: 800;
+}

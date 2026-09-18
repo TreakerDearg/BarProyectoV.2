@@ -42,6 +42,13 @@ export const metadata: Metadata = {
     title: "Nebula - Experiencia Gastronómica Premium",
     description: "Descubre Nebula, una experiencia gastronómica donde los sabores cruzan la galaxia.",
   },
+  icons: {
+    icon: [
+      { url: "/brand/nebula-mark.png", type: "image/png" },
+    ],
+    shortcut: "/brand/nebula-mark.png",
+    apple: "/brand/nebula-mark.png",
+  },
   robots: {
     index: true,
     follow: true,

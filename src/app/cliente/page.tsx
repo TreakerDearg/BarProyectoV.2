@@ -7,6 +7,7 @@ import { CategoryCards } from "@/components/cliente/CategoryCards/CategoryCards"
 import { ModernProductCard } from "@/components/cliente/ModernProductCard/ModernProductCard";
 import { ExperienceSection } from "@/components/cliente/ExperienceSection/ExperienceSection";
 import { CTAFinal } from "@/components/cliente/CTAFinal/CTAFinal";
+import { AppDownloadCard } from "./AppDownloadCard";
 
 export default function ClienteHomePage() {
   return (
@@ -16,6 +17,9 @@ export default function ClienteHomePage() {
 
       {/* Quick Actions */}
       <QuickActions />
+
+      {/* App exclusiva para clientes recurrentes */}
+      <AppDownloadCard />
 
       {/* Promotion Card */}
       <PromotionCard />

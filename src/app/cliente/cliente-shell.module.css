@@ -5,17 +5,50 @@
 
 .shell {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   color: var(--text);
+  overflow-x: clip;
 }
 
 /* ── Main — compensa navbar fijo ────────────────────────────────*/
 .main {
-  /* padding-top: altura del navbar (1rem padding × 2 + 40px logo = ~72px) */
+  width: min(100%, 1180px);
+  min-height: 100dvh;
+  margin: 0 auto;
   padding-top: 72px;
-  /* padding-bottom mobile: dock (56px) + 1rem gap desde borde + margen extra */
-  padding-bottom: 5.5rem; /* 88px */
-  min-height: 100vh;
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+}
+
+.appUtilityBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.6rem 0;
+}
+
+.appUtilityLabel {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .appUtilityLabel {
+    font-size: 0.62rem;
+  }
 }
 
 /* Cuando el dock desaparece (≥1024px) reducir el padding-bottom */

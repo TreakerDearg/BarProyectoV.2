@@ -1,0 +1,127 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-full);
+  background: var(--gold-soft);
+  color: var(--gold-light);
+  font: 600 0.78rem/1 var(--font-sans), sans-serif;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease);
+}
+
+.dismiss {
+  display: inline-grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: -0.35rem;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.button:hover {
+  background: rgba(212, 163, 64, 0.2);
+  transform: translateY(-1px);
+}
+
+.button:focus-visible,
+.dismiss:focus-visible,
+.confirm:focus-visible,
+.close:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: end center;
+  padding: 1rem;
+  background: rgba(5, 6, 8, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.dialog {
+  position: relative;
+  width: min(100%, 28rem);
+  padding: 1.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-lg);
+  animation: slide-up 220ms var(--ease-out);
+}
+
+.close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.dialogIcon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--gold-soft);
+  color: var(--gold-light);
+}
+
+.eyebrow {
+  margin-top: 1.25rem;
+  color: var(--gold-light);
+  font: 700 0.68rem/1 var(--font-sans), sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dialog h2 {
+  margin-top: 0.45rem;
+  color: var(--text);
+  font: 400 1.65rem/1.1 var(--font-display), serif;
+}
+
+.description {
+  margin-top: 0.75rem;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.confirm {
+  width: 100%;
+  min-height: 2.9rem;
+  margin-top: 1.25rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--grad-gold);
+  color: var(--bg-deep);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
