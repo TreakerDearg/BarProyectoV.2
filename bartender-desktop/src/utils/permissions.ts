@@ -10,7 +10,6 @@ export interface UserPermissions {
   canViewDashboard?: boolean;
   canViewSales?: boolean;
   canViewInventory?: boolean;
-  canViewStaff?: boolean;
   canViewAnalytics?: boolean;
   
   // Operation permissions
@@ -21,7 +20,7 @@ export interface UserPermissions {
   canManageReservations?: boolean;
   
   // Inventory permissions
-  canViewInventory?: boolean;
+
   canEditInventory?: boolean;
   canManageStock?: boolean;
   
@@ -75,7 +74,6 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canManageReservations: true,
     canEditInventory: true,
     canManageStock: true,
-    canViewStaff: true,
     canViewAttendance: true,
   },
   bartender: {
@@ -87,7 +85,7 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canEditOrders: true,
     canApplyDiscounts: false,
     canManageReservations: false,
-    canViewInventory: true,
+
     canEditInventory: false,
     canManageStock: false,
     canViewStaff: false,
@@ -103,10 +101,9 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canEditOrders: true,
     canApplyDiscounts: false,
     canManageReservations: true,
-    canViewInventory: false,
     canEditInventory: false,
     canManageStock: false,
-    canViewStaff: false,
+ 
     canViewAttendance: false,
   },
   cashier: {
@@ -119,10 +116,9 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canEditOrders: false,
     canApplyDiscounts: true,
     canManageReservations: false,
-    canViewInventory: false,
+
     canEditInventory: false,
     canManageStock: false,
-    canViewStaff: false,
     canViewAttendance: false,
   },
   kitchen: {
@@ -135,10 +131,8 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canEditOrders: true,
     canApplyDiscounts: false,
     canManageReservations: false,
-    canViewInventory: true,
     canEditInventory: false,
     canManageStock: false,
-    canViewStaff: false,
     canViewAttendance: false,
   },
 };
@@ -168,6 +162,15 @@ export function getUserPermissions(): UserPermissions {
 /**
  * Get dashboard-specific permissions
  */
+function isPrivilegedRole(): boolean {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "null") as { role?: string } | null;
+    return user?.role === "admin" || user?.role === "manager";
+  } catch {
+    return false;
+  }
+}
+
 export function getDashboardPermissions(): DashboardPermissions {
   const perms = getUserPermissions();
   
@@ -177,7 +180,7 @@ export function getDashboardPermissions(): DashboardPermissions {
     canViewStaffData: perms.canViewStaff || false,
     canViewDetailedAnalytics: perms.canViewAnalytics || false,
     canViewFinancialData: perms.canViewSales || false, // Sales implies financial access
-    canViewCostData: perms.role === 'admin' || perms.role === 'manager', // Cost data restricted
+    canViewCostData: isPrivilegedRole(), // Cost data restricted
     canPerformActions: perms.canCreateOrders || perms.canEditOrders || perms.canApplyDiscounts || false,
   };
 }
@@ -209,11 +212,11 @@ export function hasAllPermissions(...permissions: (keyof UserPermissions)[]): bo
 /**
  * Filter dashboard data based on permissions
  */
-export function filterDashboardData<T extends Record<string, any>>(
+export function filterDashboardData<T extends object>(
   data: T,
   permissions: DashboardPermissions
 ): Partial<T> {
-  const filtered: Partial<T> = { ...data };
+  const filtered = Object.assign(Object.create(null) as Record<string, unknown>, data) as Record<string, unknown>;
   
   // Remove sales data if not permitted
   if (!permissions.canViewSalesData) {
@@ -248,24 +251,27 @@ export function filterDashboardData<T extends Record<string, any>>(
   // Remove cost data specifically
   if (!permissions.canViewCostData) {
     // Remove any cost-related fields from products
-    if (filtered.topProducts) {
-      filtered.topProducts = filtered.topProducts.map((p: any) => ({
+    const topProducts = filtered["topProducts"];
+    if (Array.isArray(topProducts)) {
+      filtered["topProducts"] = topProducts.map((p) => ({
         ...p,
         cost: undefined,
         profit: undefined,
         margin: undefined,
       }));
     }
-    if (filtered.topDrinks) {
-      filtered.topDrinks = filtered.topDrinks.map((p: any) => ({
+    const topDrinks = filtered["topDrinks"];
+    if (Array.isArray(topDrinks)) {
+      filtered["topDrinks"] = topDrinks.map((p) => ({
         ...p,
         cost: undefined,
         profit: undefined,
         margin: undefined,
       }));
     }
-    if (filtered.topFoods) {
-      filtered.topFoods = filtered.topFoods.map((p: any) => ({
+    const topFoods = filtered["topFoods"];
+    if (Array.isArray(topFoods)) {
+      filtered["topFoods"] = topFoods.map((p) => ({
         ...p,
         cost: undefined,
         profit: undefined,
@@ -274,7 +280,7 @@ export function filterDashboardData<T extends Record<string, any>>(
     }
   }
   
-  return filtered;
+  return Object.assign({}, filtered) as Partial<T>;
 }
 
 /**

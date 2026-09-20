@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Database,
   RefreshCw,
@@ -74,21 +74,7 @@ export default function BackupSystem({
     }
   }, [localConfig, lastBackup]);
 
-  // Auto-backup timer
-  useEffect(() => {
-    if (!localConfig.enabled) return;
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      if (nextBackup && now >= nextBackup) {
-        handleBackup(true);
-      }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(interval);
-  }, [localConfig, nextBackup]);
-
-  const handleBackup = async (automatic = false) => {
+  const handleBackup = useCallback(async (automatic = false) => {
     setIsBackingUp(true);
     setBackupStatus({ type: null, message: "" });
 
@@ -99,13 +85,27 @@ export default function BackupSystem({
         type: "success", 
         message: automatic ? "Respaldo automático completado" : "Respaldo completado exitosamente" 
       });
-    } catch (error) {
+    } catch {
       setBackupStatus({ type: "error", message: "Error al crear respaldo" });
     } finally {
       setIsBackingUp(false);
       setTimeout(() => setBackupStatus({ type: null, message: "" }), 3000);
     }
-  };
+  }, [onBackup]);
+
+  // Auto-backup timer
+  useEffect(() => {
+    if (!localConfig.enabled) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (nextBackup && now >= nextBackup) {
+        void handleBackup(true);
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [localConfig.enabled, nextBackup, handleBackup]);
 
   const handleRestore = async (backupId: string) => {
     setIsRestoring(backupId);
@@ -114,7 +114,7 @@ export default function BackupSystem({
     try {
       await onRestore?.(backupId);
       setBackupStatus({ type: "success", message: "Restauración completada exitosamente" });
-    } catch (error) {
+    } catch {
       setBackupStatus({ type: "error", message: "Error al restaurar respaldo" });
     } finally {
       setIsRestoring(null);
@@ -126,7 +126,7 @@ export default function BackupSystem({
     try {
       await onDelete?.(backupId);
       setBackupStatus({ type: "success", message: "Respaldo eliminado" });
-    } catch (error) {
+    } catch {
       setBackupStatus({ type: "error", message: "Error al eliminar respaldo" });
     } finally {
       setTimeout(() => setBackupStatus({ type: null, message: "" }), 3000);
@@ -170,7 +170,7 @@ export default function BackupSystem({
   };
 
   return (
-    <div className="bg-surface-3/30 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-md">
+    <div className="bg-surface-3/30 border border-white/5 rounded-4xl p-6 space-y-4 backdrop-blur-md">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">
@@ -373,7 +373,7 @@ export default function BackupSystem({
 
       {/* Warning */}
       <div className="flex items-start gap-2 p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl">
-        <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+        <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
         <p className="text-[10px] text-amber-400/80 leading-relaxed">
           Los respaldos se almacenan localmente. Se recomienda exportar respaldos importantes a un almacenamiento externo regularmente.
         </p>

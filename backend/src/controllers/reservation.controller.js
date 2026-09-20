@@ -7,6 +7,7 @@ import { startServiceSession } from "../services/tableSession.service.js";
 import {
   ok, created, badRequest, notFound,
 } from "../utils/response.js";
+import { toReservationDTO, toReservationListDTO } from "../mappers/reservation.mapper.js";
 
 const isValidId   = (id)    => mongoose.Types.ObjectId.isValid(id);
 const parseDate   = (value) => { const d = new Date(value); return isNaN(d.getTime()) ? null : d; };
@@ -19,7 +20,11 @@ const POPULATE_TABLE = "number capacity status location";
 /* =========================================================
    SOCKET HELPERS
 ========================================================= */
-const emitReservation = (event, payload) => io.emit(event, payload);
+const emitReservation = (event, payload) => {
+  const dto = toReservationDTO(payload);
+  io.emit(event, dto);
+  if (event === "reservation:update") io.emit("reservation:updated", dto);
+};
 
 const emitTableUpdate = async (tableId) => {
   const table = await Table.findById(tableId).lean();
@@ -58,7 +63,7 @@ export const getReservations = async (req, res, next) => {
       .lean();
 
     return ok(res, {
-      reservations,
+      reservations: toReservationListDTO(reservations),
       total,
       page: Number(page),
       totalPages: Math.ceil(total / limit)
@@ -79,7 +84,7 @@ export const getReservationById = async (req, res, next) => {
       .lean();
 
     if (!reservation) return notFound(res, "Reserva no encontrada");
-    return ok(res, reservation);
+    return ok(res, toReservationDTO(reservation));
   } catch (error) { throw error; }
 };
 
@@ -202,7 +207,7 @@ export const createReservation = async (req, res, next) => {
     await emitTableUpdate(assignedTable);
 
     logger.info(`[Reservation] Creada: ${customerName} → Mesa ${assignedTable} → ${new Date(start).toLocaleString()}`);
-    return created(res, populated, "Reserva creada correctamente");
+    return created(res, toReservationDTO(populated), "Reserva creada correctamente");
   } catch (error) { throw error; }
 };
 
@@ -241,7 +246,7 @@ export const updateReservationStatus = async (req, res, next) => {
       );
       emitReservation("reservation:update", populated);
       logger.info(`[Reservation] Status → seated: ${id}`);
-      return ok(res, populated, "Clientes sentados — mesa lista para pedidos");
+      return ok(res, toReservationDTO(populated), "Clientes sentados — mesa lista para pedidos");
     }
 
     if (status === "cancelled") await reservation.cancel();
@@ -289,7 +294,7 @@ export const updateReservationStatus = async (req, res, next) => {
     emitReservation("reservation:update", populated);
     logger.info(`[Reservation] Status → ${status}: ${id}`);
 
-    return ok(res, populated, `Reserva ${status}`);
+    return ok(res, toReservationDTO(populated), `Reserva ${status}`);
   } catch (error) { throw error; }
 };
 
@@ -386,7 +391,7 @@ export const updateReservation = async (req, res, next) => {
     emitReservation("reservation:update", populated);
     logger.info(`[Reservation] Editada: ${customerName} → Mesa ${assignedTable} → ${new Date(start).toLocaleString()}`);
     
-    return ok(res, populated, "Reserva actualizada correctamente");
+    return ok(res, toReservationDTO(populated), "Reserva actualizada correctamente");
   } catch (error) { throw error; }
 };
 

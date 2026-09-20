@@ -46,8 +46,10 @@ export interface Payment {
   updatedAt: Date;
 }
 
+export type PaymentMethodId = "cash" | "transfer" | "card" | "split";
+
 export interface PaymentMethod {
-  id: string;
+  id: PaymentMethodId;
   name: string;
   icon: string;
   description: string;
@@ -61,13 +63,13 @@ export interface PaymentMethod {
 export class PaymentServiceError extends Error {
   statusCode: number;
   errorCode: string;
-  originalError?: any;
+  originalError?: unknown;
 
   constructor(
     message: string,
     statusCode: number = 500,
     errorCode: string = "UNKNOWN_ERROR",
-    originalError?: any
+    originalError?: unknown
   ) {
     super(message);
     this.name = "PaymentServiceError";
@@ -77,7 +79,7 @@ export class PaymentServiceError extends Error {
   }
 }
 
-export const getPaymentErrorMessage = (error: any): string => {
+export const getPaymentErrorMessage = (error: unknown): string => {
   if (error instanceof PaymentServiceError) {
     switch (error.errorCode) {
       case "INSUFFICIENT_FUNDS":
@@ -118,20 +120,20 @@ export const getPaymentErrorMessage = (error: any): string => {
         return error.message || "Error al procesar el pago.";
     }
   }
-  return error?.message || "Ocurrió un error inesperado al procesar el pago.";
+  return error instanceof Error ? error.message : "Ocurrió un error inesperado al procesar el pago.";
 };
 
-export const isNetworkError = (error: any): boolean => {
+export const isNetworkError = (error: unknown): boolean => {
   if (error instanceof PaymentServiceError) {
     return error.errorCode === "NETWORK_ERROR" || error.errorCode === "TERMINAL_OFFLINE";
   }
-  return error?.message?.toLowerCase().includes("network") || false;
+  return error instanceof Error && error.message.toLowerCase().includes("network");
 };
 
 /* =========================================================
    SAFE WRAPPER (Soporte Inteligente para Estructura de Respuestas)
 ========================================================= */
-const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
+const safeRequest = async <T>(promise: Promise<unknown>): Promise<T> => {
   try {
     const response = await promise;
     // Si la respuesta es de Axios interceptada, response representa response.data
@@ -140,19 +142,23 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
       return response.data as T;
     }
     return response as T;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Extraer detalles de error normalizado por Axios / Interceptor
-    let msg = error?.response?.data?.message || error?.message || "Error inesperado";
-    const statusCode = error?.status || error?.response?.status || 500;
-    const errorCode = error?.errorCode || error?.response?.data?.code || "UNKNOWN_ERROR";
+    const details = error as { response?: { data?: { message?: string; code?: string; errors?: unknown[] }; status?: number }; message?: string; status?: number; errorCode?: string };
+    let msg = details.response?.data?.message || details.message || "Error inesperado";
+    const statusCode = details.status || details.response?.status || 500;
+    const errorCode = details.errorCode || details.response?.data?.code || "UNKNOWN_ERROR";
 
     // Si hay un arreglo de errores detallados de validación (por ejemplo Zod)
-    if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-      const details = error.response.data.errors
-        .map((e: any) => `${e.field || "campo"}: ${e.message}`)
+    if (details.response?.data?.errors && Array.isArray(details.response.data.errors)) {
+      const validationDetails = details.response.data.errors
+        .map((e: unknown) => {
+                  const detail = e as { field?: string; message?: string };
+                  return `${detail.field || "campo"}: ${detail.message || "Error"}`;
+                })
         .join(", ");
-      if (details) {
-        msg = `${msg} (${details})`;
+      if (validationDetails) {
+        msg = `${msg} (${validationDetails})`;
       }
     }
 
@@ -210,13 +216,14 @@ export const updateTableLayout = async (
 };
 
 export const openTable = async (id: string): Promise<Table> => {
-  const result = await safeRequest<any>(api.post(`/tables/${id}/open`));
+  const result = await safeRequest<{ table?: Table; tableCode?: string; sessionId?: string } | Table>(api.post(`/tables/${id}/open`));
   // El backend devuelve { table, sessionId, tableCode, alreadyActive }
   // Normalizar para que siempre se devuelva la tabla con tableCode adjunto
-  if (result && typeof result === "object" && result.table) {
-    const table: Table = result.table;
-    if (result.tableCode) table.tableCode = result.tableCode;
-    if (result.sessionId) table.currentSessionId = result.sessionId;
+  if (result && typeof result === "object" && "table" in result && result.table) {
+    const payload = result as { table: Table; tableCode?: string; sessionId?: string };
+    const table = payload.table;
+    if (payload.tableCode) table.tableCode = payload.tableCode;
+    if (payload.sessionId) table.currentSessionId = payload.sessionId;
     return table;
   }
   return result as Table;
@@ -269,34 +276,37 @@ export const getAvailablePaymentMethods = async (): Promise<PaymentMethod[]> => 
 export const getTablePayments = async (
   tableId: string,
   sessionId?: string
-): Promise<any[]> => {
+): Promise<Payment[]> => {
   const url = sessionId
     ? `/payments/table/${tableId}?sessionId=${sessionId}`
     : `/payments/table/${tableId}`;
-  const response = await safeRequest<any>(api.get(url));
+  const response = await safeRequest<{ payments?: Payment[]; data?: Payment[] } | Payment[]>(api.get(url));
   
   // Extraer el array de pagos de forma segura
   if (Array.isArray(response)) return response;
-  return response?.payments || response?.data || [];
+  return response.payments || response.data || [];
 };
 
-export const getTableSessionHistory = async (tableId: string): Promise<any> => {
-  return safeRequest<any>(api.get(`/tables/${tableId}/history`));
+export const getTableSessionHistory = async (tableId: string): Promise<unknown> => {
+  return safeRequest<unknown>(api.get(`/tables/${tableId}/history`));
 };
 
-export const getSessionPayments = async (sessionId: string): Promise<any[]> => {
-  const response = await safeRequest<any>(api.get(`/payments/session/${sessionId}`));
+export const getSessionPayments = async (sessionId: string): Promise<Payment[]> => {
+  const response = await safeRequest<{ payments?: Payment[]; data?: Payment[] } | Payment[]>(api.get(`/payments/session/${sessionId}`));
   if (Array.isArray(response)) return response;
-  return response?.payments || response?.data || [];
+  return response.payments || response.data || [];
 };
 
 export const getPaymentById = async (paymentId: string): Promise<Payment> => {
   return safeRequest<Payment>(api.get(`/payments/payment/${paymentId}`));
 };
 
-export const generateReceipt = async (paymentId: string): Promise<any> => {
-  const response = await safeRequest<any>(api.get(`/payments/payment/${paymentId}/receipt`));
-  return response?.data || response;
+export const generateReceipt = async (paymentId: string): Promise<unknown> => {
+  const response = await safeRequest<unknown>(api.get(`/payments/payment/${paymentId}/receipt`));
+  if (response && typeof response === "object" && "data" in response) {
+    return response.data;
+  }
+  return response;
 };
 
 /* =========================================================
@@ -308,8 +318,8 @@ export const createStandardPayment = async (data: {
   method: "cash" | "transfer";
   amountPaid: number;
   notes?: string;
-}): Promise<any> => {
-  return safeRequest<any>(api.post("/payments", data));
+}): Promise<Payment> => {
+  return safeRequest<Payment>(api.post("/payments", data));
 };
 
 export const createSplitPayment = async (data: {
@@ -318,8 +328,8 @@ export const createSplitPayment = async (data: {
   totalSplits: number;
   method: string;
   amounts?: number[];
-}): Promise<any> => {
-  return safeRequest<any>(api.post("/payments/split", data));
+}): Promise<Payment> => {
+  return safeRequest<Payment>(api.post("/payments/split", data));
 };
 
 export const createPartialPayment = async (data: {
@@ -328,8 +338,8 @@ export const createPartialPayment = async (data: {
   amount: number;
   method: string;
   amountPaid?: number;
-}): Promise<any> => {
-  return safeRequest<any>(api.post("/payments/partial", data));
+}): Promise<Payment> => {
+  return safeRequest<Payment>(api.post("/payments/partial", data));
 };
 
 export const createCardPayment = async (data: {
@@ -342,14 +352,14 @@ export const createCardPayment = async (data: {
     terminalId?: string;
   };
   amount?: number;
-}): Promise<any> => {
-  return safeRequest<any>(api.post("/payments/card", data));
+}): Promise<Payment> => {
+  return safeRequest<Payment>(api.post("/payments/card", data));
 };
 
 export interface SessionCheckoutPayload {
   tableId: string;
   sessionId: string;
-  method: "cash" | "transfer" | "card" | "split";
+  method: PaymentMethodId;
   maintenanceMinutes?: number;
   paymentDetails?: {
     amountPaid?: number;
@@ -389,17 +399,18 @@ export const createSessionCheckout = async (
   try {
     const result = await safeRequest<SessionCheckoutResult>(api.post("/payments/session-checkout", data));
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const details = error as { message?: string; statusCode?: number; errorCode?: string };
     // Enhanced error handling for session checkout
     console.error("[Session Checkout Error]:", {
-      error: error?.message,
-      statusCode: error?.statusCode,
-      errorCode: error?.errorCode,
+      error: details.message,
+      statusCode: details.statusCode,
+      errorCode: details.errorCode,
       payload: data
     });
     
     // Re-throw with more specific error information
-    if (error?.statusCode === 500) {
+    if (details.statusCode === 500) {
       throw new PaymentServiceError(
         "Error interno del servidor al procesar el pago. Por favor, inténtelo de nuevo.",
         500,
@@ -419,29 +430,29 @@ export const getTableAnalytics = async (params?: {
   period?: string;
   startDate?: string;
   endDate?: string;
-}): Promise<any> => {
-  return safeRequest<any>(api.get("/tables/analytics", { params }));
+}): Promise<unknown> => {
+  return safeRequest<unknown>(api.get("/tables/analytics", { params }));
 };
 
 export const getTableAnalyticsById = async (
   tableId: string,
   params?: { period?: string; limit?: number }
-): Promise<any> => {
-  return safeRequest<any>(api.get(`/tables/${tableId}/analytics`, { params }));
+): Promise<unknown> => {
+  return safeRequest<unknown>(api.get(`/tables/${tableId}/analytics`, { params }));
 };
 
 export const generateTableAnalytics = async (
   tableId: string,
   data: { date: string; period?: string }
-): Promise<any> => {
-  return safeRequest<any>(api.post(`/tables/${tableId}/analytics/generate`, data));
+): Promise<unknown> => {
+  return safeRequest<unknown>(api.post(`/tables/${tableId}/analytics/generate`, data));
 };
 
 export const getTablePerformanceRanking = async (params?: {
   period?: string;
   limit?: number;
-}): Promise<any> => {
-  return safeRequest<any>(api.get("/tables/analytics/ranking", { params }));
+}): Promise<unknown> => {
+  return safeRequest<unknown>(api.get("/tables/analytics/ranking", { params }));
 };
 
 /* =========================================================
@@ -509,11 +520,12 @@ export const applyDiscountToOrder = async (
       items: discount.items || [],
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const details = error as { response?: { data?: { message?: string; code?: string }; status?: number } };
     throw new PaymentServiceError(
-      error.response?.data?.message || "Error al aplicar descuento",
-      error.response?.status || 500,
-      error.response?.data?.code || "DISCOUNT_ERROR",
+      details.response?.data?.message || "Error al aplicar descuento",
+      details.response?.status || 500,
+      details.response?.data?.code || "DISCOUNT_ERROR",
       error
     );
   }

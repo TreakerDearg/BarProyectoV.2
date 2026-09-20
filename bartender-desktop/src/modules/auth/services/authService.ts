@@ -4,12 +4,14 @@ import type { AuthResponse, LoginData, User } from "../../../types/auth";
 /* =========================================================
    ERROR NORMALIZER
 ========================================================= */
-const getErrorMessage = (error: any): string => {
-  return (
-    error?.response?.data?.message ||
-    error?.message ||
-    "Error inesperado"
-  );
+interface AuthRequestError {
+  message?: string;
+  response?: { data?: { message?: string } };
+}
+
+const getErrorMessage = (error: unknown): string => {
+  const details = error as AuthRequestError;
+  return details.response?.data?.message || details.message || "Error inesperado";
 };
 
 /* =========================================================
@@ -25,7 +27,7 @@ export const login = async (
     );
 
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(getErrorMessage(error));
   }
 };
@@ -37,7 +39,7 @@ export const getMe = async (): Promise<User> => {
   try {
     const { data } = await api.get<User>("/auth/me");
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(getErrorMessage(error));
   }
 };

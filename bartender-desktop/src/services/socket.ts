@@ -6,11 +6,44 @@
 import { io, Socket } from "socket.io-client";
 import { resolveBackendBaseUrl, resolveTrackingSocketUrl } from "./socketConfig";
 
+export type DesktopOrderDTO = {
+  id: string | null;
+  status: string;
+  sessionStatus: string;
+  table: string | null;
+  sessionId: string | null;
+  items: Array<{ id: string | null; name: string; quantity: number; price: number; status: string; notes: string }>;
+  subtotal: number;
+  discountTotal: number;
+  total: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type DesktopReservationDTO = {
+  id: string | null;
+  customerName: string;
+  customerPhone: string;
+  guests: number;
+  startTime: string | null;
+  endTime: string | null;
+  tableId: string | null;
+  status: string;
+};
+
+export type DesktopTableDTO = {
+  _id?: string;
+  id?: string;
+  number?: number;
+  status?: string;
+  [key: string]: unknown;
+};
+
 export interface SocketEventMap {
-  "activity:new": { type: string; message: string; timestamp: string; data?: any };
-  "activity:updated": { type: string; message: string; timestamp: string; data?: any };
-  "kpi:update": { userId?: string; kpis: any; timestamp: string };
-  "kpi:ranking": { rankings: any[]; timestamp: string };
+  "activity:new": { type: string; message: string; timestamp: string; data?: Record<string, unknown> };
+  "activity:updated": { type: string; message: string; timestamp: string; data?: Record<string, unknown> };
+  "kpi:update": { userId?: string; kpis: Record<string, unknown>; timestamp: string };
+  "kpi:ranking": { rankings: Array<Record<string, unknown>>; timestamp: string };
   "alert:create": { type: string; message: string; severity: "low" | "medium" | "high"; timestamp: string };
   "alert:resolve": { alertId: string; timestamp: string };
   "discount:applied": {
@@ -26,7 +59,7 @@ export interface SocketEventMap {
   "shift:created": { shiftId: string; shiftType: string; timestamp: string };
   "shift:updated": { shiftId: string; shiftType: string; timestamp: string };
   "shift:deleted": { shiftId: string; timestamp: string };
-  "metrics:update": { metrics: any; timestamp: string };
+  "metrics:update": { metrics: Record<string, unknown>; timestamp: string };
   "system:notification": { message: string; type: "info" | "warning" | "error"; timestamp: string };
   "menu:created": { menuId: string; name?: string; timestamp: string };
   "menu:updated": { menuId: string; name?: string; timestamp: string };
@@ -41,6 +74,18 @@ export interface SocketEventMap {
   "inventory:created": { itemId: string; name: string; timestamp: string };
   "inventory:updated": { itemId: string; name: string; timestamp: string };
   "inventory:stock_changed": { itemId: string; name: string; stock: number; timestamp: string };
+  "order:created": { event?: "order:created"; order: DesktopOrderDTO };
+  "order:update": { event?: "order:update"; order: DesktopOrderDTO };
+  "order:updated": { event?: "order:updated"; order: DesktopOrderDTO };
+  "order:deleted": { event?: "order:deleted"; order: DesktopOrderDTO };
+  "reservation:created": DesktopReservationDTO;
+  "reservation:update": DesktopReservationDTO;
+  "reservation:updated": DesktopReservationDTO;
+  "reservation:delete": string | { id: string };
+  "table:update": DesktopTableDTO;
+  "table:updated": DesktopTableDTO;
+  "table:created": DesktopTableDTO;
+  "table:deleted": string | { tableId?: string; _id?: string };
 }
 
 export interface MenuEventData {
@@ -54,7 +99,7 @@ export interface ProductEventData {
   name?: string;
   available?: boolean;
   timestamp: string;
-  product?: any;
+  product?: Record<string, unknown>;
   id?: string;
 }
 
@@ -72,13 +117,13 @@ export interface InventoryEventData {
 }
 
 let mainSocket: Socket | null = null;
-let mainConnectAttempts = 0;
+
 
 class SocketService {
   private socket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private listeners: Map<string, Set<(data: unknown) => void>> = new Map();
   private listenersBound = false;
 
   connect(token?: string): void {
@@ -123,7 +168,7 @@ class SocketService {
     if (!this.socket || this.listenersBound) return;
 
     this.listeners.forEach((callbacks, event) => {
-      callbacks.forEach((cb) => this.socket?.on(event, cb as any));
+      callbacks.forEach((cb) => this.socket?.on(event, cb as unknown as (data: unknown) => void));
     });
 
     this.listenersBound = true;
@@ -149,7 +194,7 @@ class SocketService {
     callbacks.add(callback);
 
     if (this.socket) {
-      this.socket.on(event, callback as any);
+      this.socket.on(event as string, callback as never);
       this.listenersBound = true;
     }
   }
@@ -157,18 +202,18 @@ class SocketService {
   off<K extends keyof SocketEventMap>(event: K, callback?: (data: SocketEventMap[K]) => void): void {
     if (callback) {
       this.listeners.get(event)?.delete(callback);
-      this.socket?.off(event, callback as any);
+      this.socket?.off(event as string, callback as never);
       return;
     }
 
     const callbacks = this.listeners.get(event);
     if (!callbacks) return;
 
-    callbacks.forEach((cb) => this.socket?.off(event, cb as any));
+    callbacks.forEach((cb) => this.socket?.off(event as string, cb as never));
     this.listeners.delete(event);
   }
 
-  emit(event: string, data?: any): void {
+  emit(event: string, data?: unknown): void {
     if (!this.socket?.connected) return;
     this.socket.emit(event, data);
   }
@@ -177,7 +222,7 @@ class SocketService {
     if (!this.socket) return;
 
     this.listeners.forEach((callbacks, event) => {
-      callbacks.forEach((cb) => this.socket?.off(event, cb as any));
+      callbacks.forEach((cb) => this.socket?.off(event as string, cb as never));
     });
     this.listeners.clear();
 
@@ -214,12 +259,16 @@ export function connectMainSocket(token?: string): Socket {
   });
 
   mainSocket.on("connect", () => {
-    mainConnectAttempts = 0;
+
+    // El backend actual soporta rooms mediante join; se mantienen ambas
+    // formas para que el escritorio reciba pedidos y reservas tras reconectar.
     mainSocket?.emit("join:orders");
+    mainSocket?.emit("join", { rooms: ["orders:global"] });
+    mainSocket?.emit("join", { rooms: ["reservations:global"] });
   });
 
   mainSocket.on("connect_error", () => {
-    mainConnectAttempts++;
+    // Socket.IO gestiona automáticamente los reintentos configurados.
   });
 
   return mainSocket;
@@ -313,6 +362,45 @@ export const onInventoryStockChanged = (callback: (data: InventoryEventData) => 
   socketService.on("inventory:stock_changed", callback);
   return () => socketService.off("inventory:stock_changed", callback);
 };
+
+const onMainEvent = <K extends keyof SocketEventMap>(
+  event: K,
+  callback: (data: SocketEventMap[K]) => void,
+): (() => void) => {
+  const socket = connectMainSocket();
+  socket.on(event as string, callback as never);
+  return () => socket.off(event as string, callback as never);
+};
+
+export const onOrderCreated = (callback: (data: SocketEventMap["order:created"]) => void) =>
+  onMainEvent("order:created", callback);
+
+export const onOrderUpdated = (callback: (data: SocketEventMap["order:updated"]) => void) => {
+  const cleanupUpdated = onMainEvent("order:updated", callback);
+  const cleanupLegacy = onMainEvent("order:update", callback as unknown as (data: SocketEventMap["order:update"]) => void);
+  return () => {
+    cleanupUpdated();
+    cleanupLegacy();
+  };
+};
+
+export const onOrderDeleted = (callback: (data: SocketEventMap["order:deleted"]) => void) =>
+  onMainEvent("order:deleted", callback);
+
+export const onReservationCreated = (callback: (data: SocketEventMap["reservation:created"]) => void) =>
+  onMainEvent("reservation:created", callback);
+
+export const onReservationUpdated = (callback: (data: SocketEventMap["reservation:updated"]) => void) => {
+  const cleanupUpdated = onMainEvent("reservation:updated", callback);
+  const cleanupLegacy = onMainEvent("reservation:update", callback);
+  return () => {
+    cleanupUpdated();
+    cleanupLegacy();
+  };
+};
+
+export const onReservationDeleted = (callback: (data: SocketEventMap["reservation:delete"]) => void) =>
+  onMainEvent("reservation:delete", callback);
 
 export default socketService;
 

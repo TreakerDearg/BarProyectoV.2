@@ -6,6 +6,7 @@
 
 import api from '../../../services/api';
 import type { IdentityResponse, IdentityUser } from '../types';
+import { getErrorDetails } from '../types/identityError';
 
 /**
  * Servicio de identidad para el frontend
@@ -23,8 +24,9 @@ class IdentityService {
         email,
         password,
       });
-      return response;
-    } catch (error: any) {
+      return response.data;
+    } catch (error: unknown) {
+      const details = getErrorDetails(error, 'Error de autenticación');
       return {
         success: false,
         user: null,
@@ -35,8 +37,8 @@ class IdentityService {
         destination: null,
         token: null,
         refreshToken: null,
-        metadata: { code: error.code || 'AUTH_ERROR' },
-        message: error.message || 'Error de autenticación',
+        metadata: { code: details.code || 'AUTH_ERROR' },
+        message: details.message || 'Error de autenticación',
       };
     }
   }
@@ -49,8 +51,9 @@ class IdentityService {
   async register(userData: { name: string; email: string; password: string }): Promise<IdentityResponse> {
     try {
       const response = await api.post<IdentityResponse>('/auth/register', userData);
-      return response;
-    } catch (error: any) {
+      return response.data;
+    } catch (error: unknown) {
+      const details = getErrorDetails(error, 'Error de registro');
       return {
         success: false,
         user: null,
@@ -61,8 +64,8 @@ class IdentityService {
         destination: null,
         token: null,
         refreshToken: null,
-        metadata: { code: error.code || 'REGISTER_ERROR' },
-        message: error.message || 'Error de registro',
+        metadata: { code: details.code || 'REGISTER_ERROR' },
+        message: details.message || 'Error de registro',
       };
     }
   }
@@ -74,8 +77,9 @@ class IdentityService {
   async getProfile(): Promise<IdentityResponse> {
     try {
       const response = await api.get<IdentityResponse>('/auth/me');
-      return response;
-    } catch (error: any) {
+      return response.data;
+    } catch (error: unknown) {
+      const details = getErrorDetails(error, 'Error al obtener perfil');
       return {
         success: false,
         user: null,
@@ -86,8 +90,8 @@ class IdentityService {
         destination: null,
         token: null,
         refreshToken: null,
-        metadata: { code: error.code || 'PROFILE_ERROR' },
-        message: error.message || 'Error al obtener perfil',
+        metadata: { code: details.code || 'PROFILE_ERROR' },
+        message: details.message || 'Error al obtener perfil',
       };
     }
   }
@@ -99,8 +103,8 @@ class IdentityService {
   async logout(): Promise<IdentityResponse> {
     try {
       const response = await api.post<IdentityResponse>('/auth/logout');
-      return response;
-    } catch (error: any) {
+      return response.data;
+    } catch {
       // Logout nunca debe romper UI
       return {
         success: true,
@@ -120,10 +124,10 @@ class IdentityService {
 
   /**
    * Refresca el token de acceso (preparado para futura implementación)
-   * @param refreshToken - Refresh token
+
    * @returns Respuesta de identidad
    */
-  async refreshToken(refreshToken: string): Promise<IdentityResponse> {
+  async refreshToken(): Promise<IdentityResponse> {
     // TODO: Implementar cuando se agregue refresh tokens en backend
     throw new Error('Refresh tokens no implementados aún');
   }

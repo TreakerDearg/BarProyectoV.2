@@ -34,7 +34,7 @@ export function handleOrderCreatedEvent(data: OrderCreatedEvent): void {
  */
 export function onOrderStatus(callback: (data: OrderStatusEvent) => void): () => void {
   const handler = (e: Event) => {
-    const customEvent = e as any;
+    const customEvent = e as CustomEvent<OrderStatusEvent>;
     callback(customEvent.detail);
   };
 
@@ -50,7 +50,7 @@ export function onOrderStatus(callback: (data: OrderStatusEvent) => void): () =>
  */
 export function onOrderCreated(callback: (data: OrderCreatedEvent) => void): () => void {
   const handler = (e: Event) => {
-    const customEvent = e as any;
+    const customEvent = e as CustomEvent<OrderCreatedEvent>;
     callback(customEvent.detail);
   };
 

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check, Sparkles } from "lucide-react";
 import {
   getAvailablePaymentMethods,
+  type PaymentMethodId,
   PaymentServiceError,
   getPaymentErrorMessage,
   isNetworkError
@@ -23,12 +24,20 @@ interface PaymentMethod {
   icon?: string;
 }
 
+type PaymentDetails = {
+  amountPaid?: number;
+  totalSplits?: number;
+  method?: PaymentMethodId;
+  cardDetails?: { lastFour: string; cardType: "visa" | "mastercard" | "amex" | "other" };
+  notes?: string;
+};
+
 interface Props {
   tableId: string;
   sessionId: string;
   orderId?: string;
   balanceDue: number;
-  onSelect: (method: string, data?: any) => void;
+  onSelect: (method: PaymentMethodId, data?: PaymentDetails) => void;
   onClose: () => void;
   onApplyDiscount?: (discount: { type: "PERCENT" | "FLAT"; value: number; reason: string; note?: string }) => void;
   discounts?: Array<{
@@ -81,8 +90,8 @@ const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export default function PaymentMethodSelector({
-  tableId: _tableId,
-  sessionId: _sessionId,
+  tableId,
+  sessionId,
   balanceDue,
   onSelect,
   onClose,
@@ -91,7 +100,9 @@ export default function PaymentMethodSelector({
   subtotal = balanceDue,
 }: Props) {
   const [methods, setMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  void tableId;
+  void sessionId;
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId | null>(null);
   const [loading, setLoading] = useState(false);
   const [cashAmountPaid, setCashAmountPaid] = useState(balanceDue);
   const [cardDetails, setCardDetails] = useState({
@@ -102,7 +113,7 @@ export default function PaymentMethodSelector({
 
   const [splitDetails, setSplitDetails] = useState({
     totalSplits: 2,
-    method: "cash",
+    method: "cash" as PaymentMethodId,
     amounts: [] as number[],
   });
 
@@ -118,16 +129,13 @@ export default function PaymentMethodSelector({
     try {
       setLoading(true);
       const response = await getAvailablePaymentMethods();
-      const methodsArray = Array.isArray(response)
-        ? response
-        : (response && (response as any).methods) || [];
+      const methodsArray = Array.isArray(response) ? response : [];
 
       if (methodsArray && methodsArray.length > 0) {
         const convertedMethods = methodsArray
-          .filter((m: any) => m.id !== "partial")
-          .map((m: any) => ({
+          .map((m) => ({
             _id: m.id,
-            method: m.id,
+            method: m.id as PaymentMethodId,
             displayName: m.name,
             description: m.description,
             isActive: !m.disabled,
@@ -167,7 +175,7 @@ export default function PaymentMethodSelector({
     }
   };
 
-  const handleMethodSelect = (method: string) => {
+  const handleMethodSelect = (method: PaymentMethodId) => {
     setSelectedMethod(method);
   };
 
@@ -196,7 +204,7 @@ export default function PaymentMethodSelector({
     onSelect("cash", { amountPaid: cashAmountPaid });
   };
 
-  const handleStandardPayment = (method: string) => {
+  const handleStandardPayment = (method: PaymentMethodId) => {
     if (method === "cash") {
       handleCashPayment();
     } else {
@@ -242,7 +250,7 @@ export default function PaymentMethodSelector({
               </label>
               <select
                 value={cardDetails.cardType}
-                onChange={(e) => setCardDetails({ ...cardDetails, cardType: e.target.value as any })}
+                onChange={(e) => setCardDetails({ ...cardDetails, cardType: e.target.value as "visa" | "mastercard" | "amex" | "other" })}
                 className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
               >
                 <option value="visa">Visa</option>
@@ -430,7 +438,7 @@ export default function PaymentMethodSelector({
                         key={method._id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => handleMethodSelect(method.method)}
+                        onClick={() => handleMethodSelect(method.method as PaymentMethodId)}
                         className={`
                           p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3
                           ${selectedMethod === method.method

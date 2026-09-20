@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   X, Users, MapPin, Save, Hash, MessageSquare,
   Square, Circle, Layout, ChevronRight, Check,
@@ -82,21 +82,21 @@ function InputField({
 // ── Componente principal ──────────────────────────────────────────
 
 export default function TableForm({ table, onSave, onClose, existingTables = [] }: Props) {
-  const [formData, setFormData] = useState<Table>(EMPTY);
-  const [error,    setError]    = useState<string | null>(null);
-
   const nextNumber = useMemo(() => {
     const nums = existingTables.map((t) => t.number || 0);
     return nums.length ? Math.max(...nums) + 1 : 1;
   }, [existingTables]);
 
-  useEffect(() => {
-    setFormData(table
-      ? { ...EMPTY, ...table, tags: table.tags || [] }
-      : { ...EMPTY, number: nextNumber }
-    );
+  const initialFormData = useMemo(() => table
+    ? { ...EMPTY, ...table, tags: table.tags || [] }
+    : { ...EMPTY, number: nextNumber }, [table, nextNumber]);
+  const [formData, setFormData] = useState<Table>(initialFormData);
+  const [error,    setError]    = useState<string | null>(null);
+
+  const resetForm = () => {
+    setFormData(initialFormData);
     setError(null);
-  }, [table, nextNumber]);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -140,7 +140,7 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
     <div className="w-full bg-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
 
       {/* HEADER */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/8 bg-surface-2 flex-shrink-0">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/8 bg-surface-2 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-gold/15 border border-gold/25 text-gold">
             <Layout size={20} />
@@ -314,14 +314,17 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-between gap-3 px-6 py-5 border-t border-white/8 bg-surface-2 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-6 py-5 border-t border-white/8 bg-surface-2 shrink-0">
           <div className="text-xs text-muted">
             {table ? "Los cambios se aplican al instante" : "Se asigna el próximo número disponible"}
           </div>
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                resetForm();
+                onClose();
+              }}
               className="px-5 py-2.5 rounded-xl border border-white/10 text-muted hover:text-ivory text-sm font-semibold transition-colors hover:bg-white/5"
             >
               Cancelar

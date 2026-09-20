@@ -25,8 +25,8 @@ export interface AuditLog {
   userId: string;
   userName: string;
   timestamp: Date;
-  changes?: Record<string, { from: any; to: any }>;
-  metadata?: Record<string, any>;
+  changes?: Record<string, { from: unknown; to: unknown }>;
+  metadata?: Record<string, unknown>;
   ipAddress?: string;
 }
 
@@ -148,7 +148,7 @@ export default function AuditLogSystem({
   };
 
   return (
-    <div className="bg-surface-3/30 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-md">
+    <div className="bg-surface-3/30 border border-white/5 rounded-4xl p-6 space-y-4 backdrop-blur-md">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">

@@ -5,21 +5,7 @@
 ========================================================= */
 
 import { IdentityStatus } from './IdentityStatus';
-import { IdentityRole } from './IdentityRole';
-
-/**
- * Usuario normalizado en respuesta de identidad
- */
-export interface IdentityUser {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  shift: string | null;
-  isEmployee: boolean;
-  isActive: boolean;
-  lastLogin: Date | null;
-}
+import type { IdentityUser } from './IdentityUser';
 
 /**
  * Metadatos de respuesta de identidad

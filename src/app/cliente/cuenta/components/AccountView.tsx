@@ -15,6 +15,7 @@ import { useOrdersStore }   from "@/stores/useOrdersStore";
 import {
   initSocket, joinUserRoom, onOrderStatus,
 } from "@/lib/realtime/socket";
+import { OrderStatus } from "@/lib/realtime/types";
 import {
   updateMyProfile, changeMyPassword,
   getMyOrderHistory, getMyReservations,
@@ -464,8 +465,10 @@ export const AccountView = memo(function AccountView({ user, onLogout }: Props) 
     const unsub = onOrderStatus((data) => {
       const order = data.order;
       if (!order) return;
-      updateOrderStatus(order._id, order.status, order.updatedAt ?? new Date().toISOString());
-      if (order._id === activeOrderIdRef.current) setActiveOrderStatus(order.status);
+      const orderId = order._id ?? order.id;
+      if (!orderId) return;
+      updateOrderStatus(orderId, order.status as OrderStatus, order.updatedAt ?? new Date().toISOString());
+      if (orderId === activeOrderIdRef.current) setActiveOrderStatus(order.status);
     });
 
     return () => { unsub(); };

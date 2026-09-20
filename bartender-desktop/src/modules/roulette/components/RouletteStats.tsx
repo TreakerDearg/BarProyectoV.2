@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Activity, Zap, Trophy, Target } from "lucide-react";
 import type { RouletteSpinResult, RouletteDrink } from "../types/roulette";
 
@@ -56,10 +57,10 @@ export default function RouletteStats({
   );
 }
 
-function PremiumStat({ icon, label, value, sub, color }: any) {
+function PremiumStat({ icon, label, value, sub, color }: { icon: ReactNode; label: string; value: string | number; sub: string; color: "gold" | "emerald" }) {
   const theme = color === 'gold' ? 'text-gold' : 'text-emerald-400';
   return (
-    <div className="glass-royale p-8 rounded-[2rem] border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden shadow-royale">
+    <div className="glass-royale p-8 rounded-4xl border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden shadow-royale">
       <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
         {icon}
       </div>

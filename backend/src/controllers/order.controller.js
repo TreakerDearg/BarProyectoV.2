@@ -11,6 +11,7 @@ import {
   ok, created, badRequest, notFound, serverError, forbidden, unauthorized,
 } from "../utils/response.js";
 import { calculateProductPrice } from "../utils/pricingEngine.js";
+import { toOrderDTO, toOrderListDTO } from "../mappers/order.mapper.js";
 
 /* =========================================================
    CONSTANTS
@@ -36,22 +37,27 @@ const validateActiveTableSession = async (tableId, sessionId, dbSession) => {
    Y también al usuario cliente si la orden tiene userId.
 ========================================================= */
 const emitOrderUpdate = (order) => {
-  io.emit(`table:${order.table}`, { event: "order:update", order });
-  io.to("orders:global").emit("order:update", order);
+  const dto = toOrderDTO(order);
+  io.emit(`table:${order.table}`, { event: "order:update", order: dto });
+  io.emit(`table:${order.table}`, { event: "order:updated", order: dto });
+  io.to("orders:global").emit("order:update", dto);
+  io.to("orders:global").emit("order:updated", dto);
   // Emitir al cliente propietario del pedido (tiempo real para el cliente web)
   if (order.userId) {
-    io.to(`user:${order.userId}`).emit("order:update", { event: "order:update", order });
+    io.to(`user:${order.userId}`).emit("order:update", { event: "order:update", order: dto });
+    io.to(`user:${order.userId}`).emit("order:updated", { event: "order:updated", order: dto });
   }
 };
 
 const emitOrderCreate = (order) => {
-  io.emit(`table:${order.table}`, { event: "order:created", order });
-  io.to("orders:global").emit("order:created",  order);
+  const dto = toOrderDTO(order);
+  io.emit(`table:${order.table}`, { event: "order:created", order: dto });
+  io.to("orders:global").emit("order:created", dto);
   io.to("role:kitchen").emit("order:new",        order);
   io.to("role:bartender").emit("order:new",      order);
   // Emitir al cliente propietario del pedido
   if (order.userId) {
-    io.to(`user:${order.userId}`).emit("order:created", { event: "order:created", order });
+    io.to(`user:${order.userId}`).emit("order:created", { event: "order:created", order: dto });
   }
 };
 
@@ -101,7 +107,7 @@ export const getOrders = async (req, res, next) => {
       .limit(Number(limit))
       .lean();
 
-    return ok(res, orders);
+    return ok(res, toOrderListDTO(orders));
   } catch (error) {
     throw error;
   }
@@ -123,7 +129,7 @@ export const getOrderById = async (req, res, next) => {
 
     if (!order) return notFound(res, "Orden no encontrada");
 
-    return ok(res, order);
+    return ok(res, toOrderDTO(order));
   } catch (error) {
     throw error;
   }
@@ -263,7 +269,7 @@ const [order] = await Order.create(
     logger.info(`[Order] Nueva orden creada: ${order._id} → mesa ${table}`);
     emitOrderCreate(order);
 
-    return created(res, order, "Orden creada correctamente");
+    return created(res, toOrderDTO(order), "Orden creada correctamente");
 
   } catch (error) {
     await session.abortTransaction();
@@ -312,7 +318,7 @@ export const updateOrderStatus = async (req, res, next) => {
 
     logger.info(`[Order] ${order._id} → status: ${status}`);
 
-    return ok(res, order, `Orden ${status} correctamente`);
+    return ok(res, toOrderDTO(order), `Orden ${status} correctamente`);
   } catch (error) {
     logger.error("[Order] Error updating order status:", error);
     throw error;
@@ -368,7 +374,7 @@ export const updateOrderItemStatus = async (req, res, next) => {
       io.to("role:bartender").emit("item:ready", { orderId, itemId, item });
     }
 
-    return ok(res, order, "Item actualizado");
+    return ok(res, toOrderDTO(order), "Item actualizado");
   } catch (error) {
     throw error;
   }

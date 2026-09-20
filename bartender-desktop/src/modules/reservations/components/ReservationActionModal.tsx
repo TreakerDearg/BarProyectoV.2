@@ -52,15 +52,15 @@ export default function ReservationActionModal({
   const delayMinutes = isDelayed ? Math.floor((now.getTime() - startTime.getTime()) / (60 * 1000)) : 0;
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-100 p-4 md:p-8 animate-fade-in">
       
       {/* Background luxury glows */}
-      <div className="fixed top-1/4 left-1/4 w-[300px] h-[300px] bg-gold/10 rounded-full blur-[100px] -z-10" />
-      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-brand/10 rounded-full blur-[100px] -z-10" />
+      <div className="fixed top-1/4 left-1/4 w-75 h-75 bg-gold/10 rounded-full blur-[100px] -z-10" />
+      <div className="fixed bottom-1/4 right-1/4 w-75 h-75 bg-brand/10 rounded-full blur-[100px] -z-10" />
 
       <div
         className={`
-          w-full max-w-2xl bg-surface-2 rounded-[2rem] overflow-hidden shadow-royale border border-white/5
+          w-full max-w-2xl bg-surface-2 rounded-4xl overflow-hidden shadow-royale border border-white/5
           ${reservation.isVIP ? 'border-gold/30' : ''}
           transition-all duration-300
         `}
@@ -144,7 +144,7 @@ export default function ReservationActionModal({
                   <p className="text-xs font-bold text-white uppercase tracking-wider">{reservation.guests} Invitados</p>
                   <p className="text-sm font-black text-white/80 mt-1 uppercase tracking-widest">
                     {reservation.tableId && typeof reservation.tableId === 'object'
-                      ? `Mesa ${reservation.tableId.number} (${(reservation.tableId as any).location})`
+                      ? `Mesa ${reservation.tableId.number} (${reservation.tableId.location})`
                       : "Sin Asignar"}
                   </p>
                 </div>
@@ -154,7 +154,7 @@ export default function ReservationActionModal({
           </div>
 
           {/* QUICK INFOS DIRECTORY */}
-          <div className="space-y-3 bg-black/20 p-5 rounded-[1.5rem] border border-white/5">
+          <div className="space-y-3 bg-black/20 p-5 rounded-3xl border border-white/5">
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted font-bold uppercase tracking-wider flex items-center gap-2">
                 <Phone size={14} className="text-gold" /> Teléfono
@@ -187,7 +187,7 @@ export default function ReservationActionModal({
 
           {/* RESTRICCIONES DIETÉTICAS */}
           {reservation.guestDietaryRestrictions && reservation.guestDietaryRestrictions.some((g) => g.restrictions.length > 0) && (
-            <div className="bg-amber-500/6 border border-amber-500/20 rounded-[1.5rem] p-5 space-y-3">
+            <div className="bg-amber-500/6 border border-amber-500/20 rounded-3xl p-5 space-y-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/25 text-amber-400">
                   <AlertTriangle size={14} />
@@ -201,7 +201,7 @@ export default function ReservationActionModal({
                   .filter((g) => g.restrictions.length > 0)
                   .map((guest, idx) => (
                     <div key={idx} className="flex items-start gap-3 bg-black/20 p-3 rounded-xl border border-amber-500/10">
-                      <div className="w-7 h-7 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-7 h-7 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center shrink-0 mt-0.5">
                         <span className="text-[10px] font-black text-gold">{idx + 1}</span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -292,7 +292,7 @@ export default function ReservationActionModal({
                   onClick={() => onStatusChange("confirmed")}
                   className="h-14 bg-gold hover:bg-gold-hover text-bg rounded-xl flex items-center justify-center gap-3 transition-all hover:scale-[1.02] font-black text-xs uppercase tracking-widest active:scale-95 shadow-[0_8px_20px_rgba(212,163,64,0.15)]"
                 >
-                  <Check size={16} className="stroke-[3]" />
+                  <Check size={16} className="stroke-3" />
                   CONFIRMAR ASISTENCIA
                 </button>
               )}
@@ -386,7 +386,7 @@ function TimelineStep({ label, active, current }: { label: string; active: boole
           }
         `}
       >
-        {active && !current ? <Check size={16} className="stroke-[3]" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
+        {active && !current ? <Check size={16} className="stroke-3" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
       </div>
       <span className={`text-[10px] font-black uppercase tracking-wider ${current ? 'text-gold' : active ? 'text-white/80' : 'text-muted/40'}`}>
         {label}

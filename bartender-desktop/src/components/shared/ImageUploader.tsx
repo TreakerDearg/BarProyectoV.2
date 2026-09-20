@@ -63,7 +63,7 @@ export default function ImageUploader({
       formData.append('folder', folder);
 
       // Use the axios instance with proper base URL and auth headers
-      const response: any = await api.post('/upload', formData, {
+      const response = await api.post<{ url: string }>('/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -72,8 +72,9 @@ export default function ImageUploader({
       onImageUpload(response.url);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Error al subir la imagen');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al subir la imagen';
+      setError(message);
       setPreview(currentImage || null);
     } finally {
       setUploading(false);

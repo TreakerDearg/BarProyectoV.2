@@ -5,7 +5,7 @@
 ========================================================= */
 
 import { IdentityStatus } from './IdentityStatus';
-import { IdentityRole } from './IdentityRole';
+
 
 /**
  * Horario de usuario (para empleados)
@@ -46,6 +46,7 @@ export interface UserMetadata {
 export interface IdentityUser {
   // Identificación básica
   id: string;
+  _id?: string;
   name: string;
   email: string;
 

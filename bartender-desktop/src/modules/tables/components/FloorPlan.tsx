@@ -26,7 +26,6 @@ export default function FloorPlan({
   onTableLayoutChange,
   onToggleEditMode,
   onCreateTable,
-  onRetry,
 }: FloorPlanProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +47,7 @@ export default function FloorPlan({
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full w-full overflow-hidden">
       {/* HEADER BAR */}
-      <div className="flex items-center justify-between mb-3 px-1 flex-shrink-0">
+      <div className="flex items-center justify-between mb-3 px-1 shrink-0">
         <div className="flex items-center gap-2 md:gap-3">
           <div className="p-2 rounded-xl bg-gold/10 border border-gold/20 text-gold shadow-gold-glow/20">
             <LayoutGrid size={16} className="w-4 h-4 md:w-5 md:h-5" />
@@ -88,7 +87,7 @@ export default function FloorPlan({
         )}
       </div>
 
-      <div className="relative flex-1 bg-black/40 rounded-[2rem] md:rounded-[2.5rem] border border-white/5 overflow-hidden group/floor shadow-2xl min-h-0">
+      <div className="relative flex-1 bg-black/40 rounded-4xl md:rounded-[2.5rem] border border-white/5 overflow-hidden group/floor shadow-2xl min-h-0">
         {/* LOADING OVERLAY */}
         {loading && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -104,7 +103,7 @@ export default function FloorPlan({
           /* SPATIAL CANVAS VIEW */
           <div 
             ref={containerRef}
-            className="absolute inset-0 p-4 md:p-6 overflow-hidden bg-black/60 rounded-[2rem] md:rounded-[2.5rem] select-none"
+            className="absolute inset-0 p-4 md:p-6 overflow-hidden bg-black/60 rounded-4xl md:rounded-[2.5rem] select-none"
             onDragOver={(e) => {
               if (isEditMode) {
                 e.preventDefault();

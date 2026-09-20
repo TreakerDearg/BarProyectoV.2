@@ -65,7 +65,7 @@ export default function RouletteLogs({ logs }: Props) {
         {["all", "system", "admin", "event", "alert"].map((lvl) => (
           <button
             key={lvl}
-            onClick={() => setFilter(lvl as any)}
+            onClick={() => setFilter(lvl as LogLevel)}
             className={`px-4 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${
               filter === lvl
                 ? "bg-gold text-bg border-gold shadow-gold-glow"
@@ -78,7 +78,7 @@ export default function RouletteLogs({ logs }: Props) {
       </div>
 
       {/* ================= LOG LIST ================= */}
-      <div className="space-y-4 overflow-y-auto pr-4 custom-scrollbar max-h-[600px]">
+      <div className="space-y-4 overflow-y-auto pr-4 custom-scrollbar max-h-150">
         {filteredLogs.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-muted opacity-20">
              <Info size={48} className="mb-4" />

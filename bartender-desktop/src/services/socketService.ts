@@ -14,7 +14,7 @@ export interface ActivityLog {
   userRole: string;
   activityType: string;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   shift?: string;
   timestamp: string;
 }
@@ -54,7 +54,7 @@ class SocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
-  private listeners: Map<string, Set<Function>> = new Map();
+  private listeners: Map<string, Set<(...args: unknown[]) => void>> = new Map();
 
   /**
    * Conectar al servidor WebSocket
@@ -133,7 +133,7 @@ class SocketService {
   /**
    * Unirse a una room
    */
-  joinRoom(room: string, ...args: any[]): void {
+  joinRoom(room: string, ...args: unknown[]): void {
     if (!this.socket?.connected) {
       console.warn("[SocketService] No conectado, no se puede unir a room");
       return;
@@ -148,7 +148,7 @@ class SocketService {
     };
 
     const event = eventMap[room] || `join:${room}`;
-    this.socket.emit(event, ...args, (response: any) => {
+    this.socket.emit(event, ...args, (response: unknown) => {
       console.log(`[SocketService] Unido a room ${room}:`, response);
     });
   }
@@ -156,7 +156,7 @@ class SocketService {
   /**
    * Salir de una room
    */
-  leaveRoom(room: string, ...args: any[]): void {
+  leaveRoom(room: string, ...args: unknown[]): void {
     if (!this.socket?.connected) {
       console.warn("[SocketService] No conectado, no se puede salir de room");
       return;
@@ -171,7 +171,7 @@ class SocketService {
     };
 
     const event = eventMap[room] || `leave:${room}`;
-    this.socket.emit(event, ...args, (response: any) => {
+    this.socket.emit(event, ...args, (response: unknown) => {
       console.log(`[SocketService] Salió de room ${room}:`, response);
     });
   }
@@ -179,7 +179,7 @@ class SocketService {
   /**
    * Escuchar evento
    */
-  on(event: string, callback: (...args: any[]) => void): void {
+  on(event: string, callback: (...args: unknown[]) => void): void {
     if (!this.socket) {
       console.warn("[SocketService] Socket no inicializado");
       return;
@@ -197,7 +197,7 @@ class SocketService {
   /**
    * Dejar de escuchar evento
    */
-  off(event: string, callback?: (...args: any[]) => void): void {
+  off(event: string, callback?: (...args: unknown[]) => void): void {
     if (!this.socket) return;
 
     if (callback) {
@@ -218,7 +218,7 @@ class SocketService {
   /**
    * Emitir evento
    */
-  emit(event: string, ...args: any[]): void {
+  emit(event: string, ...args: unknown[]): void {
     if (!this.socket?.connected) {
       console.warn("[SocketService] No conectado, no se puede emitir evento");
       return;
@@ -247,7 +247,7 @@ class SocketService {
       console.log("[SocketService] KPI actualizado:", data);
     });
 
-    this.socket.on("kpi:ranking", (data: any[]) => {
+    this.socket.on("kpi:ranking", (data: Array<Record<string, unknown>>) => {
       console.log("[SocketService] Ranking actualizado:", data);
     });
 
@@ -273,25 +273,25 @@ class SocketService {
       console.log("[SocketService] Turno eliminado:", data);
     });
 
-    this.socket.on("shift:assignment", (data: any) => {
+    this.socket.on("shift:assignment", (data: Record<string, unknown>) => {
       console.log("[SocketService] Nueva asignación de turno:", data);
     });
 
-    this.socket.on("shift:attendance", (data: any) => {
+    this.socket.on("shift:attendance", (data: Record<string, unknown>) => {
       console.log("[SocketService] Registro de asistencia:", data);
     });
 
     // Metrics events
-    this.socket.on("metrics:update", (data: any) => {
+    this.socket.on("metrics:update", (data: Record<string, unknown>) => {
       console.log("[SocketService] Métricas actualizadas:", data);
     });
 
-    this.socket.on("metrics:peak-hours", (data: any) => {
+    this.socket.on("metrics:peak-hours", (data: Record<string, unknown>) => {
       console.log("[SocketService] Horas pico actualizadas:", data);
     });
 
     // System notifications
-    this.socket.on("system:notification", (data: any) => {
+    this.socket.on("system:notification", (data: Record<string, unknown>) => {
       console.log("[SocketService] Notificación del sistema:", data);
     });
   }
@@ -306,7 +306,7 @@ class SocketService {
         return;
       }
 
-      this.socket.emit("ping", (response: any) => {
+      this.socket.emit("ping", (response: { pong: boolean; timestamp: string }) => {
         resolve(response);
       });
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   X,
   User,
@@ -37,9 +37,22 @@ interface TableOption {
   location?: string;
 }
 
+interface ReservationFormData {
+  customerName: string;
+  customerPhone: string;
+  startTime: string;
+  endTime: string;
+  guests: number;
+  tableId: string;
+  notes: string;
+  isVIP: boolean;
+  deposit: number;
+  guestDietaryRestrictions: GuestDietaryRestriction[];
+}
+
 interface Props {
   reservation?: Reservation | null;
-  onSave: (reservation: any) => void;
+  onSave: (reservation: ReservationFormData & { _id?: string }) => void;
   onClose: () => void;
 }
 
@@ -88,7 +101,7 @@ export default function ReservationForm({
   onSave,
   onClose,
 }: Props) {
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<ReservationFormData>({
     customerName: "",
     customerPhone: "",
     startTime: "",
@@ -125,10 +138,12 @@ export default function ReservationForm({
       startTime: startStr,
       endTime: endStr,
       guests: reservation.guests || 1,
-      tableId: (reservation as any).table?._id || (typeof reservation.tableId === 'object' && reservation.tableId ? reservation.tableId._id : reservation.tableId) || "",
+      tableId: typeof reservation.tableId === "string"
+        ? reservation.tableId
+        : reservation.tableId?._id || "",
       notes: reservation.notes || "",
-      isVIP: (reservation as any).isVIP || false,
-      deposit: (reservation as any).deposit || 0,
+      isVIP: reservation.isVIP || false,
+      deposit: reservation.deposit || 0,
       guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions)
         ? reservation.guestDietaryRestrictions
         : [],
@@ -154,7 +169,7 @@ export default function ReservationForm({
     const start = new Date(formData.startTime);
     const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
 
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       endTime: end.toISOString().slice(0, 16),
     }));
@@ -170,13 +185,13 @@ export default function ReservationForm({
     const defaultHours = selectedDuration || 2;
     const end = new Date(start.getTime() + defaultHours * 60 * 60 * 1000);
 
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       endTime: end.toISOString().slice(0, 16),
     }));
 
     if (!selectedDuration) setSelectedDuration(2);
-  }, [formData.startTime]);
+  }, [formData.startTime, formData.endTime, selectedDuration]);
 
   /* =========================
      VALIDATION
@@ -259,14 +274,14 @@ export default function ReservationForm({
         setTables(data || []);
 
         if (data?.length === 1 && !formData.tableId) {
-          setFormData((prev: any) => ({
+          setFormData((prev) => ({
             ...prev,
             tableId: data[0]._id,
           }));
         }
 
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Error al consultar mesas");
       } finally {
         setLoadingTables(false);
       }
@@ -274,15 +289,18 @@ export default function ReservationForm({
 
     const t = setTimeout(fetchTables, 300);
     return () => clearTimeout(t);
-  }, [formData.startTime, formData.endTime, formData.guests]);
+  }, [formData.startTime, formData.endTime, formData.guests, formData.tableId, validation.valid]);
 
   /* =========================
      HANDLER
   ========================= */
-  const handleChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = type === "checkbox" && "checked" in e.target
+      ? Boolean(e.target.checked)
+      : false;
 
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : (name === "guests" || name === "deposit" ? Number(value) : value),
     }));
@@ -291,7 +309,7 @@ export default function ReservationForm({
   /* =========================
      SUBMIT
   ========================= */
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
@@ -310,8 +328,8 @@ export default function ReservationForm({
         endTime: new Date(formData.endTime).toISOString(),
       });
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error al guardar la reserva");
     } finally {
       setLoading(false);
     }
@@ -321,11 +339,11 @@ export default function ReservationForm({
      UI
   ========================= */
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-100 p-4 md:p-8 animate-fade-in overflow-y-auto">
       
       {/* BACKGROUND GLOWS FOR MODAL */}
-      <div className="fixed top-1/4 left-1/4 w-[300px] h-[300px] bg-gold/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 right-1/4 w-[300px] h-[300px] bg-brand/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
+      <div className="fixed top-1/4 left-1/4 w-75 h-75 bg-gold/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
+      <div className="fixed bottom-1/4 right-1/4 w-75 h-75 bg-brand/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
 
       <form
         onSubmit={handleSubmit}
@@ -388,7 +406,7 @@ export default function ReservationForm({
           )}
 
           {/* VIP TOGGLE (HIGH ROLLER) */}
-          <div className="flex items-center justify-between bg-surface-3/30 p-6 rounded-[2rem] border border-white/5 group hover:border-gold/20 transition-all shadow-inner">
+          <div className="flex items-center justify-between bg-surface-3/30 p-6 rounded-4xl border border-white/5 group hover:border-gold/20 transition-all shadow-inner">
             <div className="flex items-center gap-4">
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow scale-110' : 'bg-surface-4 text-muted border border-white/5'}`}>
                 <Crown size={24} className={formData.isVIP ? 'fill-current' : ''} />
@@ -406,7 +424,7 @@ export default function ReservationForm({
                 onChange={handleChange} 
                 className="sr-only peer"
               />
-              <div className="w-16 h-9 bg-surface-4 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-muted after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gold peer-checked:after:bg-bg peer-checked:after:border-transparent" />
+              <div className="w-16 h-9 bg-surface-4 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-1.5 after:left-1.5 after:bg-muted after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gold peer-checked:after:bg-bg peer-checked:after:border-transparent" />
             </label>
           </div>
 
@@ -427,7 +445,7 @@ export default function ReservationForm({
                       name="customerName" 
                       value={formData.customerName} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14 !py-5" 
+                      className="input-royale pl-14! py-5!" 
                       placeholder="Escriba el nombre del cliente..." 
                     />
                   </div>
@@ -440,7 +458,7 @@ export default function ReservationForm({
                       name="customerPhone" 
                       value={formData.customerPhone} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14 !py-5" 
+                      className="input-royale pl-14! py-5!" 
                       placeholder="+54 9..." 
                     />
                   </div>
@@ -465,7 +483,7 @@ export default function ReservationForm({
                       name="guests" 
                       value={formData.guests} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14 !py-5" 
+                      className="input-royale pl-14! py-5!" 
                       min={1}
                     />
                   </div>
@@ -479,7 +497,7 @@ export default function ReservationForm({
                       name="deposit" 
                       value={formData.deposit} 
                       onChange={handleChange} 
-                      className="input-royale !pl-14 !py-5" 
+                      className="input-royale pl-14! py-5!" 
                       min={0}
                     />
                   </div>
@@ -516,7 +534,7 @@ export default function ReservationForm({
                                 <button
                                   key={t._id}
                                   type="button"
-                                  onClick={() => setFormData((prev: any) => ({ ...prev, tableId: t._id }))}
+                                  onClick={() => setFormData((prev) => ({ ...prev, tableId: t._id }))}
                                   className={`
                                     p-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all border flex flex-col items-center gap-2
                                     ${isSelected
@@ -574,14 +592,14 @@ export default function ReservationForm({
                       if (selectedDuration && e.target.value) {
                         const start = new Date(e.target.value);
                         const end = new Date(start.getTime() + selectedDuration * 60 * 60 * 1000);
-                        setFormData((prev: any) => ({
+                        setFormData((prev) => ({
                           ...prev,
                           startTime: e.target.value,
                           endTime: end.toISOString().slice(0, 16),
                         }));
                       }
                     }}
-                    className="input-royale !pl-14 !py-5" 
+                    className="input-royale pl-14! py-5!" 
                   />
                 </div>
               </div>
@@ -597,7 +615,7 @@ export default function ReservationForm({
                       handleChange(e);
                       setSelectedDuration(null); // Deselect preset on manual edit
                     }}
-                    className="input-royale !pl-14 !py-5" 
+                    className="input-royale pl-14! py-5!" 
                   />
                 </div>
               </div>
@@ -658,7 +676,7 @@ export default function ReservationForm({
             <button
               type="button"
               onClick={() => setShowDietary((v) => !v)}
-              className="w-full flex items-center justify-between gap-3 px-6 py-4 rounded-[1.5rem] border border-white/8 bg-amber-500/5 hover:bg-amber-500/10 transition-all"
+              className="w-full flex items-center justify-between gap-3 px-6 py-4 rounded-3xl border border-white/8 bg-amber-500/5 hover:bg-amber-500/10 transition-all"
             >
               <div className="flex items-center gap-4">
                 <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400">
@@ -696,12 +714,12 @@ export default function ReservationForm({
                       ...formData.guestDietaryRestrictions,
                     ];
                     list[idx] = updated;
-                    setFormData((prev: any) => ({ ...prev, guestDietaryRestrictions: list }));
+                    setFormData((prev) => ({ ...prev, guestDietaryRestrictions: list }));
                   };
                   return (
-                    <div key={idx} className="rounded-[1.5rem] border border-white/8 bg-surface-3/30 overflow-hidden">
+                    <div key={idx} className="rounded-3xl border border-white/8 bg-surface-3/30 overflow-hidden">
                       <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center shrink-0">
                           <span className="text-xs font-black text-gold">{idx + 1}</span>
                         </div>
                         <input
@@ -738,9 +756,9 @@ export default function ReservationForm({
                                     : "bg-white/5 border-white/10 text-muted hover:bg-white/10 hover:text-ivory"
                                 }`}
                               >
-                                <span className="flex-shrink-0">{getDietaryIcon(opt.iconName, 13)}</span>
+                                <span className="shrink-0">{getDietaryIcon(opt.iconName, 13)}</span>
                                 <span className="truncate">{opt.label}</span>
-                                {selected && <CheckCircle size={11} className="ml-auto flex-shrink-0" />}
+                                {selected && <CheckCircle size={11} className="ml-auto shrink-0" />}
                               </button>
                             );
                           })}
@@ -753,7 +771,7 @@ export default function ReservationForm({
                               value={entry.notes ?? ""}
                               onChange={(e) => update({ ...entry, notes: e.target.value })}
                               placeholder="Nota adicional (ej: alérgico severo al maní…)"
-                              className="input-royale !pl-12 !py-3 text-xs"
+                              className="input-royale pl-12! py-3! text-xs"
                             />
                           </div>
                         )}
@@ -778,7 +796,7 @@ export default function ReservationForm({
                 value={formData.notes}
                 onChange={handleChange}
                 placeholder="Preferencias de bebida, requerimientos dietéticos, etc..."
-                className="input-royale !pl-14 min-h-[120px] resize-none py-6"
+                className="input-royale pl-14! min-h-30 resize-none py-6"
               />
             </div>
           </div>
@@ -789,7 +807,7 @@ export default function ReservationForm({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-14 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+            className="flex-1 h-14 rounded-3xl text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
           >
             CANCELAR
           </button>
@@ -797,7 +815,7 @@ export default function ReservationForm({
             type="submit"
             disabled={!validation.valid || loading}
             className={`
-              flex-[2] h-14 rounded-[1.5rem] flex items-center justify-center gap-3 transition-all shadow-2xl
+              flex-2 h-14 rounded-3xl flex items-center justify-center gap-3 transition-all shadow-2xl
               ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold/30 hover:scale-[1.02]' : 'btn-gold hover:scale-[1.02]'}
               disabled:opacity-20 disabled:grayscale disabled:scale-100
             `}

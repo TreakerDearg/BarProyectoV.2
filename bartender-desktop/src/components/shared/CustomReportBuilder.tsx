@@ -225,7 +225,7 @@ export default function CustomReportBuilder() {
                 </select>
                 <select
                   value={filter.operator}
-                  onChange={(e) => updateFilter(filter.id, { operator: e.target.value as any })}
+                  onChange={(e) => updateFilter(filter.id, { operator: e.target.value as ReportFilter["operator"] })}
                   className="bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-ivory outline-none"
                 >
                   <option value="eq">=</option>

@@ -32,7 +32,7 @@ import {
 } from "../services/orderService";
 
 import type { Order } from "../types/order";
-import { connectSalonSockets, getMainSocket } from "../../../services/socket";
+import { connectSalonSockets, onOrderCreated, onOrderUpdated, onOrderDeleted } from "../../../services/socket";
 import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
 import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
 import { useSalonUiStore } from "../../../store/salonUiStore";
@@ -121,38 +121,37 @@ export default function OrdersPage() {
     fetchOrders();
     connectSalonSockets();
 
-    const socket = getMainSocket();
-    if (!socket) return;
+    const unwrapOrder = (payload: { order?: Order } | Order): Order =>
+      (payload as { order?: Order }).order ?? payload as Order;
 
-    const upsert = (order: Order) =>
+    const upsert = (payload: { order?: Order } | Order) => {
+      const order = unwrapOrder(payload);
+      const orderId = order._id ?? (order as Order & { id?: string }).id;
+      if (!orderId) return;
       setOrders((prev) => {
-        const idx = prev.findIndex((o) => o._id === order._id);
+        const idx = prev.findIndex((o) => o._id === orderId);
+        const normalized = { ...order, _id: orderId };
         if (idx >= 0) {
           const next = [...prev];
-          next[idx] = order;
+          next[idx] = normalized;
           return next;
         }
-        return [order, ...prev];
+        return [normalized, ...prev];
       });
+    };
 
-    const handleNewOrder = (order: Order) => upsert(order);
-    const handleUpdateOrder = (order: Order) => upsert(order);
-    const handleDeleteOrder = (payload: Order | string) => {
-      const id = typeof payload === "string" ? payload : payload._id;
+    const handleDeleteOrder = (payload: Order | string | { id: string }) => {
+      const id = typeof payload === "string" ? payload : "id" in payload ? payload.id : payload._id;
       if (id) setOrders((prev) => prev.filter((o) => o._id !== id));
     };
 
-    socket.on("order:created", handleNewOrder);
-    socket.on("order:update", handleUpdateOrder);
-    socket.on("order:updated", handleUpdateOrder);
-    socket.on("order:deleted", handleDeleteOrder);
+    const cleanups = [
+      onOrderCreated((payload) => upsert(payload.order as unknown as Order)),
+      onOrderUpdated((payload) => upsert(payload.order as unknown as Order)),
+      onOrderDeleted((payload) => handleDeleteOrder(payload.order?.id ?? "")),
+    ];
 
-    return () => {
-      socket.off("order:created", handleNewOrder);
-      socket.off("order:update", handleUpdateOrder);
-      socket.off("order:updated", handleUpdateOrder);
-      socket.off("order:deleted", handleDeleteOrder);
-    };
+    return () => cleanups.forEach((cleanup) => cleanup());
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -362,7 +361,7 @@ export default function OrdersPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-xl bg-gradient-to-br from-gold-light to-gold text-bg flex items-center justify-center shadow-lg shadow-gold/25 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all"
+          className="w-14 h-14 rounded-xl bg-linear-to-br from-gold-light to-gold text-bg flex items-center justify-center shadow-lg shadow-gold/25 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all"
           title="Nueva orden"
         >
           <Plus size={24} />
@@ -370,7 +369,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 min-h-0 gap-4">
-        <header className="flex flex-wrap items-end justify-between gap-6 px-1 flex-shrink-0">
+        <header className="flex flex-wrap items-end justify-between gap-6 px-1 shrink-0">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl nebula-brand-mark">
               <ChefHat size={28} />
@@ -489,7 +488,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={openSalonTutorial}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10 text-xs flex items-center gap-1 hover:border-gold/30"
+              className="btn btn-ghost p-3! rounded-xl border border-white/10 text-xs flex items-center gap-1 hover:border-gold/30"
             >
               <HelpCircle size={16} />
               Tutorial
@@ -498,7 +497,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={() => setShowExportImport(true)}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10 hover:border-gold/30"
+              className="btn btn-ghost p-3! rounded-xl border border-white/10 hover:border-gold/30"
               title="Exportar/Importar"
             >
               <Target size={16} />
@@ -507,7 +506,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={fetchOrders}
-              className="btn btn-ghost !p-3 rounded-xl border border-white/10 hover:border-gold/30"
+              className="btn btn-ghost p-3! rounded-xl border border-white/10 hover:border-gold/30"
             >
               <RefreshCcw
                 size={16}
@@ -595,7 +594,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="w-[300px] md:w-[360px] hidden lg:flex flex-col min-h-0 shrink-0">
+      <div className="w-75 md:w-90 hidden lg:flex flex-col min-h-0 shrink-0">
         <FocusPanel
           selectedItem={selectedItem}
           onItemStatusChange={handleItemStatusChange}
@@ -709,7 +708,7 @@ function MetricCard({
 
   return (
     <div
-      className={`nebula-luxury-panel !p-5 flex items-center gap-4 ${colorClasses[selectedColor as keyof typeof colorClasses]} transition-all hover:-translate-y-0.5 ${warn && value > 0 ? "border-red-500/50" : ""}`}
+      className={`nebula-luxury-panel p-5! flex items-center gap-4 ${colorClasses[selectedColor as keyof typeof colorClasses]} transition-all hover:-translate-y-0.5 ${warn && value > 0 ? "border-red-500/50" : ""}`}
     >
       <div className={`p-2.5 rounded-lg ${iconBg[selectedColor as keyof typeof iconBg]}`}>
         {icon}

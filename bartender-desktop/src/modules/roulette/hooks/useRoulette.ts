@@ -135,10 +135,10 @@ export const useRoulette = () => {
       setDrinks((prev) => [...prev, newDrink]);
       pushLog("event", `Added '${newDrink.name}' (Weight: ${newDrink.weight}, Rarity: ${newDrink.rarity})`);
       return { success: true, drink: newDrink };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating drink:", error);
       pushLog("alert", "Create failed");
-      return { success: false, error: error.message || "unknown" };
+      return { success: false, error: error instanceof Error ? error.message : "unknown" };
     }
   }, [pushLog]);
 
@@ -203,11 +203,11 @@ export const useRoulette = () => {
       await deleteRouletteDrink(id);
       pushLog("alert", `Removed '${drink.name}' (Weight: ${drink.weight}, Rarity: ${drink.rarity})`);
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error removing drink:", error);
       setDrinks(prev);
       pushLog("alert", "Delete failed");
-      return { success: false, error: error.message || "unknown" };
+      return { success: false, error: error instanceof Error ? error.message : "unknown" };
     }
   }, [pushLog]);
 

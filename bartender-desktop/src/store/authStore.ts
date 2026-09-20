@@ -29,24 +29,23 @@ export const useAuthStore = create<AuthState>((set) => ({
      LOGIN
   ========================= */
   login: async (email, password) => {
-    const response: any = await loginService({ email, password });
-    const payload = response?.data ?? response;
-    const token = payload?.token ?? response?.token;
-    const refreshToken = payload?.refreshToken ?? response?.refreshToken;
-    const rawUser = payload?.user ?? response?.user;
+    const response = await loginService({ email, password });
+    const token = response.token;
+    const refreshToken = response.refreshToken;
+    const rawUser = response.user;
 
     if (!token || !rawUser) {
-      throw new Error(response?.message || "No se pudo iniciar sesión");
+      throw new Error("No se pudo iniciar sesión");
     }
 
-    const role = rawUser.role || payload.role;
+    const role = rawUser.role;
     if (role === "client") {
       throw new Error("Esta cuenta es de cliente. Iniciá sesión en la web del bar.");
     }
 
     const user = {
       ...rawUser,
-      _id: rawUser._id ?? rawUser.id,
+      _id: rawUser._id,
       role,
     };
 
@@ -112,19 +111,19 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         loading: false,
       });
-    } catch (err) {
+    } catch {
       // token inválido o expirado, intentar refresh
       if (refreshToken) {
         try {
           const api = (await import("../services/api")).default;
-          const response: any = await api.post('/auth/refresh', { refreshToken });
-          
-          const newAccessToken = response?.token;
-          const newRefreshToken = response?.refreshToken || refreshToken;
+          const response = await api.post<{ token?: string; refreshToken?: string }>('/auth/refresh', { refreshToken });
+          const payload = response.data;
+          const newAccessToken = payload.token;
+          const newRefreshToken = payload.refreshToken || refreshToken;
 
           if (newAccessToken) {
             saveTokens(newAccessToken, newRefreshToken);
-            setAuthToken(newAccessToken);
+            saveTokens(newAccessToken, newRefreshToken);
 
             const user = await getMe();
             set({
@@ -143,7 +142,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Si falla todo, limpiar
       removeTokens();
-      setAuthToken(null);
+      removeTokens();
 
       set({
         token: null,

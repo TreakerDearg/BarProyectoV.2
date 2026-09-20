@@ -47,8 +47,8 @@
 
 @media (min-width: 1440px) {
   .main {
-    padding-right: clamp(4rem, 8vw, 10rem);
-    padding-left: clamp(4rem, 8vw, 10rem);
+    padding-right: clamp(2.5rem, 4vw, 5rem);
+    padding-left: clamp(2.5rem, 4vw, 5rem);
   }
 }
 

@@ -10,7 +10,34 @@ export interface UploadResult {
 
 export interface UploadError {
   message: string;
-  error?: any;
+  error?: unknown;
+}
+
+export interface UploadOptions {
+  compress?: boolean;
+  maxWidth?: number;
+  quality?: number;
+}
+
+interface UploadServiceError {
+  code?: string;
+  message?: string;
+  response?: {
+    status?: number;
+    data?: { message?: string; error?: string };
+  };
+}
+
+const toUploadError = (error: unknown): UploadServiceError => {
+  if (typeof error === "object" && error !== null) {
+    return error as UploadServiceError;
+  }
+  return {};
+};
+
+const getUploadErrorMessage = (error: unknown, fallback: string): string => {
+  const normalized = toUploadError(error);
+  return normalized.response?.data?.message || normalized.response?.data?.error || normalized.message || fallback;
 }
 
 // Upload queue management
@@ -28,7 +55,7 @@ class UploadQueue {
   private maxConcurrent = 3;
   private activeUploads = 0;
 
-  add(file: File, options?: any): Promise<UploadResult> {
+  add(file: File, options?: UploadOptions): Promise<UploadResult> {
     return new Promise((resolve, reject) => {
       this.queue.push({ file, options, resolve, reject, retries: 0 });
       this.process();
@@ -77,7 +104,7 @@ class UploadQueue {
     }
   }
 
-  private async uploadSingle(file: File, options?: any): Promise<UploadResult> {
+  private async uploadSingle(file: File, options?: UploadOptions): Promise<UploadResult> {
     // Use the existing uploadImage logic
     return uploadImageInternal(file, options);
   }
@@ -166,30 +193,28 @@ const uploadImageInternal = async (
       mimeType: response.data.mimeType || file.type,
       size: response.data.size || fileToUpload.size,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const normalized = toUploadError(error);
     console.error('[UploadService] Upload error:', error);
     
     // Provide specific error messages based on error type
-    if (error.code === 'ECONNABORTED') {
+    if (normalized.code === 'ECONNABORTED') {
       throw new Error('Tiempo de espera agotado. La imagen es muy grande o la conexión es lenta.');
     }
     
-    if (error.response?.status === 413) {
+    if (normalized.response?.status === 413) {
       throw new Error('El archivo es demasiado grande para el servidor.');
     }
     
-    if (error.response?.status === 415) {
+    if (normalized.response?.status === 415) {
       throw new Error('Tipo de archivo no soportado por el servidor.');
     }
     
-    if (error.response?.status >= 500) {
+    if ((normalized.response?.status ?? 0) >= 500) {
       throw new Error('Error del servidor al subir la imagen. Intente nuevamente.');
     }
     
-    const errorMessage = error?.response?.data?.message || 
-                        error?.response?.data?.error || 
-                        error?.message || 
-                        'Error al subir la imagen';
+    const errorMessage = getUploadErrorMessage(error, 'Error al subir la imagen');
     throw new Error(errorMessage);
   }
 };
@@ -244,26 +269,24 @@ export const uploadMultipleImages = async (
     console.log('[UploadService] Multiple upload successful:', results);
 
     return results;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const normalized = toUploadError(error);
     console.error('[UploadService] Multiple upload error:', error);
     
     // Provide specific error messages
-    if (error.code === 'ECONNABORTED') {
+    if (normalized.code === 'ECONNABORTED') {
       throw new Error('Tiempo de espera agotado. Las imágenes son muy grandes o la conexión es lenta.');
     }
     
-    if (error.response?.status === 413) {
+    if (normalized.response?.status === 413) {
       throw new Error('Algunos archivos son demasiado grandes para el servidor.');
     }
     
-    if (error.response?.status >= 500) {
+    if ((normalized.response?.status ?? 0) >= 500) {
       throw new Error('Error del servidor al subir las imágenes. Intente nuevamente.');
     }
     
-    const errorMessage = error?.response?.data?.message || 
-                        error?.response?.data?.error || 
-                        error?.message || 
-                        'Error al subir las imágenes';
+    const errorMessage = getUploadErrorMessage(error, 'Error al subir las imágenes');
     throw new Error(errorMessage);
   }
 };
@@ -375,7 +398,7 @@ export const deleteImage = async (publicId: string): Promise<void> => {
     console.log('[UploadService] Deleting image:', publicId);
     await api.delete(`/upload/${publicId}`);
     console.log('[UploadService] Image deleted successfully');
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[UploadService] Delete image error:', error);
     // Don't throw error - allow operation to continue even if deletion fails
     console.warn('[UploadService] Failed to delete image, continuing anyway');

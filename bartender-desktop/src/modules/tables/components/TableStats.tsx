@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Table } from "../types/table";
 import { Users, LayoutGrid, CheckCircle2 } from "lucide-react";
 
@@ -36,7 +37,7 @@ export default function TableStats({ tables }: { tables: Table[] }) {
   );
 }
 
-function StatItem({ icon, label, value }: any) {
+function StatItem({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
   return (
     <div className="flex items-center gap-3">
       <div className="p-2 rounded-xl bg-white/5 border border-white/5">

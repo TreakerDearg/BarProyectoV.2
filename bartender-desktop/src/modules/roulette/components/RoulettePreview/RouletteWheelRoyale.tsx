@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { RouletteDrink } from "../../types/roulette";
 import RouletteSliceRoyale from "./RouletteSliceRoyale";
 import { Flame } from "lucide-react";
@@ -20,16 +20,19 @@ export default function RouletteWheelRoyale({
 }: Props) {
   const [rotation, setRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [, startTransition] = useTransition();
   const wheelRef = useRef<SVGSVGElement>(null);
 
   const slices = useMemo(() => {
-    let cumulative = 0;
-    return drinks.map((drink) => {
+    return drinks.reduce<Array<RouletteDrink & { startAngle: number; sliceAngle: number }>>((result, drink) => {
+      const cumulative = result.length === 0
+        ? 0
+        : result[result.length - 1].startAngle + result[result.length - 1].sliceAngle;
       const startAngle = (cumulative / totalWeight) * 360;
       const sliceAngle = (drink.weight / totalWeight) * 360;
-      cumulative += drink.weight;
-      return { ...drink, startAngle, sliceAngle };
-    });
+      result.push({ ...drink, startAngle, sliceAngle });
+      return result;
+    }, []);
   }, [drinks, totalWeight]);
 
   useEffect(() => {
@@ -38,26 +41,29 @@ export default function RouletteWheelRoyale({
     const selected = slices.find((s) => s._id === result._id);
     if (!selected) return;
 
-    setIsAnimating(true);
+    const startAnimation = window.setTimeout(() => startTransition(() => setIsAnimating(true)), 0);
 
     const targetAngle = selected.startAngle + selected.sliceAngle / 2;
     const extraSpins = 8 + Math.floor(Math.random() * 5);
     const finalRotation = (extraSpins * 360) + (360 - targetAngle);
 
-    setRotation(finalRotation);
+    window.setTimeout(() => startTransition(() => setRotation(finalRotation)), 0);
 
     const timeout = setTimeout(() => {
       setIsAnimating(false);
     }, 6000); // Duración de la animación
 
-    return () => clearTimeout(timeout);
+    return () => {
+      window.clearTimeout(startAnimation);
+      clearTimeout(timeout);
+    };
   }, [result, spinning, slices]);
 
   return (
-    <div className="relative w-[450px] h-[450px] flex items-center justify-center group">
+    <div className="relative w-112.5 h-112.5 flex items-center justify-center group">
       
       {/* AURA EXTERNA DINÁMICA */}
-      <div className={`absolute inset-0 rounded-full border-[12px] border-white/5 shadow-[0_0_80px_rgba(212,163,64,0.1)] transition-all duration-1000 ${isAnimating ? 'rotate-180 scale-105' : ''}`} />
+      <div className={`absolute inset-0 rounded-full border-12 border-white/5 shadow-[0_0_80px_rgba(212,163,64,0.1)] transition-all duration-1000 ${isAnimating ? 'rotate-180 scale-105' : ''}`} />
       
       {/* PUNTOS PERIMETRALES (LUCES) */}
       {[...Array(24)].map((_, i) => (
@@ -113,7 +119,7 @@ export default function RouletteWheelRoyale({
 
         {/* EJE CENTRAL (THE HUB) */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-b from-surface-3 to-bg border border-white/10 shadow-2xl flex items-center justify-center relative">
+          <div className="w-24 h-24 rounded-full bg-linear-to-b from-surface-3 to-bg border border-white/10 shadow-2xl flex items-center justify-center relative">
              <div className="absolute inset-0 rounded-full bg-gold/5 animate-ping opacity-20" />
              <div className="w-16 h-16 rounded-full bg-bg border border-gold/30 flex items-center justify-center shadow-inner">
                 <Flame className={`w-8 h-8 ${isAnimating ? 'text-gold animate-pulse' : 'text-muted/20'}`} />

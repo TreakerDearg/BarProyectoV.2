@@ -1,3 +1,5 @@
+import type { ProductRecipe } from "./productRecipe";
+
 export interface Product {
   _id?: string;
   name: string;
@@ -19,6 +21,6 @@ export interface Product {
   updatedAt?: string;
   hasRecipe?: boolean;
   recipeId?: string;
-  recipe?: any;
+  recipe?: ProductRecipe;
   menuIds?: string[];
 }

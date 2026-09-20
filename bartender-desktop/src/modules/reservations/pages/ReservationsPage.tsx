@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   RefreshCcw,
@@ -34,16 +34,23 @@ import {
 } from "../services/reservationService";
 
 import type { Reservation } from "../types/reservation";
-import { connectSalonSockets, getMainSocket } from "../../../services/socket";
+import {
+  connectSalonSockets,
+  onReservationCreated,
+  onReservationUpdated,
+  onReservationDeleted,
+} from "../../../services/socket";
 import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
 import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
 import { useSalonUiStore } from "../../../store/salonUiStore";
 import "../../../styles/nebula-theme.css";
 
-const normalizeReservations = (data: any): Reservation[] => {
+type ReservationResponse = Reservation[] | { reservations?: Reservation[]; data?: Reservation[] };
+
+const normalizeReservations = (data: ReservationResponse): Reservation[] => {
   if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.reservations)) return data.reservations;
-  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data.reservations)) return data.reservations;
+  if (Array.isArray(data.data)) return data.data;
   return [];
 };
 
@@ -76,7 +83,7 @@ export default function ReservationsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [_error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [whatsappReservation, setWhatsappReservation] = useState<Reservation | null>(null);
   const [isWhatsappOpen, setIsWhatsappOpen] = useState(false);
 
@@ -97,7 +104,7 @@ export default function ReservationsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchReservations = async () => {
+  const fetchReservations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -109,60 +116,63 @@ export default function ReservationsPage() {
       
       const data = normalizeReservations(response);
       setReservations(data);
-    } catch (err: any) {
-      setError(err.message || "Error al cargar reservaciones");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cargar reservaciones");
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery]);
 
   useEffect(() => {
     fetchReservations();
-  }, []);
+  }, [fetchReservations]);
 
   useEffect(() => {
     const token = localStorage.getItem("token") || undefined;
     connectSalonSockets(token);
-    const socket = getMainSocket();
-    if (!socket) return;
+    const getReservationId = (reservation: Reservation & { id?: string }) =>
+      reservation._id ?? reservation.id;
 
     const handleUpdate = (updated: Reservation) => {
+      const id = getReservationId(updated);
+      if (!id) return;
       setReservations((prev) => {
         const list = [...prev];
-        const index = list.findIndex((r) => r._id === updated._id);
-        if (index >= 0) list[index] = updated;
-        else list.unshift(updated);
+        const index = list.findIndex((r) => getReservationId(r) === id);
+        const normalized = { ...updated, _id: id };
+        if (index >= 0) list[index] = normalized;
+        else list.unshift(normalized);
         return list;
       });
     };
 
     const handleCreated = (created: Reservation) => {
-      if (!created?._id) return;
+      const id = getReservationId(created);
+      if (!id) return;
       setReservations((prev) => {
-        if (prev.some((r) => r._id === created._id)) return prev;
-        return [created, ...prev];
+        if (prev.some((r) => getReservationId(r) === id)) return prev;
+        return [{ ...created, _id: id }, ...prev];
       });
     };
 
-    const handleDelete = (id: string) => {
-      setReservations((prev) => prev.filter((r) => r._id !== id));
+    const handleDelete = (payload: string | { id: string }) => {
+      const id = typeof payload === "string" ? payload : payload.id;
+      setReservations((prev) => prev.filter((r) => getReservationId(r) !== id));
     };
 
-    socket.on("reservation:update", handleUpdate);
-    socket.on("reservation:created", handleCreated);
-    socket.on("reservation:delete", handleDelete);
+    const cleanups = [
+      onReservationCreated((payload) => handleCreated(payload as unknown as Reservation)),
+      onReservationUpdated((payload) => handleUpdate(payload as unknown as Reservation)),
+      onReservationDeleted((payload) => handleDelete(payload)),
+    ];
 
-    return () => {
-      socket.off("reservation:update", handleUpdate);
-      socket.off("reservation:created", handleCreated);
-      socket.off("reservation:delete", handleDelete);
-    };
+    return () => cleanups.forEach((cleanup) => cleanup());
   }, []);
 
   /* =========================
      SAVE HANDLER (CREATE or EDIT)
   ========================= */
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: Partial<Reservation> & { _id?: string }) => {
     try {
       if (data._id) {
         // EDIT MODE: Use PUT
@@ -174,9 +184,9 @@ export default function ReservationsPage() {
       setIsFormOpen(false);
       setSelectedReservation(null);
       fetchReservations();
-    } catch (err: any) {
-      setError(err.message || "Error al procesar reserva");
-      throw err; // Re-throw so the form can display the error
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error al procesar reserva");
+      throw error; // Re-throw so the form can display the error
     }
   };
 
@@ -208,7 +218,7 @@ export default function ReservationsPage() {
       setIsActionModalOpen(false);
       setSelectedReservation(null);
       fetchReservations();
-    } catch (err) {
+    } catch {
       setError("No se pudo eliminar la reserva");
     }
   };
@@ -322,8 +332,12 @@ export default function ReservationsPage() {
         onComplete={completeSalonTutorial}
       />
 
+      {error && (
+        <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200" role="alert">{error}</div>
+      )}
+
       {postSeatTableId && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 shrink-0">
           <p className="text-sm font-medium">
             Clientes sentados. La mesa ya tiene sesión activa para tomar pedidos.
           </p>
@@ -350,7 +364,7 @@ export default function ReservationsPage() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 flex-shrink-0">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
@@ -386,7 +400,7 @@ export default function ReservationsPage() {
           <button
             type="button"
             onClick={openSalonTutorial}
-            className="btn btn-ghost !px-3 !py-2 rounded-xl border border-white/10 text-xs flex items-center gap-1"
+            className="btn btn-ghost px-3! py-2! rounded-xl border border-white/10 text-xs flex items-center gap-1"
           >
             <HelpCircle size={16} />
             Tutorial
@@ -421,7 +435,7 @@ export default function ReservationsPage() {
 
           <button
             onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}
-            className="btn btn-gold !px-10 !h-14 !rounded-[2rem] shadow-[0_15px_40px_rgba(212,163,64,0.25)] flex items-center gap-3 group relative overflow-hidden"
+            className="btn btn-gold px-10! h-14! rounded-4xl! shadow-[0_15px_40px_rgba(212,163,64,0.25)] flex items-center gap-3 group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             <Plus size={22} className="stroke-[4px] relative z-10" />
@@ -443,7 +457,7 @@ export default function ReservationsPage() {
          TIMELINE RADAR — "Radar de Llegadas"
       =========================== */}
       {salonMode === "advanced" && radarReservations.length > 0 && (
-        <div className="bg-surface-3/50 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-sm">
+        <div className="bg-surface-3/50 border border-white/5 rounded-4xl p-6 space-y-4 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-gold/10 rounded-xl border border-gold/20">
@@ -502,7 +516,7 @@ export default function ReservationsPage() {
                 >
                   {/* Name & Time */}
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-black text-ivory uppercase tracking-wider truncate max-w-[140px]">
+                    <p className="text-sm font-black text-ivory uppercase tracking-wider truncate max-w-35">
                       {r.customerName}
                     </p>
                     {r.isVIP && (
@@ -725,7 +739,15 @@ export default function ReservationsPage() {
   );
 }
 
-function ViewTab({ active, onClick, label, count, color }: any) {
+type ViewTabProps = {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  color: string;
+};
+
+function ViewTab({ active, onClick, label, count, color }: ViewTabProps) {
   const accentColor = color === 'neutral' ? 'bg-white/10' : `bg-${color}`;
 
   return (

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { getPublicProducts } from "@/lib/api/bartender";
 import type { ProductPublicDTO } from "@/lib/types/api";
+import { initSocket, onProductAvailability } from "@/lib/realtime/socket";
 
 // ─────────────────────────────────────────────────────────────────
 // Types
@@ -73,8 +74,21 @@ export function useMenu(): UseMenuState & UseMenuActions {
   useEffect(() => {
     aliveRef.current = true;
     fetchProducts();
+    initSocket();
+
+    const unsubscribe = onProductAvailability((data) => {
+      const productId = data.productId ?? data.id ?? data.product?._id ?? data.product?.id;
+      if (!productId || !aliveRef.current) return;
+      setProducts((current) => current.map((product) =>
+        product.id === productId
+          ? { ...product, available: data.available }
+          : product
+      ));
+    });
+
     return () => {
       aliveRef.current = false;
+      unsubscribe();
     };
   }, [fetchProducts]);
 

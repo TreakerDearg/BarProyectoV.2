@@ -4,19 +4,24 @@ import type { Menu } from "../types/menu";
 /* =========================
    RESPONSE NORMALIZER 
 ========================= */
-function unwrap<T>(res: any): T {
-  if (!res) return res;
+type MenuDraft = Menu & { imagePublicId?: string };
+type MenuCategoryDraft = Menu["categories"][number];
+type MenuProductDraft = MenuCategoryDraft["products"][number];
+type ApiResponse = { data?: unknown };
 
-  if (Array.isArray(res.data)) return res.data;
-  if (res.data?.data) return res.data.data;
-
-  return res.data;
+function unwrap<T>(res: ApiResponse): T {
+  const value = res?.data;
+  if (Array.isArray(value)) return value as T;
+  if (value && typeof value === "object" && "data" in value) {
+    return (value as { data: unknown }).data as T;
+  }
+  return value as T;
 }
 
 /* =========================
    IMAGE VALIDATION
 ========================= */
-export function validateImageData(menu: any): { valid: boolean; error?: string } {
+export function validateImageData(menu: MenuDraft): { valid: boolean; error?: string } {
   // If image URL is provided, publicId is optional for compatibility
   // Allow empty string for imagePublicId
   if (menu.image && menu.imagePublicId === undefined) {
@@ -63,7 +68,7 @@ export const getMenuById = async (id: string): Promise<Menu> => {
    CREATE
 ========================= */
 export const createMenu = async (
-  menu: any,
+  menu: MenuDraft,
   options?: { allowEmptyCategories?: boolean }
 ): Promise<Menu> => {
   // Validate image data before sending
@@ -83,7 +88,7 @@ export const createMenu = async (
 ========================= */
 export const updateMenu = async (
   id: string,
-  menu: any,
+  menu: MenuDraft,
   options?: { allowEmptyCategories?: boolean }
 ): Promise<Menu> => {
   // Validate image data before sending
@@ -105,7 +110,7 @@ export const deleteMenu = async (id: string): Promise<void> => {
   await api.delete(`/menus/${id}`);
 };
 
-function buildPayload(menu: any, allowEmptyCategories = false) {
+function buildPayload(menu: MenuDraft, allowEmptyCategories = false) {
   if (!menu) throw new Error("Datos inválidos");
 
   if (!menu.name?.trim()) {
@@ -117,7 +122,7 @@ function buildPayload(menu: any, allowEmptyCategories = false) {
     throw new Error("Debe tener al menos una categoría");
   }
 
-  const categories = Array.isArray(menu.categories) ? menu.categories.map((cat: any, index: number) => {
+  const categories = Array.isArray(menu.categories) ? menu.categories.map((cat: MenuCategoryDraft, index: number) => {
     if (!cat.name) {
       throw new Error(`Categoría #${index + 1} sin nombre`);
     }
@@ -126,7 +131,7 @@ function buildPayload(menu: any, allowEmptyCategories = false) {
       throw new Error(`La categoría "${cat.name}" está vacía`);
     }
 
-    const products = Array.isArray(cat.products) && cat.products.length > 0 ? cat.products.map((p: any, i: number) => {
+    const products = Array.isArray(cat.products) && cat.products.length > 0 ? cat.products.map((p: MenuProductDraft, i: number) => {
       if (!p.product) {
         throw new Error(`Producto inválido en ${cat.name}`);
       }

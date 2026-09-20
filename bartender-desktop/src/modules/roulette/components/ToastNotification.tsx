@@ -19,11 +19,9 @@ interface ToastProps {
 }
 
 function ToastItem({ toast, onClose }: ToastProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    setIsVisible(true);
-    
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => onClose(toast.id), 300);
@@ -52,7 +50,7 @@ function ToastItem({ toast, onClose }: ToastProps) {
         isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
       }`}
     >
-      <div className="flex-shrink-0 mt-0.5">
+      <div className="shrink-0 mt-0.5">
         {icons[toast.type]}
       </div>
       <div className="flex-1 min-w-0">
@@ -68,7 +66,7 @@ function ToastItem({ toast, onClose }: ToastProps) {
           setIsVisible(false);
           setTimeout(() => onClose(toast.id), 300);
         }}
-        className="flex-shrink-0 p-1 rounded-lg hover:bg-white/5 transition-colors"
+        className="shrink-0 p-1 rounded-lg hover:bg-white/5 transition-colors"
       >
         <X size={14} className="text-muted/60 hover:text-muted" />
       </button>

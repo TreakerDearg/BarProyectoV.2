@@ -217,12 +217,73 @@ export type PromotionPublicDTO = {
   active: boolean;
 };
 
-export type OrderResponse = {
-  _id: string;
+export type OrderItemPublicDTO = {
+  id: string | null;
+  productId: string | null;
+  menuId: string | null;
+  name: string;
+  quantity: number;
+  price: number;
+  type: string;
   status: string;
-  table: string;
-  sessionId: string;
-  items: any[];
+  notes: string;
+};
+
+export type OrderPublicDTO = {
+  id: string | null;
+  _id?: string;
+  status: "pending" | "in-progress" | "completed" | "cancelled";
+  sessionStatus: "open" | "closed" | string;
+  table: string | null;
+  sessionId: string | null;
+  userId: string | null;
+  notes: string;
+  priority: string;
+  items: OrderItemPublicDTO[];
+  subtotal: number;
+  discountTotal: number;
   total: number;
-  createdAt: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+  closedAt: string | null;
+};
+
+/** @deprecated Usar OrderPublicDTO en nuevas integraciones. */
+export type OrderResponse = OrderPublicDTO;
+
+export type ReservationPublicDTO = {
+  id: string | null;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  guests: number;
+  startTime: string | null;
+  endTime: string | null;
+  tableId: string | null;
+  table: {
+    id: string | null;
+    number: number | null;
+    capacity: number | null;
+    status: string | null;
+    location: string | null;
+  } | null;
+  status: "pending" | "confirmed" | "seated" | "completed" | "cancelled" | "no-show" | string;
+  notes: string;
+  source: string;
+  isVIP: boolean;
+  deposit: number;
+  tags: string[];
+  guestDietaryRestrictions: string[];
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type RealtimeOrderEvent = {
+  event?: "order:created" | "order:update" | "order:updated" | "order:deleted";
+  order: OrderPublicDTO;
+};
+
+export type RealtimeReservationEvent = {
+  event?: "reservation:created" | "reservation:update" | "reservation:updated";
+  reservation: ReservationPublicDTO;
 };

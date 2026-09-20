@@ -24,6 +24,7 @@ import { getDietaryIcon } from "../utils/dietaryIcons";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 
 interface Props {
   r: Reservation;
@@ -34,7 +35,14 @@ interface Props {
   onWhatsapp?: (r: Reservation) => void;
 }
 
-const statusConfig: any = {
+const statusConfig: Record<Reservation["status"], {
+  label: string;
+  badge: string;
+  glow: string;
+  icon: ReactNode;
+  bg: string;
+  accent: string;
+}> = {
   pending: {
     label: "Por Confirmar",
     badge: "badge-ember",
@@ -66,6 +74,14 @@ const statusConfig: any = {
     icon: <CheckCircle2 size={16} />,
     bg: "bg-white/5",
     accent: "text-muted",
+  },
+  "no-show": {
+    label: "No se presentó",
+    badge: "badge-red",
+    glow: "shadow-red-500/30",
+    icon: <AlertTriangle size={16} />,
+    bg: "bg-red-500/10",
+    accent: "text-red-400",
   },
   cancelled: {
     label: "Cancelada",
@@ -120,12 +136,12 @@ export default function ReservationCard({
       whileHover={{ y: -4, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       className={`
-        p-0 rounded-[2rem] transition-all duration-300
+        p-0 rounded-4xl transition-all duration-300
         group relative overflow-hidden flex flex-col cursor-pointer
         hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]
         ${config.glow}
         ${r.isVIP 
-          ? 'bg-gradient-to-br from-violet-950/30 via-[#0d091a] to-purple-950/30 border-gold/30 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:border-gold hover:shadow-[0_0_30px_rgba(212,163,64,0.2)] ring-1 ring-gold/20' 
+          ? 'bg-linear-to-br from-violet-950/30 via-[#0d091a] to-purple-950/30 border-gold/30 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:border-gold hover:shadow-[0_0_30px_rgba(212,163,64,0.2)] ring-1 ring-gold/20' 
           : 'glass border-white/5'
         }
         ${isDelayed ? 'border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)] ring-1 ring-red-500/20' : ''}
@@ -135,7 +151,7 @@ export default function ReservationCard({
     >
 
       {/* STATUS BAR */}
-      <div className={`h-1.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-gradient-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-50`} />
+      <div className={`h-1.5 w-full ${isDelayed ? 'bg-red-500' : r.isVIP ? 'bg-linear-to-r from-gold via-violet-500 to-gold' : config.bg.replace('bg-', 'bg-').replace('/10', '')} opacity-50`} />
 
       {/* DELAY ALARM STRIP */}
       {isDelayed && (
@@ -169,13 +185,13 @@ export default function ReservationCard({
 
       <div className="p-6 space-y-5 relative">
         {/* HEADER */}
-        <div className="flex justify-between items-start gap-4">
+        <div className="flex justify-between gap-4">
           <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
               <h3 className="text-2xl font-black text-ivory tracking-tighter uppercase group-hover:text-gold transition-all duration-300">
                 {r.customerName}
               </h3>
-              {(r as any).isVIP && (
+              {r.isVIP && (
                 <div className="p-1.5 bg-grad-gold rounded-lg shadow-gold-glow">
                   <Crown size={14} className="text-bg" />
                 </div>
@@ -213,7 +229,7 @@ export default function ReservationCard({
         </div>
 
         {/* DATE & TIME */}
-        <div className="bg-surface-3/30 rounded-[1.5rem] p-4 border border-white/5 space-y-3 group-hover:border-gold/20 transition-colors">
+        <div className="bg-surface-3/30 rounded-3xl p-4 border border-white/5 space-y-3 group-hover:border-gold/20 transition-colors">
           <div className="flex items-center gap-3 text-muted">
             <Calendar size={16} className="text-gold opacity-50" />
             <p className="text-xs font-black uppercase tracking-[0.3em]">{dateStr}</p>
@@ -225,9 +241,9 @@ export default function ReservationCard({
               <p className={`text-2xl font-black tracking-widest ${config.accent}`}>{timeStr}</p>
             </div>
             
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col">
               <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mb-1">Invitados</p>
-              <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
+              <div className="flex gap-3 bg-black/20 px-4 py-2 rounded-xl border border-white/5">
                 <Users size={18} className="text-gold" />
                 <span className="text-xl font-black text-ivory">{r.guests}</span>
               </div>
@@ -236,18 +252,18 @@ export default function ReservationCard({
         </div>
 
         {/* TABLE & ACTIONS */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-end pt-2">
+          <div className="flex gap-3">
             <div className="w-12 h-12 rounded-2xl bg-grad-dark border border-white/10 flex items-center justify-center shadow-lg group-hover:border-gold/60 transition-all">
               <span className="text-xl font-black text-grad-gold">
                 {r.tableId && typeof r.tableId === 'object' ? r.tableId.number : '--'}
               </span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.2em]">Asignación</p>
+              <p className="text-[10px] text-muted tracking-[0.2em]">Asignación</p>
               <p className="text-sm font-black text-ivory uppercase tracking-widest">
                 {r.tableId && typeof r.tableId === 'object' 
-                  ? `Mesa ${r.tableId.number} · ${(r.tableId as any).location || 'Indoor'}` 
+                  ? `Mesa ${r.tableId.number} · ${r.tableId.location || 'Indoor'}` 
                   : r.tableId 
                   ? 'Mesa Asignada' 
                   : 'Pendiente'}
@@ -288,7 +304,7 @@ export default function ReservationCard({
                   e.stopPropagation();
                   onSeat(r._id!);
                 }}
-                className="btn btn-gold !h-11 !px-6 !rounded-xl gap-2 text-xs shadow-gold/20 hover:shadow-gold/40 border-gold/40 group/btn"
+                className="btn btn-gold h-11! px-6! rounded-xl! gap-2 text-xs shadow-gold/20 hover:shadow-gold/40 border-gold/40 group/btn"
               >
                 SENTAR
                 <ChevronRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
@@ -333,7 +349,7 @@ export default function ReservationCard({
         {r.guestDietaryRestrictions && r.guestDietaryRestrictions.some((g) => g.restrictions.length > 0) && (
           <div className="pt-4 border-t border-amber-500/15">
             <div className="flex items-center gap-2 mb-2.5">
-              <AlertTriangle size={12} className="text-amber-400/70 flex-shrink-0" />
+              <AlertTriangle size={12} className="text-amber-400/70 shrink-0" />
               <p className="text-[9px] font-black text-amber-400/70 uppercase tracking-widest">
                 Restricciones Dietéticas
               </p>
@@ -346,7 +362,7 @@ export default function ReservationCard({
                     key={idx}
                     className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15"
                   >
-                    <div className="w-6 h-6 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center shrink-0 mt-0.5">
                       <span className="text-[9px] font-black text-gold">{idx + 1}</span>
                     </div>
                     <div className="min-w-0">

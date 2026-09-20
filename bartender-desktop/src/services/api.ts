@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig } from "axios";
 import { getAccessToken, getRefreshToken, saveTokens, removeTokens } from "../utils/tokenStorage";
 import { resolveApiBaseUrl } from "./socketConfig";
 
@@ -6,13 +6,15 @@ import { resolveApiBaseUrl } from "./socketConfig";
    NORMALIZER GLOBAL
    Limpia payloads antes de enviarlos al backend
 ========================================================= */
-const normalizePayload = (data: any) => {
+type PayloadRecord = Record<string, unknown>;
+
+const normalizePayload = (data: unknown): unknown => {
   if (!data || typeof data !== "object") return data;
 
-  const clean: any = {};
+  const clean: PayloadRecord = {};
 
   for (const key in data) {
-    const value = data[key];
+    const value = (data as PayloadRecord)[key];
 
     // elimina valores vacíos reales
     if (value === "" || value === undefined || value === null) {
@@ -54,7 +56,7 @@ api.interceptors.request.use(
 
       // Standardized & Custom headers injection to prevent 400 validation errors
       if (!config.headers) {
-        config.headers = {} as any;
+        config.headers = new axios.AxiosHeaders();
       }
       config.headers['Accept'] = 'application/json, text/plain, */*';
       
@@ -126,10 +128,12 @@ api.interceptors.response.use(
     // o simplemente devolvemos response.data para tener todo (es mejor para tener el message)
     return response.data;
   },
-  async  (error) => {
-    const status = error?.response?.status;
-    const backendData = error?.response?.data;
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const backendData = (error.response?.data && typeof error.response.data === "object")
+      ? error.response.data as { message?: string; data?: unknown }
+      : {};
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     /* =========================
        TOKEN EXPIRADO O INVÁLIDO
@@ -161,14 +165,14 @@ api.interceptors.response.use(
         }
 
         // Intentar renovar el token
-        const response: any = await api.post('/auth/refresh', {
+        const response = await api.post<{ token?: string; refreshToken?: string }>('/auth/refresh', {
           refreshToken,
         });
 
         // El backend responde con { success: true, data: { token, refreshToken } }
-        const payload = response?.data || response;
-        const token = payload?.token;
-        const newRefreshToken = payload?.refreshToken || refreshToken;
+        const payload = response.data;
+        const token = payload.token;
+        const newRefreshToken = payload.refreshToken || refreshToken;
 
         if (!token) {
           console.error('[API] No access token received from refresh endpoint');
@@ -206,9 +210,9 @@ api.interceptors.response.use(
 
     // Normalizar el error para el frontend usando el response estándar del backend
     const normalizedError = {
-      message: backendData?.message || "Ocurrió un error inesperado",
+      message: backendData.message || "Ocurrió un error inesperado",
       success: false,
-      data: backendData?.data || null,
+      data: backendData.data || null,
       status: status || 500,
     };
 

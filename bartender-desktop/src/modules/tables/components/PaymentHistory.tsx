@@ -7,7 +7,7 @@ import { CreditCard, DollarSign, User, X, Download, Filter } from "lucide-react"
 interface Payment {
   _id: string;
   amount: number;
-  method: "cash" | "transfer";
+  method: "cash" | "transfer" | "card" | "split" | "partial";
   status: string;
   createdAt: string;
   processedBy: {
@@ -106,7 +106,7 @@ export default function PaymentHistory({ tableId, payments, onClose, onReceiptCl
         </div>
 
         {/* SUMMARY */}
-        <div className="p-6 bg-gradient-to-r from-gold/5 to-transparent border-b border-white/10">
+        <div className="p-6 bg-linear-to-r from-gold/5 to-transparent border-b border-white/10">
           <div className="flex justify-between items-center">
             <div>
               <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Total Filtrado</p>
@@ -120,7 +120,7 @@ export default function PaymentHistory({ tableId, payments, onClose, onReceiptCl
         </div>
 
         {/* PAYMENTS LIST */}
-        <div className="p-6 max-h-[400px] overflow-y-auto custom-scrollbar space-y-3">
+        <div className="p-6 max-h-100 overflow-y-auto custom-scrollbar space-y-3">
           <AnimatePresence mode="popLayout">
             {filteredPayments.length === 0 ? (
               <div className="text-center py-12">

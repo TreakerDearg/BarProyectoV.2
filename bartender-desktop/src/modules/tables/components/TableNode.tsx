@@ -63,6 +63,8 @@ export default function TableNode({
   };
 
   // Usar valores calculados por el backend si están disponibles
+  const now = new Date().getTime();
+  const openedMinutes = table.openedAt ? Math.floor((now - new Date(table.openedAt).getTime()) / 60000) : 0;
   const totalAmount = table.totalAmount || (table.orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0);
   const totalItems = table.totalItems || table.orders?.length || 0;
   const totalPaid = table.totalPaid || table.totalPayments || 0;
@@ -403,7 +405,7 @@ export default function TableNode({
         if (!isEditMode) onClick();
       }}
       className={`
-        table-node relative bg-gradient-to-br ${textureStyle} 
+        table-node relative bg-linear-to-br ${textureStyle} 
         border ${config.borderColor} ${config.glow}
         ${isEditMode ? 'cursor-move opacity-90 ring-2 ring-gold/40 border-dashed border-gold/60' : 'cursor-pointer hover:scale-102'}
         backdrop-blur-sm transition-all duration-200
@@ -460,7 +462,7 @@ export default function TableNode({
                 <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-full px-1.5 py-0.5">
                   <Clock size={8} className="text-white/60" />
                   <span className="text-[7px] font-bold text-white/60">
-                    {Math.floor((Date.now() - new Date(table.openedAt).getTime()) / 60000)}m
+                    {openedMinutes}m
                   </span>
                 </div>
               )}
@@ -515,7 +517,7 @@ export default function TableNode({
               <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">
                 <Clock size={8} className="text-white/40" />
                 <span className="text-[7.5px] font-bold text-white/60">
-                  {Math.floor((Date.now() - new Date(table.openedAt).getTime()) / 60000)}m
+                  {openedMinutes}m
                 </span>
               </div>
             )}

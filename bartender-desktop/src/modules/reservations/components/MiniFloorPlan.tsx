@@ -4,10 +4,14 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Lock, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { getTables } from "../../tables/services/tableService";
-import type { Table } from "../../tables/types/table";
+import type { Table, TableLocation } from "../../tables/types/table";
+
+interface AvailableTable {
+  _id: string;
+}
 
 interface Props {
-  availableTables: any[]; // Tables returned by getAvailableTables (only available)
+  availableTables: AvailableTable[]; // Tables returned by getAvailableTables (only available)
   selectedTableId: string;
   onSelectTable: (id: string) => void;
   guestsCount: number;
@@ -33,7 +37,7 @@ export default function MiniFloorPlan({
 }: Props) {
   const [allTables, setAllTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeZone, setActiveZone] = useState<string>("indoor");
+  const [activeZone, setActiveZone] = useState<TableLocation>("indoor");
 
   // Load all tables with spatial layout on mount
   useEffect(() => {
@@ -45,8 +49,8 @@ export default function MiniFloorPlan({
           setAllTables(data);
           // Set first available zone as active if there are tables
           const zones = Array.from(new Set(data.map((t) => t.location || "indoor")));
-          if (zones.length > 0 && !zones.includes(activeZone as any)) {
-            setActiveZone(zones[0]);
+          if (zones.length > 0 && !zones.includes(activeZone)) {
+            setActiveZone(zones[0] as TableLocation);
           }
         }
       } catch (error) {
@@ -56,11 +60,11 @@ export default function MiniFloorPlan({
       }
     };
     fetchAllTables();
-  }, []);
+  }, [activeZone]);
 
   // Get unique zones
   const zones = useMemo(() => {
-    const set = new Set(allTables.map((t) => t.location || "indoor"));
+    const set = new Set<TableLocation>(allTables.map((t) => t.location || "indoor"));
     return Array.from(set);
   }, [allTables]);
 
@@ -111,7 +115,7 @@ export default function MiniFloorPlan({
       </div>
 
       {/* Spatial Blueprint Canvas */}
-      <div className="relative w-full h-[320px] bg-black/60 rounded-3xl border border-white/5 overflow-hidden group select-none shadow-inner">
+      <div className="relative w-full h-80 bg-black/60 rounded-3xl border border-white/5 overflow-hidden group select-none shadow-inner">
         {/* Grid pattern overlay */}
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none"

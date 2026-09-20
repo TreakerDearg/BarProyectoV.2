@@ -13,7 +13,7 @@ import {
 import type { ProductBrief } from "@/lib/types/api";
 import { useClienteStore }    from "@/stores/useClienteStore";
 import { useOrdersStore }     from "@/stores/useOrdersStore";
-import { initSocket, joinUserRoom, onOrderStatus } from "@/lib/realtime/socket";
+import { initSocket, joinUserRoom, onOrderStatus, onOrderCreated, onProductAvailability } from "@/lib/realtime/socket";
 import { useSocketReconnection } from "@/hooks/useSocketReconnection";
 import type { OrderStatus }   from "@/lib/realtime/types";
 import { OrderStatusOverlay } from "@/components/cliente/OrderStatusOverlay/OrderStatusOverlay";
@@ -95,8 +95,8 @@ export default function PedidoPage() {
   const loadProducts = useCallback(async () => {
     try {
       setProducts(await getProducts({ available: true }));
-    } catch (e: any) {
-      notify("err", e.message);
+    } catch (error: unknown) {
+      notify("err", error instanceof Error ? error.message : "No se pudo cargar el catálogo");
     } finally {
       setLoadingProducts(false);
     }
@@ -109,26 +109,42 @@ export default function PedidoPage() {
     initSocket();
     if (user?._id) joinUserRoom(user._id);
 
-    const unsub = onOrderStatus((data) => {
+    const handleOrderEvent = (data: { order?: { id?: string | null; _id?: string; status: string; updatedAt?: string | null } }) => {
       const order = data.order;
       if (!order) return;
-      updateOrderStatus(order._id, order.status as OrderStatus, order.updatedAt ?? new Date().toISOString());
+      const orderId = order.id ?? order._id;
+      if (!orderId) return;
+      updateOrderStatus(orderId, order.status as OrderStatus, order.updatedAt ?? new Date().toISOString());
 
-      if (order._id !== currentOrderIdRef.current) return;
+      if (orderId !== currentOrderIdRef.current) return;
 
       const newStatus = order.status as OrderStatusStr;
       setCurrentOrderStatus(newStatus);
 
       // Mostrar overlay solo si es una fase nueva (pending/in-progress/completed)
       const overlayStatuses = ["pending", "in-progress", "completed"];
-      const key = `${order._id}-${newStatus}`;
+      const key = `${orderId}-${newStatus}`;
       if (overlayStatuses.includes(newStatus) && !shownPhasesRef.current.has(key)) {
         shownPhasesRef.current.add(key);
         setOverlayPhase(newStatus as "pending" | "in-progress" | "completed");
       }
+    };
+
+    const unsubStatus = onOrderStatus(handleOrderEvent);
+    const unsubCreated = onOrderCreated(handleOrderEvent);
+    const unsubAvailability = onProductAvailability((data) => {
+      const productId = data.productId ?? data.id ?? data.product?._id ?? data.product?.id;
+      if (!productId) return;
+      setProducts((prev) => prev.map((product) =>
+        product._id === productId ? { ...product, available: data.available } : product
+      ));
     });
 
-    return () => { unsub(); };
+    return () => {
+      unsubStatus();
+      unsubCreated();
+      unsubAvailability();
+    };
   }, [user, updateOrderStatus]);
 
   // Estado en tiempo real del store
@@ -176,17 +192,18 @@ export default function PedidoPage() {
         items:     cart.map((c) => ({ product: c.productId, quantity: c.quantity })),
       });
 
-      if (order?._id) {
-        setCurrentOrderId(order._id);
+      const createdOrderId = order?.id ?? (order as typeof order & { _id?: string })?._id;
+      if (createdOrderId) {
+        setCurrentOrderId(createdOrderId);
         setCurrentOrderStatus("pending");
         // Mostrar overlay de "Su orden fue tomada"
-        const key = `${order._id}-pending`;
+        const key = `${createdOrderId}-pending`;
         shownPhasesRef.current.add(key);
         setOverlayPhase("pending");
       }
       clearCart();
-    } catch (e: any) {
-      notify("err", e.message);
+    } catch (error: unknown) {
+      notify("err", error instanceof Error ? error.message : "No se pudo enviar el pedido");
     } finally {
       setSubmitting(false);
     }

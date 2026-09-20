@@ -21,7 +21,7 @@ export interface ExportOptions {
 }
 
 interface Props {
-  data: any[];
+  data: object[];
   filename: string;
   onExport?: (options: ExportOptions) => Promise<void>;
   onImport?: (file: File) => Promise<void>;
@@ -42,7 +42,7 @@ export default function DataExportImport({
     message: ""
   });
 
-  const exportToJSON = (data: any[], filename: string) => {
+  const exportToJSON = (data: object[], filename: string) => {
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -55,13 +55,14 @@ export default function DataExportImport({
     URL.revokeObjectURL(url);
   };
 
-  const exportToCSV = (data: any[], filename: string) => {
+  const exportToCSV = (data: object[], filename: string) => {
     if (!data || !Array.isArray(data) || data.length === 0) return;
 
-    const headers = Object.keys(data[0]);
+    const rows = data.map((row) => row as Record<string, unknown>);
+    const headers = Object.keys(rows[0]);
     const csvContent = [
       headers.join(","),
-      ...data.map(row => headers.map(header => {
+      ...rows.map(row => headers.map(header => {
         const value = row[header];
         const stringValue = typeof value === "object" ? JSON.stringify(value) : String(value);
         return stringValue.includes(",") ? `"${stringValue}"` : stringValue;
@@ -95,7 +96,7 @@ export default function DataExportImport({
         }
       }
       setExportStatus({ type: "success", message: "Exportación completada exitosamente" });
-    } catch (error) {
+    } catch {
       setExportStatus({ type: "error", message: "Error al exportar datos" });
     } finally {
       setIsExporting(false);
@@ -112,7 +113,7 @@ export default function DataExportImport({
         await onImport(file);
         setExportStatus({ type: "success", message: "Importación completada exitosamente" });
       }
-    } catch (error) {
+    } catch {
       setExportStatus({ type: "error", message: "Error al importar datos" });
     } finally {
       setIsImporting(false);
@@ -142,7 +143,7 @@ export default function DataExportImport({
   };
 
   return (
-    <div className="bg-surface-3/30 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-md">
+    <div className="bg-surface-3/30 border border-white/5 rounded-4xl p-6 space-y-4 backdrop-blur-md">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 bg-violet-500/10 rounded-xl border border-violet-500/20 text-violet-400">
           <Download size={16} />
@@ -237,7 +238,7 @@ export default function DataExportImport({
 
       {/* Warning */}
       <div className="flex items-start gap-2 p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl">
-        <AlertTriangle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+        <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
         <p className="text-[10px] text-amber-400/80 leading-relaxed">
           Al importar datos, se sobrescribirán los registros existentes. Se recomienda hacer un respaldo antes de importar.
         </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { 
   BookOpen, 
   X, 
@@ -20,7 +20,7 @@ import {
 interface TutorialStep {
   id: string;
   title: string;
-  icon: any;
+  icon: ComponentType<{ size?: number }>;
   content: string;
   tips: string[];
   examples?: string[];
@@ -195,7 +195,7 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-gold/20 rounded-[2.5rem] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-4xl bg-linear-to-br from-zinc-900 to-zinc-950 border border-gold/20 rounded-[2.5rem] shadow-2xl overflow-hidden">
         
         {/* Header */}
         <div className="flex items-center justify-between p-8 border-b border-white/5 bg-gold/5">
@@ -233,7 +233,7 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
           
           {/* Step Header */}
           <div className="flex items-start gap-6">
-            <div className="p-4 rounded-2xl bg-gold/10 text-gold flex-shrink-0">
+            <div className="p-4 rounded-2xl bg-gold/10 text-gold shrink-0">
               <Icon size={32} />
             </div>
             <div className="flex-1">

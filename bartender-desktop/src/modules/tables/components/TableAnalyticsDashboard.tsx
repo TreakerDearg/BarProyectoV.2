@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, TrendingDown, Clock, DollarSign, Users, Award, AlertTriangle, X, Calendar, Filter, ShoppingBag } from "lucide-react";
@@ -11,6 +11,22 @@ import {
   getTablePayments
 } from "../services/tableService";
 
+interface AnalyticsRecord {
+  date: string;
+  revenue?: { totalRevenue?: number };
+  occupancy?: { totalSessions?: number; occupancyRate?: number };
+  payments?: { paymentMethods?: Record<string, number> };
+  performance?: { score?: number; turnoverRate?: number; efficiency?: number };
+  performanceGrade?: string;
+  alerts?: { longSessions: number; lowRevenue: number };
+}
+
+type PaymentRecord = {
+  method?: string;
+  amount?: number;
+  receipt?: { items?: Array<{ name?: string; quantity?: number; price?: number; subtotal?: number }> };
+};
+
 interface AnalyticsData {
   table: {
     _id: string;
@@ -18,7 +34,7 @@ interface AnalyticsData {
     capacity: number;
     location: string;
   };
-  analytics: any[];
+  analytics: AnalyticsRecord[];
   historical: {
     averageRevenue: number;
     averageOccupancy: number;
@@ -36,10 +52,10 @@ interface Props {
 const COLORS = ["#d4a340", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"];
 
 export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
-  const [tables, setTables] = useState<any[]>([]);
+  const [tables, setTables] = useState<Array<{ _id: string; number: number; status: string; location?: string }>>([]);
   const [activeTableId, setActiveTableId] = useState(tableId);
   const [data, setData] = useState<AnalyticsData | null>(null);
-  const [paymentsList, setPaymentsList] = useState<any[]>([]);
+  const [paymentsList, setPaymentsList] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
   const [error, setError] = useState<string | null>(null);
@@ -60,11 +76,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
     fetchTablesList();
   }, []);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [activeTableId, period]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -72,15 +84,21 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
         getTableAnalyticsById(activeTableId, { period }),
         getTablePayments(activeTableId)
       ]);
-      setData(analyticsResult);
+      if (analyticsResult && typeof analyticsResult === "object") {
+        setData(analyticsResult as AnalyticsData);
+      }
       setPaymentsList(paymentsResult || []);
-    } catch (err: any) {
-      console.error("Error fetching analytics:", err);
-      setError(err.message || "Error al cargar analytics");
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      setError(error instanceof Error ? error.message : "Error al cargar analytics");
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTableId, period]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const generateAnalytics = async () => {
     try {
@@ -89,8 +107,8 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
       const today = new Date().toISOString().split('T')[0];
       await apiGenerateTableAnalytics(activeTableId, { date: today, period });
       await fetchAnalytics();
-    } catch (err: any) {
-      console.error("Error generating analytics:", err);
+    } catch (error) {
+      console.error("Error generating analytics:", error);
       setError("Error al generar analytics");
     } finally {
       setLoading(false);
@@ -102,7 +120,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
     const itemsMap: Record<string, { quantity: number; total: number }> = {};
     paymentsList.forEach((payment) => {
       const items = payment.receipt?.items || [];
-      items.forEach((item: any) => {
+      items.forEach((item) => {
         const name = item.name || "Producto sin nombre";
         const quantity = Number(item.quantity || 0);
         const subtotal = Number(item.subtotal || (item.price * quantity) || 0);
@@ -215,7 +233,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
     );
   }
 
-  const chartData = data.analytics.map((a: any) => ({
+  const chartData = data.analytics.map((a) => ({
     date: new Date(a.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
     revenue: a.revenue?.totalRevenue || 0,
     sessions: a.occupancy?.totalSessions || 0,
@@ -426,7 +444,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
           {/* CONSUMPTION & PAYMENT BREAKDOWN */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* QUE SE COMPRO */}
-            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-[320px]">
+            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-80">
               <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
                 <ShoppingBag size={16} className="text-gold" />
                 Qué se compró (Productos Consumidos)
@@ -444,7 +462,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
                     <tbody className="divide-y divide-white/5 font-bold text-white/80">
                       {aggregatedItems.map((item, index) => (
                         <tr key={index} className="hover:bg-white/5 transition-colors">
-                          <td className="py-2.5 max-w-[200px] truncate">{item.name}</td>
+                          <td className="py-2.5 max-w-50 truncate">{item.name}</td>
                           <td className="py-2.5 text-center text-gold">{item.quantity}</td>
                           <td className="py-2.5 text-right text-emerald-400">${item.total.toFixed(2)}</td>
                         </tr>
@@ -460,7 +478,7 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
             </div>
 
             {/* COMO SE COMPRO */}
-            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-[320px]">
+            <div className="glass rounded-2xl p-6 border border-white/10 flex flex-col h-80">
               <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4 flex items-center gap-2">
                 <DollarSign size={16} className="text-gold" />
                 Cómo se compró (Métodos de Pago)

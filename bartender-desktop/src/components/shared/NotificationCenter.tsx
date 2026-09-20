@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState } from "react";
 import {
   Bell,
   X,
@@ -12,60 +12,18 @@ import {
   Trash2
 } from "lucide-react";
 
-export type NotificationType = "success" | "error" | "warning" | "info";
+import { NotificationCenterContext, useNotificationBell } from "./notificationContext";
+import type { Notification } from "./notificationTypes";
+import type { NotificationType } from "./notificationTypes";
 
-export interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: Date;
-  duration?: number;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
-
-interface NotificationCenterContextType {
-  notifications: Notification[];
-  addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
-  removeNotification: (id: string) => void;
-  clearAll: () => void;
-  isPanelOpen: boolean;
-  togglePanel: () => void;
-  closePanel: () => void;
-}
-
-const NotificationCenterContext = createContext<NotificationCenterContextType | null>(null);
-
-export function useNotifications() {
-  const context = useContext(NotificationCenterContext);
-  if (!context) {
-    throw new Error("useNotifications must be used within a NotificationCenterProvider");
-  }
-  return context;
-}
-
-export function useNotificationBell() {
-  const { notifications, isPanelOpen, togglePanel, closePanel } = useNotifications();
-  
-  const unreadCount = notifications.length;
-
-  return {
-    isOpen: isPanelOpen,
-    toggle: togglePanel,
-    close: closePanel,
-    unreadCount
-  };
-}
+export { useNotificationBell };
 
 export function NotificationCenterProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const addNotification = (notification: Omit<Notification, "id" | "timestamp">) => {
-    const id = Math.random().toString(36).substring(7);
+    const id = crypto.randomUUID();
     const newNotification: Notification = {
       ...notification,
       id,
@@ -116,7 +74,7 @@ export function NotificationCenterProvider({ children }: { children: React.React
   );
 }
 
-export function NotificationBell({ isOpen, onToggle, unreadCount }: { isOpen: boolean; onToggle: () => void; unreadCount: number }) {
+export function NotificationBell({ onToggle, unreadCount }: { isOpen: boolean; onToggle: () => void; unreadCount: number }) {
   return (
     <button
       onClick={onToggle}
@@ -148,6 +106,7 @@ function NotificationCenterPanel({
   onRemove,
   onClearAll
 }: NotificationCenterPanelProps) {
+  if (!isOpen) return null;
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -194,12 +153,12 @@ function NotificationCenterPanel({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-200"
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-surface-2 border-l border-white/5 z-[201] shadow-2xl">
+      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-surface-2 border-l border-white/5 z-201 shadow-2xl">
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-6 border-b border-white/5">
@@ -238,7 +197,7 @@ function NotificationCenterPanel({
                   className={`p-4 rounded-2xl border ${getNotificationStyles(notification.type)} transition-all`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
+                    <div className="shrink-0 mt-0.5">
                       {getNotificationIcon(notification.type)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -246,7 +205,7 @@ function NotificationCenterPanel({
                         <h3 className="text-sm font-bold text-ivory">{notification.title}</h3>
                         <button
                           onClick={() => onRemove(notification.id)}
-                          className="flex-shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
+                          className="shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
                         >
                           <X size={14} className="text-muted/50 hover:text-muted" />
                         </button>
@@ -311,7 +270,7 @@ export function ToastNotification({ notification, onClose }: { notification: Not
       </div>
       <button
         onClick={onClose}
-        className="flex-shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
+        className="shrink-0 p-1 hover:bg-white/5 rounded-lg transition-colors"
       >
         <X size={16} className="text-muted/50 hover:text-muted" />
       </button>

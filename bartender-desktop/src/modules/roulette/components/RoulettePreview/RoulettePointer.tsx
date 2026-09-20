@@ -16,9 +16,7 @@ export default function RoulettePointer({ spinning }: Props) {
   useEffect(() => {
     if (!spinning) return;
 
-    let interval: any;
-
-    interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       setActive((prev) => !prev);
     }, 120);
 
@@ -26,7 +24,7 @@ export default function RoulettePointer({ spinning }: Props) {
   }, [spinning]);
 
   return (
-    <div className="absolute top-[-14px] left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
 
       {/* GLOW */}
       <div className="absolute w-8 h-8 bg-blue-500/20 blur-xl rounded-full" />
@@ -35,11 +33,11 @@ export default function RoulettePointer({ spinning }: Props) {
       <div
         className={`
           relative transition-transform duration-75
-          ${active ? "translate-y-[1px]" : "-translate-y-[1px]"}
+          ${active ? "translate-y-px" : "-translate-y-px"}
         `}
       >
         {/* METAL BASE */}
-        <div className="w-4 h-4 rounded-full bg-gradient-to-b from-gray-300 to-gray-600 border border-gray-500 shadow-md mb-[-4px]" />
+        <div className="w-4 h-4 rounded-full bg-linear-to-b from-gray-300 to-gray-600 border border-gray-500 shadow-md -mb-1" />
 
         {/* TRIANGLE */}
         <Triangle

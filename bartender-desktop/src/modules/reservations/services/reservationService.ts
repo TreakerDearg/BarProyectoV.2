@@ -5,15 +5,13 @@ import type { Reservation } from "../types/reservation";
 /* ==============================
    SAFE WRAPPER
 ============================== */
-const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
+const safeRequest = async <T>(promise: Promise<{ data: T }>): Promise<T> => {
   try {
     const { data } = await promise;
     return data as T;
-  } catch (error: any) {
-    const msg =
-      error?.response?.data?.error ||
-      error?.message ||
-      "Unexpected error";
+  } catch (error: unknown) {
+    const responseError = error as { response?: { data?: { error?: string } }; message?: string };
+    const msg = responseError.response?.data?.error || responseError.message || "Unexpected error";
 
     throw new Error(msg);
   }
@@ -24,7 +22,7 @@ const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
 ============================== */
 export const reservationSocket = {
   /* ---------- INIT SYNC ---------- */
-  onInitial: (cb: (data: any) => void) => {
+  onInitial: (cb: (data: Reservation[]) => void) => {
     const socket = getSocket();
     if (socket) {
       socket.on("reservation:list", (data) => {
@@ -64,7 +62,7 @@ export const reservationSocket = {
   },
 
   /* ---------- TABLE SYNC ---------- */
-  onTableUpdate: (cb: (data: any) => void) => {
+  onTableUpdate: (cb: (data: unknown) => void) => {
     const socket = getSocket();
     if (socket) {
       socket.on("table:update", cb);
@@ -92,14 +90,14 @@ export const getReservations = async (params?: {
   limit?: number;
   search?: string;
   status?: string;
-}): Promise<any> => {
+}): Promise<Reservation[]> => {
   const query = new URLSearchParams();
   if (params?.page) query.append("page", String(params.page));
   if (params?.limit) query.append("limit", String(params.limit));
   if (params?.search) query.append("search", params.search);
   if (params?.status) query.append("status", params.status);
 
-  return safeRequest<any>(
+  return safeRequest<Reservation[]>(
     api.get(`/reservations?${query.toString()}`)
   );
 };
@@ -118,7 +116,7 @@ export const getReservationById = async (
 /* ==============================
    API - CREATE
 ============================== */
-export const createReservation = async (reservation: any) => {
+export const createReservation = async (reservation: Partial<Reservation>) => {
   if (!reservation?.startTime || !reservation?.endTime) {
     throw new Error("Fechas inválidas");
   }
@@ -246,7 +244,7 @@ export const cleanupExpiredReservations = async () => {
 /* ==============================
    API - UPDATE
 ============================== */
-export const updateReservation = async (id: string, reservation: any): Promise<Reservation> => {
+export const updateReservation = async (id: string, reservation: Partial<Reservation>): Promise<Reservation> => {
   if (!id) throw new Error("ID inválido");
 
   const payload = {

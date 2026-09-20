@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { RouletteDrink } from "../../types/roulette";
 import RouletteWheelRoyale from "./RouletteWheelRoyale";
 import {
@@ -36,7 +37,7 @@ export default function RoulettePreview({
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto space-y-12">
 
       {/* ================= WHEEL CONTAINER ================= */}
-      <div className="relative flex items-center justify-center w-full min-h-[500px]">
+      <div className="relative flex items-center justify-center w-full min-h-125">
         {/* EFECTOS DE FONDO */}
         <div className="absolute inset-0 bg-gold/5 blur-[120px] rounded-full opacity-30" />
         
@@ -50,7 +51,7 @@ export default function RoulettePreview({
 
       {/* ================= RESULT OVERLAY (TICKET STYLE) ================= */}
       {result && !spinning && (
-        <div className="w-full glass-royale border border-gold/30 bg-gold/5 rounded-[2rem] p-8 animate-fade-in flex flex-col md:flex-row items-center justify-between gap-8 shadow-gold-glow/10 border-dashed">
+        <div className="w-full glass-royale border border-gold/30 bg-gold/5 rounded-4xl p-8 animate-fade-in flex flex-col md:flex-row items-center justify-between gap-8 shadow-gold-glow/10 border-dashed">
            <div className="flex items-center gap-6">
               <div className="w-20 h-20 rounded-2xl bg-gold flex items-center justify-center text-4xl shadow-gold-glow">
                  🏆
@@ -94,7 +95,7 @@ export default function RoulettePreview({
                {drinks.filter(d => d.active).slice(0, 9).map((d) => (
                   <div key={d._id} className="flex items-center justify-between p-4 rounded-2xl bg-surface-3/30 border border-white/5 hover:border-gold/30 transition-all group">
                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                         <span className="text-[10px] font-black text-ivory/60 truncate uppercase">{d.name}</span>
                      </div>
                      <span className="text-[10px] font-black text-gold ml-2">{d.probability?.toFixed(0)}%</span>
@@ -114,7 +115,7 @@ export default function RoulettePreview({
   );
 }
 
-function MiniStat({ label, value, icon }: any) {
+function MiniStat({ label, value, icon }: { label: string; value: string | number; icon: ReactNode }) {
    return (
       <div className="flex items-center justify-between p-5 rounded-2xl bg-surface-3/50 border border-white/5">
          <div className="flex items-center gap-4">

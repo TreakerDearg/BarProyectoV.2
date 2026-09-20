@@ -136,6 +136,7 @@ export default function InventoryPage() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [stockAlert, setStockAlert] = useState<string | null>(null);
 
   // Filtros
   const [search, setSearch]             = useState("");
@@ -177,9 +178,35 @@ export default function InventoryPage() {
 
   useInventorySocketEvents(
     () => { fetchData(); },
-    (d) => { if (d.itemId) setItems((p) => p.map((i) => i._id === d.itemId ? { ...i, ...d } : i)); },
-    (d) => { if (d.itemId) setItems((p) => p.map((i) => i._id === d.itemId ? { ...i, stock: d.stock ?? 0 } : i)); }
+    (d) => {
+      if (!d.itemId) return;
+      setItems((current) => current.map((item) =>
+        item._id === d.itemId ? { ...item, ...d } : item
+      ));
+    },
+    (d) => {
+      if (!d.itemId) return;
+      setItems((current) => {
+        const item = current.find((entry) => entry._id === d.itemId);
+        const nextStock = d.stock ?? 0;
+        if (item) {
+          const status = stockStatus({ ...item, stock: nextStock });
+          if (status !== "normal") {
+            setStockAlert(`${item.name}: stock ${status === "critical" ? "crítico" : "bajo"} (${nextStock})`);
+          }
+        }
+        return current.map((entry) =>
+          entry._id === d.itemId ? { ...entry, stock: nextStock } : entry
+        );
+      });
+    }
   );
+
+  useEffect(() => {
+    if (!stockAlert) return;
+    const timeout = window.setTimeout(() => setStockAlert(null), 6000);
+    return () => window.clearTimeout(timeout);
+  }, [stockAlert]);
 
   // ── Categorías derivadas ──────────────────────────────────────
 
@@ -235,8 +262,8 @@ export default function InventoryPage() {
       setPageView("list");
       setSelected(null);
       fetchData();
-    } catch (e: any) {
-      setError(e?.message || "Error al guardar el insumo");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error al guardar el insumo");
     }
   };
 
@@ -292,9 +319,9 @@ export default function InventoryPage() {
       </div>
 
       {/* ── HEADER ─────────────────────────────────────────────── */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-shrink-0">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
+          <div className="p-3 rounded-2xl bg-linear-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
             <Package className="text-violet-200" size={26} />
           </div>
           <div>
@@ -389,19 +416,19 @@ export default function InventoryPage() {
       </header>
 
       {/* ── KPIs adaptativos ───────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         <KPIBox
           label="Total insumos"
           value={stats.total}
           icon={<LayoutGrid size={17} />}
-          colorCls="from-violet-500/15 border-violet-500/25 bg-gradient-to-br"
+          colorCls="from-violet-500/15 border-violet-500/25 bg-linear-to-br"
         />
         <KPIBox
           label="Críticos"
           value={stats.critical}
           sub={stats.critical > 0 ? "Reposición urgente" : undefined}
           icon={<AlertTriangle size={17} />}
-          colorCls="from-red-500/15 border-red-500/25 bg-gradient-to-br"
+          colorCls="from-red-500/15 border-red-500/25 bg-linear-to-br"
           pulse={stats.critical > 0}
         />
         {/* Solo en standard y advanced */}
@@ -411,13 +438,13 @@ export default function InventoryPage() {
               label="Stock bajo"
               value={stats.low}
               icon={<Activity size={17} />}
-              colorCls="from-amber-500/15 border-amber-500/25 bg-gradient-to-br"
+              colorCls="from-amber-500/15 border-amber-500/25 bg-linear-to-br"
             />
             <KPIBox
               label="Valor total"
               value={fmtMoney(stats.totalValue)}
               icon={<DollarSign size={17} />}
-              colorCls="from-cyan-500/15 border-cyan-500/25 bg-gradient-to-br"
+              colorCls="from-cyan-500/15 border-cyan-500/25 bg-linear-to-br"
             />
           </>
         )}
@@ -429,7 +456,7 @@ export default function InventoryPage() {
       )}
 
       {/* ── Filtros de stock (pills) — CORREGIDO: OR dentro del grupo ── */}
-      <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
         {STOCK_FILTERS.map((f) => {
           const count =
             f.value === "all"
@@ -493,9 +520,20 @@ export default function InventoryPage() {
         )}
       </div>
 
+      {/* ── Alertas realtime de stock ─────────────────────────── */}
+      {stockAlert && (
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-400/25 text-amber-200 text-xs shrink-0" role="status" aria-live="polite">
+          <AlertTriangle size={16} className="text-amber-300" />
+          <span className="flex-1">{stockAlert}</span>
+          <button type="button" onClick={() => setStockAlert(null)} aria-label="Cerrar alerta de stock">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* ── Error ─────────────────────────────────────────────── */}
       {error && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs flex-shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs shrink-0">
           <span className="flex-1">{error}</span>
           <button type="button" onClick={() => setError(null)}>
             <X size={14} />
@@ -515,7 +553,7 @@ export default function InventoryPage() {
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+            <div className="p-5 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
               <Package size={40} className="text-violet-300/40" />
             </div>
             <p className="text-sm font-semibold text-ivory/60">

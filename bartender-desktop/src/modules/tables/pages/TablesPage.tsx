@@ -13,8 +13,8 @@ import {
   getTables, createTable, updateTable, deleteTable,
   openTable, closeTable, getTablePayments, generateReceipt,
   updateTableLayout, createSessionCheckout,
+  type PaymentMethodId, type SessionCheckoutResult,
   PaymentServiceError, getPaymentErrorMessage,
-  type SessionCheckoutResult,
 } from "../services/tableService";
 
 import type { Table } from "../types/table";
@@ -27,6 +27,18 @@ import TableForm    from "../components/TableForm";
 import OrderForm    from "../../orders/components/OrderForm";
 import PaymentHistory from "../components/PaymentHistory";
 import ReceiptModal from "../components/ReceiptModal";
+
+type Receipt = Parameters<typeof ReceiptModal>[0]["receipt"];
+
+type HistoryPayment = {
+  _id: string;
+  amount: number;
+  method: "cash" | "transfer" | "card" | "split" | "partial";
+  status: string;
+  createdAt: string;
+  processedBy: { name: string; role: string };
+  receipt?: { receiptNumber: string };
+};
 import TableAnalyticsDashboard from "../components/TableAnalyticsDashboard";
 import PaymentMethodSelector from "../components/PaymentMethodSelector";
 import SalonNextStepBanner from "../../salon/components/SalonNextStepBanner";
@@ -99,8 +111,9 @@ export default function TablesPage() {
   const [isReceiptModalOpen,   setIsReceiptModalOpen]   = useState(false);
   const [isAnalyticsOpen,      setIsAnalyticsOpen]      = useState(false);
   const [isPaymentSelectorOpen,setIsPaymentSelectorOpen]= useState(false);
-  const [payments,       setPayments]       = useState<any[]>([]);
-  const [selectedReceipt,setSelectedReceipt]= useState<any>(null);
+
+  const [payments,       setPayments]       = useState<HistoryPayment[]>([]);
+  const [selectedReceipt,setSelectedReceipt]= useState<Receipt | null>(null);
   const [sessionBalanceDue, setSessionBalanceDue] = useState(0);
   const [paymentSuccessMessage, setPaymentSuccessMessage] = useState<string | null>(null);
   const [isMobile,       setIsMobile]       = useState(false);
@@ -111,7 +124,7 @@ export default function TablesPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { mode, setMode, view, setView, toggleView } = useTablesUiStore();
+  const { mode, setMode, view, setView } = useTablesUiStore();
   const {
     isOpen: salonTutorialOpen,
     openTutorial: openSalonTutorial,
@@ -134,7 +147,7 @@ export default function TablesPage() {
       setError(null);
       const data = await getTables();
       setTables(data || []);
-    } catch (err: any) {
+    } catch {
       setError("Error al sincronizar mesas");
     } finally {
       setLoading(false);
@@ -150,9 +163,13 @@ export default function TablesPage() {
     const socket = getMainSocket();
     if (!socket) return;
 
-    const handleUpdate = (updated: Table) => {
-      setTables((prev) => prev.map((t) => t._id === updated._id ? updated : t));
-      if (selectedTable?._id === updated._id) setSelectedTable(updated);
+    const handleUpdate = (payload: Table | { table?: Table }) => {
+      const updated = (payload as { table?: Table }).table ?? payload as Table;
+      const tableId = updated._id ?? (updated as Table & { id?: string }).id;
+      if (!tableId) return;
+      const normalized = { ...updated, _id: tableId };
+      setTables((prev) => prev.map((t) => t._id === tableId ? normalized : t));
+      if (selectedTable?._id === tableId) setSelectedTable(normalized);
     };
     const handleCreated = (t: Table) => setTables((prev) => [...prev, t]);
     const handleDeleted = (payload: string | { tableId?: string; _id?: string }) => {
@@ -210,8 +227,8 @@ export default function TablesPage() {
       setSelectedTable(updated);
       setTables((prev) => prev.map((t) => t._id === id ? updated : t));
       setIsOrderOpen(true);
-    } catch (err: any) {
-      setError(err?.message ?? "Error al abrir la mesa");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Error al abrir la mesa");
     }
   };
 
@@ -224,8 +241,8 @@ export default function TablesPage() {
       setTables(list);
       const updated = list.find((t) => t._id === table._id);
       if (updated) { setSelectedTable(updated); setIsOrderOpen(true); }
-    } catch (err: any) {
-      setError(err?.message ?? "No se pudo sentar la reserva");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "No se pudo sentar la reserva");
     }
   };
 
@@ -239,7 +256,7 @@ export default function TablesPage() {
     if (totalAmount > 0 && totalPaid < totalAmount) {
       if (!confirm(`Saldo pendiente $${(totalAmount - totalPaid).toFixed(2)}. ¿Cerrar igual?`)) return;
     }
-    try { await closeTable(id); } catch (err: any) { setError("Error al cerrar mesa"); }
+    try { await closeTable(id); } catch { setError("Error al cerrar mesa"); }
   };
 
   const handleSave = async (tableData: Table) => {
@@ -254,7 +271,7 @@ export default function TablesPage() {
       else               await createTable(tableData);
       setIsFormOpen(false);
       fetchTables();
-    } catch (err: any) { setError("Error al guardar la mesa"); }
+    } catch { setError("Error al guardar la mesa"); }
   };
 
   const handleDelete = async (id: string) => {
@@ -264,7 +281,7 @@ export default function TablesPage() {
     if (table.status === "reserved")  return setError("Cancela la reserva antes de eliminarla");
     if (!confirm(`¿Eliminar Mesa #${table.number}? Esta acción no se puede deshacer.`)) return;
     try { await deleteTable(id); setSelectedTable(null); }
-    catch (err: any) { setError("Error al eliminar la mesa"); }
+    catch { setError("Error al eliminar la mesa"); }
   };
 
   const handleTableLayoutChange = async (id: string, x: number, y: number) => {
@@ -278,7 +295,16 @@ export default function TablesPage() {
     if (!selectedTable) return;
     try {
       const data = await getTablePayments(selectedTable._id!, selectedTable.currentSessionId || undefined);
-      setPayments(data || []);
+      const historyPayments: HistoryPayment[] = (data || []).map((payment) => ({
+          _id: payment._id,
+          amount: payment.amount,
+          method: payment.method,
+          status: payment.status,
+          createdAt: String(payment.createdAt),
+          processedBy: { name: "Sistema", role: "staff" },
+          receipt: payment.receipt?.receiptNumber ? { receiptNumber: payment.receipt.receiptNumber } : undefined,
+        }));
+      setPayments(historyPayments);
       setIsPaymentHistoryOpen(true);
     } catch { setError("Error al cargar historial de pagos"); }
   };
@@ -286,7 +312,10 @@ export default function TablesPage() {
   const handleViewReceipt = async (paymentId: string) => {
     try {
       const receipt = await generateReceipt(paymentId);
-      setSelectedReceipt(receipt);
+      if (!receipt || typeof receipt !== "object") {
+        throw new Error("Recibo inválido");
+      }
+      setSelectedReceipt(receipt as Receipt);
       setIsReceiptModalOpen(true);
     } catch { setError("Error al generar recibo"); }
   };
@@ -307,16 +336,21 @@ export default function TablesPage() {
     setIsPaymentSelectorOpen(true);
   };
 
-  const buildReceiptFromCheckout = (result: SessionCheckoutResult, tableNumber: number) => {
+  const buildReceiptFromCheckout = (result: SessionCheckoutResult, tableNumber: number): Receipt => {
     const summary = result.receiptSummary;
     const allItems = result.payments?.flatMap((p) => p.receipt?.items || []) || result.payment?.receipt?.items || [];
     return {
       receiptNumber: summary.receiptNumber || result.payment?.receipt?.receiptNumber || "N/A",
       issuedAt: summary.issuedAt || new Date().toISOString(),
       table: { number: tableNumber, location: result.table?.location || "indoor" },
-      items: allItems.length ? allItems : [{ name: "Cuenta de mesa", quantity: 1, price: summary.total, subtotal: summary.total }],
+      items: allItems.length ? allItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+      })) : [{ name: "Cuenta de mesa", quantity: 1, price: summary.total, subtotal: summary.total }],
       subtotal: summary.subtotal, discountTotal: summary.discountTotal, total: summary.total,
-      method: summary.method as any, change: summary.change,
+      method: summary.method as PaymentMethodId, change: summary.change,
       processedBy: { name: "Caja", role: "staff" },
       maintenanceUntil: summary.maintenanceUntil,
     };
@@ -357,9 +391,9 @@ export default function TablesPage() {
       />
 
       {/* ── HEADER ─────────────────────────────────────────────── */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 flex-shrink-0">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-gold/30 to-amber-500/20 border border-gold/20 shadow-[0_0_20px_rgba(212,163,64,0.15)]">
+          <div className="p-3 rounded-2xl bg-linear-to-br from-gold/30 to-amber-500/20 border border-gold/20 shadow-[0_0_20px_rgba(212,163,64,0.15)]">
             <Sparkles className="text-gold" size={24} />
           </div>
           <div>
@@ -435,18 +469,18 @@ export default function TablesPage() {
 
       {/* ── KPIs adaptativos por modo ───────────────────────────── */}
       {mode !== "basic" && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
           <KPIBox
             label="Total"
             value={stats.total}
             icon={<LayoutGrid size={17} />}
-            colorCls="from-violet-500/15 border-violet-500/25 bg-gradient-to-br"
+            colorCls="from-violet-500/15 border-violet-500/25 bg-linear-to-br"
           />
           <KPIBox
             label="Ocupadas"
             value={stats.occupied}
             icon={<Users size={17} />}
-            colorCls="from-amber-500/15 border-amber-500/25 bg-gradient-to-br"
+            colorCls="from-amber-500/15 border-amber-500/25 bg-linear-to-br"
             pulse={stats.occupied > 0}
           />
           {mode === "advanced" && (
@@ -455,13 +489,13 @@ export default function TablesPage() {
                 label="Disponibles"
                 value={stats.available}
                 icon={<CheckCircle2 size={17} />}
-                colorCls="from-emerald-500/15 border-emerald-500/25 bg-gradient-to-br"
+                colorCls="from-emerald-500/15 border-emerald-500/25 bg-linear-to-br"
               />
               <KPIBox
                 label="Facturado"
                 value={`$${stats.totalRevenue.toFixed(0)}`}
                 icon={<DollarSign size={17} />}
-                colorCls="from-gold/15 border-gold/25 bg-gradient-to-br"
+                colorCls="from-gold/15 border-gold/25 bg-linear-to-br"
               />
             </>
           )}
@@ -471,13 +505,13 @@ export default function TablesPage() {
                 label="Reservadas"
                 value={stats.reserved}
                 icon={<Clock size={17} />}
-                colorCls="from-blue-500/15 border-blue-500/25 bg-gradient-to-br"
+                colorCls="from-blue-500/15 border-blue-500/25 bg-linear-to-br"
               />
               <KPIBox
                 label="Mantenimiento"
                 value={stats.maintenance}
                 icon={<Activity size={17} />}
-                colorCls="from-red-500/15 border-red-500/25 bg-gradient-to-br"
+                colorCls="from-red-500/15 border-red-500/25 bg-linear-to-br"
               />
             </>
           )}
@@ -486,13 +520,13 @@ export default function TablesPage() {
 
       {/* ── Stats avanzados (solo modo advanced) ─────────────────── */}
       {mode === "advanced" && (
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <TableStats tables={tables} />
         </div>
       )}
 
       {/* ── Filtro de ubicaciones ────────────────────────────────── */}
-      <div className="flex gap-1.5 flex-shrink-0">
+      <div className="flex gap-1.5 shrink-0">
         {LOCATIONS.map((loc) => (
           <button
             key={loc.value}
@@ -523,7 +557,7 @@ export default function TablesPage() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden flex-shrink-0"
+            className="overflow-hidden shrink-0"
           >
             <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
               <div className="flex items-center gap-2">
@@ -577,7 +611,7 @@ export default function TablesPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="hidden md:flex flex-col w-[380px] xl:w-[420px] min-h-0 flex-shrink-0"
+              className="hidden md:flex flex-col w-95 xl:w-105 min-h-0 shrink-0"
             >
               <TableInspector
                 table={selectedTable}
@@ -619,7 +653,7 @@ export default function TablesPage() {
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
               className="fixed inset-y-0 right-0 w-80 bg-surface-2 border-l border-white/10 z-50 flex flex-col md:hidden"
             >
-              <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
+              <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
                 <h3 className="text-sm font-black text-ivory">Mesa #{selectedTable.number}</h3>
                 <button type="button" onClick={() => setIsInspectorOpen(false)} className="p-2 rounded-lg bg-white/5">
                   <X size={18} />
@@ -675,7 +709,7 @@ export default function TablesPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-100 flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, y: 16, opacity: 0 }}
@@ -738,7 +772,7 @@ export default function TablesPage() {
                 const response = await createSessionCheckout({
                   tableId:   selectedTable._id!,
                   sessionId: selectedTable.currentSessionId!,
-                  method:    method as any,
+                  method: method as PaymentMethodId,
                   paymentDetails: {
                     amountPaid:  data?.amountPaid  ?? sessionBalanceDue,
                     notes:       data?.notes,
@@ -755,10 +789,10 @@ export default function TablesPage() {
                 setPaymentSuccessMessage(`Cuenta cerrada. Mesa en mantenimiento ~${mins} min.`);
                 setTimeout(() => setPaymentSuccessMessage(null), 6000);
                 setIsPaymentSelectorOpen(false);
-              } catch (err: any) {
-                setError(err instanceof PaymentServiceError
-                  ? getPaymentErrorMessage(err)
-                  : err?.message || "Error al procesar el pago");
+              } catch (error) {
+                setError(error instanceof PaymentServiceError
+                  ? getPaymentErrorMessage(error)
+                  : error instanceof Error ? error.message : "Error al procesar el pago");
               } finally {
                 setLoading(false);
               }

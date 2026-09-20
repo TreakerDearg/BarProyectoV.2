@@ -40,7 +40,7 @@ export default function ProbabilityEngine({
 
   // Filter and search drinks
   const filteredDrinks = useMemo(() => {
-    let result = drinks.filter((drink) => {
+    const result = drinks.filter((drink) => {
       if (!drink) return false;
       
       // Search filter
@@ -79,10 +79,11 @@ export default function ProbabilityEngine({
         case "probability":
           comparison = (a.probability || 0) - (b.probability || 0);
           break;
-        case "rarity":
+        case "rarity": {
           const rarityOrder = { COMMON: 0, RARE: 1, EPIC: 2, LEGENDARY: 3 };
           comparison = (rarityOrder[a.rarity] || 0) - (rarityOrder[b.rarity] || 0);
           break;
+        }
       }
       
       return sortOrder === "asc" ? comparison : -comparison;
@@ -451,7 +452,7 @@ export default function ProbabilityEngine({
             </div>
 
             {/* List of drinks with stock modifiers */}
-            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+            <div className="space-y-4 max-h-125 overflow-y-auto pr-3 custom-scrollbar">
               {filteredDrinks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Search size={32} className="text-muted/30 mb-3" />
@@ -757,7 +758,7 @@ export default function ProbabilityEngine({
 
                 {/* Audit recommendation alert */}
                 <div className="bg-gold/5 border border-gold/20 rounded-2xl p-6 flex items-start gap-4">
-                  <Info size={16} className="text-gold mt-0.5 flex-shrink-0" />
+                  <Info size={16} className="text-gold mt-0.5 shrink-0" />
                   <div>
                     <h4 className="text-[9px] font-black text-gold uppercase tracking-widest">Recomendación del Analista Monte Carlo</h4>
                     <p className="text-[10px] text-muted/95 leading-relaxed mt-1">{simResult.audit.recommendation}</p>
@@ -803,7 +804,7 @@ export default function ProbabilityEngine({
                     <span className="text-[8px] text-muted font-black tracking-widest uppercase">Muestreo: {simResult.iterations.toLocaleString()} spins</span>
                   </div>
 
-                  <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-4 max-h-112.5 overflow-y-auto pr-2 custom-scrollbar">
                     {simResult.items.map((item) => {
                       return (
                         <div key={item._id} className="p-5 bg-surface-3/20 rounded-2xl border border-white/5 space-y-3">
@@ -825,7 +826,7 @@ export default function ProbabilityEngine({
                             {/* Theoretical bar */}
                             <div className="flex items-center gap-3">
                               <span className="text-[7px] text-muted font-black w-14 uppercase tracking-widest">Teórica:</span>
-                              <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden p-[1px]">
+                              <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden p-px">
                                 <div className="h-full bg-gold rounded-full" style={{ width: `${item.theoreticalProbability}%` }} />
                               </div>
                               <span className="text-[8px] text-gold font-black w-8 text-right">{item.theoreticalProbability}%</span>
@@ -834,7 +835,7 @@ export default function ProbabilityEngine({
                             {/* Simulated bar */}
                             <div className="flex items-center gap-3">
                               <span className="text-[7px] text-muted font-black w-14 uppercase tracking-widest">Simulada:</span>
-                              <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden p-[1px]">
+                              <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden p-px">
                                 <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${item.simulatedProbability}%` }} />
                               </div>
                               <span className="text-[8px] text-emerald-400 font-black w-8 text-right">{item.simulatedProbability}%</span>
@@ -856,7 +857,7 @@ export default function ProbabilityEngine({
 
               </div>
             ) : (
-              <div className="text-center py-20 border border-dashed border-white/5 rounded-[2rem] bg-surface-3/5 p-8">
+              <div className="text-center py-20 border border-dashed border-white/5 rounded-4xl bg-surface-3/5 p-8">
                 <BarChart2 size={48} className="text-muted/30 mx-auto mb-4" />
                 <h4 className="text-xs font-black text-muted uppercase tracking-widest">Sin simulación cargada</h4>
                 <p className="text-[10px] text-muted/60 uppercase tracking-wider mt-2">

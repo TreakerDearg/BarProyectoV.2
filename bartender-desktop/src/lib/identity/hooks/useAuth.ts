@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { identityService } from '../services';
-import type { IdentityResponse, IdentityUser } from '../types';
+import type { IdentityUser } from '../types';
 
 interface UseAuthState {
   user: IdentityUser | null;
@@ -62,13 +62,13 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           error: response.message || 'Error de autenticación',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState({
         user: null,
         token: null,
         isAuthenticated: false,
         loading: false,
-        error: error.message || 'Error de autenticación',
+        error: error instanceof Error ? error.message : 'Error de autenticación',
       });
     }
   }, []);
@@ -99,13 +99,13 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           error: response.message || 'Error de registro',
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState({
         user: null,
         token: null,
         isAuthenticated: false,
         loading: false,
-        error: error.message || 'Error de registro',
+        error: error instanceof Error ? error.message : 'Error de registro',
       });
     }
   }, []);
@@ -115,7 +115,7 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
 
     try {
       await identityService.logout();
-    } catch (error) {
+    } catch {
       // Logout nunca debe romper UI
     } finally {
       // Limpiar token de localStorage
@@ -150,11 +150,11 @@ export const useAuth = (): UseAuthState & UseAuthActions => {
           error: response.message || 'Error al obtener perfil',
         }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error.message || 'Error al obtener perfil',
+        error: error instanceof Error ? error.message : 'Error al obtener perfil',
       }));
     }
   }, []);

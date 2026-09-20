@@ -15,22 +15,20 @@ export interface RouletteLog {
   type: "create" | "update" | "delete" | "toggle" | "system";
   message: string;
   drinkId?: string;
-  meta?: any;
+  meta?: Record<string, unknown>;
   createdAt: string;
 }
 
 /* ==============================
    SAFE WRAPPER
 ============================== */
-const safeRequest = async <T>(promise: Promise<any>): Promise<T> => {
+const safeRequest = async <T>(promise: Promise<{ data: unknown }>): Promise<T> => {
   try {
     const { data } = await promise;
     return data as T;
-  } catch (error: any) {
-    const msg =
-      error?.response?.data?.error ||
-      error?.message ||
-      "Unexpected error";
+  } catch (error: unknown) {
+    const errorRecord = error as { response?: { data?: { error?: string } }; message?: string };
+    const msg = errorRecord.response?.data?.error || errorRecord.message || "Unexpected error";
 
     throw new Error(msg);
   }
@@ -268,6 +266,13 @@ export const getAllUserRouletteStats = async (): Promise<EmployeeRouletteStats[]
   return Array.isArray(data) ? data : [];
 };
 
-export const getMyRouletteStats = async () => {
-  return safeRequest<any>(api.get(`${BASE}/my-stats`));
+export type MyRouletteStats = {
+  totalSpins: number;
+  wins: number;
+  lastSpinAt?: string;
+  [key: string]: unknown;
+};
+
+export const getMyRouletteStats = async (): Promise<MyRouletteStats> => {
+  return safeRequest<MyRouletteStats>(api.get(`${BASE}/my-stats`));
 };

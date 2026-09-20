@@ -116,7 +116,8 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
       });
 
       // Totals
-      let finalY = (doc as any).lastAutoTable.finalY + 10;
+      const finalYStart = 105;
+      let finalY = finalYStart;
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
@@ -193,7 +194,7 @@ export default function ReceiptModal({ receipt, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
-        <div className="bg-gradient-to-br from-obsidian to-black p-6 text-center">
+        <div className="bg-linear-to-br from-obsidian to-black p-6 text-center">
           <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center mx-auto mb-3">
             <CheckCircle size={24} className="text-gold" />
           </div>
