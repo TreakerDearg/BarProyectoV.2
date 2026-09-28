@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Nebula Bar",
+    "slug": "nebula-bar-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b0c10"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nebulabar.cliente"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b0c10"
+      },
+      "package": "com.nebulabar.cliente",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite acceder a la cámara para escanear el código QR de tu mesa."
+        }
+      ]
+    ]
+  }
+}

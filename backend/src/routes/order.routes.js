@@ -11,7 +11,7 @@ import {
   updateItemStatusSchema,
   applyDiscountSchema,
 } from "../utils/schemas.js";
-import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
+import { protect, authorizeRoles, optionalAuth } from "../middlewares/auth.middleware.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 
 const router = Router();
@@ -32,7 +32,7 @@ router.get("/:id", asyncHandler(getOrderById));
 /* =========================================================
    CREATE & UPDATE
 ========================================================= */
-router.post("/", protect, validate(createOrderSchema), asyncHandler(createOrder));
+router.post("/", optionalAuth, validate(createOrderSchema), asyncHandler(createOrder));
 
 router.patch("/:id/status", protect, validate(updateOrderStatusSchema), asyncHandler(updateOrderStatus));
 router.patch("/:orderId/item/:itemId/status", protect, validate(updateItemStatusSchema), asyncHandler(updateOrderItemStatus));

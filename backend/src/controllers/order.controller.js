@@ -38,30 +38,40 @@ const validateActiveTableSession = async (tableId, sessionId, dbSession) => {
 ========================================================= */
 const emitOrderUpdate = (order) => {
   const dto = toOrderDTO(order);
+  // Emisión directa a la sala de la mesa (room table:{id})
+  io.to(`table:${order.table}`).emit("order:update", dto);
+  io.to(`table:${order.table}`).emit("order:updated", dto);
+  // Broadcast legacy con nombre de evento compuesto
   io.emit(`table:${order.table}`, { event: "order:update", order: dto });
   io.emit(`table:${order.table}`, { event: "order:updated", order: dto });
+  // Emisión global a órdenes
   io.to("orders:global").emit("order:update", dto);
   io.to("orders:global").emit("order:updated", dto);
-  // Emitir al cliente propietario del pedido (tiempo real para el cliente web)
+  // Emitir al cliente propietario del pedido (tiempo real para el cliente web/móvil)
   if (order.userId) {
-    io.to(`user:${order.userId}`).emit("order:update", { event: "order:update", order: dto });
-    io.to(`user:${order.userId}`).emit("order:updated", { event: "order:updated", order: dto });
+    io.to(`user:${order.userId}`).emit("order:update", dto);
+    io.to(`user:${order.userId}`).emit("order:updated", dto);
   }
 };
 
 const emitOrderCreate = (order) => {
   const dto = toOrderDTO(order);
+  // Emisión directa a la sala de la mesa (room table:{id})
+  io.to(`table:${order.table}`).emit("order:created", dto);
+  // Broadcast legacy con nombre de evento compuesto
   io.emit(`table:${order.table}`, { event: "order:created", order: dto });
+  // Global y roles
   io.to("orders:global").emit("order:created", dto);
   io.to("role:kitchen").emit("order:new",        order);
   io.to("role:bartender").emit("order:new",      order);
   // Emitir al cliente propietario del pedido
   if (order.userId) {
-    io.to(`user:${order.userId}`).emit("order:created", { event: "order:created", order: dto });
+    io.to(`user:${order.userId}`).emit("order:created", dto);
   }
 };
 
 const emitOrderDelete = (order) => {
+  io.to(`table:${order.table}`).emit("order:deleted", order);
   io.emit(`table:${order.table}`, { event: "order:deleted", order });
   io.to("orders:global").emit("order:deleted", order);
 };
@@ -369,9 +379,13 @@ export const updateOrderItemStatus = async (req, res, next) => {
 
     emitOrderUpdate(order);
 
-    /* Notificación específica al rol de delivery */
+    /* Notificación específica al rol de delivery, a la mesa y al cliente */
     if (status === "ready") {
-      io.to("role:bartender").emit("item:ready", { orderId, itemId, item });
+      io.to("role:bartender").emit("item:ready", { orderId, itemId, item, table: order.table });
+      io.to(`table:${order.table}`).emit("item:ready", { orderId, itemId, item, table: order.table });
+      if (order.userId) {
+        io.to(`user:${order.userId}`).emit("item:ready", { orderId, itemId, item, table: order.table });
+      }
     }
 
     return ok(res, toOrderDTO(order), "Item actualizado");
