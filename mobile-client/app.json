@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0b0c10"
+      "backgroundColor": "#10131a"
     },
     "ios": {
       "supportsTablet": false,
@@ -18,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0b0c10"
+        "backgroundColor": "#10131a"
       },
       "package": "com.nebulabar.cliente",
       "permissions": [
@@ -32,7 +32,14 @@
         {
           "cameraPermission": "Permite acceder a la cámara para escanear el código QR de tu mesa."
         }
-      ]
-    ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "nebula-bar-app"
+      }
+    }
   }
 }

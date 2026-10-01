@@ -1,107 +1,104 @@
-import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { ShoppingBag } from "lucide-react-native";
-import * as Haptics from "expo-haptics";
-import { Colors } from "../theme/colors";
-import { useCartStore } from "../stores/useCartStore";
+// ─────────────────────────────────────────────────────────────────────────────
+// NEBULA — FloatingCartBar (Nocturne Gastronomy)
+// Barra flotante del carrito, visible cuando hay items.
+// Gold fill, haptic feedback, glow effect.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React from 'react';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { ShoppingBag, ChevronRight } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+
+import { Colors }    from '../theme/colors';
+import { Typography } from '../theme/typography';
+import { Spacing, Radius } from '../theme/spacing';
+import { Elevation } from '../theme/elevation';
+import { useCartStore } from '../stores/useCartStore';
 
 interface FloatingCartBarProps {
   onPress: () => void;
 }
 
-export const FloatingCartBar: React.FC<FloatingCartBarProps> = ({ onPress }) => {
-  const { getTotalItems, getTotalPrice } = useCartStore();
-
-  const totalItems = getTotalItems();
-  const totalPrice = getTotalPrice();
+export function FloatingCartBar({ onPress }: FloatingCartBarProps) {
+  const totalItems = useCartStore((s) => s.getTotalItems());
+  const totalPrice = useCartStore((s) => s.getTotalPrice());
 
   if (totalItems === 0) return null;
 
   const handlePress = () => {
-    try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch {}
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {}
     onPress();
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.bar} onPress={handlePress} activeOpacity={0.9}>
-        <View style={styles.leftInfo}>
-          <View style={styles.badge}>
-            <ShoppingBag size={18} color="#000" />
-            <Text style={styles.badgeCount}>{totalItems}</Text>
-          </View>
-          <Text style={styles.totalText}>${totalPrice.toLocaleString("es-AR")}</Text>
+    <TouchableOpacity
+      style={styles.bar}
+      onPress={handlePress}
+      activeOpacity={0.88}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver carrito: ${totalItems} items, total $${totalPrice.toLocaleString('es-AR')}`}
+    >
+      {/* Badge izquierdo */}
+      <View style={styles.badgeWrap}>
+        <ShoppingBag size={18} color={Colors.onPrimary} />
+        <View style={styles.countBubble}>
+          <Text style={styles.countText}>{totalItems}</Text>
         </View>
+      </View>
 
-        <View style={styles.rightAction}>
-          <Text style={styles.actionText}>Ver Pedido</Text>
-          <Text style={styles.arrow}>➔</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+      {/* Precio central */}
+      <Text style={styles.priceText}>
+        ${totalPrice.toLocaleString('es-AR')}
+      </Text>
+
+      {/* CTA derecho */}
+      <View style={styles.ctaRight}>
+        <Text style={styles.ctaText}>Ver pedido</Text>
+        <ChevronRight size={16} color={Colors.onPrimary} strokeWidth={2.5} />
+      </View>
+    </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    bottom: 22,
-    left: 16,
-    right: 16,
-  },
   bar: {
-    backgroundColor: Colors.primary,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderRadius: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 8,
+    flexDirection:   'row',
+    alignItems:      'center',
+    justifyContent:  'space-between',
+    backgroundColor: Colors.primaryContainer,   // #d4a340
+    borderRadius:    Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical:   Spacing.smMd,
+    ...(Elevation.goldCTA as object),
   },
-  leftInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+  badgeWrap: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           6,
   },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.15)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
-    marginRight: 12,
-    gap: 4,
+  countBubble: {
+    backgroundColor: 'rgba(65, 45, 0, 0.25)',
+    borderRadius:    Radius.full,
+    paddingHorizontal: 7,
+    paddingVertical:   2,
+    minWidth:          22,
+    alignItems:        'center',
   },
-  badgeCount: {
-    color: Colors.textInverse,
-    fontWeight: "900",
-    fontSize: 14,
+  countText: {
+    ...Typography.labelMd,
+    color: Colors.onPrimary,
   },
-  totalText: {
-    color: Colors.textInverse,
-    fontWeight: "900",
-    fontSize: 17,
+  priceText: {
+    ...Typography.headlineSm,
+    color: Colors.onPrimary,
   },
-  rightAction: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  ctaRight: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           2,
   },
-  actionText: {
-    color: Colors.textInverse,
-    fontWeight: "900",
-    fontSize: 15,
-  },
-  arrow: {
-    color: Colors.textInverse,
-    fontSize: 16,
-    fontWeight: "900",
+  ctaText: {
+    ...Typography.labelLg,
+    color: Colors.onPrimary,
   },
 });

@@ -1,96 +1,113 @@
-import React from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
-import { QrCode, Sparkles } from "lucide-react-native";
-import { Colors } from "../theme/colors";
-import { useSessionStore } from "../stores/useSessionStore";
+// ─────────────────────────────────────────────────────────────────────────────
+// NEBULA — HeaderContext (Nocturne Gastronomy)
+// Header con estado de mesa y acceso al scanner QR.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import React from 'react';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { QrCode, CheckCircle2 } from 'lucide-react-native';
+import { Colors }     from '../theme/colors';
+import { Typography } from '../theme/typography';
+import { Spacing, Radius } from '../theme/spacing';
+import { useSessionStore } from '../stores/useSessionStore';
 
 interface HeaderContextProps {
   onOpenScanner: () => void;
 }
 
-export const HeaderContext: React.FC<HeaderContextProps> = ({ onOpenScanner }) => {
+export function HeaderContext({ onOpenScanner }: HeaderContextProps) {
   const { tableNumber, tableCode } = useSessionStore();
 
   return (
     <View style={styles.header}>
       <View>
-        <Text style={styles.brandTitle}>NEBULA BAR</Text>
+        <Text style={styles.brandTitle}>NEBULA</Text>
         <View style={styles.contextBadge}>
-          <View style={[styles.pulseDot, !tableNumber ? { backgroundColor: Colors.primary } : undefined]} />
+          <View style={[
+            styles.pulseDot,
+            tableNumber ? styles.pulseDotActive : null,
+          ]} />
           <Text style={styles.contextText}>
             {tableNumber
               ? `Mesa #${tableNumber} · Código ${tableCode}`
-              : "Retiro en Barra · Toca para mesa"}
+              : 'Retiro en Barra'}
           </Text>
         </View>
       </View>
 
       <TouchableOpacity
-        style={[styles.qrButton, tableNumber ? styles.qrButtonActive : undefined]}
+        style={[styles.qrButton, tableNumber ? styles.qrButtonActive : null]}
         onPress={onOpenScanner}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={tableNumber ? `Mesa ${tableNumber} conectada. Tocar para cambiar.` : 'Escanear código de mesa'}
       >
-        <QrCode size={18} color={tableNumber ? Colors.dealGreen : Colors.primary} />
-        <Text style={[styles.qrButtonText, tableNumber ? { color: Colors.dealGreen } : undefined]}>
-          {tableNumber ? "Mesa Conectada" : "Escanear Mesa"}
+        {tableNumber
+          ? <CheckCircle2 size={16} color={Colors.success} />
+          : <QrCode       size={16} color={Colors.primary}  />}
+        <Text style={[styles.qrButtonText, tableNumber ? styles.qrButtonTextActive : null]}>
+          {tableNumber ? 'Mesa Conectada' : 'Escanear Mesa'}
         </Text>
       </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    flexDirection:   'row',
+    justifyContent:  'space-between',
+    alignItems:      'center',
+    paddingHorizontal: Spacing.gutter,
+    paddingVertical:   Spacing.smMd,
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: 'rgba(224, 226, 236, 0.06)',
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: Colors.textPrimary,
-    letterSpacing: 1.5,
+    ...Typography.headlineSm,
+    color:         Colors.primary,
+    letterSpacing: 2,
   },
   contextBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 3,
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           5,
+    marginTop:     3,
   },
   pulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.dealGreen,
-    marginRight: 6,
+    width:           8,
+    height:          8,
+    borderRadius:    Radius.full,
+    backgroundColor: Colors.outline,
+  },
+  pulseDotActive: {
+    backgroundColor: Colors.success,
   },
   contextText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    fontWeight: "500",
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
   },
   qrButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.cardSecondary,
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             6,
+    backgroundColor: Colors.surfaceContainerHigh,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    paddingVertical:   8,
+    borderRadius:    Radius.full,
+    borderWidth:     1,
+    borderColor:     'rgba(224, 226, 236, 0.08)',
   },
   qrButtonActive: {
-    borderColor: "rgba(16, 185, 129, 0.4)",
-    backgroundColor: "rgba(16, 185, 129, 0.1)",
+    backgroundColor: 'rgba(52, 185, 100, 0.08)',
+    borderColor:     'rgba(52, 185, 100, 0.25)',
   },
   qrButtonText: {
+    ...Typography.labelMd,
     color: Colors.primary,
-    fontSize: 12,
-    fontWeight: "700",
-    marginLeft: 6,
+  },
+  qrButtonTextActive: {
+    color: Colors.success,
   },
 });

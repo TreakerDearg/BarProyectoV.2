@@ -148,3 +148,44 @@ export interface CartLine {
   image?: string;
   notes: string;
 }
+
+// ── Reservations ──────────────────────────────────────────────────────────────
+
+export interface TimeSlotDTO {
+  startTime: string;   // ISO string
+  endTime:   string;   // ISO string
+  available: boolean;
+  tableCount?: number; // número de mesas disponibles
+}
+
+export interface CreateReservationPayload {
+  date:          string;   // "YYYY-MM-DD"
+  startTime:     string;   // ISO string del slot seleccionado
+  endTime:       string;
+  guests:        number;
+  customerName:  string;
+  customerPhone: string;
+  customerEmail?: string;
+  notes?:        string;
+  dietaryRestrictions?: string[];
+}
+
+export interface ReservationDTO {
+  _id:          string;
+  status:       'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no-show';
+  startTime:    string;
+  endTime?:     string;
+  guests:       number;
+  customerName: string;
+  customerPhone?: string;
+  tableNumber?: number;
+  notes?:       string;
+  createdAt:    string;
+}
+
+export interface AvailabilityCheckResponse {
+  available:  boolean;
+  slots:      TimeSlotDTO[];
+  date:       string;
+  guests:     number;
+}

@@ -99,17 +99,20 @@ function GuestDietarySelector({
           >
             <div className={ui.reservationGuestBodyInner}>
               <div className={ui.reservationField}>
-                <label className={ui.reservationLabel}>
+                <label htmlFor={`guest-name-${index}`} className={ui.reservationLabel}>
                   Nombre del invitado
                 </label>
                 <div className={ui.reservationInputWrap}>
                   <User size={14} className={ui.reservationInputIcon} />
                   <input
+                    id={`guest-name-${index}`}
+                    name={`guest-name-${index}`}
                     type="text"
                     value={safeEntry.guestName}
                     onChange={(e) => onChange({ ...safeEntry, guestName: e.target.value })}
                     placeholder="Ej: María, El abuelo…"
                     className={ui.reservationInput}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -140,10 +143,12 @@ function GuestDietarySelector({
               </div>
 
               <div className={ui.reservationField}>
-                <label className={ui.reservationLabel}>
+                <label htmlFor={`guest-note-${index}`} className={ui.reservationLabel}>
                   Nota adicional (opcional)
                 </label>
                 <textarea
+                  id={`guest-note-${index}`}
+                  name={`guest-note-${index}`}
                   value={safeEntry.notes}
                   onChange={(e) => onChange({ ...safeEntry, notes: e.target.value })}
                   placeholder="Ej: alérgico severo al maní, intolerancia confirmada…"
