@@ -28,11 +28,12 @@ function Footer() {
           <div className={ui.footerSection}>
             <h4 className={ui.footerSectionTitle}>Navegación</h4>
             <nav className={ui.footerLinks} aria-label="Navegación del footer">
-              <Link href="/cliente/carta" className={ui.footerLink}>Carta</Link>
-              <Link href="/cliente/pedido" className={ui.footerLink}>Mi Pedido</Link>
-              <Link href="/cliente/ruleta" className={ui.footerLink}>Ruleta</Link>
-              <Link href="/cliente/reservas" className={ui.footerLink}>Reservas</Link>
-              <Link href="/cliente/cuenta" className={ui.footerLink}>Mi Cuenta</Link>
+              <Link href="/cliente/carta"       className={ui.footerLink}>Carta</Link>
+              <Link href="/cliente/pedido"      className={ui.footerLink}>Mi Pedido</Link>
+              <Link href="/cliente/ruleta"      className={ui.footerLink}>Ruleta</Link>
+              <Link href="/cliente/reservas"    className={ui.footerLink}>Reservas</Link>
+              <Link href="/cliente/cuenta"      className={ui.footerLink}>Mi Cuenta</Link>
+              <Link href="/cliente/descargar"   className={ui.footerLink}>App móvil</Link>
             </nav>
           </div>
 

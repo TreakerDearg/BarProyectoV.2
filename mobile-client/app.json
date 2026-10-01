@@ -34,11 +34,12 @@
         }
       ],
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-asset"
     ],
     "extra": {
       "eas": {
-        "projectId": "nebula-bar-app"
+        "projectId": "afa743b2-56d9-4885-8da5-8f2db3a660f0"
       }
     }
   }

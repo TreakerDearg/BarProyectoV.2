@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, useEffect, useCallback } from "react";
 import {
   GlassWater, ShoppingCart, User, Menu, X,
-  Home, ChefHat, Dices, CalendarDays, Monitor, LogOut,
+  Home, ChefHat, Dices, CalendarDays, Monitor, LogOut, Smartphone,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import styles from "./ModernNavbar.module.css";
@@ -19,10 +19,11 @@ import { InstallAppButton } from "@/components/cliente/InstallAppButton";
 // ── Constantes ────────────────────────────────────────────────────
 
 const navLinks = [
-  { href: "/cliente",          label: "Inicio",   icon: Home,         exact: true  },
-  { href: "/cliente/carta",    label: "Carta",    icon: ChefHat                    },
-  { href: "/cliente/ruleta",   label: "Ruleta",   icon: Dices                      },
-  { href: "/cliente/reservas", label: "Reservas", icon: CalendarDays               },
+  { href: "/cliente",            label: "Inicio",    icon: Home,         exact: true  },
+  { href: "/cliente/carta",      label: "Carta",     icon: ChefHat                    },
+  { href: "/cliente/ruleta",     label: "Ruleta",    icon: Dices                      },
+  { href: "/cliente/reservas",   label: "Reservas",  icon: CalendarDays               },
+  { href: "/cliente/descargar",  label: "App móvil", icon: Smartphone                 },
 ];
 
 /** Roles que NO son clientes — deben ver el EmployeeModal */

@@ -13,7 +13,7 @@ export function AppDownloadCard() {
         <h2 id="download-app-title">Lleva Nebula contigo</h2>
         <p>Accede más rápido a tus pedidos, reservas y beneficios desde la app.</p>
       </div>
-      <Link href="/cliente/app" className={styles.link}>
+      <Link href="/cliente/descargar" className={styles.link}>
         Descargar app <ArrowRight size={16} aria-hidden="true" />
       </Link>
     </section>
