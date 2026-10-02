@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -23,7 +24,8 @@
       "package": "com.nebulabar.cliente",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -34,8 +36,7 @@
         }
       ],
       "expo-font",
-      "expo-splash-screen",
-      "expo-asset"
+      "expo-splash-screen"
     ],
     "extra": {
       "eas": {

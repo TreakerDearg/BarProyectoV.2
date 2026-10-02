@@ -1,9 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA BAR — App Entry Point
-// Carga fuentes, restaura sesión, conecta socket y monta el navigator.
+// NEBULA BAR — App Entry Point (SDK 57 / React 19 / RN 0.86)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -35,25 +34,25 @@ import AppNavigator from './src/navigation/AppNavigator';
 // ── Theme ─────────────────────────────────────────────────────────────────────
 import { Colors } from './src/theme/colors';
 
-// Mantiene el splash visible hasta que los recursos estén listos
-SplashScreen.preventAutoHideAsync();
+// SDK 57: preventAutoHideAsync es async y puede fallar silenciosamente
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
-// ── Tema de navegación (Nocturne) ─────────────────────────────────────────────
+// ── Navigation theme (Nocturne) ───────────────────────────────────────────────
 const NavigationTheme = {
   dark: true,
   colors: {
-    primary:        Colors.primary,
-    background:     Colors.background,
-    card:           Colors.background,
-    text:           Colors.onSurface,
-    border:         Colors.outlineVariant,
-    notification:   Colors.error,
+    primary:      Colors.primary,
+    background:   Colors.background,
+    card:         Colors.background,
+    text:         Colors.onSurface,
+    border:       Colors.outlineVariant,
+    notification: Colors.error,
   },
   fonts: {
-    regular: { fontFamily: 'Inter_400Regular', fontWeight: '400' as const },
-    medium:  { fontFamily: 'Inter_500Medium',  fontWeight: '500' as const },
+    regular: { fontFamily: 'Inter_400Regular',  fontWeight: '400' as const },
+    medium:  { fontFamily: 'Inter_500Medium',   fontWeight: '500' as const },
     bold:    { fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
-    heavy:   { fontFamily: 'Inter_700Bold',    fontWeight: '700' as const },
+    heavy:   { fontFamily: 'Inter_700Bold',     fontWeight: '700' as const },
   },
 };
 
@@ -72,30 +71,31 @@ export default function App() {
     Inter_700Bold,
   });
 
-  // Inicializar sesión y socket
+  // Inicializar sesión y socket una sola vez
   useEffect(() => {
     loadSession();
     socketService.connect();
-    return () => {
-      socketService.disconnect();
-    };
+    return () => socketService.disconnect();
   }, []);
 
   // Ocultar splash cuando las fuentes estén listas
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
+      await SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
-  // Mientras cargan las fuentes, mostrar fondo del tema
+  // Mostrar fondo mientras cargan las fuentes
   if (!fontsLoaded && !fontError) {
     return <View style={{ flex: 1, backgroundColor: Colors.background }} />;
   }
 
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: Colors.background }} onLayout={onLayoutRootView}>
+      <View
+        style={{ flex: 1, backgroundColor: Colors.background }}
+        onLayout={onLayoutRootView}
+      >
         <StatusBar style="light" backgroundColor={Colors.background} />
         <NavigationContainer theme={NavigationTheme}>
           <AppNavigator />
