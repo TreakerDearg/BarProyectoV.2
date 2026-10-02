@@ -43,6 +43,7 @@ import {
 import { NToast }            from '../components/shared/NToast';
 import { FloatingCartBar }   from '../components/FloatingCartBar';
 import { ModifierModal }     from '../components/ModifierModal';
+import { ProductCustomizerSheet } from '../components/ProductCustomizerSheet';
 import { CategoryPills }     from '../components/CategoryPills';
 
 import type { ProductPublicDTO } from '../types/api';
@@ -85,6 +86,7 @@ export default function CartaScreen() {
   // ── Modals ────────────────────────────────────────────────────
   const [selectedProduct, setSelectedProduct] = useState<ProductPublicDTO | null>(null);
   const [toastMsg,        setToastMsg]        = useState<string | null>(null);
+  const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
 
   // ── Stores ────────────────────────────────────────────────────
   const { cart, addToCart }          = useCartStore();
@@ -298,7 +300,7 @@ export default function CartaScreen() {
                   key={product.id}
                   product={product}
                   isFavorite={isFavorite(product.id)}
-                  onAdd={handleQuickAdd}
+                  onAdd={(p) => setCustomizerProduct(p)}
                   onPress={setSelectedProduct}
                   onFavorite={token ? handleFavorite : undefined}
                   featureBadge={
@@ -382,6 +384,14 @@ export default function CartaScreen() {
         visible={!!selectedProduct}
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
+        onConfirm={handleDetailAdd}
+      />
+
+      {/* ── ProductCustomizerSheet (for SommelierCards) ───── */}
+      <ProductCustomizerSheet
+        visible={!!customizerProduct}
+        product={customizerProduct}
+        onClose={() => setCustomizerProduct(null)}
         onConfirm={handleDetailAdd}
       />
 

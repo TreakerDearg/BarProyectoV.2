@@ -418,23 +418,29 @@ export default function AccountScreen() {
         </View>
 
         {/* ── Hero: avatar + nombre ────────────────────────── */}
-        <View style={styles.hero}>
-          <View style={styles.avatarWrap}>
-            {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
-            ) : (
-              <Text style={styles.avatarText}>{initials}</Text>
-            )}
-          </View>
-          <View style={styles.heroInfo}>
-            <Text style={styles.heroGreeting}>
-              Hola, <Text style={styles.heroName}>{user?.name?.split(' ')[0]}</Text>
-            </Text>
-            <Text style={styles.heroEmail}>{user?.email}</Text>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>
-                {user?.role === 'client' ? 'Cliente' : user?.role ?? 'Cliente'}
+        <View style={styles.heroContainer}>
+          {/* Background layers */}
+          <View style={styles.heroBg} />
+          <View style={styles.heroOrb} />
+          {/* Hero row */}
+          <View style={styles.hero}>
+            <View style={styles.avatarWrap}>
+              {user?.avatar ? (
+                <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
+              ) : (
+                <Text style={styles.avatarText}>{initials}</Text>
+              )}
+            </View>
+            <View style={styles.heroInfo}>
+              <Text style={styles.heroGreeting}>
+                Hola, <Text style={styles.heroName}>{user?.name?.split(' ')[0]}</Text>
               </Text>
+              <Text style={styles.heroEmail}>{user?.email}</Text>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleText}>
+                  {user?.role === 'client' ? 'Cliente' : user?.role ?? 'Cliente'}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -616,6 +622,31 @@ const styles = StyleSheet.create({
   refreshBtn:  { padding: 4 },
 
   // ── Hero ───────────────────────────────────────────────────────
+  heroContainer: {
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius:    Radius.xl,
+    borderWidth:     1,
+    borderColor:     'rgba(224,226,236,0.08)',
+    overflow:        'hidden',
+    padding:         Spacing.md,
+  },
+  heroBg: {
+    position:        'absolute',
+    top:             0,
+    bottom:          0,
+    left:            0,
+    right:           0,
+    backgroundColor: Colors.surfaceContainerHigh,
+  },
+  heroOrb: {
+    position:        'absolute',
+    left:            -24,
+    top:             -24,
+    width:           160,
+    height:          160,
+    borderRadius:    80,
+    backgroundColor: Colors.goldMuted,
+  },
   hero: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   avatarWrap: {
     width: 64, height: 64, borderRadius: Radius.full,

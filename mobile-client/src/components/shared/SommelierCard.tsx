@@ -78,8 +78,9 @@ export function SommelierCard({
           </View>
         )}
 
-        {/* Overlay degradado inferior */}
-        <View style={styles.imageOverlay} />
+        {/* Simulated gradient: solid base + fade layer */}
+        <View style={styles.gradientSolid} />
+        <View style={styles.gradientFade} />
 
         {/* Badge "COCKTAIL ESTRELLA" o similar */}
         {featureBadge && (
@@ -188,15 +189,21 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
   },
-  imageOverlay: {
-    position:   'absolute',
-    bottom:     0,
-    left:       0,
-    right:      0,
-    height:     '40%',
-    // Degradado simulado con backgroundColor + opacity
-    backgroundColor: Colors.surfaceContainer,
-    opacity:    0.6,
+  gradientSolid: {
+    position:        'absolute',
+    bottom:          0,
+    left:            0,
+    right:           0,
+    height:          '40%',
+    backgroundColor: '#1d2027',
+  },
+  gradientFade: {
+    position:        'absolute',
+    bottom:          '20%' as any,
+    left:            0,
+    right:           0,
+    height:          '30%',
+    backgroundColor: 'rgba(29, 32, 39, 0.75)',
   },
   featureBadge: {
     position:        'absolute',

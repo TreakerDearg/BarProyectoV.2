@@ -288,13 +288,13 @@ Secciones:
 - PasswordPanel: cambio de contraseña colapsable (PATCH `/auth/password`)
 - Logout: Alert de confirmación + POST `/auth/logout` + limpia SecureStore
 
-## RouletteScreen (`src/screens/RouletteScreen.tsx`) — existente
+## RouletteScreen (`src/screens/RouletteScreen.tsx`) — **Rediseño completo Fase 2**
 
-Modal de gamificación. Haptic feedback durante el giro.
+Modal de gamificación con sistema de rareza completo (COMMON/RARE/EPIC/LEGENDARY), animaciones (border rotation loop, result scale spring, recipe chevron), historial de tiradas de sesión, integración al carrito.
 
-## QRScannerScreen (`src/screens/QRScannerScreen.tsx`) — existente
+## QRScannerScreen (`src/screens/QRScannerScreen.tsx`) — **Rediseñado Fase 2**
 
-Teclado numérico de 3 dígitos para vincular mesa. Lookup en `/tables/code/:code`.
+Modo cámara (expo-camera CameraView, QR scan automático) + modo teclado numérico 3 dígitos con animación de éxito stagger. Gold-bordered overlay square.
 
 ---
 
@@ -325,10 +325,27 @@ Teclado numérico de 3 dígitos para vincular mesa. Lookup en `/tables/code/:cod
 | `CategoryPills` | Resting: `surfaceContainerLow`, selected: `surfaceContainerHighest` + dot gold |
 | `FloatingCartBar` | `primaryContainer` fill, ShoppingBag icon, goldCTA elevation |
 | `HeaderContext` | CheckCircle2 cuando mesa activa, tokens Nocturne completos |
+| `DealsCarousel` | Typography scale, Radius.xl, tokens semánticos directos |
+| `ModifierModal` | overlay 0.85, preset chips con estado seleccionado gold, Typography, goldCTA elevation |
+| `ProductCard` | Typography scale, badges mejorados con gold border, addButton en primaryContainer |
+| `QRScannerScreen` | Rediseño completo + modo cámara (expo-camera CameraView) + modo teclado + success animation stagger |
 
-## Existentes compatibles (sin cambios)
+## Nuevos (Nocturne Gastronomy)
 
-`DealsCarousel`, `ModifierModal`, `ProductCard`
+| Componente | Descripción |
+|-----------|-------------|
+| `NButton` | primary / ghost / text / danger — sizes sm/md/lg — haptics |
+| `NInput` | label exterior, foco gold, toggle password, error inline |
+| `NToast` | Toast animado fade+slide — success/error/info — auto-dismiss |
+| `NSkeleton` | Shimmer animado (Animated.Value) + SkeletonSommelierCard/SkeletonCompactRow |
+| `NEmptyState` | Icono centrado + título + subtítulo + CTA opcional |
+| `SommelierCard` | Hero 16:10, gradiente simulado (2 Views), featureBadge, rating, precio gold, favorito |
+| `CompactProductRow` | Fila 80×80, badge autor/descuento, qty badge en botón + |
+| `MesaCard` | Card de mesa activa: icono, zona, badge activo, 3 acciones (Ver consumos / Llamar mozo / Repetir Ronda) |
+| `PedidoActivoBanner` | Top accent bar por status, tiempo estimado, preview items, CTA |
+| `PromoBanner` | Imagen full-bleed, overlay, badge, título Outfit, validez |
+| `PromoBannerFallback` | Banner estático para cuando no hay promos del backend |
+| `ProductCustomizerSheet` | Customizer para SommelierCards — hero 16:9, secciones hielo/cítrico, upselling hardcodeado, total dinámico. Notas compiladas en formato [Tag1 \| Tag2] + texto libre |
 
 ---
 
@@ -337,7 +354,7 @@ Teclado numérico de 3 dígitos para vincular mesa. Lookup en `/tables/code/:cod
 | Store | Archivo | Persistencia |
 |-------|---------|--------------|
 | `useAuthStore` | `src/stores/useAuthStore.ts` | SecureStore (token + user) |
-| `useCartStore` | `src/stores/useCartStore.ts` | AsyncStorage |
+| `useCartStore` | `src/stores/useCartStore.ts` | AsyncStorage — incluye `appliedCoupon`, `tipPercent`, métodos smart totals (`getSubtotal`, `getDiscountAmount`, `getTipAmount`, `getTotalWithTipAndDiscount`) |
 | `useSessionStore` | `src/stores/useSessionStore.ts` | AsyncStorage (tableId, sessionId, tableCode) |
 | `useFavoritesStore` | `src/stores/useFavoritesStore.ts` | AsyncStorage + sync con `/auth/favorites` |
 
@@ -418,7 +435,7 @@ eas login
 
 ## Stack completo
 
-Expo 52, React Native 0.76, React Navigation 7 (bottom-tabs, native, native-stack), Zustand 5, Axios, Socket.IO-client 4, lucide-react-native, expo-haptics, expo-secure-store, expo-camera, AsyncStorage.
+Expo SDK 57, React Native 0.86.3, TypeScript 6.0.3, React 19.2.3, React Navigation 7 (bottom-tabs, native, native-stack), Zustand 5, Axios, Socket.IO-client 4, lucide-react-native, expo-haptics, expo-secure-store, expo-camera (~57.0.6), AsyncStorage.
 
 ---
 
@@ -597,7 +614,120 @@ La app está en **estado funcional completo**. Todas las pantallas y flujos prin
 
 ---
 
-# 22. OBJETIVO FINAL
+# 22. MEJORAS VISUALES FASE 2
+
+## [2026] — MIGRACIÓN VISUAL COMPLETA + ANIMACIONES + PRODUCT CUSTOMIZER
+
+### Componentes migrados (legacy → Nocturne tokens completos)
+- DealsCarousel: Typography scale, Radius.xl, tokens semánticos directos.
+- ModifierModal: overlay 0.85, preset chips con estado seleccionado gold, Typography, goldCTA elevation.
+- ProductCard: Typography scale, badges mejorados con gold border, addButton en primaryContainer.
+- QRScannerScreen: rediseño completo + modo cámara (expo-camera CameraView) + modo teclado + success animation stagger.
+
+### Componentes mejorados
+- SommelierCard: gradiente simulado (2 Views: gradientSolid + gradientFade).
+- AccountScreen: heroContainer card con gold orb simulado.
+- MesaCard: tercer botón "Repetir Ronda" en actions row.
+
+### Nuevos componentes
+- ProductCustomizerSheet: customizer para SommelierCards — hero 16:9, secciones de hielo/cítrico, upselling hardcodeado, total dinámico. Notas compiladas en formato [Tag1 | Tag2] + texto libre.
+
+### Animaciones (solo Animated + Easing de react-native — sin Reanimated, sin Skia)
+- AuthScreen: hero fadeIn + scale (600ms), card slideUp + fadeIn (delay 200ms), sliding pill tab (Animated.spring).
+- PedidoScreen: fade entre estados (150ms/300ms), item stagger CartView (50ms × index), progress bar Animated.timing (500ms ease-out, useNativeDriver: false), step circles scale spring.
+- HomeScreen: stagger de secciones (delays 0/100/200/300/400/500+80×i ms), pulsing dot en topBar (Animated.loop), quick access spring (scale 0.92→1).
+- RouletteScreen: border rotation loop (1200ms linear), result scale spring, result fade in 400ms, recipe chevron rotation 250ms.
+
+### RouletteScreen — Rediseño completo
+- Estados: idle → spinning → result
+- Sistema de rareza: COMMON/RARE/EPIC/LEGENDARY con border color, glow, emoji, badges únicos
+- Rueda 220px con borde animado (rotation loop durante spin)
+- Integración useCartStore: "Pedir este trago" requiere tableId; navega a Pedidos post-add
+- Historial local (últimas 5, no persistido)
+- Sección receta expandible con chevron animado
+- Haptics: Heavy en inicio, Light cada 80ms (max 20), Success en resultado
+
+### TrackingView — Kiosk-grade
+- Número de comanda gigante: #XXX en Outfit displayLg gold
+- Tiempo estimado dinámico (pending: 15min, in-progress: 8min)
+- Botones siempre visibles: "Pedir algo más" (→ Carta) + "Llamar al Mozo" (→ NToast)
+
+### PedidoScreen — CartView mejoras
+- Selector de destino (Mesa / Retiro en Barra) arriba del carrito
+- Opciones de propina: 0/5/10/15/20% (sincronizado con useCartStore.tipPercent)
+- Notas como mini-badges cuando tienen formato [Tag | Tag]
+- Totales desde store (getSubtotal, getDiscountAmount, getTipAmount, getTotalWithTipAndDiscount)
+- Línea de cupón en verde cuando appliedCoupon está activo
+
+### AppNavigator
+- tabBarHideOnKeyboard: true
+- Android paddingBottom fijo 8px
+- Indicador activo: barra gold 4×20px debajo del icono
+
+### DECISIÓN: expo-linear-gradient no instalado
+Gradientes simulados con Views apiladas en SommelierCard y AccountScreen.
+Si se instala en el futuro: reemplazar con LinearGradient de expo-linear-gradient.
+
+### DECISIÓN: solo Animated de react-native
+No se instala react-native-reanimated ni @shopify/react-native-skia.
+Suficiente para todas las animaciones requeridas en esta fase.
+
+---
+
+# 23. PLAN MAESTRO DE PRODUCTO — VISIÓN A LARGO PLAZO
+
+## Módulos registrados para iteraciones futuras
+
+### M1 — Smart Fulfillment Header
+Selector de modo de consumo persistente (Mesa/Barra/Reserva) en el top header como bottom sheet.
+Reemplaza el gate reactivo tardío de PedidoScreen.
+Balance de puntos visible en el saludo.
+
+### M2 — Menú de Alta Conversión
+- CategoryPills con scroll-spy real (SectionList + ViewabilityConfig).
+- Carrusel de combos/ofertas del día con ahorro explícito.
+- Filtros rápidos: Vegano, Sin TACC, Sin Alcohol, Favoritos.
+
+### M3 — ProductCustomizerSheet Completo
+Fase 1 tiene versión básica con opciones hardcodeadas.
+Fase 2: radio groups para variantes reales del backend (gin/whisky premium con precios),
+upselling con items reales del catálogo, CartLine con id UUID para múltiples personalizaciones del mismo producto.
+
+### M4 — Nebula Club Rewards
+- useLoyaltyStore.ts: 100 pts / $10.000 consumidos
+- Niveles: Bronce / Plata / Gold VIP / Platinum
+- Ruleta → genera cupón inyectable al carrito
+- Canje directo de puntos por bebidas o platos
+
+### M5 — Smart Checkout
+- Desglose completo: subtotal, descuentos, propina, total.
+- Selector método de pago: Efectivo/Tarjeta/MercadoPago/Pagar con cuenta de mesa.
+- Split bill.
+
+### M6 — Kiosk-Grade Live Tracker (Fase 2 extendida)
+Fase 1 ya tiene: número gigante, tiempo estimado, botones post-pedido.
+Fase 2: tracking independiente por item (línea de progreso por cada OrderItemDTO).
+
+### M7 — In-Venue Table Session Hub (Fase 2 extendida)
+Fase 1 ya tiene: MesaCard con "Repetir Ronda" + "Llamar Mozo".
+Fase 2: consumo acumulado completo, "Pedir cuenta" con selector de método de pago.
+
+### M8 — Performance
+- Cache offline del menú (AsyncStorage + expo-file-system).
+- Skeleton shimmer (NSkeleton ya implementado).
+- 60 FPS target validado con Flipper/React DevTools.
+
+### Reservas — Mejoras
+- Selector de zona del local (Salón/Terraza/Barra).
+- Chips de ocasión especial (Cumpleaños/Aniversario).
+
+### Infraestructura
+- expo-linear-gradient: instalar cuando se necesiten gradientes reales.
+- CartLine con campo id UUID para múltiples personalizaciones del mismo producto.
+
+---
+
+# 24. OBJETIVO FINAL
 
 La aplicación debe evolucionar como un producto real.
 
@@ -608,3 +738,157 @@ La pregunta principal antes de diseñar cualquier cosa nueva:
 > ¿Esto parece una nueva pieza de Nebula o parece una aplicación diferente?
 
 Si parece una aplicación diferente, debe rediseñarse hasta integrarse con el sistema visual Nocturne Gastronomy existente.
+
+---
+
+# 23. PLAN MAESTRO DE PRODUCTO — NEBULA EVOLUCIONADO
+
+> Registrado: 2026-10-02 | Referencia: Benchmark McDonald's / KFC / Starbucks / Shake Shack / Toast
+
+Este plan define la visión completa del producto en 8 módulos. Distingue lo implementado en cada fase.
+
+## Benchmarking: Nebula vs Líderes de Industria
+
+| Dimensión | McDonald's / Starbucks | Nebula Fase 1 | Nebula Evolucionado |
+|---|---|---|---|
+| **Fulfillment Selector** | Header persistente Mesa/Barra/Takeaway | Gate reactivo en checkout | Fulfillment Switcher en header |
+| **Configurador de Producto** | Modificadores paso a paso con precio dinámico | ModifierModal básico | ProductCustomizerSheet completo |
+| **Navegación de Carta** | Sticky categories con scroll-spy | Tabs que filtran lista plana | Sticky Category Bar + scroll-spy |
+| **Fidelización** | Puntos + cupones canjeables en carrito | Ruleta aislada | Nebula Club Rewards integrado |
+| **Checkout** | Propina / método de pago / desglose | Envío directo sin desglose | Smart Checkout completo |
+| **Live Tracker** | Número de orden gigante + 4 fases | Timeline básica | Kiosk-Grade Live Tracker |
+| **Experiencia en Mesa** | Ver cuenta compartida / repetir ronda | totalAmount básico | Table Session Hub completo |
+
+## Módulos del Sistema
+
+### M1 — Smart Fulfillment & Top Header (Fase 2)
+- Selector persistente en header: Mesa activa / Retiro en Barra / Reserva confirmada
+- Bottom sheet de cambio de mesa con QR o código manual
+- Avatar con anillo de nivel Nebula Club
+
+### M2 — Menú Gastronómico de Alta Conversión (Parcial Fase 1 / Completo Fase 2)
+- **Fase 1**: SommelierCard hero + CompactProductRow + búsqueda + favoritos ✅
+- **Fase 2**: Sticky Category Bar con scroll-spy (SectionList + ViewabilityConfig), filtros dietarios (Vegano/Sin TACC/Sin Alcohol/Mocktail), carrusel de combos y ofertas del día
+
+### M3 — Visual Product Customizer (Fase 1 básico → Fase 2 completo)
+- **Fase 1**: `ProductCustomizerSheet.tsx` con opciones de barra auto-generadas (hielo/cítrico), adicionales hardcodeados, notes compiladas en formato [Preferencia | +Adicional]
+- **Fase 2**: Variantes con precios reales del backend, radio groups para gin/whisky premium, upselling con catálogo real
+
+### M4 — Nebula Club Rewards & Cupones (Fase 2)
+- `useLoyaltyStore.ts`: 100 pts / $10.000 consumidos
+- Niveles: Bronce / Plata / Gold VIP / Platinum
+- Ruleta → genera cupón inyectable al carrito
+- Canje directo de puntos por bebidas o platos
+
+### M5 — Smart Checkout (Fase 1 básico → Fase 2 completo)
+- **Fase 1**: Selector de propina (0/5/10/15%), cupón de descuento por código, desglose Subtotal/Descuento/Propina/Total
+- **Fase 2**: Selector de método de pago (Efectivo/Tarjeta/MercadoPago/Cuenta de mesa), split bill
+
+### M6 — Kiosk-Grade Live Tracker (Fase 1 mejorado)
+- **Fase 1**: Número de comanda gigante #XXX (Outfit displayLg gold), tiempo estimado dinámico, 4 fases con pulso, item-by-item tracking, acciones rápidas (Pedir más / Llamar mozo / Ver cuenta)
+- **Fase 2**: Push notifications nativas al pasar a "Listo"
+
+### M7 — In-Venue Table Session Hub (Fase 1 básico)
+- **Fase 1**: MesaCard con botones "Repetir Ronda", "Ver Cuenta" y "Llamar Mozo"
+- **Fase 2**: Consumo histórico desglosado por ronda, llamador con motivos preset (servilletas/posnet/sommelier)
+
+### M8 — Performance & Micro-animaciones (Fase 1 animaciones → Fase 2 offline)
+- **Fase 1**: Stagger entrance animations (Animated RN), haptic engine completo, shimmer skeleton ✅
+- **Fase 2**: Offline cache del menú (AsyncStorage + expo-file-system), 60 FPS constante en scroll largo
+
+---
+
+# 24. ESPECIFICACIÓN TÉCNICA — EXTENSIONES DE DATOS FASE 1
+
+## Nuevas interfaces en `src/types/api.ts`
+
+```typescript
+// Personalización de productos
+export interface ProductVariantOption   { id: string; name: string; priceDelta: number; isDefault?: boolean; }
+export interface ProductVariantGroup    { id: string; title: string; required: boolean; minSelect: number; maxSelect: number; options: ProductVariantOption[]; }
+export interface PreparationOption      { id: string; label: string; options: string[]; defaultValue: string; }
+export interface ProductModifierItem    { id: string; name: string; price: number; image?: string; category?: 'garnish' | 'ingredient' | 'upsell'; }
+export interface CartModifierSelected   { id: string; name: string; priceDelta: number; }
+export interface AppliedCoupon          { code: string; type: 'PERCENT' | 'FLAT' | '2X1'; value: number; discountAmount: number; description: string; }
+```
+
+## Extensiones de `useCartStore`
+
+Nuevos fields persistidos: `appliedCoupon: AppliedCoupon | null`, `tipPercent: number`
+
+Nuevos métodos: `applyCoupon()`, `removeCoupon()`, `setTipPercent()`, `getSubtotal()`, `getDiscountAmount()`, `getTipAmount()`, `getTotalWithTipAndDiscount()`
+
+El método `getTotalPrice()` existente se mantiene sin cambios para compatibilidad con FloatingCartBar.
+
+## Formato de notes para el backend
+
+Las preferencias del customizer se serializan en el campo `notes` del CartLine:
+```
+[Poco Hielo | Naranja | +Papas Rústicas] Instrucción libre del cliente
+```
+El backend recibe esto en `items[].notes` sin cambios.
+
+---
+
+# 25. ESPECIFICACIÓN PAGE-BY-PAGE — PANTALLAS NEBULA
+
+## Anatomía de cada pantalla implementada/planificada
+
+### Home — Hub Gastronómico
+Top bar: Logo + Fulfillment Switcher + Avatar nivel. Greeting + loyalty chip. Smart Session Banner (mesa + pedido activo + acciones rápidas). Carrusel de deals. Quick Actions 4x1. Selección del Sommelier (hero cards). "¿Qué se te antoja?" (icon categories).
+
+### Carta — Menú de Alta Conversión
+Sticky Category Bar (Fase 2: scroll-spy). SearchBar + filtros dietarios (Fase 2). Hero Card (primer item estrella por sección, 16:9). Compact Product Rows. Floating Cart Bar con precio total.
+
+### ProductCustomizerSheet — Configurador Visual
+Hero 16:9 + gradiente + X + ♥. Badges de dieta/alcohol. Opciones de barra auto-generadas (hielo/cítrico). Adicionales checkboxes con precio. Notes con chips sugerencias. Sticky footer con precio en tiempo real.
+
+### Pedido/Carrito — Checkout Comercial
+Selector destino (Mesa/Barra). Items con modificadores desglosados. Cupón de descuento. Propina táctil (0/5/10/15%). Selector método de pago (Fase 2). Desglose contable. CTA con haptic success.
+
+### Live Tracker — Kiosk-Grade
+Número de comanda gigante #XXX. Tiempo estimado dinámico. Barra 4 fases animada. Item-by-item tracking. Acciones: Pedir más / Llamar mozo / Ver cuenta.
+
+### Reservas — Experiencia VIP
+Date picker + stepper personas. Slots por zona (Fase 2). Chips de ocasión (Fase 2). Datos de contacto pre-rellenados. Historial de reservas.
+
+### Cuenta — Nebula Club
+Hero VIP con nivel. Billetera de puntos + barra de progreso (Fase 2). Cupones activos (Fase 2). Historial de comandas. Perfil editable. Logout.
+
+### Ruleta — Gamificación
+Círculo animado idle/spinning/result. Sistema de rareza coloreado (COMMON/RARE/EPIC/LEGENDARY). Receta expandible. Historial de tiradas de sesión. "Pedir este trago" con integración al carrito.
+
+### QR Scanner — Conexión en Mesa
+Modo cámara con frame dorado (expo-camera). Modo teclado numérico 3 dígitos. Animación de éxito (scale + borde verde). Opción "Retiro en barra".
+
+---
+
+# 26. SISTEMA DE RAREZA — RULETA NEBULA
+
+| Rareza | Color Borde | Color Label | Glow | Badge |
+|--------|-------------|-------------|------|-------|
+| COMMON | `#9b8f7d` | `Colors.outline` | `rgba(155,143,125,0.25)` | ⚪ |
+| RARE | `#38BDF8` | `Colors.info` | `rgba(56,189,248,0.25)` | 🔵 |
+| EPIC | `#a855f7` | `#a855f7` | `rgba(168,85,247,0.25)` | 🟣 |
+| LEGENDARY | `#f3be59` | `Colors.primary` | `Colors.goldGlowStrong` | ⭐ |
+
+---
+
+# 27. ESTADO ACTUALIZADO DEL STACK
+
+| Componente | Versión anterior | Versión actual |
+|---|---|---|
+| Expo SDK | 52 | **57** |
+| React Native | 0.76.7 | **0.86.3** |
+| React | 18.3.1 | **19.2.3** |
+| TypeScript | ~5.3.3 | **~6.0.3** |
+| @types/react | ~18.3.12 | **~19.2.4** |
+| expo-camera | ~16.0.17 | **~57.0.6** |
+| expo-font | ~13.0.4 | **~57.0.4** |
+| expo-haptics | ~14.0.1 | **~57.0.3** |
+| expo-secure-store | ~14.0.1 | **~57.0.4** |
+| expo-splash-screen | ^0.29.24 | **~57.0.9** |
+| react-native-screens | ~4.4.0 | **~4.26.0** |
+| react-native-safe-area-context | 4.12.0 | **~5.7.0** |
+| @react-native-community/datetimepicker | ^9.2.1 | **9.1.0** |
+| @react-native-async-storage/async-storage | 1.23.1 | **2.2.0** |

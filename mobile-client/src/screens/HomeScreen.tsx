@@ -1,8 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — HomeScreen
-// Pantalla principal fiel al diseño Nocturne Gastronomy del screenshot.
-// Secciones: top bar, saludo, card de mesa, pedido activo, promo,
-//            categorías, selección del sommelier, ruleta CTA.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -15,16 +12,19 @@ import {
   Modal,
   Image,
   RefreshControl,
+  Animated,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Sparkles, UserCircle, Zap,
+  Sparkles, Zap,
   ChefHat, ShoppingBag, CalendarDays,
   RotateCw,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import * as Haptics from 'expo-haptics';
 
 import { Colors }     from '../theme/colors';
 import { Typography } from '../theme/typography';
@@ -46,8 +46,10 @@ import { PedidoActivoBanner }  from '../components/shared/PedidoActivoBanner';
 import { PromoBanner, PromoBannerFallback } from '../components/shared/PromoBanner';
 import { SommelierCard }       from '../components/shared/SommelierCard';
 import { NSkeleton }           from '../components/shared/NSkeleton';
+import { NToast }              from '../components/shared/NToast';
 import { CategoryPills }       from '../components/CategoryPills';
 import { RouletteScreen }      from './RouletteScreen';
+import { ProductCustomizerSheet } from '../components/ProductCustomizerSheet';
 
 import type {
   ProductPublicDTO,
@@ -76,14 +78,29 @@ interface QuickAction {
 }
 
 function QuickActionCard({ label, icon, bg, onPress }: QuickAction) {
+  const pressAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(pressAnim, { toValue: 0.92, useNativeDriver: true, friction: 8 }).start();
+  };
+  const handlePressOut = () => {
+    Animated.spring(pressAnim, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
+  };
+
   return (
     <TouchableOpacity
       style={[qStyles.card, { backgroundColor: bg }]}
       onPress={onPress}
-      activeOpacity={0.80}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={1}
     >
-      {icon}
-      <Text style={qStyles.label}>{label}</Text>
+      <Animated.View
+        style={[qStyles.inner, { transform: [{ scale: pressAnim }] }]}
+      >
+        {icon}
+        <Text style={qStyles.label}>{label}</Text>
+      </Animated.View>
     </TouchableOpacity>
   );
 }
@@ -93,11 +110,16 @@ const qStyles = StyleSheet.create({
     width:           '22%',
     aspectRatio:     1,
     borderRadius:    Radius.lg,
+    borderWidth:     1,
+    borderColor:     'rgba(224, 226, 236, 0.06)',
+    overflow:        'hidden',
+  },
+  inner: {
+    width: '100%',
+    height: '100%',
     justifyContent:  'center',
     alignItems:      'center',
     gap:             4,
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
   },
   label: { ...Typography.labelSm, color: Colors.onSurface, textTransform: 'none' as const, textAlign: 'center' },
 });
@@ -121,6 +143,88 @@ export default function HomeScreen() {
   const [refreshing,       setRefreshing]       = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showRoulette,     setShowRoulette]     = useState(false);
+  const [homeToast,        setHomeToast]        = useState<string | null>(null);
+  const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
+
+  // ── Stagger animations ────────────────────────────────────────
+  const anim = useRef({
+    header:    new Animated.Value(0),
+    greeting:  { o: new Animated.Value(0), y: new Animated.Value(16) },
+    mesa:      { o: new Animated.Value(0), y: new Animated.Value(16) },
+    promo:     { o: new Animated.Value(0), y: new Animated.Value(16) },
+    quick:     { o: new Animated.Value(0), s: new Animated.Value(0.95) },
+    sommelier: Array.from({ length: 4 }, () => ({ o: new Animated.Value(0), y: new Animated.Value(16) })),
+  }).current;
+
+  const runStaggerAnimation = () => {
+    const dur = 350;
+    Animated.parallel([
+      // header
+      Animated.timing(anim.header, { toValue: 1, duration: dur, useNativeDriver: true }),
+      // greeting (100ms delay)
+      Animated.sequence([
+        Animated.delay(100),
+        Animated.parallel([
+          Animated.timing(anim.greeting.o, { toValue: 1, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.greeting.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+        ]),
+      ]),
+      // mesa (200ms)
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.parallel([
+          Animated.timing(anim.mesa.o, { toValue: 1, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.mesa.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+        ]),
+      ]),
+      // promo (300ms)
+      Animated.sequence([
+        Animated.delay(300),
+        Animated.parallel([
+          Animated.timing(anim.promo.o, { toValue: 1, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.promo.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+        ]),
+      ]),
+      // quick access (400ms)
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.parallel([
+          Animated.timing(anim.quick.o, { toValue: 1, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.quick.s, { toValue: 1, duration: dur, useNativeDriver: true }),
+        ]),
+      ]),
+      // sommelier cards (500ms + i*80ms)
+      ...anim.sommelier.map((s, i) =>
+        Animated.sequence([
+          Animated.delay(500 + i * 80),
+          Animated.parallel([
+            Animated.timing(s.o, { toValue: 1, duration: dur, useNativeDriver: true }),
+            Animated.timing(s.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+          ]),
+        ])
+      ),
+    ]).start();
+  };
+
+  // ── Pulsing dot ───────────────────────────────────────────────
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    if (tableNumber != null) {
+      pulseLoopRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.5, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1,   duration: 800, useNativeDriver: true }),
+        ])
+      );
+      pulseLoopRef.current.start();
+    } else {
+      pulseLoopRef.current?.stop();
+      pulseAnim.setValue(1);
+    }
+    return () => { pulseLoopRef.current?.stop(); };
+  }, [tableNumber]);
 
   // ── Fetch all data ────────────────────────────────────────────
   const fetchData = useCallback(async (isRefresh = false) => {
@@ -133,12 +237,10 @@ export default function HomeScreen() {
         getPublicPromotions(),
       ]);
 
-      // Featured products
       setFeaturedProducts(
         products.filter((p) => p.featured && p.available).slice(0, 4)
       );
 
-      // Categories
       const catSet = new Set<string>();
       products.forEach((p) => { if (p.category) catSet.add(p.category); });
       setCategories([
@@ -146,13 +248,11 @@ export default function HomeScreen() {
         ...Array.from(catSet).map((c) => ({
           id:   c,
           name: c.charAt(0).toUpperCase() + c.slice(1),
-        })).slice(0, 5), // max 5 + "Todos"
+        })).slice(0, 5),
       ]);
 
-      // Promos
       setPromos(promotions.filter((p) => p.active).slice(0, 3));
 
-      // Pedido activo (solo si hay sesión)
       if (user) {
         try {
           const history = await getMyOrderHistory(3);
@@ -163,7 +263,6 @@ export default function HomeScreen() {
         } catch {}
       }
 
-      // Detalle de mesa
       if (tableId) {
         try {
           const tbl = await getTableDetails(tableId);
@@ -171,10 +270,11 @@ export default function HomeScreen() {
         } catch {}
       }
     } catch {
-      // Silencioso — pantalla muestra los datos parciales que cargaron
+      // Silencioso
     } finally {
       setLoading(false);
       setRefreshing(false);
+      runStaggerAnimation();
     }
   }, [user, tableId]);
 
@@ -182,7 +282,7 @@ export default function HomeScreen() {
     fetchData();
   }, [fetchData]);
 
-  // ── Socket: actualizar pedido activo en tiempo real ───────────
+  // ── Socket: actualizar pedido activo ──────────────────────────
   useEffect(() => {
     if (!activeOrder?.id) return;
     const unsub = socketService.onOrderUpdate((updated) => {
@@ -204,6 +304,51 @@ export default function HomeScreen() {
     navigation.navigate('Carta');
   };
 
+  // ── MesaCard handlers ─────────────────────────────────────────
+  const handleCallWaiter = () => {
+    try { Haptics.selectionAsync(); } catch {}
+    setHomeToast('Se notificó al personal. En breve se acercan.');
+  };
+
+  const handleRepeatRound = () => {
+    const cart = useCartStore.getState().cart;
+    if (cart.length === 0) {
+      Alert.alert('Sin ronda anterior', 'No hay ronda anterior en el carrito.');
+      return;
+    }
+    Alert.alert(
+      'Repetir Ronda',
+      'Se agregarán los mismos productos al carrito',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: () => {
+            cart.forEach((item) => useCartStore.getState().addToCart(item));
+            navigation.navigate('Pedidos');
+          },
+        },
+      ]
+    );
+  };
+
+  // ── Customizer confirm ────────────────────────────────────────
+  const handleCustomizerConfirm = (
+    product: ProductPublicDTO,
+    quantity: number,
+    notes: string
+  ) => {
+    useCartStore.getState().addToCart({
+      productId: product.id,
+      name:      product.name,
+      price:     product.dynamicPrice ?? product.price,
+      image:     product.image,
+      notes,
+      quantity,
+    });
+    setHomeToast(`${product.name} agregado al pedido`);
+  };
+
   // ── Render: skeleton de carga ─────────────────────────────────
   const renderSkeleton = () => (
     <View style={{ gap: Spacing.md, padding: Spacing.gutter }}>
@@ -216,8 +361,15 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* ── Top Bar ───────────────────────────────────────── */}
-      <View style={styles.topBar}>
+      <NToast
+        visible={!!homeToast}
+        message={homeToast ?? ''}
+        variant="info"
+        onHide={() => setHomeToast(null)}
+      />
+
+      {/* ── Top Bar ───────────────────────────────────── */}
+      <Animated.View style={[styles.topBar, { opacity: anim.header }]}>
         <View style={styles.topLeft}>
           <View style={styles.brandDot}>
             <Sparkles size={14} color={Colors.primary} />
@@ -228,6 +380,15 @@ export default function HomeScreen() {
               {tableInfo?.location ? tableInfo.location.toUpperCase() : 'BAR'}
             </Text>
           </View>
+          {/* Pulsing dot when mesa connected */}
+          {tableNumber != null && (
+            <Animated.View
+              style={[
+                styles.pulsingDot,
+                { transform: [{ scale: pulseAnim }] },
+              ]}
+            />
+          )}
         </View>
 
         <TouchableOpacity onPress={goToCuenta} style={styles.avatarBtn}>
@@ -241,9 +402,9 @@ export default function HomeScreen() {
             </View>
           )}
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      {/* ── Scroll principal ──────────────────────────────── */}
+      {/* ── Scroll principal ──────────────────────────── */}
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -262,47 +423,69 @@ export default function HomeScreen() {
         {loading ? renderSkeleton() : (
           <>
             {/* ── Saludo ──────────────────────────────────── */}
-            <View style={styles.greetingSection}>
+            <Animated.View
+              style={[styles.greetingSection, {
+                opacity: anim.greeting.o,
+                transform: [{ translateY: anim.greeting.y }],
+              }]}
+            >
               <Text style={styles.greetingMain}>
                 {getGreeting()}{user ? `, ${user.name.split(' ')[0]}` : ''}
               </Text>
               <Text style={styles.greetingSub}>¿Qué te gustaría disfrutar hoy?</Text>
-            </View>
+            </Animated.View>
 
             {/* ── Mesa activa ─────────────────────────────── */}
-            {tableNumber != null && (
-              <MesaCard
-                tableNumber={tableNumber}
-                zone={tableInfo?.location
-                  ? `Zona ${tableInfo.location.charAt(0).toUpperCase() + tableInfo.location.slice(1)}`
-                  : undefined}
-                totalAmount={tableInfo?.totalAmount}
-                onViewConsumos={goToPedidos}
-                onCallWaiter={() => {}}
-              />
-            )}
+            <Animated.View
+              style={{
+                opacity: anim.mesa.o,
+                transform: [{ translateY: anim.mesa.y }],
+              }}
+            >
+              {tableNumber != null && (
+                <MesaCard
+                  tableNumber={tableNumber}
+                  zone={tableInfo?.location
+                    ? `Zona ${tableInfo.location.charAt(0).toUpperCase() + tableInfo.location.slice(1)}`
+                    : undefined}
+                  totalAmount={tableInfo?.totalAmount}
+                  onViewConsumos={goToPedidos}
+                  onCallWaiter={handleCallWaiter}
+                  onRepeatRound={handleRepeatRound}
+                />
+              )}
 
-            {/* ── Pedido activo ────────────────────────────── */}
-            {activeOrder && (
-              <PedidoActivoBanner
-                order={activeOrder}
-                onPress={goToPedidos}
-                estimatedMinutes={15}
-              />
-            )}
+              {/* ── Pedido activo ────────────────────────── */}
+              {activeOrder && (
+                <PedidoActivoBanner
+                  order={activeOrder}
+                  onPress={goToPedidos}
+                  estimatedMinutes={15}
+                />
+              )}
+            </Animated.View>
 
             {/* ── Promo destacada ──────────────────────────── */}
-            {promos.length > 0 ? (
-              <PromoBanner
-                promo={promos[0]}
-                onPress={goToCarta}
-              />
-            ) : (
-              <PromoBannerFallback onPress={goToCarta} />
-            )}
+            <Animated.View
+              style={{
+                opacity: anim.promo.o,
+                transform: [{ translateY: anim.promo.y }],
+              }}
+            >
+              {promos.length > 0 ? (
+                <PromoBanner promo={promos[0]} onPress={goToCarta} />
+              ) : (
+                <PromoBannerFallback onPress={goToCarta} />
+              )}
+            </Animated.View>
 
             {/* ── Accesos rápidos ──────────────────────────── */}
-            <View style={styles.section}>
+            <Animated.View
+              style={[styles.section, {
+                opacity: anim.quick.o,
+                transform: [{ scale: anim.quick.s }],
+              }]}
+            >
               <View style={styles.sectionRow}>
                 <QuickActionCard
                   label="Carta"
@@ -324,12 +507,12 @@ export default function HomeScreen() {
                 />
                 <QuickActionCard
                   label="Ruleta"
-                  icon={<RotateCw size={22} color={Colors.secondary} />}
-                  bg="rgba(237, 192, 94, 0.08)"
+                  icon={<RotateCw size={22} color={Colors.primary} />}
+                  bg="rgba(243, 190, 89, 0.08)"
                   onPress={() => setShowRoulette(true)}
                 />
               </View>
-            </View>
+            </Animated.View>
 
             {/* ── Explorar la carta ────────────────────────── */}
             <View style={styles.section}>
@@ -362,26 +545,24 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.sommelierList}>
-                  {featuredProducts.map((product) => (
-                    <SommelierCard
-                      key={product.id}
-                      product={product}
-                      onAdd={(p) => {
-                        useCartStore.getState().addToCart({
-                          productId: p.id,
-                          name:      p.name,
-                          price:     p.dynamicPrice ?? p.price,
-                          image:     p.image,
-                          notes:     '',
-                          quantity:  1,
-                        });
-                      }}
-                      onPress={() => navigation.navigate('Carta')}
-                      featureBadge={
-                        product.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
-                      }
-                    />
-                  ))}
+                  {featuredProducts.map((product, i) => {
+                    const s = anim.sommelier[Math.min(i, anim.sommelier.length - 1)];
+                    return (
+                      <Animated.View
+                        key={product.id}
+                        style={{ opacity: s.o, transform: [{ translateY: s.y }] }}
+                      >
+                        <SommelierCard
+                          product={product}
+                          onAdd={(p) => setCustomizerProduct(p)}
+                          onPress={() => navigation.navigate('Carta')}
+                          featureBadge={
+                            product.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
+                          }
+                        />
+                      </Animated.View>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -419,6 +600,14 @@ export default function HomeScreen() {
       >
         <RouletteScreen onClose={() => setShowRoulette(false)} />
       </Modal>
+
+      {/* ── ProductCustomizerSheet ──────────────────────── */}
+      <ProductCustomizerSheet
+        visible={!!customizerProduct}
+        product={customizerProduct}
+        onClose={() => setCustomizerProduct(null)}
+        onConfirm={handleCustomizerConfirm}
+      />
     </SafeAreaView>
   );
 }
@@ -466,6 +655,12 @@ const styles = StyleSheet.create({
     borderColor:     'rgba(224, 226, 236, 0.10)',
   },
   zoneText: { ...Typography.labelSm, color: Colors.onSurfaceVariant },
+  pulsingDot: {
+    width:           8,
+    height:          8,
+    borderRadius:    4,
+    backgroundColor: Colors.success,
+  },
 
   avatarBtn: {
     width:           36,

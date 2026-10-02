@@ -3,7 +3,7 @@
 // Login y Register con diseño Nocturne Gastronomy.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   Platform,
   TouchableOpacity,
   TextInput,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Sparkles, AlertCircle } from 'lucide-react-native';
@@ -43,12 +44,41 @@ export default function AuthScreen() {
   const emailRef    = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
+  // ── Animation refs ────────────────────────────────────────────
+  const heroOpacity      = useRef(new Animated.Value(0)).current;
+  const heroScale        = useRef(new Animated.Value(0.85)).current;
+  const cardOpacity      = useRef(new Animated.Value(0)).current;
+  const cardTranslateY   = useRef(new Animated.Value(30)).current;
+  const tabIndicatorX    = useRef(new Animated.Value(0)).current;
+  const tabContainerWidth = useRef<number>(0);
+
+  // ── Entrance animation ─────────────────────────────────────────
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(heroOpacity,    { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(heroScale,      { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.parallel([
+          Animated.timing(cardOpacity,    { toValue: 1, duration: 400, useNativeDriver: true }),
+          Animated.timing(cardTranslateY, { toValue: 0, duration: 400, useNativeDriver: true }),
+        ]),
+      ]),
+    ]).start();
+  }, []);
+
   // ── Helpers ───────────────────────────────────────────────────
   const switchTab = (t: Tab) => {
     setTab(t);
     setLocalErr(null);
     clearError();
     setName(''); setEmail(''); setPassword('');
+    Animated.spring(tabIndicatorX, {
+      toValue: t === 'login' ? 0 : tabContainerWidth.current / 2,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 80,
+    }).start();
   };
 
   const validate = (): string | null => {
@@ -78,7 +108,6 @@ export default function AuthScreen() {
       try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
     } catch {
       try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); } catch {}
-      // El error ya está en el store (useAuthStore.error)
     }
   };
 
@@ -96,31 +125,54 @@ export default function AuthScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Logo & Brand ──────────────────────────────────── */}
-          <View style={styles.brand}>
+          {/* ── Logo & Brand (animated) ───────────────────── */}
+          <Animated.View
+            style={[
+              styles.brand,
+              { opacity: heroOpacity, transform: [{ scale: heroScale }] },
+            ]}
+          >
+            {/* Gold orb behind icon */}
+            <View style={styles.brandOrb} />
             <View style={styles.brandMark}>
               <Sparkles size={28} color={Colors.primary} />
             </View>
             <Text style={styles.brandName}>NEBULA</Text>
             <Text style={styles.brandSub}>Food & Beverage</Text>
-          </View>
+          </Animated.View>
 
-          {/* ── Card container ────────────────────────────────── */}
-          <View style={styles.card}>
-
+          {/* ── Card container (animated) ─────────────────── */}
+          <Animated.View
+            style={[
+              styles.card,
+              { opacity: cardOpacity, transform: [{ translateY: cardTranslateY }] },
+            ]}
+          >
             {/* Tab selector */}
-            <View style={styles.tabRow}>
+            <View
+              style={styles.tabRow}
+              onLayout={(e) => {
+                tabContainerWidth.current = e.nativeEvent.layout.width;
+              }}
+            >
+              {/* Animated pill indicator */}
+              <Animated.View
+                style={[
+                  styles.tabPill,
+                  { transform: [{ translateX: tabIndicatorX }] },
+                ]}
+              />
               <TouchableOpacity
-                style={[styles.tabBtn, tab === 'login'    && styles.tabBtnActive]}
+                style={styles.tabBtn}
                 onPress={() => switchTab('login')}
                 activeOpacity={0.75}
               >
-                <Text style={[styles.tabLabel, tab === 'login'    && styles.tabLabelActive]}>
+                <Text style={[styles.tabLabel, tab === 'login' && styles.tabLabelActive]}>
                   Iniciar sesión
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tabBtn, tab === 'register' && styles.tabBtnActive]}
+                style={styles.tabBtn}
                 onPress={() => switchTab('register')}
                 activeOpacity={0.75}
               >
@@ -130,7 +182,7 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* ── Form ────────────────────────────────────────── */}
+            {/* ── Form ────────────────────────────────────── */}
             <View style={styles.form}>
 
               {tab === 'register' && (
@@ -157,7 +209,7 @@ export default function AuthScreen() {
                 autoComplete="email"
                 returnKeyType="next"
                 onSubmitEditing={() => passwordRef.current?.focus()}
-                inputRef={emailRef}
+                inputRef={emailRef as React.RefObject<TextInput>}
               />
 
               <NInput
@@ -170,10 +222,9 @@ export default function AuthScreen() {
                 autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
                 returnKeyType="done"
                 onSubmitEditing={handleSubmit}
-                inputRef={passwordRef}
+                inputRef={passwordRef as React.RefObject<TextInput>}
               />
 
-              {/* Error banner */}
               {displayError && (
                 <View style={styles.errorBanner}>
                   <AlertCircle size={16} color={Colors.error} />
@@ -208,7 +259,7 @@ export default function AuthScreen() {
                 {tab === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}
               </Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
 
           {/* Footer note */}
           <Text style={styles.footerNote}>
@@ -236,6 +287,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap:        Spacing.xs,
     marginBottom: Spacing.sm,
+  },
+  brandOrb: {
+    position:        'absolute',
+    top:             -8,
+    width:           110,
+    height:          110,
+    borderRadius:    55,
+    backgroundColor: Colors.goldMuted,
   },
   brandMark: {
     width:           56,
@@ -274,15 +333,22 @@ const styles = StyleSheet.create({
     backgroundColor:  Colors.surfaceContainerLow,
     borderRadius:     Radius.md,
     padding:          3,
+    position:         'relative',
+  },
+  tabPill: {
+    position:        'absolute',
+    left:            3,
+    top:             3,
+    bottom:          3,
+    width:           '50%',
+    backgroundColor: Colors.surfaceContainerHighest,
+    borderRadius:    Radius.md - 2,
   },
   tabBtn: {
     flex:            1,
     paddingVertical: 10,
     alignItems:      'center',
     borderRadius:    Radius.md - 2,
-  },
-  tabBtnActive: {
-    backgroundColor: Colors.surfaceContainerHighest,
   },
   tabLabel: {
     ...Typography.labelMd,

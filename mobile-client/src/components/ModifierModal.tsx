@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Modal, TouchableOpacity, TextInput, ScrollView 
 import { X, Minus, Plus, ShoppingBag } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Colors } from "../theme/colors";
+import { Typography, Spacing, Radius, Elevation } from "../theme/";
 import type { ProductPublicDTO } from "../types/api";
 
 interface ModifierModalProps {
@@ -24,6 +25,8 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
 
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
+  const [selectedPresets, setSelectedPresets] = useState<Set<string>>(new Set());
+  const [inputFocused, setInputFocused] = useState(false);
 
   const unitPrice = product.dynamicPrice || product.price;
   const totalPrice = unitPrice * quantity;
@@ -42,9 +45,22 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
 
   const handlePresetNote = (preset: string) => {
     Haptics.selectionAsync();
-    setNotes((prev) => {
-      if (prev.includes(preset)) return prev;
-      return prev ? `${prev}, ${preset}` : preset;
+    setSelectedPresets((prev) => {
+      const next = new Set(prev);
+      if (next.has(preset)) {
+        next.delete(preset);
+      } else {
+        next.add(preset);
+      }
+      // Rebuild notes from selected presets + any free text after comma
+      const freeText = notes
+        .split(", ")
+        .filter((p) => !PRESET_NOTES.includes(p))
+        .join(", ");
+      const presetText = Array.from(next).join(", ");
+      const combined = [presetText, freeText].filter(Boolean).join(", ");
+      setNotes(combined);
+      return next;
     });
   };
 
@@ -53,6 +69,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
     onConfirm(product, quantity, notes);
     setQuantity(1);
     setNotes("");
+    setSelectedPresets(new Set());
     onClose();
   };
 
@@ -67,7 +84,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
               <Text style={styles.productCategory}>{product.category}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={20} color={Colors.textSecondary} />
+              <X size={20} color={Colors.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
 
@@ -77,24 +94,31 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
             {/* NOTAS DE PERSONALIZACIÓN */}
             <Text style={styles.sectionLabel}>Preferencias de Barra (Opcional)</Text>
             <View style={styles.presetContainer}>
-              {PRESET_NOTES.map((preset) => (
-                <TouchableOpacity
-                  key={preset}
-                  style={styles.presetChip}
-                  onPress={() => handlePresetNote(preset)}
-                >
-                  <Text style={styles.presetText}>+ {preset}</Text>
-                </TouchableOpacity>
-              ))}
+              {PRESET_NOTES.map((preset) => {
+                const isSelected = selectedPresets.has(preset);
+                return (
+                  <TouchableOpacity
+                    key={preset}
+                    style={[styles.presetChip, isSelected && styles.presetChipSelected]}
+                    onPress={() => handlePresetNote(preset)}
+                  >
+                    <Text style={[styles.presetText, isSelected && styles.presetTextSelected]}>
+                      {isSelected ? preset : `+ ${preset}`}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <TextInput
-              style={styles.input}
+              style={[styles.input, inputFocused && styles.inputFocused]}
               placeholder="¿Alguna instrucción especial para el bartender?"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={Colors.outline}
               value={notes}
               onChangeText={setNotes}
               multiline
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
             />
           </ScrollView>
 
@@ -102,16 +126,16 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
           <View style={styles.footer}>
             <View style={styles.stepper}>
               <TouchableOpacity style={styles.stepperBtn} onPress={handleDecrease}>
-                <Minus size={16} color={Colors.textPrimary} />
+                <Minus size={16} color={Colors.onSurface} />
               </TouchableOpacity>
               <Text style={styles.stepperCount}>{quantity}</Text>
               <TouchableOpacity style={styles.stepperBtn} onPress={handleIncrease}>
-                <Plus size={16} color={Colors.textPrimary} />
+                <Plus size={16} color={Colors.onSurface} />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.confirmBtn} onPress={handleAdd} activeOpacity={0.85}>
-              <ShoppingBag size={18} color={Colors.textInverse} />
+              <ShoppingBag size={18} color={Colors.onPrimary} />
               <Text style={styles.confirmBtnText}>
                 Agregar · ${totalPrice.toLocaleString("es-AR")}
               </Text>
@@ -126,128 +150,132 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.75)",
+    backgroundColor: "rgba(0,0,0,0.85)",
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: Colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: Colors.surfaceContainer,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
     maxHeight: "85%",
-    paddingBottom: 24,
+    paddingBottom: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors.outlineVariant,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 20,
+    padding: Spacing.gutter,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.outlineVariant,
   },
   titleArea: {
     flex: 1,
   },
   productName: {
-    color: Colors.textPrimary,
-    fontSize: 18,
-    fontWeight: "800",
+    ...Typography.headlineSm,
+    color: Colors.onSurface,
   },
   productCategory: {
+    ...Typography.labelMd,
     color: Colors.primary,
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    textTransform: "uppercase" as const,
     marginTop: 2,
   },
   closeButton: {
     padding: 6,
   },
   body: {
-    padding: 20,
+    padding: Spacing.gutter,
   },
   description: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
+    ...Typography.bodyMd,
+    color: Colors.onSurfaceVariant,
+    marginBottom: Spacing.gutter,
   },
   sectionLabel: {
-    color: Colors.textPrimary,
-    fontSize: 14,
-    fontWeight: "700",
+    ...Typography.labelMd,
+    color: Colors.onSurface,
     marginBottom: 10,
   },
   presetContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.smMd,
   },
   presetChip: {
-    backgroundColor: Colors.cardSecondary,
-    paddingHorizontal: 12,
+    backgroundColor: Colors.surfaceContainerHigh,
+    paddingHorizontal: Spacing.smMd,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.outlineVariant,
+  },
+  presetChipSelected: {
+    borderColor: Colors.primaryContainer,
+    backgroundColor: Colors.goldMuted,
   },
   presetText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: "600",
+    ...Typography.labelMd,
+    color: Colors.onSurfaceVariant,
+  },
+  presetTextSelected: {
+    color: Colors.primary,
   },
   input: {
-    backgroundColor: Colors.cardSecondary,
-    color: Colors.textPrimary,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 14,
+    backgroundColor: Colors.surfaceContainerHigh,
+    color: Colors.onSurface,
+    borderRadius: Radius.md,
+    padding: Spacing.smMd,
+    ...Typography.bodyMd,
     minHeight: 70,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 20,
+    borderColor: Colors.outlineVariant,
+    marginBottom: Spacing.gutter,
+  },
+  inputFocused: {
+    borderColor: Colors.primary,
   },
   footer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.gutter,
     paddingTop: 10,
-    gap: 14,
+    gap: Spacing.smMd,
   },
   stepper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.cardSecondary,
-    borderRadius: 14,
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.outlineVariant,
     paddingHorizontal: 6,
   },
   stepperBtn: {
     padding: 10,
   },
   stepperCount: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "800",
-    paddingHorizontal: 8,
+    ...Typography.titleMd,
+    color: Colors.onSurface,
+    paddingHorizontal: Spacing.sm,
   },
   confirmBtn: {
     flex: 1,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryContainer,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 14,
-    borderRadius: 14,
-    gap: 8,
+    borderRadius: Radius.lg,
+    gap: Spacing.sm,
+    ...(Elevation.goldCTA as object),
   },
   confirmBtnText: {
-    color: Colors.textInverse,
-    fontSize: 15,
-    fontWeight: "800",
+    ...Typography.labelLg,
+    color: Colors.onPrimary,
   },
 });

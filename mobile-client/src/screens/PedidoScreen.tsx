@@ -16,13 +16,15 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ShoppingBag, Send, Minus, Plus, Trash2,
   CheckCircle2, Flame, Sparkles,
   AlertCircle, RefreshCw, QrCode,
-  UtensilsCrossed, Receipt,
+  UtensilsCrossed, Receipt, ChefHat, PhoneCall,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -44,6 +46,7 @@ import { socketService }             from '../socket/socketService';
 
 import { NEmptyState } from '../components/shared/NEmptyState';
 import { NButton }     from '../components/shared/NButton';
+import { NToast }      from '../components/shared/NToast';
 import { QRScannerScreen } from './QRScannerScreen';
 
 import type { OrderPublicDTO, TablePublicDTO } from '../types/api';
@@ -84,6 +87,34 @@ const ITEM_STATUS_LABEL: Record<string, string> = {
   served:     'Servido',
   cancelled:  'Cancelado',
 };
+
+const ESTIMATE: Record<string, number> = {
+  pending:       15,
+  'in-progress': 8,
+  completed:     0,
+  cancelled:     0,
+};
+
+// ── Notes renderer ────────────────────────────────────────────────────────────
+function renderNotes(notes: string | undefined): React.ReactNode {
+  if (!notes) return null;
+  const bracketMatch = notes.match(/\[(.+?)\]/);
+  if (bracketMatch) {
+    const parts = bracketMatch[1].split(' | ').filter(Boolean);
+    const remainder = notes.replace(/\[.+?\]\s*/, '').trim();
+    return (
+      <View style={subStyles.notesRow}>
+        {parts.map((p, i) => (
+          <View key={i} style={subStyles.noteBadge}>
+            <Text style={subStyles.noteBadgeText}>{p}</Text>
+          </View>
+        ))}
+        {remainder ? <Text style={subStyles.itemNotes}>{remainder}</Text> : null}
+      </View>
+    );
+  }
+  return <Text style={subStyles.itemNotes}>"{notes}"</Text>;
+}
 
 // ── Sub-views ──────────────────────────────────────────────────────────────────
 
@@ -149,18 +180,45 @@ function CartView({
   onSubmitSuccess: (order: OrderPublicDTO) => void;
   onOpenScanner:   () => void;
 }) {
-  const { cart, removeFromCart, setLineQty, clearCart, getTotalPrice } = useCartStore();
-  const { tableId, sessionId, tableNumber, tableCode }                  = useSessionStore();
-  const { token }                                                        = useAuthStore();
+  const {
+    cart, removeFromCart, setLineQty, clearCart,
+    appliedCoupon,
+    tipPercent, setTipPercent,
+    getSubtotal, getDiscountAmount, getTipAmount, getTotalWithTipAndDiscount,
+  } = useCartStore();
+  const { tableId, sessionId, tableNumber, tableCode } = useSessionStore();
+  const { token }                                       = useAuthStore();
   const [submitting, setSubmitting] = useState(false);
-  const [tipPercent, setTipPercent] = useState(10);
   const [gateSkipped, setGateSkipped] = useState(false);
+  const [destinationMode, setDestinationMode] = useState<'mesa' | 'bar'>(
+    tableId ? 'mesa' : 'bar'
+  );
 
-  const subtotal   = getTotalPrice();
-  const tipAmount  = Math.round((subtotal * tipPercent) / 100);
-  const total      = subtotal + tipAmount;
-  const hasMesa    = !!tableId && !!sessionId;
-  const showGate   = !hasMesa && !gateSkipped;
+  const subtotal      = getSubtotal();
+  const discountAmount = getDiscountAmount();
+  const tipAmount     = getTipAmount();
+  const total         = getTotalWithTipAndDiscount();
+  const hasMesa       = !!tableId && !!sessionId;
+  const showGate      = !hasMesa && !gateSkipped;
+
+  // Item stagger animations
+  const itemAnims = useRef(
+    Array.from({ length: 5 }, () => ({
+      opacity:    new Animated.Value(0),
+      translateX: new Animated.Value(20),
+    }))
+  ).current;
+
+  useEffect(() => {
+    Animated.stagger(50,
+      itemAnims.slice(0, Math.min(cart.length, 5)).map((a) =>
+        Animated.parallel([
+          Animated.timing(a.opacity,    { toValue: 1, duration: 300, useNativeDriver: true }),
+          Animated.timing(a.translateX, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ])
+      )
+    ).start();
+  }, []);
 
   const handleSubmit = async () => {
     if (!hasMesa && !gateSkipped) {
@@ -171,8 +229,8 @@ function CartView({
     try {
       try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
       const order = await createOrder({
-        table:     tableId ?? '',
-        sessionId: sessionId ?? '',
+        table:     destinationMode === 'mesa' ? (tableId ?? '') : '',
+        sessionId: destinationMode === 'mesa' ? (sessionId ?? '') : '',
         items:     cart.map((l) => ({
           product:  l.productId,
           quantity: l.quantity,
@@ -196,6 +254,26 @@ function CartView({
       contentContainerStyle={subStyles.cartScroll}
       showsVerticalScrollIndicator={false}
     >
+      {/* Destination selector */}
+      <View style={subStyles.destinationRow}>
+        <TouchableOpacity
+          style={[subStyles.destChip, destinationMode === 'mesa' && subStyles.destChipActive]}
+          onPress={() => hasMesa && setDestinationMode('mesa')}
+        >
+          <Text style={[subStyles.destChipText, destinationMode === 'mesa' && subStyles.destChipTextActive]}>
+            {hasMesa ? `Mesa #${tableNumber}` : 'Mesa'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[subStyles.destChip, destinationMode === 'bar' && subStyles.destChipActive]}
+          onPress={() => setDestinationMode('bar')}
+        >
+          <Text style={[subStyles.destChipText, destinationMode === 'bar' && subStyles.destChipTextActive]}>
+            Retiro en Barra
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Mesa status */}
       <View style={[subStyles.mesaBar, !hasMesa && subStyles.mesaBarWarn]}>
         {hasMesa ? (
@@ -228,57 +306,70 @@ function CartView({
       )}
 
       {/* Items del carrito */}
-      {cart.map((item) => (
-        <View key={item.productId} style={subStyles.itemCard}>
-          <View style={subStyles.itemTopRow}>
-            <Text style={subStyles.itemName}>{item.name}</Text>
-            <Text style={subStyles.itemPrice}>
-              {fmtPrice(item.price * item.quantity)}
-            </Text>
-          </View>
-          {item.notes ? (
-            <Text style={subStyles.itemNotes}>Nota: "{item.notes}"</Text>
-          ) : null}
-          <View style={subStyles.itemControlsRow}>
-            <TouchableOpacity
-              onPress={() => removeFromCart(item.productId)}
-              style={subStyles.deleteBtn}
-              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            >
-              <Trash2 size={14} color={Colors.error} />
-              <Text style={subStyles.deleteText}>Quitar</Text>
-            </TouchableOpacity>
-            <View style={subStyles.stepper}>
+      {cart.map((item, index) => {
+        const anim = index < 5 ? itemAnims[index] : null;
+        const itemContent = (
+          <View style={subStyles.itemCard}>
+            <View style={subStyles.itemTopRow}>
+              <Text style={subStyles.itemName}>{item.name}</Text>
+              <Text style={subStyles.itemPrice}>
+                {fmtPrice(item.price * item.quantity)}
+              </Text>
+            </View>
+            {renderNotes(item.notes)}
+            <View style={subStyles.itemControlsRow}>
               <TouchableOpacity
-                style={subStyles.stepBtn}
-                onPress={() => setLineQty(item.productId, item.quantity - 1)}
+                onPress={() => removeFromCart(item.productId)}
+                style={subStyles.deleteBtn}
+                hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
               >
-                <Minus size={13} color={Colors.onSurface} />
+                <Trash2 size={14} color={Colors.error} />
+                <Text style={subStyles.deleteText}>Quitar</Text>
               </TouchableOpacity>
-              <Text style={subStyles.stepCount}>{item.quantity}</Text>
-              <TouchableOpacity
-                style={subStyles.stepBtn}
-                onPress={() => setLineQty(item.productId, item.quantity + 1)}
-              >
-                <Plus size={13} color={Colors.onSurface} />
-              </TouchableOpacity>
+              <View style={subStyles.stepper}>
+                <TouchableOpacity
+                  style={subStyles.stepBtn}
+                  onPress={() => setLineQty(item.productId, item.quantity - 1)}
+                >
+                  <Minus size={13} color={Colors.onSurface} />
+                </TouchableOpacity>
+                <Text style={subStyles.stepCount}>{item.quantity}</Text>
+                <TouchableOpacity
+                  style={subStyles.stepBtn}
+                  onPress={() => setLineQty(item.productId, item.quantity + 1)}
+                >
+                  <Plus size={13} color={Colors.onSurface} />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      ))}
+        );
+
+        if (anim) {
+          return (
+            <Animated.View
+              key={item.productId}
+              style={{ opacity: anim.opacity, transform: [{ translateX: anim.translateX }] }}
+            >
+              {itemContent}
+            </Animated.View>
+          );
+        }
+        return <View key={item.productId}>{itemContent}</View>;
+      })}
 
       {/* Selector de propina */}
       <View style={subStyles.tipCard}>
         <Text style={subStyles.tipTitle}>Propina para el servicio</Text>
         <View style={subStyles.tipRow}>
-          {[0, 10, 15, 20].map((pct) => (
+          {[0, 5, 10, 15, 20].map((pct) => (
             <TouchableOpacity
               key={pct}
               style={[subStyles.tipChip, tipPercent === pct && subStyles.tipChipActive]}
               onPress={() => setTipPercent(pct)}
             >
               <Text style={[subStyles.tipChipText, tipPercent === pct && subStyles.tipChipTextActive]}>
-                {pct === 0 ? 'Sin propina' : `${pct}%`}
+                {pct === 0 ? 'Sin' : `${pct}%`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -291,6 +382,16 @@ function CartView({
           <Text style={subStyles.summaryLabel}>Subtotal</Text>
           <Text style={subStyles.summaryValue}>{fmtPrice(subtotal)}</Text>
         </View>
+        {appliedCoupon && (
+          <View style={subStyles.summaryRow}>
+            <Text style={[subStyles.summaryLabel, { color: Colors.success }]}>
+              Cupón {appliedCoupon.code} ({appliedCoupon.type === 'PERCENT' ? `-${appliedCoupon.value}%` : `-$${appliedCoupon.value}`})
+            </Text>
+            <Text style={[subStyles.summaryValue, { color: Colors.success }]}>
+              -{fmtPrice(discountAmount)}
+            </Text>
+          </View>
+        )}
         {tipPercent > 0 && (
           <View style={subStyles.summaryRow}>
             <Text style={subStyles.summaryLabel}>Propina ({tipPercent}%)</Text>
@@ -324,18 +425,53 @@ function TrackingView({
   order:      OrderPublicDTO;
   onNewOrder: () => void;
 }) {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const [currentOrder, setCurrentOrder] = useState<OrderPublicDTO>(order);
   const [tableSummary, setTableSummary] = useState<TablePublicDTO | null>(null);
   const [refreshing,   setRefreshing]   = useState(false);
+  const [toastMsg,     setToastMsg]     = useState<string | null>(null);
 
   const stepIndex = getStepIndex(currentOrder.status);
 
+  // Animated progress bar
+  const progressAnim = useRef(
+    new Animated.Value(stepIndex >= 0 ? (stepIndex + 1) / ORDER_STATUS_STEPS.length : 0.33)
+  ).current;
+
+  // Step circle scale springs
+  const stepScaleAnims = useRef(
+    ORDER_STATUS_STEPS.map((_, i) => new Animated.Value(i <= stepIndex ? 1 : 0))
+  ).current;
+
+  const animateProgress = (newStepIdx: number) => {
+    Animated.timing(progressAnim, {
+      toValue: (newStepIdx + 1) / ORDER_STATUS_STEPS.length,
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+    ORDER_STATUS_STEPS.forEach((_, i) => {
+      if (i <= newStepIdx) {
+        Animated.spring(stepScaleAnims[i], {
+          toValue: 1,
+          friction: 6,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  };
+
   // Socket.IO listeners
   useEffect(() => {
+    animateProgress(stepIndex);
     const unsubOrder = socketService.onOrderUpdate((updated) => {
       if (updated?.id === currentOrder.id || updated?._id === currentOrder.id) {
         try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
-        setCurrentOrder((prev) => ({ ...prev, ...updated }));
+        setCurrentOrder((prev) => {
+          const merged = { ...prev, ...updated };
+          animateProgress(getStepIndex(merged.status));
+          return merged;
+        });
       }
     });
     const unsubItem = socketService.onItemReady((data) => {
@@ -357,6 +493,7 @@ function TrackingView({
     try {
       const fresh = await getOrderById(currentOrder.id);
       setCurrentOrder(fresh);
+      animateProgress(getStepIndex(fresh.status));
       if (currentOrder.table) {
         const tbl = await getTableDetails(currentOrder.table);
         setTableSummary(tbl);
@@ -365,29 +502,53 @@ function TrackingView({
     finally { setRefreshing(false); }
   }, [currentOrder.id, currentOrder.table]);
 
+  const handleCallWaiter = () => {
+    try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+    setToastMsg('Se notificó al personal. En breve se acercan a tu mesa.');
+  };
+
   const isCancelled = currentOrder.status === 'cancelled';
+  const showEstimate = currentOrder.status === 'pending' || currentOrder.status === 'in-progress';
 
   return (
     <ScrollView
       contentContainerStyle={subStyles.trackingScroll}
       showsVerticalScrollIndicator={false}
     >
+      <NToast
+        visible={!!toastMsg}
+        message={toastMsg ?? ''}
+        variant="info"
+        onHide={() => setToastMsg(null)}
+      />
+
       {/* Timeline card */}
       <View style={subStyles.timelineCard}>
         <Text style={subStyles.orderNum}>
-          Orden #{currentOrder.id.slice(-5).toUpperCase()}
+          #{currentOrder.id.slice(-3).toUpperCase()}
         </Text>
 
-        {/* Barra de progreso */}
+        {/* Estimated time */}
+        {showEstimate && (
+          <Text style={subStyles.estimatedTime}>
+            ⏱ Listo en aprox. {ESTIMATE[currentOrder.status] ?? 15} min
+          </Text>
+        )}
+
+        {/* Barra de progreso animada */}
         {!isCancelled && (
           <View style={subStyles.progressTrack}>
-            <View style={[
-              subStyles.progressBar,
-              {
-                width: stepIndex === 0 ? '33%' :
-                       stepIndex === 1 ? '66%' : '100%',
-              },
-            ]} />
+            <Animated.View
+              style={[
+                subStyles.progressBar,
+                {
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '100%'],
+                  }),
+                },
+              ]}
+            />
           </View>
         )}
 
@@ -400,15 +561,16 @@ function TrackingView({
               const StepIcon = idx === 0 ? CheckCircle2 : idx === 1 ? Flame : Sparkles;
               return (
                 <View key={step} style={subStyles.stepCol}>
-                  <View style={[
+                  <Animated.View style={[
                     subStyles.stepIconBox,
                     (done || active) && subStyles.stepIconBoxActive,
+                    { transform: [{ scale: stepScaleAnims[idx] }] },
                   ]}>
                     <StepIcon
                       size={16}
                       color={(done || active) ? Colors.onPrimary : Colors.outline}
                     />
-                  </View>
+                  </Animated.View>
                   <Text style={[
                     subStyles.stepLabel,
                     (done || active) && subStyles.stepLabelActive,
@@ -489,7 +651,7 @@ function TrackingView({
         </View>
       )}
 
-      {/* Botones de acción */}
+      {/* Botones de acción (tracking) */}
       <View style={subStyles.trackingActions}>
         <NButton
           label={refreshing ? 'Actualizando...' : 'Actualizar estado'}
@@ -507,6 +669,21 @@ function TrackingView({
             fullWidth
           />
         )}
+        {/* Always-visible quick actions */}
+        <NButton
+          label="Pedir algo más"
+          variant="ghost"
+          icon={<ChefHat size={16} color={Colors.primary} />}
+          onPress={() => navigation.navigate('Carta')}
+          fullWidth
+        />
+        <NButton
+          label="Llamar al Mozo"
+          variant="ghost"
+          icon={<PhoneCall size={16} color={Colors.primary} />}
+          onPress={handleCallWaiter}
+          fullWidth
+        />
       </View>
     </ScrollView>
   );
@@ -522,21 +699,39 @@ export default function PedidoScreen() {
   const [activeOrder,  setActiveOrder]  = useState<OrderPublicDTO | null>(null);
   const [showQR,       setShowQR]       = useState(false);
 
+  // Content fade animation
+  const contentOpacity = useRef(new Animated.Value(1)).current;
+
+  const handleStateChange = useCallback((newState: ScreenState) => {
+    Animated.timing(contentOpacity, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      setScreenState(newState);
+      Animated.timing(contentOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [contentOpacity]);
+
   // Sincronizar estado con el carrito
   useEffect(() => {
-    if (screenState === 'tracking') return; // no interrumpir tracking activo
-    setScreenState(cart.length > 0 ? 'cart' : 'empty');
+    if (screenState === 'tracking') return;
+    handleStateChange(cart.length > 0 ? 'cart' : 'empty');
   }, [cart.length]);
 
   const handleOrderSuccess = useCallback((order: OrderPublicDTO) => {
     setActiveOrder(order);
-    setScreenState('tracking');
-  }, []);
+    handleStateChange('tracking');
+  }, [handleStateChange]);
 
   const handleNewOrder = useCallback(() => {
     setActiveOrder(null);
-    setScreenState('empty');
-  }, []);
+    handleStateChange('empty');
+  }, [handleStateChange]);
 
   const handleGoToCarta = useCallback(() => {
     navigation.navigate('Carta');
@@ -559,7 +754,7 @@ export default function PedidoScreen() {
       </View>
 
       {/* Contenido principal */}
-      <View style={[styles.content, { paddingBottom: tabBarHeight }]}>
+      <Animated.View style={[styles.content, { paddingBottom: tabBarHeight, opacity: contentOpacity }]}>
         {screenState === 'empty' && (
           <EmptyCartView onGoToCarta={handleGoToCarta} />
         )}
@@ -577,7 +772,7 @@ export default function PedidoScreen() {
             onNewOrder={handleNewOrder}
           />
         )}
-      </View>
+      </Animated.View>
 
       {/* Modal QR Scanner */}
       <Modal
@@ -636,6 +831,24 @@ const subStyles = StyleSheet.create({
     gap:        Spacing.sm,
     paddingBottom: Spacing.xxxl,
   },
+
+  // Destination row
+  destinationRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  destChip: {
+    flex: 1,
+    backgroundColor: Colors.surfaceContainerHigh,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(224, 226, 236, 0.06)',
+  },
+  destChipActive: { backgroundColor: Colors.goldMuted, borderColor: Colors.goldBorder },
+  destChipText:   { ...Typography.labelMd, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
+  destChipTextActive: { color: Colors.primary },
 
   // Mesa status bar
   mesaBar: {
@@ -714,6 +927,26 @@ const subStyles = StyleSheet.create({
   itemName: { ...Typography.titleMd, color: Colors.onSurface, flex: 1 },
   itemPrice: { ...Typography.labelLg, color: Colors.primary, fontSize: 15 },
   itemNotes: { ...Typography.bodySm, color: Colors.outline, fontStyle: 'italic' },
+
+  // Notes badges
+  notesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 2,
+  },
+  noteBadge: {
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius: Radius.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  noteBadgeText: {
+    ...Typography.labelSm,
+    color: Colors.onSurfaceVariant,
+    textTransform: 'none' as const,
+  },
+
   itemControlsRow: {
     flexDirection:  'row',
     justifyContent: 'space-between',
@@ -747,7 +980,7 @@ const subStyles = StyleSheet.create({
     borderColor:     'rgba(224, 226, 236, 0.06)',
   },
   tipTitle: { ...Typography.labelMd, color: Colors.onSurfaceVariant },
-  tipRow:   { flexDirection: 'row', gap: 8 },
+  tipRow:   { flexDirection: 'row', gap: 6 },
   tipChip: {
     flex:            1,
     backgroundColor: Colors.surfaceContainerHigh,
@@ -797,7 +1030,20 @@ const subStyles = StyleSheet.create({
     borderColor:     'rgba(224, 226, 236, 0.08)',
     ...(Elevation.card as object),
   },
-  orderNum: { ...Typography.labelSm, color: Colors.primary },
+  orderNum: {
+    fontFamily:    'Outfit_600SemiBold',
+    fontSize:      32,
+    lineHeight:    38,
+    letterSpacing: -0.64,
+    color:         Colors.primary,
+    textAlign:     'center',
+    fontWeight:    '700' as const,
+  },
+  estimatedTime: {
+    ...Typography.bodyMd,
+    color: Colors.onSurfaceVariant,
+    textAlign: 'center',
+  },
   progressTrack: {
     height:          8,
     backgroundColor: Colors.surfaceContainerHigh,

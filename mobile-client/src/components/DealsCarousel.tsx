@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Sparkles, Gift, Tag } from "lucide-react-native";
+import { Sparkles, Tag } from "lucide-react-native";
 import { Colors } from "../theme/colors";
+import { Typography, Spacing, Radius } from "../theme/";
 import { getPublicPromotions } from "../api/promoApi";
 import type { PromotionPublicDTO } from "../types/api";
 
@@ -29,7 +30,6 @@ export const DealsCarousel: React.FC<DealsCarouselProps> = ({ onSelectPromo }) =
   }
 
   if (promotions.length === 0) {
-    // Si no hay promociones dinámicas en backend, mostramos la oferta estándar de bienvenida
     return (
       <View style={styles.singleBanner}>
         <View style={styles.dealBadge}>
@@ -93,7 +93,7 @@ export const DealsCarousel: React.FC<DealsCarouselProps> = ({ onSelectPromo }) =
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 14,
+    marginVertical: Spacing.smMd,
   },
   loadingContainer: {
     height: 100,
@@ -107,75 +107,71 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
-    color: Colors.textPrimary,
-    fontSize: 15,
-    fontWeight: "700",
+    ...Typography.headlineSm,
+    color: Colors.onSurface,
     letterSpacing: 0.3,
   },
   scrollContent: {
-    gap: 12,
+    gap: Spacing.smMd,
   },
   card: {
     width: 250,
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.outlineVariant,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   dealBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.dealRed,
-    paddingHorizontal: 8,
+    backgroundColor: Colors.errorContainer,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
     borderRadius: 6,
     gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,180,171,0.20)',
   },
   dealBadgeText: {
-    color: "#FFF",
-    fontSize: 11,
-    fontWeight: "800",
+    ...Typography.labelSm,
+    color: Colors.error,
   },
   appOnlyText: {
-    color: Colors.textMuted,
-    fontSize: 11,
-    fontWeight: "600",
+    ...Typography.labelSm,
+    color: Colors.outline,
   },
   cardTitle: {
-    color: Colors.textPrimary,
-    fontSize: 15,
-    fontWeight: "700",
+    ...Typography.titleMd,
+    color: Colors.onSurface,
     marginBottom: 4,
   },
   cardDesc: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 16,
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
   },
   singleBanner: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.xl,
+    padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
-    marginVertical: 12,
+    borderColor: Colors.outlineVariant,
+    marginVertical: Spacing.smMd,
   },
   dealTitle: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontWeight: "700",
+    ...Typography.headlineSm,
+    color: Colors.onSurface,
     marginTop: 6,
     marginBottom: 2,
   },
   dealSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: 13,
+    ...Typography.bodyMd,
+    color: Colors.onSurfaceVariant,
   },
 });

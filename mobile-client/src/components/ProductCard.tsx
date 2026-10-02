@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 import { Plus, GlassWater, Sparkles } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { Colors } from "../theme/colors";
+import { Typography, Spacing, Radius } from "../theme/";
 import type { ProductPublicDTO } from "../types/api";
 
 interface ProductCardProps {
@@ -81,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onPress={handleQuickAdd}
             activeOpacity={0.7}
           >
-            <Plus size={18} color={Colors.textInverse} strokeWidth={3} />
+            <Plus size={18} color={Colors.onPrimary} strokeWidth={3} />
           </TouchableOpacity>
         </View>
       </View>
@@ -91,18 +92,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.card,
-    borderRadius: 16,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 14,
+    borderColor: Colors.outlineVariant,
+    marginBottom: Spacing.smMd,
     flexDirection: "row",
     overflow: "hidden",
   },
   imageContainer: {
     width: 110,
     height: 110,
-    backgroundColor: Colors.cardSecondary,
+    backgroundColor: Colors.surfaceContainerHigh,
     position: "relative",
   },
   image: {
@@ -117,24 +118,25 @@ const styles = StyleSheet.create({
   },
   discountBadge: {
     position: "absolute",
-    top: 8,
-    left: 8,
-    backgroundColor: Colors.dealRed,
+    top: Spacing.sm,
+    left: Spacing.sm,
+    backgroundColor: Colors.errorContainer,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: Radius.xs,
     gap: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,180,171,0.20)',
   },
   discountBadgeText: {
-    color: "#FFF",
-    fontSize: 9,
-    fontWeight: "900",
+    ...Typography.labelSm,
+    color: Colors.error,
   },
   infoContainer: {
     flex: 1,
-    padding: 12,
+    padding: Spacing.smMd,
     justifyContent: "space-between",
   },
   headerRow: {
@@ -144,26 +146,25 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    color: Colors.textPrimary,
-    fontSize: 15,
-    fontWeight: "700",
+    ...Typography.titleMd,
+    color: Colors.onSurface,
     flex: 1,
   },
   authorBadge: {
-    backgroundColor: Colors.primaryMuted,
+    backgroundColor: Colors.goldMuted,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: Radius.xs,
+    borderWidth: 1,
+    borderColor: Colors.goldBorder,
   },
   authorBadgeText: {
+    ...Typography.labelSm,
     color: Colors.primary,
-    fontSize: 9,
-    fontWeight: "800",
   },
   description: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 16,
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
     marginVertical: 4,
   },
   footerRow: {
@@ -177,20 +178,19 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   price: {
+    ...Typography.price,
     color: Colors.primary,
-    fontSize: 16,
-    fontWeight: "800",
   },
   originalPrice: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    textDecorationLine: "line-through",
+    ...Typography.bodySm,
+    color: Colors.outline,
+    textDecorationLine: "line-through" as const,
   },
   addButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primaryContainer,
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: Radius.full,
     justifyContent: "center",
     alignItems: "center",
   },

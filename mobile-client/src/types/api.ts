@@ -149,6 +149,53 @@ export interface CartLine {
   notes: string;
 }
 
+// ── Product Customizer types ───────────────────────────────────
+export interface ProductVariantOption {
+  id: string;
+  name: string;
+  priceDelta: number;
+  isDefault?: boolean;
+}
+
+export interface ProductVariantGroup {
+  id: string;
+  title: string;
+  required: boolean;
+  minSelect: number;
+  maxSelect: number;
+  options: ProductVariantOption[];
+}
+
+export interface PreparationOption {
+  id: string;
+  label: string;
+  options: string[];
+  defaultValue: string;
+}
+
+export interface ProductModifierItem {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+  category?: 'garnish' | 'ingredient' | 'upsell';
+}
+
+export interface CartModifierSelected {
+  id: string;
+  name: string;
+  priceDelta: number;
+}
+
+// ── Coupon ─────────────────────────────────────────────────────
+export interface AppliedCoupon {
+  code: string;
+  type: 'PERCENT' | 'FLAT' | '2X1';
+  value: number;
+  discountAmount: number;
+  description: string;
+}
+
 // ── Reservations ──────────────────────────────────────────────────────────────
 
 export interface TimeSlotDTO {

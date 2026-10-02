@@ -8,19 +8,20 @@ import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
-import { TableProperties, Receipt, PhoneCall } from 'lucide-react-native';
+import { TableProperties, Receipt, PhoneCall, RotateCw } from 'lucide-react-native';
 import { Colors }     from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
 
 interface MesaCardProps {
-  tableNumber:  number;
-  zone?:        string;
-  status?:      string;
-  totalAmount?: number;
+  tableNumber:    number;
+  zone?:          string;
+  status?:        string;
+  totalAmount?:   number;
   onViewConsumos?: () => void;
   onCallWaiter?:   () => void;
+  onRepeatRound?:  () => void;
 }
 
 export function MesaCard({
@@ -30,6 +31,7 @@ export function MesaCard({
   totalAmount,
   onViewConsumos,
   onCallWaiter,
+  onRepeatRound,
 }: MesaCardProps) {
   return (
     <View style={styles.card}>
@@ -78,6 +80,17 @@ export function MesaCard({
         >
           <PhoneCall size={14} color={Colors.onSurfaceVariant} />
           <Text style={styles.actionText}>Llamar mozo</Text>
+        </TouchableOpacity>
+
+        <View style={styles.actionDivider} />
+
+        <TouchableOpacity
+          style={styles.actionBtn}
+          onPress={onRepeatRound}
+          activeOpacity={0.75}
+        >
+          <RotateCw size={14} color={Colors.onSurfaceVariant} />
+          <Text style={styles.actionText}>Repetir Ronda</Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -85,7 +85,7 @@ export default function AppNavigator() {
             borderTopColor:   'rgba(224, 226, 236, 0.08)', // sutil, sin dominancia
             borderTopWidth:   1,
             height:           Spacing.tabBarHeight + insets.bottom,
-            paddingBottom:    insets.bottom > 0 ? insets.bottom : 8,
+            paddingBottom:    Platform.OS === 'android' ? 8 : insets.bottom > 0 ? insets.bottom : 8,
             paddingTop:       8,
             // sin shadow en Android, borde minimalista como el diseño
             elevation:        0,
@@ -94,7 +94,7 @@ export default function AppNavigator() {
           // ── Label ────────────────────────────────────────────────
           tabBarLabelStyle: {
             ...Typography.labelMd,
-            marginTop: 2,
+            marginTop: -2,
           },
 
           // ── Colores activo/inactivo ───────────────────────────────
@@ -106,13 +106,20 @@ export default function AppNavigator() {
             paddingVertical: 4,
           },
 
-          // ── Icono dinámico ───────────────────────────────────────
+          tabBarHideOnKeyboard: true,
+
+          // ── Icono dinámico con indicador ─────────────────────────
           tabBarIcon: ({ focused, color }) => (
-            <IconComponent
-              size={22}
-              color={color}
-              strokeWidth={focused ? 2.2 : 1.8}
-            />
+            <View style={{ alignItems: 'center', gap: 2 }}>
+              <IconComponent
+                size={22}
+                color={color}
+                strokeWidth={focused ? 2.2 : 1.8}
+              />
+              {focused && (
+                <View style={{ width: 20, height: 4, borderRadius: 2, backgroundColor: Colors.primaryContainer }} />
+              )}
+            </View>
           ),
 
           tabBarLabel: config?.label ?? route.name,
