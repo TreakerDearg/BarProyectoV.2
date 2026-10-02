@@ -158,17 +158,27 @@ export default function ReservasScreen() {
   }, [selectedDate, guests]);
 
   // ── Date picker handler ───────────────────────────────────────
+  // SDK 57: `onChange` está deprecado. Usamos `onValueChange` (iOS)
+  // y `onConfirm`/`onDismiss` (Android) según la plataforma.
+  const handleDateConfirm = useCallback((date: Date) => {
+    setSelectedDate(date);
+    setShowDatePicker(false);
+    setSuccessReservation(null);
+    setFormError(null);
+    try { Haptics.selectionAsync(); } catch {}
+  }, []);
+
+  const handleDateDismiss = useCallback(() => {
+    setShowDatePicker(false);
+  }, []);
+
+  // Wrapper unificado para compatibilidad — solo usado en iOS inline
   const handleDateChange = useCallback(
-    (event: DateTimePickerEvent, date?: Date) => {
-      setShowDatePicker(Platform.OS === 'ios'); // iOS: mantener abierto
-      if (event.type === 'set' && date) {
-        setSelectedDate(date);
-        setSuccessReservation(null);
-        setFormError(null);
-        try { Haptics.selectionAsync(); } catch {}
-      }
+    (_event: DateTimePickerEvent, date?: Date) => {
+      if (date) handleDateConfirm(date);
+      else handleDateDismiss();
     },
-    []
+    [handleDateConfirm, handleDateDismiss]
   );
 
   // ── Validación y submit ───────────────────────────────────────
@@ -307,12 +317,12 @@ export default function ReservasScreen() {
                   value={selectedDate ?? new Date()}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
                   minimumDate={MIN_DATE}
                   maximumDate={MAX_DATE}
                   locale="es-AR"
                   themeVariant="dark"
                   accentColor={Colors.primary}
+                  onChange={handleDateChange}
                 />
               )}
 

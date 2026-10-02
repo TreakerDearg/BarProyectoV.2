@@ -1,0 +1,7 @@
+{
+  "task_id": "task-nebula-visual-phase2",
+  "task_description": "Visual Phase 2 overhaul of the Nebula mobile client: migrate legacy components to Nocturne design system, add Animated-only animations (no Reanimated) to all main screens, fully redesign RouletteScreen with rarity system + cart integration, and update project memory.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

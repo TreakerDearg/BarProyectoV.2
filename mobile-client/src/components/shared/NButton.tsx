@@ -59,11 +59,11 @@ export function NButton({
     styles.base,
     styles[variant],
     { height: HEIGHT[size], paddingHorizontal: H_PAD[size] },
-    fullWidth && { alignSelf: 'stretch' as const },
-    (disabled || loading) && styles.disabled,
-    variant === 'primary' && (Elevation.goldCTA as ViewStyle),
-    style ?? {},
-  ];
+    fullWidth ? { alignSelf: 'stretch' as const } : undefined,
+    (disabled || loading) ? styles.disabled : undefined,
+    variant === 'primary' ? (Elevation.goldCTA as ViewStyle) : undefined,
+    style ?? undefined,
+  ].filter(Boolean) as ViewStyle[];
 
   const labelStyle: TextStyle[] = [
     styles.label,

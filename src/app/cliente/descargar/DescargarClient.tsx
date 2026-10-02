@@ -71,10 +71,10 @@ function CodeBlock({ code }: { code: string }) {
 
 // ── Componente principal ──────────────────────────────────────────
 export function DescargarClient() {
-  // URL del APK compilado en EAS — actualizar con cada release
+  // URL del APK compilado en EAS — apunta directamente a los builds del proyecto
   const APK_URL =
     process.env.NEXT_PUBLIC_APK_URL ??
-    "https://expo.dev/accounts/nebula-bar/projects/nebula-bar-app/builds";
+    "https://expo.dev/accounts/nebulaclients-team/projects/sistema-nebula/builds";
 
   const isDirectLink = APK_URL.endsWith(".apk");
 

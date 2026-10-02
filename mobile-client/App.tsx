@@ -96,7 +96,7 @@ export default function App() {
         style={{ flex: 1, backgroundColor: Colors.background }}
         onLayout={onLayoutRootView}
       >
-        <StatusBar style="light" backgroundColor={Colors.background} />
+        <StatusBar style="light" />
         <NavigationContainer theme={NavigationTheme}>
           <AppNavigator />
         </NavigationContainer>
