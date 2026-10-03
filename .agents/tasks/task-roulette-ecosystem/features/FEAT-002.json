@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Desktop The Lab: PityVault + FaderMixer + SmartPresets (Task 7). Independent of FEAT-001. Creates TheLab sub-components that unify PityTrackerPanel+PityConfig, add vertical fader controls, and add smart preset cards. Modifies ProbabilityEngine to remove its pity tab and updates RoulettePage Control Deck layout. Does NOT delete PityTrackerPanel.tsx (kept as legacy).",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "Create directory bartender-desktop/src/modules/roulette/components/TheLab/.",
     "Create bartender-desktop/src/modules/roulette/components/TheLab/PityVault.tsx: fetches getAllUserRouletteStats() and getRouletteConfig()/updateRouletteConfig() internally (same as PityTrackerPanel + ProbabilityEngine pity tab). Two internal tabs: 'Live Tracker' (employee pity bars from PityTrackerPanel) and 'Config' (threshold sliders from ProbabilityEngine pity tab). Reuse the exact UI patterns from PityTrackerPanel.tsx for employee rows. Reuse the config form from ProbabilityEngine.tsx pity tab. No external props needed (self-contained). Export as default.",
@@ -24,5 +24,5 @@
     "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\bartender-desktop' && npm run build"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Vite build exits 0 with no TypeScript errors (verified via `npx tsc --noEmit` and `vite build`). TheLab/PityVault.tsx fetches getAllUserRouletteStats() + getRouletteConfig()/updateRouletteConfig() and renders 'Live Tracker' and 'Config' internal tabs, replicating UI patterns from PityTrackerPanel.tsx and ProbabilityEngine.tsx pity tab. TheLab/FaderMixer.tsx uses a rotated range input technique with a visible track+fill div overlay for vertical appearance (CSS transform rotate(-90deg)) since native vertical sliders have limited cross-browser support. TheLab/SmartPresets.tsx implements three preset cards: Happy Hour (equal), Inventory Pusher (smart autoBalance), and Profit Maximizer (custom rank-by-dynamicPrice logic, weight scale 10-80). ProbabilityEngine.tsx pity tab, its config state, fetchConfig useEffect, and handleSaveConfig were removed; tabs are now 'Pesos' and 'Simulador' only. RoulettePage.tsx: PityTrackerPanel import replaced by three TheLab imports; view toggle reduced from 4 to 3 entries (Playroom Mode, Control Deck, Logs); Control Deck right column now col-span-4 with 'Añadir Trago' button + collapsible 'THE LAB' section containing FaderMixer, SmartPresets, and PityVault stacked vertically. ProbabilityEngine left column reduced from xl:col-span-9 to xl:col-span-8 to accommodate wider right panel."
 }
