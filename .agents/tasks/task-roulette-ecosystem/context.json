@@ -1,0 +1,31 @@
+{
+  "project_type": "Monorepo: Next.js 16 web + Electron/Vite desktop + Expo mobile + Express backend",
+  "language": "TypeScript (frontend/desktop/mobile) + JavaScript ES Modules (backend)",
+  "build_system": "npm workspaces — each app has its own package.json. Desktop uses Vite 8 + electron-builder. Web uses Next.js 16 turbopack. Mobile uses Expo 57. Backend uses nodemon.",
+  "test_framework": "No test framework found in any package.json. Verification is build-only: npm run build.",
+  "build_command": "Desktop: cd bartender-desktop && npm run build | Web: cd <root> && npm run build | Backend: cd backend && npm run start (no compile step, ES modules run directly)",
+  "test_command": "No automated tests. Verify with: Desktop: npm run build in bartender-desktop/. Web: npm run build in root. Mobile: npx expo export --platform android. Backend: npm run dev and curl endpoints.",
+  "verification_instructions": "1. Desktop changes: run `cd bartender-desktop && npm run build` — must exit 0 with no TypeScript errors. 2. Web changes: run `npm run build` in root — must exit 0. 3. Backend changes: run `npm run dev` in backend/ — server must start without crash. 4. Mobile: run `npx expo export --platform android` — must exit 0.",
+  "snapshot_or_generated_files": "null",
+  "environment_constraints": "Windows PowerShell. Backend runs on port 4000 (from .env). Do NOT restart any running dev server. Use `cd <dir> && npm run build` pattern for verification. TICKET_SECRET env var needed in backend/.env for Task 8.",
+  "contribution_requirements": "AGENTS.md: Maintain compatibility between backend, web and desktop when changing APIs, auth or Socket.IO events. Do NOT edit generated artifacts (.next/, dist/, dist-electron/, release/).",
+  "key_patterns": "Backend: ES Modules (import/export), response helpers ok()/badRequest()/created() from utils/response.js, io from server.js for socket events. Desktop: all components are .tsx, hooks in hooks/, services in services/, Tailwind v4 with custom tokens (gold, ivory, muted, bg, surface-3). Web: useRoulette hook already has full SpinPhase machine — DO NOT modify it. Mobile: StyleSheet.create patterns, Animated.Value from react-native, expo-haptics already installed.",
+  "relevant_files": [
+    "bartender-desktop/src/modules/roulette/hooks/useRoulette.ts",
+    "bartender-desktop/src/modules/roulette/types/roulette.ts",
+    "bartender-desktop/src/modules/roulette/services/rouletteService.ts",
+    "bartender-desktop/src/modules/roulette/components/RoulettePreview/RouletteWheelRoyale.tsx",
+    "bartender-desktop/src/modules/roulette/components/RoulettePreview/RoulettePreview.tsx",
+    "bartender-desktop/src/modules/roulette/pages/RoulettePage.tsx",
+    "bartender-desktop/src/modules/roulette/components/ProbabilityEngine.tsx",
+    "bartender-desktop/src/modules/roulette/components/PityTrackerPanel.tsx",
+    "src/components/cliente/roulette/RouletteWheel.tsx",
+    "src/hooks/useRoulette.ts",
+    "mobile-client/src/screens/RouletteScreen.tsx",
+    "mobile-client/src/types/api.ts",
+    "mobile-client/package.json",
+    "backend/src/controllers/roulette.controller.js",
+    "backend/src/routes/roulette.routes.js"
+  ],
+  "directory_structure": "bartender-system/ (Next.js root, src/), bartender-system/bartender-desktop/ (Electron app), bartender-system/mobile-client/ (Expo app), bartender-system/backend/ (Express API). .agents/tasks/ for artifacts (NOT in worktree). Key roulette paths: desktop=bartender-desktop/src/modules/roulette/, web=src/components/cliente/roulette/ + src/hooks/, mobile=mobile-client/src/screens/ + mobile-client/src/components/roulette/, backend=backend/src/controllers/roulette*.js + backend/src/routes/roulette.routes.js"
+}

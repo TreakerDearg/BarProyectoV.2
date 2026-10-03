@@ -1,27 +1,32 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { RouletteDrink } from "../../types/roulette";
+import type { RouletteDrink, SpinPhase } from "../../types/roulette";
 import RouletteWheelRoyale from "./RouletteWheelRoyale";
 import {
   Activity,
   Layers,
   Percent,
-  History
+  History,
 } from "lucide-react";
 import { useMemo } from "react";
 import RarityBadge from "../RarityBadge";
 
 interface Props {
   drinks: RouletteDrink[];
-  result?: RouletteDrink;
-  spinning?: boolean;
+  phase: SpinPhase;
+  targetAngle: number | null;
+  onWheelLanded: () => void;
+  /** The revealed drink — only shown when phase === 'revealed' */
+  revealedResult?: RouletteDrink | null;
 }
 
 export default function RoulettePreview({
   drinks,
-  result,
-  spinning,
+  phase,
+  targetAngle,
+  onWheelLanded,
+  revealedResult,
 }: Props) {
   const totalWeight = useMemo(
     () => drinks.reduce((acc, d) => acc + d.weight, 0),
@@ -40,89 +45,120 @@ export default function RoulettePreview({
       <div className="relative flex items-center justify-center w-full min-h-125">
         {/* EFECTOS DE FONDO */}
         <div className="absolute inset-0 bg-gold/5 blur-[120px] rounded-full opacity-30" />
-        
+
         <RouletteWheelRoyale
           drinks={drinks}
           totalWeight={totalWeight}
-          result={result}
-          spinning={spinning}
+          phase={phase}
+          targetAngle={targetAngle}
+          onLanded={onWheelLanded}
+          revealedDrinkId={revealedResult?._id ?? null}
         />
       </div>
 
       {/* ================= RESULT OVERLAY (TICKET STYLE) ================= */}
-      {result && !spinning && (
+      {/* Only visible after wheel animation completes (phase === 'revealed') */}
+      {phase === "revealed" && revealedResult && (
         <div className="w-full glass-royale border border-gold/30 bg-gold/5 rounded-4xl p-8 animate-fade-in flex flex-col md:flex-row items-center justify-between gap-8 shadow-gold-glow/10 border-dashed">
-           <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-gold flex items-center justify-center text-4xl shadow-gold-glow">
-                 🏆
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-2xl bg-gold flex items-center justify-center text-4xl shadow-gold-glow">
+              🏆
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <RarityBadge rarity={revealedResult.rarity} size="sm" />
+                <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">
+                  {revealedResult.category}
+                </span>
               </div>
-              <div>
-                 <div className="flex items-center gap-3 mb-2">
-                    <RarityBadge rarity={result.rarity} size="sm" />
-                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{result.category}</span>
-                 </div>
-                 <h2 className="text-3xl font-black text-ivory tracking-tighter uppercase">{result.name}</h2>
-              </div>
-           </div>
-           <div className="flex flex-col items-end">
-              <span className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Costo de Trago</span>
-              <span className="text-3xl font-black text-grad-gold tracking-tighter">${result.price || 0}</span>
-           </div>
+              <h2 className="text-3xl font-black text-ivory tracking-tighter uppercase">
+                {revealedResult.name}
+              </h2>
+            </div>
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">
+              Costo de Trago
+            </span>
+            <span className="text-3xl font-black text-grad-gold tracking-tighter">
+              ${revealedResult.price || 0}
+            </span>
+          </div>
         </div>
       )}
 
       {/* ================= QUICK STATS & LEGEND ================= */}
       <div className="w-full grid grid-cols-12 gap-8">
-         
-         <div className="col-span-12 lg:col-span-4 space-y-6">
-            <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
-               <Activity size={14} className="text-gold" />
-               Engine Diagnostics
-            </h3>
-            <div className="grid grid-cols-1 gap-4">
-               <MiniStat label="Opciones" value={drinks.length} icon={<Layers size={14} />} />
-               <MiniStat label="Activos" value={activeCount} icon={<Activity size={14} />} />
-               <MiniStat label="Prob. Media" value={`${(100 / (activeCount || 1)).toFixed(1)}%`} icon={<Percent size={14} />} />
-            </div>
-         </div>
 
-         <div className="col-span-12 lg:col-span-8 space-y-6">
-            <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
-               <History size={14} className="text-gold" />
-               Current Pool Weights
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-               {drinks.filter(d => d.active).slice(0, 9).map((d) => (
-                  <div key={d._id} className="flex items-center justify-between p-4 rounded-2xl bg-surface-3/30 border border-white/5 hover:border-gold/30 transition-all group">
-                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                        <span className="text-[10px] font-black text-ivory/60 truncate uppercase">{d.name}</span>
-                     </div>
-                     <span className="text-[10px] font-black text-gold ml-2">{d.probability?.toFixed(0)}%</span>
-                  </div>
-               ))}
-               {drinks.length > 9 && (
-                  <div className="flex items-center justify-center p-4 rounded-2xl bg-surface-3/10 border border-dashed border-white/10">
-                     <span className="text-[8px] font-black text-muted uppercase">+{drinks.length - 9} más</span>
-                  </div>
-               )}
-            </div>
-         </div>
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
+            <Activity size={14} className="text-gold" />
+            Engine Diagnostics
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            <MiniStat label="Opciones" value={drinks.length} icon={<Layers size={14} />} />
+            <MiniStat label="Activos" value={activeCount} icon={<Activity size={14} />} />
+            <MiniStat
+              label="Prob. Media"
+              value={`${(100 / (activeCount || 1)).toFixed(1)}%`}
+              icon={<Percent size={14} />}
+            />
+          </div>
+        </div>
 
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          <h3 className="text-[10px] font-black text-muted uppercase tracking-[0.4em] flex items-center gap-3">
+            <History size={14} className="text-gold" />
+            Current Pool Weights
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {drinks
+              .filter((d) => d.active)
+              .slice(0, 9)
+              .map((d) => (
+                <div
+                  key={d._id}
+                  className="flex items-center justify-between p-4 rounded-2xl bg-surface-3/30 border border-white/5 hover:border-gold/30 transition-all group"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                    <span className="text-[10px] font-black text-ivory/60 truncate uppercase">{d.name}</span>
+                  </div>
+                  <span className="text-[10px] font-black text-gold ml-2">
+                    {d.probability?.toFixed(0)}%
+                  </span>
+                </div>
+              ))}
+            {drinks.length > 9 && (
+              <div className="flex items-center justify-center p-4 rounded-2xl bg-surface-3/10 border border-dashed border-white/10">
+                <span className="text-[8px] font-black text-muted uppercase">
+                  +{drinks.length - 9} más
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-
     </div>
   );
 }
 
-function MiniStat({ label, value, icon }: { label: string; value: string | number; icon: ReactNode }) {
-   return (
-      <div className="flex items-center justify-between p-5 rounded-2xl bg-surface-3/50 border border-white/5">
-         <div className="flex items-center gap-4">
-            <div className="text-gold opacity-50">{icon}</div>
-            <span className="text-[10px] font-black text-muted uppercase tracking-widest">{label}</span>
-         </div>
-         <span className="text-sm font-black text-ivory uppercase">{value}</span>
+function MiniStat({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  icon: ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between p-5 rounded-2xl bg-surface-3/50 border border-white/5">
+      <div className="flex items-center gap-4">
+        <div className="text-gold opacity-50">{icon}</div>
+        <span className="text-[10px] font-black text-muted uppercase tracking-widest">{label}</span>
       </div>
-   );
+      <span className="text-sm font-black text-ivory uppercase">{value}</span>
+    </div>
+  );
 }

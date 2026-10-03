@@ -1,3 +1,11 @@
+export type SpinPhase =
+  | "idle"
+  | "launching"
+  | "spinning"
+  | "revealing"
+  | "landing"
+  | "revealed";
+
 export type RouletteCategory =
   | "clasico"
   | "autor"

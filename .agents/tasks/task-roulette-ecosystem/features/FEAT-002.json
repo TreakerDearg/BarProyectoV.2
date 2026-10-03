@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Desktop The Lab: PityVault + FaderMixer + SmartPresets (Task 7). Independent of FEAT-001. Creates TheLab sub-components that unify PityTrackerPanel+PityConfig, add vertical fader controls, and add smart preset cards. Modifies ProbabilityEngine to remove its pity tab and updates RoulettePage Control Deck layout. Does NOT delete PityTrackerPanel.tsx (kept as legacy).",
+  "status": "pending",
+  "steps": [
+    "Create directory bartender-desktop/src/modules/roulette/components/TheLab/.",
+    "Create bartender-desktop/src/modules/roulette/components/TheLab/PityVault.tsx: fetches getAllUserRouletteStats() and getRouletteConfig()/updateRouletteConfig() internally (same as PityTrackerPanel + ProbabilityEngine pity tab). Two internal tabs: 'Live Tracker' (employee pity bars from PityTrackerPanel) and 'Config' (threshold sliders from ProbabilityEngine pity tab). Reuse the exact UI patterns from PityTrackerPanel.tsx for employee rows. Reuse the config form from ProbabilityEngine.tsx pity tab. No external props needed (self-contained). Export as default.",
+    "Create bartender-desktop/src/modules/roulette/components/TheLab/FaderMixer.tsx: Props interface { drinks: RouletteDrink[], onUpdate: (id:string, updates:Partial<RouletteDrink>)=>void }. Renders a horizontal scrollable row of vertical faders. Each fader: a container div with display:flex flex-direction:column align-items:center gap-2. The slider input is rotated -90deg via style transform with writing-mode workaround for vertical appearance. Shows drink name (vertical text rotated 90deg, truncated 8chars) above the fader and probability% below. Colors: active=gold, inactive=muted/30. Max 12 faders shown, overflow-x:auto on container. Disabled when drink.active===false.",
+    "Create bartender-desktop/src/modules/roulette/components/TheLab/SmartPresets.tsx: Props interface { onAutoBalance: (mode:'equal'|'smooth'|'smart')=>void, drinks: RouletteDrink[], onUpdate: (id:string, updates:Partial<RouletteDrink>)=>void }. Three preset cards in a grid: (1) Happy Hour — calls onAutoBalance('equal'), shows projected equal distribution bar. (2) Inventory Pusher — calls onAutoBalance('smart'), label 'Prioriza stock alto'. (3) Profit Maximizer — custom preset: computes new weights by sorting drinks by product.dynamicPrice desc, assigns weight proportional to rank (highest price = highest weight, scale 10-80), calls onUpdate for each drink with new weight. Each card has title, description, a mini horizontal bar showing current vs projected distribution, and a 'Aplicar' button. Use glass-royale + border border-white/5 card style matching existing components.",
+    "Modify bartender-desktop/src/modules/roulette/components/ProbabilityEngine.tsx: remove the 'pity' tab button from the tab row (lines with activeTab==='pity' button). Remove the TAB 3 pity content block (the fetchConfig useEffect, config state, handleSaveConfig, and the JSX block {activeTab === 'pity' && ...}). The tabs become: 'Pesos' and 'Simulador' only. Keep all other code unchanged.",
+    "Modify bartender-desktop/src/modules/roulette/pages/RoulettePage.tsx in the Control Deck section (viewMode==='control'): replace the right column (col-span-12 xl:col-span-3 glass-royale that has the 'Añadir Trago' button) with a wider layout. New right panel col-span-12 xl:col-span-4: show the 'Añadir Trago' button at top, then below it a collapsible 'THE LAB' section with FaderMixer, SmartPresets, and PityVault stacked vertically. Add imports for the three new TheLab components. Remove the import of PityTrackerPanel and the 'pity' tab from the view toggle (the pity tab was activeTab==='pity' in the header toggle). Update the tab toggle to remove the pity entry (4 tabs → 3 tabs: Playroom Mode, Control Deck, Logs)."
+  ],
+  "acceptance_criteria": [
+    "npm run build in bartender-desktop/ exits 0 with no TypeScript errors",
+    "TheLab/PityVault.tsx exists and renders both Live Tracker and Config tabs",
+    "TheLab/FaderMixer.tsx exists and renders vertical faders for active drinks",
+    "TheLab/SmartPresets.tsx exists with three preset cards including Profit Maximizer logic",
+    "ProbabilityEngine.tsx no longer has a pity tab",
+    "RoulettePage.tsx Control Deck includes The Lab section",
+    "No import of PityTrackerPanel in RoulettePage.tsx (replaced by PityVault)"
+  ],
+  "verification": [
+    "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\bartender-desktop' && npm run build"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,7 @@
+{
+  "task_id": "task-roulette-ecosystem",
+  "task_description": "Remodelación completa del ecosistema de ruleta: state machine (SpinPhase), audio sintetizado, visual upgrade, paleta web Obsidian&Gold, SVG mobile, hápticos progresivos, The Lab unificado, Golden Ticket VIP, JackpotBanner WebSocket, y WinnerCard POS.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}

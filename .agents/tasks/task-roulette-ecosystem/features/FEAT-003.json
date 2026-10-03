@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Web Obsidian palette + Backend jackpot + Desktop JackpotBanner + Desktop WinnerCard (Tasks 4, 9, 10). Groups together the web color-only change, the backend jackpot socket emit, and the two new Desktop UI components. FEAT-003 depends on FEAT-001 being complete (JackpotBanner and WinnerCard use SpinPhase). The web palette change (Task 4) is independent.",
+  "status": "pending",
+  "steps": [
+    "Modify src/components/cliente/roulette/RouletteWheel.tsx: ONLY change the WHEEL_COLORS constant to: ['#0F0F14','#D4A340','#1A1A22','#B8922E','#111118','#F0C060','#0A0A0E','#C49030']. Do NOT modify any logic, hooks, CSS module, or any other line. This is a pure color swap.",
+    "Modify backend/src/controllers/roulette.controller.js: find the spinRoulette function where io.emit('roulette:spin', payload) is called. Immediately after that line, add: if (selectedDrink.rarity === 'LEGENDARY') { io.emit('roulette:jackpot_alert', { drinkName: selectedDrink.name, rarity: selectedDrink.rarity, timestamp: Date.now() }); }. Use the same io import already at top of file.",
+    "Modify bartender-desktop/src/modules/roulette/services/rouletteService.ts: in the rouletteSocket object add two methods: onJackpot(cb:(data:{drinkName:string;rarity:RouletteRarity;timestamp:number})=>void){ getSocket()?.on('roulette:jackpot_alert', cb); } and offJackpot(){ getSocket()?.off('roulette:jackpot_alert'); }. Also update offAll() to include getSocket()?.off('roulette:jackpot_alert').",
+    "Create bartender-desktop/src/modules/roulette/components/JackpotBanner.tsx: import motion,AnimatePresence from framer-motion (already in desktop package.json as it uses framer-motion via the React ecosystem — if not present use CSS transitions instead; check package.json first). Props: visible:boolean, drinkName:string, onClose:()=>void. AnimatePresence wraps a motion.div with initial={y:-100,opacity:0} animate={y:0,opacity:1} exit={y:-100,opacity:0} transition={type:'spring',stiffness:300,damping:25}. Fixed positioning: fixed top-0 left-0 right-0 z-[100]. Background: linear-gradient from #0A0A0E to #D4A340/20. Border-bottom: 2px solid #D4A340. Content: centered, flex-row, gap-6. Left: lightning bolt emoji + 'JACKPOT LEGENDARIO' in uppercase gold text font-black. Center: drinkName in large white text. Right: X close button. The component auto-closes via useEffect: when visible becomes true, set a 8000ms timeout that calls onClose. Clean up timeout on unmount or when visible changes.",
+    "Create bartender-desktop/src/modules/roulette/components/WinnerCard.tsx: Props: result:RouletteSpinResult|null, phase:SpinPhase, onSpin:()=>void. Renders the complete winner panel replacing the old 'ÚLTIMO GANADOR' block. Sections: (1) Header with 'ÚLTIMO GANADOR' label. (2) When phase==='revealed' && result: Hero row with product image (or 🍸 emoji fallback), RarityBadge, category badge, and drink name. (3) Stats grid: probability%, totalSpins, and dynamicPrice if available. (4) Ingredients section: if result.result.recipe?.ingredients exist, show a compact list with bullet • name — qty unit. (5) Print POS button: onClick creates a hidden div#pos-receipt with drink name, ingredients, price, current timestamp formatted as 'DD/MM/YYYY HH:mm', appends to document.body, calls window.print(), then removes the div after 100ms. Use @media print CSS via a <style> tag injected alongside the div. (6) CTA button: 'LANZAR DE NUEVO' calling onSpin, disabled when phase!=='idle'&&phase!=='revealed'. (7) Empty state: when !result and phase==='idle', show the existing placeholder (dice emoji + 'Sin resultados aún'). Import SpinPhase from types/roulette.ts and RouletteSpinResult from same. Import RarityBadge from ./RarityBadge.",
+    "Modify bartender-desktop/src/modules/roulette/pages/RoulettePage.tsx: (a) Import JackpotBanner from '../components/JackpotBanner' and WinnerCard from '../components/WinnerCard'. (b) Add state: const [jackpot, setJackpot] = useState<{drinkName:string}|null>(null). (c) Add useEffect that calls rouletteSocket.onJackpot(data=>{setJackpot(data); setTimeout(()=>setJackpot(null),8000)}) on mount and rouletteSocket.offJackpot() on cleanup. (d) Replace the entire 'ÚLTIMO GANADOR' JSX block (the glass-royale card in col-span-5) with <WinnerCard result={revealedResult} phase={phase} onSpin={actions.spin} />. (e) Add <JackpotBanner visible={!!jackpot} drinkName={jackpot?.drinkName??''} onClose={()=>setJackpot(null)} /> as the first child of the outer return div (so it renders above everything). (f) Remove RecipeQuickView import and usage if it's now only in WinnerCard."
+  ],
+  "acceptance_criteria": [
+    "npm run build in root (Next.js) exits 0 — web palette change compiles",
+    "npm run build in bartender-desktop/ exits 0 — JackpotBanner and WinnerCard compile",
+    "npm run dev in backend/ starts without crash — jackpot emit added correctly with no syntax errors",
+    "RouletteWheel.tsx WHEEL_COLORS contains '#0F0F14' as first entry",
+    "roulette.controller.js emits roulette:jackpot_alert when rarity===LEGENDARY",
+    "rouletteService.ts exports onJackpot and offJackpot in rouletteSocket object",
+    "JackpotBanner.tsx exists with fixed positioning and auto-close logic",
+    "WinnerCard.tsx exists with print POS functionality",
+    "RoulettePage.tsx uses WinnerCard and JackpotBanner"
+  ],
+  "verification": [
+    "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\bartender-desktop' && npm run build",
+    "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system' && npm run build",
+    "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend' && node --input-type=module --eval \"import './src/controllers/roulette.controller.js'\" 2>&1 | Select-Object -First 5"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

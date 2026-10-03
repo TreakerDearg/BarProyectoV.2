@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Desktop Core: SpinPhase state machine + Audio hook + Visual Upgrade (Tasks 0, 1, 2, 3). Adds SpinPhase type to roulette.ts, rewires useRoulette.ts to eliminate spoiler problem, upgrades RouletteWheelRoyale with 36 rivets/bisel/chase lighting/needle bounce, creates useRouletteAudio.ts synthesizer, integrates audio in RoulettePage, and creates the two .md documentation files.",
+  "status": "completed",
+  "steps": [
+    "Create ROULETTE_PLAN.md in bartender-system/ root with the full plan summary (Tasks 0-10 descriptions, dependencies, file list).",
+    "Create ROULETTE_MEMORIA.md in bartender-system/ root with technical decisions: SpinPhase rationale, Web Audio API choice, SVG-only visual approach, HMAC for tickets, progressive haptics curve.",
+    "In bartender-desktop/src/modules/roulette/types/roulette.ts: add export type SpinPhase = 'idle' | 'launching' | 'spinning' | 'revealing' | 'landing' | 'revealed'. Keep all existing types.",
+    "Rewrite bartender-desktop/src/modules/roulette/hooks/useRoulette.ts: add state fields phase:SpinPhase, pendingResult:RouletteSpinResult|null, revealedResult:RouletteSpinResult|null, targetAngle:number|null. Keep spinning as derived alias (phase !== 'idle' && phase !== 'revealed'). Keep lastResult as alias for revealedResult for backward compat. Modify spin() to go idle→launching→spinning(call backend)→revealing(set pendingResult+targetAngle). Add onWheelLanded() that goes revealing→landing, then after 400ms timeout goes landing→revealed moving pendingResult to revealedResult. Export phase, pendingResult, revealedResult, targetAngle, onWheelLanded. Add calculateTargetAngle helper (same logic as web hook: find winner slice center, compute 270-center offset, add 8-12 full rotations).",
+    "Modify bartender-desktop/src/modules/roulette/components/RoulettePreview/RouletteWheelRoyale.tsx: change Props to receive phase:SpinPhase, targetAngle:number|null, onLanded:()=>void instead of result/spinning. useEffect reacts to phase: 'revealing' → stop free loop, animate to targetAngle with cubic-bezier(0.15,0.8,0.3,1) ~5s, onComplete calls onLanded. 'spinning' → start free loop animation. 'idle'/'revealed' → stop. isWinner on slices only when phase==='revealed'. Add 36 SVG circle rivets at r=96 with transform rotate(N*10deg)translate(96,0). Add golden bezel using linearGradient defs + double circle stroke. Add chase lighting: 12 circle elements at r=98, animated with useEffect+requestAnimationFrame during spinning/revealing, opacity 0.1 when idle. Add needle-bounce class to pointer div when phase==='landing', remove after 400ms.",
+    "Modify bartender-desktop/src/modules/roulette/components/RoulettePreview/RoulettePreview.tsx: update Props to receive phase:SpinPhase, targetAngle:number|null, onWheelLanded:()=>void instead of spinning/result. Pass phase, targetAngle, onLanded={onWheelLanded} to RouletteWheelRoyale. The result overlay (ticket style at bottom) shows only when phase==='revealed'. Remove the result prop entirely.",
+    "Modify bartender-desktop/src/modules/roulette/pages/RoulettePage.tsx: destructure phase, revealedResult, targetAngle, onWheelLanded from useRoulette. Pass them to RoulettePreview. Replace lastResult references in 'ÚLTIMO GANADOR' block with revealedResult. Button disabled when phase !== 'idle'. Leave Zap icon spinner triggered by spinning (the alias).",
+    "Create bartender-desktop/src/modules/roulette/hooks/useRouletteAudio.ts: lazy AudioContext created on first play call. playTick(speed:number): OscillatorNode type='triangle', freq=180Hz, gain decays over 80ms, gain amplitude scales with speed (0-1). playImpact(): sawtooth 60Hz + short white noise burst 50ms, represents needle landing. playFanfare(rarity:RouletteRarity): COMMON=2 notes 300ms, RARE=3 notes 500ms with small delay chain, EPIC=4 notes+sub 700ms, LEGENDARY=5-note arpeggio+bell partial+convolver reverb 1.2s. isMuted state. toggleMute(). Hook returns {playTick, playImpact, playFanfare, isMuted, toggleMute}.",
+    "Integrate useRouletteAudio in bartender-desktop/src/modules/roulette/pages/RoulettePage.tsx: call playTick from a useEffect+requestAnimationFrame loop that runs while phase==='spinning'||phase==='revealing' (pass a speed value derived from a linear decay over time). Call playImpact when phase transitions to 'landing' (useEffect watching phase). Call playFanfare(revealedResult.result.rarity) when phase transitions to 'revealed'. Add mute toggle button in header next to Tutorial button using Volume2/VolumeX from lucide-react."
+  ],
+  "acceptance_criteria": [
+    "npm run build in bartender-desktop/ exits 0 with no TypeScript errors",
+    "SpinPhase type is exported from types/roulette.ts with all 6 values",
+    "The result ('ÚLTIMO GANADOR' panel) only becomes visible after the wheel animation finishes (phase==='revealed'), not while it's still spinning",
+    "RouletteWheelRoyale renders 36 gold rivets visible in the SVG",
+    "Golden bezel (double ring with gradient) replaces the old white/5 stroke circle",
+    "Chase lighting circles animate during spinning phase",
+    "Needle bounce animation triggers when phase==='landing'",
+    "useRouletteAudio.ts compiles without errors and exports all 5 members",
+    "Mute button appears in RoulettePage header",
+    "ROULETTE_PLAN.md and ROULETTE_MEMORIA.md exist in bartender-system/ root"
+  ],
+  "verification": [
+    "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\bartender-desktop' && npm run build",
+    "Test-Path 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\ROULETTE_PLAN.md'",
+    "Test-Path 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\ROULETTE_MEMORIA.md'"
+  ],
+  "blocked_reason": null,
+  "findings": "framer-motion ^12.38.0 is installed but NOT used in RouletteWheelRoyale — animation is implemented via requestAnimationFrame + CSS transitions for the free-spin loop and a single transition style for the reveal, which avoids framer-motion dependency on the wheel itself. This is intentional: rAF gives finer control over the free-spin rotation and avoids framer-motion spring conflicts. The needle-bounce uses a CSS @keyframes class 'needle-bounce' added to bartender-desktop/src/index.css. RouletteWheelRoyale receives a new optional prop 'revealedDrinkId:string|null' so the parent (RoulettePreview) can pass the winner _id for slice highlight — this keeps the component decoupled from RouletteSpinResult type. The 'spinning' backward alias in useRoulette evaluates as: phase !== 'idle' && phase !== 'revealed'. The 'lastResult' alias evaluates as: revealedResult. Web useRoulette.ts (src/hooks/useRoulette.ts) was NOT modified. calculateTargetAngle in desktop hook uses weight/totalWeight (not probability field) because desktop RouletteDrink does not guarantee probability is populated at spin time."
+}

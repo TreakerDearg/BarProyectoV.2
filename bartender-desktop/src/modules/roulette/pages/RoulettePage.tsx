@@ -1,6 +1,7 @@
 "use client";
 
 import { useRoulette } from "../hooks/useRoulette";
+import { useRouletteAudio } from "../hooks/useRouletteAudio";
 import { useToast } from "../hooks/useToast";
 import RoulettePreview from "../components/RoulettePreview/RoulettePreview";
 import ProductSelector from "../components/ProductSelector";
@@ -25,18 +26,28 @@ import {
   X,
   Plus,
   FlaskConical,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 export default function RoulettePage() {
   const {
     drinks,
     loading,
+    // SpinPhase
+    phase,
+    revealedResult,
+    targetAngle,
+    onWheelLanded,
+    // Backward compat
     spinning,
     lastResult,
     logs,
     actions,
   } = useRoulette();
+
+  const { playTick, playImpact, playFanfare, isMuted, toggleMute } = useRouletteAudio();
 
   const { toasts, removeToast, success, error } = useToast();
 
@@ -45,6 +56,78 @@ export default function RoulettePage() {
   const [activeTab, setActiveTab] = useState<"main" | "logs" | "pity">("main");
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
 
+  // ── Audio: tick loop during spinning/revealing ────────────────
+  const tickRafRef = useRef<number | null>(null);
+  const spinStartTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    const isSpinning = phase === "spinning" || phase === "revealing";
+
+    if (isSpinning) {
+      spinStartTimeRef.current = performance.now();
+
+      const loop = (now: number) => {
+        const elapsed = (now - spinStartTimeRef.current) / 1000;
+
+        // Linear decay: speed starts at 1 and drops to 0.1 over 8s
+        const speed = Math.max(0.1, 1 - elapsed / 8);
+
+        // Tick every ~(120ms at full speed) → ~(600ms at slow speed)
+        const interval = 0.06 + (1 - speed) * 0.5;
+
+        // Throttle by accumulating elapsed time
+        if (!tickRafRef.current) {
+          playTick(speed);
+        }
+
+        tickRafRef.current = requestAnimationFrame(loop);
+      };
+
+      // Start loop — use a simple interval approach for tick frequency
+      let lastTick = 0;
+      const tickLoop = (now: number) => {
+        const elapsed = (now - spinStartTimeRef.current) / 1000;
+        const speed = Math.max(0.1, 1 - elapsed / 8);
+        const interval = (0.06 + (1 - speed) * 0.5) * 1000; // ms
+
+        if (now - lastTick >= interval) {
+          playTick(speed);
+          lastTick = now;
+        }
+
+        tickRafRef.current = requestAnimationFrame(tickLoop);
+      };
+
+      tickRafRef.current = requestAnimationFrame(tickLoop);
+
+      return () => {
+        if (tickRafRef.current !== null) {
+          cancelAnimationFrame(tickRafRef.current);
+          tickRafRef.current = null;
+        }
+      };
+    } else {
+      if (tickRafRef.current !== null) {
+        cancelAnimationFrame(tickRafRef.current);
+        tickRafRef.current = null;
+      }
+    }
+  }, [phase, playTick]);
+
+  // ── Audio: impact on landing ──────────────────────────────────
+  const prevPhaseRef = useRef(phase);
+  useEffect(() => {
+    if (prevPhaseRef.current !== "landing" && phase === "landing") {
+      playImpact();
+    }
+    if (prevPhaseRef.current !== "revealed" && phase === "revealed") {
+      if (revealedResult?.result?.rarity) {
+        playFanfare(revealedResult.result.rarity);
+      }
+    }
+    prevPhaseRef.current = phase;
+  }, [phase, revealedResult, playImpact, playFanfare]);
+
   // Estadísticas por rareza para el Playroom
   const rarityStats = useMemo(() => {
     const active = drinks.filter((d) => d && d.active);
@@ -52,7 +135,7 @@ export default function RoulettePage() {
     const tiers = ["COMMON", "RARE", "EPIC", "LEGENDARY"] as const;
     return tiers.map((r) => {
       const group = active.filter((d) => d.rarity === r);
-      const prob  = group.reduce((s, d) => s + (d.weight || 0), 0) / totalW * 100;
+      const prob = (group.reduce((s, d) => s + (d.weight || 0), 0) / totalW) * 100;
       return { rarity: r, count: group.length, probability: +prob.toFixed(1) };
     });
   }, [drinks]);
@@ -61,7 +144,9 @@ export default function RoulettePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] gap-6">
         <div className="w-16 h-16 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
-        <p className="text-[10px] font-black text-gold uppercase tracking-[0.5em] animate-pulse">Iniciando Smart Roulette Engine...</p>
+        <p className="text-[10px] font-black text-gold uppercase tracking-[0.5em] animate-pulse">
+          Iniciando Smart Roulette Engine...
+        </p>
       </div>
     );
   }
@@ -85,26 +170,40 @@ export default function RoulettePage() {
               Operational Gamification Protocol v5.1
             </p>
             <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Live Sync Active</span>
+            <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">
+              Live Sync Active
+            </span>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowTutorial(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold rounded-xl border border-gold/20 transition-all text-[9px] font-black uppercase tracking-widest"
-        >
-          <BookOpen size={14} />
-          Tutorial
-        </button>
+        {/* Mute toggle + Tutorial */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleMute}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-3/50 hover:bg-surface-3 text-muted hover:text-ivory rounded-xl border border-white/5 transition-all text-[9px] font-black uppercase tracking-widest"
+            title={isMuted ? "Activar sonido" : "Silenciar"}
+          >
+            {isMuted ? <VolumeX size={14} className="text-muted" /> : <Volume2 size={14} className="text-gold" />}
+            {isMuted ? "Muted" : "Sound"}
+          </button>
+
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold rounded-xl border border-gold/20 transition-all text-[9px] font-black uppercase tracking-widest"
+          >
+            <BookOpen size={14} />
+            Tutorial
+          </button>
+        </div>
 
         {/* View Toggle */}
         <div className="flex bg-surface-3/30 p-1.5 rounded-2xl border border-white/5 w-full xl:w-auto overflow-x-auto">
           {(
             [
-              { mode: "playroom", tab: "main",  icon: <Tv size={12} />,             label: "Playroom Mode" },
+              { mode: "playroom", tab: "main",  icon: <Tv size={12} />,               label: "Playroom Mode" },
               { mode: "control",  tab: "main",  icon: <SlidersHorizontal size={12} />, label: "Control Deck" },
-              { mode: "playroom", tab: "logs",  icon: <History size={12} />,         label: "Logs"         },
-              { mode: "playroom", tab: "pity",  icon: <Zap size={12} />,             label: "Pity Tracker" },
+              { mode: "playroom", tab: "logs",  icon: <History size={12} />,           label: "Logs"         },
+              { mode: "playroom", tab: "pity",  icon: <Zap size={12} />,               label: "Pity Tracker" },
             ] as const
           ).map((item) => {
             const isActive = viewMode === item.mode && activeTab === item.tab;
@@ -132,7 +231,10 @@ export default function RoulettePage() {
       {activeTab === "main" && (
         <div className="grid grid-cols-4 gap-3">
           {rarityStats.map(({ rarity, count, probability }) => (
-            <div key={rarity} className="glass-royale rounded-2xl p-4 border border-white/5 flex flex-col gap-1">
+            <div
+              key={rarity}
+              className="glass-royale rounded-2xl p-4 border border-white/5 flex flex-col gap-1"
+            >
               <RarityBadge rarity={rarity} size="sm" />
               <p className="text-xl font-black text-ivory mt-1">{count}</p>
               <div className="flex items-center justify-between">
@@ -149,7 +251,9 @@ export default function RoulettePage() {
         <div className="glass-royale rounded-[3rem] p-10 border border-white/5 flex flex-col min-h-[600px] animate-fadeIn">
           <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
             <History size={20} className="text-gold" />
-            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Historial de Actividad</h3>
+            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">
+              Historial de Actividad
+            </h3>
           </div>
           <div className="flex-1 overflow-y-auto max-h-[500px]">
             <RouletteLogs logs={logs} />
@@ -159,7 +263,9 @@ export default function RoulettePage() {
         <div className="glass-royale rounded-[3rem] p-10 border border-white/5 animate-fadeIn">
           <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
             <Zap size={20} className="text-gold" />
-            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">Sistema de Pity</h3>
+            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">
+              Sistema de Pity
+            </h3>
           </div>
           <PityTrackerPanel />
         </div>
@@ -173,7 +279,9 @@ export default function RoulettePage() {
             <div className="flex justify-between items-center w-full mb-8 absolute top-8 left-0 px-10">
               <div className="flex items-center gap-3">
                 <Sparkles size={16} className="text-gold" />
-                <span className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">Live Royale Visualizer</span>
+                <span className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">
+                  Live Royale Visualizer
+                </span>
               </div>
               {spinning && (
                 <div className="px-4 py-1.5 rounded-full bg-gold/10 text-gold border border-gold/20 text-[8px] font-black uppercase tracking-widest animate-pulse">
@@ -182,17 +290,34 @@ export default function RoulettePage() {
               )}
             </div>
             <div className="relative mt-8 transform hover:scale-102 transition-transform duration-700">
-              <RoulettePreview drinks={drinks} result={lastResult?.result} spinning={spinning} />
+              <RoulettePreview
+                drinks={drinks}
+                phase={phase}
+                targetAngle={targetAngle}
+                onWheelLanded={onWheelLanded}
+                revealedResult={revealedResult?.result ?? null}
+              />
             </div>
             <div className="mt-8 w-full max-w-md p-6 rounded-2xl bg-surface-3/20 border border-white/5 flex items-center justify-between">
               <div>
-                <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">Estado de la Ruleta</p>
+                <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">
+                  Estado de la Ruleta
+                </p>
                 <p className="text-sm font-black text-ivory uppercase tracking-tighter">
-                  {spinning ? "Seleccionando trago..." : "Esperando lanzamiento"}
+                  {phase === "idle"      && "Esperando lanzamiento"}
+                  {phase === "launching" && "Iniciando..."}
+                  {phase === "spinning"  && "Seleccionando trago..."}
+                  {phase === "revealing" && "Determinando ganador..."}
+                  {phase === "landing"   && "Aterrizando..."}
+                  {phase === "revealed"  && "¡Ganador revelado!"}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-2.5 h-2.5 rounded-full ${spinning ? "bg-amber-400 animate-ping" : "bg-emerald-400 animate-pulse"}`} />
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    spinning ? "bg-amber-400 animate-ping" : "bg-emerald-400 animate-pulse"
+                  }`}
+                />
                 <span className="text-[9px] font-black text-muted uppercase tracking-widest">
                   {spinning ? "Active" : "Ready"}
                 </span>
@@ -205,17 +330,22 @@ export default function RoulettePage() {
 
             {/* Último ganador */}
             <div className="glass-royale rounded-[3.5rem] p-8 border border-white/5 flex-1 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
-              <div className="absolute -right-10 -top-10 text-[100px] font-black text-white/5 pointer-events-none select-none uppercase tracking-tighter">ROYALE</div>
+              <div className="absolute -right-10 -top-10 text-[100px] font-black text-white/5 pointer-events-none select-none uppercase tracking-tighter">
+                ROYALE
+              </div>
               <div>
-                <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-5">ÚLTIMO GANADOR</span>
-                {lastResult && !spinning ? (
+                <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-5">
+                  ÚLTIMO GANADOR
+                </span>
+                {revealedResult && phase === "revealed" ? (
                   <div className="animate-fade-in space-y-5">
                     <div className="flex items-center gap-5">
-                      {/* Imagen del producto si existe */}
-                      {lastResult.result.product && typeof lastResult.result.product === "object" && lastResult.result.product.image ? (
+                      {revealedResult.result.product &&
+                      typeof revealedResult.result.product === "object" &&
+                      revealedResult.result.product.image ? (
                         <img
-                          src={lastResult.result.product.image}
-                          alt={lastResult.result.name}
+                          src={revealedResult.result.product.image}
+                          alt={revealedResult.result.name}
                           className="w-16 h-16 rounded-2xl object-cover border border-gold/20"
                         />
                       ) : (
@@ -225,38 +355,62 @@ export default function RoulettePage() {
                       )}
                       <div>
                         <div className="flex items-center gap-3 mb-2">
-                          <RarityBadge rarity={lastResult.result.rarity} size="lg" />
-                          <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">{lastResult.result.category}</span>
+                          <RarityBadge rarity={revealedResult.result.rarity} size="lg" />
+                          <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">
+                            {revealedResult.result.category}
+                          </span>
                         </div>
-                        <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase leading-tight capitalize">{lastResult.result.name}</h2>
-                        {lastResult.result.product && typeof lastResult.result.product === "object" && lastResult.result.product.description && (
-                          <p className="text-[9px] text-muted mt-1 line-clamp-2">{lastResult.result.product.description}</p>
-                        )}
+                        <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase leading-tight capitalize">
+                          {revealedResult.result.name}
+                        </h2>
+                        {revealedResult.result.product &&
+                          typeof revealedResult.result.product === "object" &&
+                          revealedResult.result.product.description && (
+                            <p className="text-[9px] text-muted mt-1 line-clamp-2">
+                              {revealedResult.result.product.description}
+                            </p>
+                          )}
                       </div>
                     </div>
                     <div className="pt-4 border-t border-white/5 grid grid-cols-3 gap-4">
                       <div>
-                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PROBABILIDAD</p>
-                        <span className="text-2xl font-black text-grad-gold tracking-tighter">{(lastResult.result.probability || 0).toFixed(1)}%</span>
+                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
+                          PROBABILIDAD
+                        </p>
+                        <span className="text-2xl font-black text-grad-gold tracking-tighter">
+                          {(revealedResult.result.probability || 0).toFixed(1)}%
+                        </span>
                       </div>
                       <div>
-                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">TIRADAS</p>
-                        <span className="text-lg font-black text-ivory tracking-tight">{lastResult.result.totalSpins || 0}</span>
+                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
+                          TIRADAS
+                        </p>
+                        <span className="text-lg font-black text-ivory tracking-tight">
+                          {revealedResult.result.totalSpins || 0}
+                        </span>
                       </div>
-                      {lastResult.result.product && typeof lastResult.result.product === "object" && lastResult.result.product.dynamicPrice != null && (
-                        <div>
-                          <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">PRECIO</p>
-                          <span className="text-lg font-black text-ivory tracking-tight">
-                            ${lastResult.result.product.dynamicPrice.toLocaleString("es-AR")}
-                          </span>
-                        </div>
-                      )}
+                      {revealedResult.result.product &&
+                        typeof revealedResult.result.product === "object" &&
+                        revealedResult.result.product.dynamicPrice != null && (
+                          <div>
+                            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
+                              PRECIO
+                            </p>
+                            <span className="text-lg font-black text-ivory tracking-tight">
+                              ${revealedResult.result.product.dynamicPrice.toLocaleString("es-AR")}
+                            </span>
+                          </div>
+                        )}
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-2xl text-muted/40 mb-3 border border-white/5">🎰</div>
-                    <h3 className="text-xs font-black text-muted uppercase tracking-widest">Sin resultados aún</h3>
+                    <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-2xl text-muted/40 mb-3 border border-white/5">
+                      🎰
+                    </div>
+                    <h3 className="text-xs font-black text-muted uppercase tracking-widest">
+                      Sin resultados aún
+                    </h3>
                     <p className="text-[9px] text-muted/50 uppercase tracking-wider mt-2 max-w-[220px]">
                       Lanzá la ruleta para ver el ganador
                     </p>
@@ -266,7 +420,7 @@ export default function RoulettePage() {
               <div className="pt-6 border-t border-white/5">
                 <button
                   onClick={actions.spin}
-                  disabled={spinning}
+                  disabled={phase !== "idle"}
                   className="w-full flex items-center justify-center gap-4 px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] bg-grad-gold text-bg shadow-gold-glow hover:scale-102 active:scale-98 transition-all disabled:opacity-50 disabled:grayscale cursor-pointer"
                 >
                   <Zap size={18} className={spinning ? "animate-spin" : ""} />
@@ -276,15 +430,17 @@ export default function RoulettePage() {
             </div>
 
             {/* Receta del último ganador */}
-            {lastResult?.result?.recipe && !spinning && (
+            {revealedResult?.result?.recipe && phase === "revealed" && (
               <div className="animate-fade-in">
                 <div className="flex items-center gap-2 mb-3 px-1">
                   <FlaskConical size={13} className="text-gold/60" />
-                  <span className="text-[9px] font-black text-muted uppercase tracking-widest">Receta del trago ganador</span>
+                  <span className="text-[9px] font-black text-muted uppercase tracking-widest">
+                    Receta del trago ganador
+                  </span>
                 </div>
                 <RecipeQuickView
-                  recipe={lastResult.result.recipe}
-                  drinkName={lastResult.result.name}
+                  recipe={revealedResult.result.recipe}
+                  drinkName={revealedResult.result.name}
                   defaultOpen
                 />
               </div>
@@ -292,20 +448,29 @@ export default function RoulettePage() {
 
             {/* Pool de tragos activos */}
             <div className="glass-royale rounded-[3rem] p-7 border border-white/5 max-h-[260px] overflow-hidden flex flex-col">
-              <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-3">POOL ACTIVO</span>
+              <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-3">
+                POOL ACTIVO
+              </span>
               <div className="space-y-2.5 overflow-y-auto pr-1 custom-scrollbar flex-1">
                 {drinks.filter((d) => d && d.active).map((drink) => (
-                  <div key={drink._id} className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/5">
+                  <div
+                    key={drink._id}
+                    className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/5"
+                  >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="text-sm flex-shrink-0">🍸</span>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-black text-ivory uppercase tracking-tight truncate capitalize">{drink.name}</p>
+                        <p className="text-[10px] font-black text-ivory uppercase tracking-tight truncate capitalize">
+                          {drink.name}
+                        </p>
                         <p className="text-[8px] text-muted uppercase tracking-widest">{drink.category}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <RarityBadge rarity={drink.rarity} size="sm" />
-                      <span className="text-[10px] font-black text-grad-gold">{(drink.probability ?? 0).toFixed(1)}%</span>
+                      <span className="text-[10px] font-black text-grad-gold">
+                        {(drink.probability ?? 0).toFixed(1)}%
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -329,7 +494,9 @@ export default function RoulettePage() {
               <div className="flex items-center gap-3 mb-6">
                 <LayoutDashboard size={18} className="text-gold" />
                 <div>
-                  <h3 className="text-lg font-black text-ivory tracking-tighter uppercase">Añadir Trago</h3>
+                  <h3 className="text-lg font-black text-ivory tracking-tighter uppercase">
+                    Añadir Trago
+                  </h3>
                   <p className="text-[8px] text-muted uppercase tracking-[0.2em] mt-1">Inventario POS</p>
                 </div>
               </div>
@@ -341,7 +508,9 @@ export default function RoulettePage() {
                   <Plus size={32} className="text-gold" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-black text-ivory uppercase tracking-tight mb-1">Abrir Selector</p>
+                  <p className="text-sm font-black text-ivory uppercase tracking-tight mb-1">
+                    Abrir Selector
+                  </p>
                   <p className="text-[8px] text-muted uppercase tracking-widest">Busca y añade tragos</p>
                 </div>
               </button>
@@ -363,8 +532,12 @@ export default function RoulettePage() {
                   <LayoutDashboard size={20} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-ivory tracking-tighter uppercase">Añadir Trago</h2>
-                  <p className="text-[9px] text-muted uppercase tracking-[0.2em] mt-0.5">Inventario POS</p>
+                  <h2 className="text-lg font-black text-ivory tracking-tighter uppercase">
+                    Añadir Trago
+                  </h2>
+                  <p className="text-[9px] text-muted uppercase tracking-[0.2em] mt-0.5">
+                    Inventario POS
+                  </p>
                 </div>
               </div>
               <button
