@@ -10,3 +10,25 @@ export async function spinPublicRoulette(): Promise<{ selected: RouletteDrinkDTO
   const res = await api.post<ApiResponse<{ selected: RouletteDrinkDTO; probability: number }>>("/roulette/public/spin");
   return res.data.data;
 }
+
+export interface GenerateTicketPayload {
+  drinkId:   string;
+  rarity:    string;
+  drinkName: string;
+  tableId?:  string | null;
+}
+
+export interface GenerateTicketResponse {
+  ticket:    string;
+  expiresAt: number;
+}
+
+export async function generateRouletteTicket(
+  payload: GenerateTicketPayload,
+): Promise<GenerateTicketResponse> {
+  const res = await api.post<ApiResponse<GenerateTicketResponse>>(
+    "/roulette/generate-ticket",
+    payload,
+  );
+  return res.data.data;
+}

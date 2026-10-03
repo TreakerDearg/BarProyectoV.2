@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — RouletteScreen (Phase 2 redesign)
-// States: idle → spinning → result
+// States: idle → spinning → revealing → result
 // Rarity: COMMON / RARE / EPIC / LEGENDARY with unique styling
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -24,20 +24,21 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
-import { Elevation } from '../theme/elevation';
 
-import { getPublicRouletteDrinks, spinPublicRoulette } from '../api/rouletteApi';
+import { getPublicRouletteDrinks, spinPublicRoulette, generateRouletteTicket } from '../api/rouletteApi';
 import { getErrorMessage } from '../api/client';
 import { useCartStore } from '../stores/useCartStore';
 import { useSessionStore } from '../stores/useSessionStore';
 import { NToast } from '../components/shared/NToast';
 import { NButton } from '../components/shared/NButton';
+import { MobileWheel } from '../components/roulette/MobileWheel';
+import { GoldenTicket } from '../components/roulette/GoldenTicket';
 
 import type { RouletteDrinkDTO } from '../types/api';
 import type { RootTabParamList } from '../navigation/types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
-type SpinState = 'idle' | 'spinning' | 'result';
+type SpinState = 'idle' | 'spinning' | 'revealing' | 'result';
 
 interface SpinHistoryItem {
   id:        string;
@@ -67,23 +68,33 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   const { tableId } = useSessionStore();
 
   // ── State ─────────────────────────────────────────────────────
-  const [spinState,    setSpinState]    = useState<SpinState>('idle');
-  const [drinks,       setDrinks]       = useState<RouletteDrinkDTO[]>([]);
+  const [spinState,     setSpinState]    = useState<SpinState>('idle');
+  const [drinks,        setDrinks]       = useState<RouletteDrinkDTO[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<RouletteDrinkDTO | null>(null);
-  const [cyclingName,  setCyclingName]  = useState('');
-  const [isRecipeOpen, setIsRecipeOpen] = useState(false);
-  const [history,      setHistory]      = useState<SpinHistoryItem[]>([]);
+  const [isRecipeOpen,  setIsRecipeOpen] = useState(false);
+  const [history,       setHistory]      = useState<SpinHistoryItem[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [toastMsg,     setToastMsg]     = useState<string | null>(null);
+  const [toastMsg,      setToastMsg]     = useState<string | null>(null);
+  const [ticketData,    setTicketData]   = useState<{ ticket: string; expiresAt: number } | null>(null);
+  const [isGeneratingTicket, setIsGeneratingTicket] = useState(false);
 
   // ── Animation refs ────────────────────────────────────────────
-  const rotateAnim   = useRef(new Animated.Value(0)).current;
-  const scaleAnim    = useRef(new Animated.Value(0.7)).current;
-  const opacityAnim  = useRef(new Animated.Value(0)).current;
-  const chevronAnim  = useRef(new Animated.Value(0)).current;
-  const rotLoopRef   = useRef<Animated.CompositeAnimation | null>(null);
-  const cycleIntervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
-  const hapticIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rotateAnim      = useRef(new Animated.Value(0)).current;
+  const revealDecayAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim       = useRef(new Animated.Value(0.7)).current;
+  const opacityAnim     = useRef(new Animated.Value(0)).current;
+  const chevronAnim     = useRef(new Animated.Value(0)).current;
+  const rotLoopRef      = useRef<Animated.CompositeAnimation | null>(null);
+  const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Progressive haptic timeout refs (cleared on unmount)
+  const hapticPhase1Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
+  const hapticPhase2Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
+  const hapticPhase3Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
+  const hapticTimeout1Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
+  const hapticTimeout2Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
+  const hapticTimeout3Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
+  const revealTimeoutRef  = useRef<ReturnType<typeof setTimeout>  | null>(null);
 
   // ── Load drinks ───────────────────────────────────────────────
   useEffect(() => {
@@ -91,6 +102,62 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
       .then(setDrinks)
       .catch((e) => console.warn('[Roulette] Error cargando tragos:', e));
   }, []);
+
+  // ── Cleanup on unmount ────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      stopAllHapticTimers();
+      if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
+      rotLoopRef.current?.stop();
+      if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
+    };
+  }, []);
+
+  // ── Haptic helpers ────────────────────────────────────────────
+  const stopAllHapticTimers = () => {
+    if (hapticPhase1Ref.current)  clearInterval(hapticPhase1Ref.current);
+    if (hapticPhase2Ref.current)  clearInterval(hapticPhase2Ref.current);
+    if (hapticPhase3Ref.current)  clearInterval(hapticPhase3Ref.current);
+    if (hapticTimeout1Ref.current) clearTimeout(hapticTimeout1Ref.current);
+    if (hapticTimeout2Ref.current) clearTimeout(hapticTimeout2Ref.current);
+    if (hapticTimeout3Ref.current) clearTimeout(hapticTimeout3Ref.current);
+  };
+
+  /** Start a 3-phase progressive haptic sequence:
+   *  Phase 1 (0–1000 ms):   60 ms intervals, Light
+   *  Phase 2 (1000–2200 ms): 120 ms intervals, Light
+   *  Phase 3 (2200–3000 ms): 220 ms intervals, Medium
+   */
+  const startProgressiveHaptics = () => {
+    stopAllHapticTimers();
+
+    // Phase 1
+    hapticPhase1Ref.current = setInterval(() => {
+      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+    }, 60);
+
+    hapticTimeout1Ref.current = setTimeout(() => {
+      if (hapticPhase1Ref.current) clearInterval(hapticPhase1Ref.current);
+
+      // Phase 2
+      hapticPhase2Ref.current = setInterval(() => {
+        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
+      }, 120);
+
+      hapticTimeout2Ref.current = setTimeout(() => {
+        if (hapticPhase2Ref.current) clearInterval(hapticPhase2Ref.current);
+
+        // Phase 3
+        hapticPhase3Ref.current = setInterval(() => {
+          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {}
+        }, 220);
+
+        hapticTimeout3Ref.current = setTimeout(() => {
+          if (hapticPhase3Ref.current) clearInterval(hapticPhase3Ref.current);
+        }, 800);
+      }, 1200);
+    }, 1000);
+  };
 
   // ── Recipe toggle animation ───────────────────────────────────
   const toggleRecipe = () => {
@@ -103,9 +170,39 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     }).start();
   };
 
+  // ── Deceleration (revealing state) ────────────────────────────
+  const triggerReveal = (result: RouletteDrinkDTO) => {
+    setSpinState('revealing');
+    setSelectedDrink(result);
+
+    // Stop the spinning loop, then run a deceleration animation on a
+    // separate value that goes from 0→0.75 (i.e. an extra 270° turn slowing down)
+    rotLoopRef.current?.stop();
+    revealDecayAnim.setValue(0);
+    Animated.timing(revealDecayAnim, {
+      toValue:  0.75,
+      duration: 500,
+      easing:   Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    // Heavy impact on result reveal
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
+
+    revealTimeoutRef.current = setTimeout(() => {
+      setSpinState('result');
+      Animated.parallel([
+        Animated.spring(scaleAnim,   { toValue: 1, friction: 6, useNativeDriver: true }),
+        Animated.timing(opacityAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      ]).start();
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+    }, 500);
+  };
+
   // ── Spin handler ──────────────────────────────────────────────
   const handleSpin = async () => {
-    if (spinState === 'spinning') return;
+    if (spinState === 'spinning' || spinState === 'revealing') return;
+
     // Reset
     rotateAnim.setValue(0);
     scaleAnim.setValue(0.7);
@@ -114,17 +211,15 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     setSpinState('spinning');
     setIsRecipeOpen(false);
     chevronAnim.setValue(0);
+    setTicketData(null);
 
-    // Haptics
+    // Initial heavy impact
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
-    let hapticCount = 0;
-    hapticIntervalRef.current = setInterval(() => {
-      if (hapticCount >= 20) { clearInterval(hapticIntervalRef.current!); return; }
-      hapticCount++;
-      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
-    }, 80);
 
-    // Border rotation loop
+    // Progressive haptic sequence
+    startProgressiveHaptics();
+
+    // Wheel rotation loop
     rotLoopRef.current = Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
@@ -135,45 +230,37 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     );
     rotLoopRef.current.start();
 
-    // Name cycling
+    // Name cycling (kept for cycling label in pool count area)
     if (drinks.length > 0) {
       cycleIntervalRef.current = setInterval(() => {
-        setCyclingName(drinks[Math.floor(Math.random() * drinks.length)].name);
+        // cycling no longer needed for display; kept as an optional side-effect
       }, 80);
     }
 
     try {
       const res = await spinPublicRoulette();
-      // Stop intervals
-      rotLoopRef.current?.stop();
+
+      // Stop all progressive haptics
+      stopAllHapticTimers();
       if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
-      if (hapticIntervalRef.current) clearInterval(hapticIntervalRef.current);
 
-      setSelectedDrink(res.selected);
-      setSpinState('result');
-
-      // Reveal animation
-      Animated.parallel([
-        Animated.spring(scaleAnim,  { toValue: 1, friction: 6, useNativeDriver: true }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ]).start();
-
-      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
-
-      // Add to history
+      // Add to history before reveal so it shows on result
       setHistory((prev) => [
         { id: res.selected._id + Date.now(), name: res.selected.name, rarity: res.selected.rarity, timestamp: new Date() },
         ...prev,
       ].slice(0, 5));
+
+      triggerReveal(res.selected);
     } catch (err) {
       rotLoopRef.current?.stop();
+      stopAllHapticTimers();
       if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
-      if (hapticIntervalRef.current) clearInterval(hapticIntervalRef.current);
       setSpinState('idle');
       Alert.alert('Error en la Ruleta', getErrorMessage(err));
     }
   };
 
+  // ── Add to cart ───────────────────────────────────────────────
   const handleAddToCart = () => {
     if (!selectedDrink) return;
     if (!tableId) {
@@ -199,22 +286,37 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     navigation.navigate('Pedidos');
   };
 
+  // ── Generate Golden Ticket ────────────────────────────────────
+  const handleGenerateTicket = async () => {
+    if (!selectedDrink) return;
+    setIsGeneratingTicket(true);
+    try {
+      const data = await generateRouletteTicket({
+        drinkId:   selectedDrink._id,
+        rarity:    selectedDrink.rarity,
+        drinkName: selectedDrink.name,
+        tableId:   tableId ?? null,
+      });
+      setTicketData(data);
+    } catch (err) {
+      Alert.alert('Error', getErrorMessage(err));
+    } finally {
+      setIsGeneratingTicket(false);
+    }
+  };
+
   // ── Derived values ────────────────────────────────────────────
+  // Combined spin: loop animation + deceleration tail
+  const combinedSpinAnim = Animated.add(rotateAnim, revealDecayAnim);
+
   const rarityConf = selectedDrink
     ? (RARITY_CONFIG[selectedDrink.rarity as keyof typeof RARITY_CONFIG] ?? RARITY_CONFIG.COMMON)
     : RARITY_CONFIG.COMMON;
-
-  const rotateDeg = rotateAnim.interpolate({
-    inputRange:  [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
 
   const chevronRot = chevronAnim.interpolate({
     inputRange:  [0, 1],
     outputRange: ['0deg', '180deg'],
   });
-
-  const circleBorderColor = spinState === 'result' ? rarityConf.border : Colors.primary;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -224,6 +326,17 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
         variant="success"
         onHide={() => setToastMsg(null)}
       />
+
+      {/* Golden Ticket overlay */}
+      {ticketData && selectedDrink && (
+        <GoldenTicket
+          ticket={ticketData.ticket}
+          expiresAt={ticketData.expiresAt}
+          drinkName={selectedDrink.name}
+          rarity={selectedDrink.rarity}
+          onClose={() => setTicketData(null)}
+        />
+      )}
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -244,45 +357,31 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Hero circle ───────────────────────────────── */}
+        {/* ── SVG Wheel ─────────────────────────────────── */}
         <View style={styles.heroSection}>
-          <Animated.View
-            style={[
-              styles.circleOuter,
-              {
-                borderColor: circleBorderColor,
-                shadowColor: spinState === 'result' ? rarityConf.glow : Colors.goldGlow,
-                transform: spinState === 'spinning' ? [{ rotate: rotateDeg }] : [],
-              },
-            ]}
-          >
-            <View style={styles.circleInner}>
-              <RotateCw
-                size={48}
-                color={spinState === 'spinning' ? Colors.primary : rarityConf.label}
-              />
-              <Text style={[styles.circleLabel, { color: rarityConf.label }]}>
-                {spinState === 'idle'
-                  ? 'NEBULA'
-                  : spinState === 'spinning'
-                  ? (cyclingName || '...')
-                  : (selectedDrink?.name ?? 'NEBULA')}
-              </Text>
-            </View>
-          </Animated.View>
+          <MobileWheel
+            drinks={drinks}
+            spinAnim={combinedSpinAnim}
+            size={240}
+          />
 
           {/* Pool count */}
           <Text style={styles.poolCount}>
             {drinks.length} tragos en el pool
           </Text>
+
+          {/* Revealing hint */}
+          {spinState === 'revealing' && (
+            <Text style={styles.revealingHint}>Revelando resultado…</Text>
+          )}
         </View>
 
         {/* ── Result card ───────────────────────────────── */}
         {spinState === 'result' && selectedDrink && (
           <Animated.View
             style={[styles.resultCard, {
-              opacity: opacityAnim,
-              transform: [{ scale: scaleAnim }],
+              opacity:     opacityAnim,
+              transform:   [{ scale: scaleAnim }],
               borderColor: rarityConf.border,
               shadowColor: rarityConf.glow,
             }]}
@@ -346,6 +445,13 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
                   fullWidth
                 />
               )}
+              <NButton
+                label="🎫 Generar Ticket VIP"
+                onPress={handleGenerateTicket}
+                loading={isGeneratingTicket}
+                variant="ghost"
+                fullWidth
+              />
               <TouchableOpacity
                 style={styles.historyToggleBtn}
                 onPress={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -387,12 +493,16 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
       </ScrollView>
 
       {/* ── Footer ────────────────────────────────────── */}
-      {spinState !== 'result' && (
+      {(spinState === 'idle' || spinState === 'spinning' || spinState === 'revealing') && (
         <View style={styles.footer}>
           <NButton
-            label={spinState === 'spinning' ? 'Girando...' : 'GIRAR AHORA'}
+            label={
+              spinState === 'spinning'  ? 'Girando...' :
+              spinState === 'revealing' ? 'Revelando...' :
+              'GIRAR AHORA'
+            }
             onPress={handleSpin}
-            loading={spinState === 'spinning'}
+            loading={spinState === 'spinning' || spinState === 'revealing'}
             fullWidth
             size="lg"
             icon={spinState === 'idle' ? <RotateCw size={20} color={Colors.onPrimary} /> : undefined}
@@ -407,9 +517,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
 
   header: {
-    flexDirection:   'row',
-    justifyContent:  'space-between',
-    alignItems:      'center',
+    flexDirection:     'row',
+    justifyContent:    'space-between',
+    alignItems:        'center',
     paddingHorizontal: Spacing.gutter,
     paddingVertical:   Spacing.md,
     borderBottomWidth: 1,
@@ -426,12 +536,12 @@ const styles = StyleSheet.create({
     color: Colors.onSurface,
   },
   prizeHeader: {
-    backgroundColor: Colors.goldMuted,
-    borderRadius:    Radius.xs,
+    backgroundColor:   Colors.goldMuted,
+    borderRadius:      Radius.xs,
     paddingHorizontal: 8,
     paddingVertical:   3,
-    borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderWidth:       1,
+    borderColor:       Colors.goldBorder,
   },
   prizeHeaderText: {
     ...Typography.labelSm,
@@ -439,47 +549,28 @@ const styles = StyleSheet.create({
   },
   closeBtn: { padding: 6 },
 
-  scroll: { flex: 1 },
+  scroll:        { flex: 1 },
   scrollContent: {
-    padding:    Spacing.gutter,
-    gap:        Spacing.lg,
-    alignItems: 'center',
+    padding:       Spacing.gutter,
+    gap:           Spacing.lg,
+    alignItems:    'center',
     paddingBottom: Spacing.xxxl,
   },
 
-  // ── Hero circle ──────────────────────────────────────────────
+  // ── Hero section ─────────────────────────────────────────────
   heroSection: {
     alignItems: 'center',
     gap:        Spacing.md,
     marginTop:  Spacing.md,
   },
-  circleOuter: {
-    width:        220,
-    height:       220,
-    borderRadius: 110,
-    borderWidth:  2,
-    justifyContent: 'center',
-    alignItems:   'center',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation:    10,
-    backgroundColor: Colors.surfaceContainer,
-  },
-  circleInner: {
-    alignItems: 'center',
-    gap:        Spacing.sm,
-  },
-  circleLabel: {
-    ...Typography.labelMd,
-    color:        Colors.primary,
-    letterSpacing: 2,
-    textAlign:    'center',
-    maxWidth:     160,
-  },
   poolCount: {
     ...Typography.bodySm,
     color: Colors.outline,
+  },
+  revealingHint: {
+    ...Typography.labelSm,
+    color:         Colors.primary,
+    letterSpacing: 1,
   },
 
   // ── Result card ──────────────────────────────────────────────
@@ -496,8 +587,8 @@ const styles = StyleSheet.create({
     elevation:       8,
   },
   rarityBadge: {
-    alignSelf:       'flex-start',
-    borderRadius:    Radius.full,
+    alignSelf:         'flex-start',
+    borderRadius:      Radius.full,
     paddingHorizontal: 12,
     paddingVertical:   4,
   },
@@ -518,20 +609,20 @@ const styles = StyleSheet.create({
 
   // Recipe
   recipeSection: {
-    borderTopWidth:  1,
-    borderTopColor:  'rgba(224,226,236,0.08)',
-    paddingTop:      Spacing.sm,
-    marginTop:       Spacing.xs,
-    gap:             Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(224,226,236,0.08)',
+    paddingTop:     Spacing.sm,
+    marginTop:      Spacing.xs,
+    gap:            Spacing.sm,
   },
   recipeToggle: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    justifyContent:'space-between',
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
   },
   recipeToggleText: {
     ...Typography.labelMd,
-    color: Colors.onSurfaceVariant,
+    color:         Colors.onSurfaceVariant,
     textTransform: 'none' as const,
   },
   recipeBody: {
@@ -545,14 +636,14 @@ const styles = StyleSheet.create({
     color: Colors.onSurfaceVariant,
   },
   drinkStyleBadge: {
-    alignSelf:       'flex-start',
-    backgroundColor: Colors.goldMuted,
-    borderRadius:    Radius.full,
+    alignSelf:         'flex-start',
+    backgroundColor:   Colors.goldMuted,
+    borderRadius:      Radius.full,
     paddingHorizontal: 10,
     paddingVertical:   3,
-    marginTop:       Spacing.xs,
-    borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    marginTop:         Spacing.xs,
+    borderWidth:       1,
+    borderColor:       Colors.goldBorder,
   },
   drinkStyleText: {
     ...Typography.labelSm,
@@ -565,12 +656,12 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   historyToggleBtn: {
-    alignItems: 'center',
+    alignItems:      'center',
     paddingVertical: Spacing.sm,
   },
   historyToggleText: {
     ...Typography.labelMd,
-    color: Colors.outline,
+    color:         Colors.outline,
     textTransform: 'none' as const,
   },
 
@@ -591,17 +682,17 @@ const styles = StyleSheet.create({
   },
   historyTitle: {
     ...Typography.labelMd,
-    color: Colors.onSurface,
+    color:         Colors.onSurface,
     textTransform: 'none' as const,
   },
   historyItem: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    gap:            Spacing.sm,
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               Spacing.sm,
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(224,226,236,0.05)',
+    borderTopWidth:    1,
+    borderTopColor:    'rgba(224,226,236,0.05)',
   },
   historyItemName: {
     ...Typography.bodyMd,
@@ -609,7 +700,7 @@ const styles = StyleSheet.create({
     flex:  1,
   },
   historyRarityBadge: {
-    borderRadius:    Radius.full,
+    borderRadius:      Radius.full,
     paddingHorizontal: 8,
     paddingVertical:   2,
   },

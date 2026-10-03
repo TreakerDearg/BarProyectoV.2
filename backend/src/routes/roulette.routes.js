@@ -17,6 +17,7 @@ import {
   updateRouletteConfigEndpoint,
 } from "../controllers/userRouletteStats.controller.js";
 import { getRouletteLogs, getRouletteAnalytics } from "../controllers/rouletteLog.controller.js";
+import { generateTicket, redeemTicket } from "../controllers/rouletteTicket.controller.js";
 import { validate } from "../middlewares/validate.js";
 import { createRouletteDrinkSchema } from "../utils/schemas.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
@@ -50,5 +51,13 @@ router.post("/",              ...adminOnly, validate(createRouletteDrinkSchema),
 router.patch("/:id",          ...adminOnly, updateRouletteDrink);
 router.delete("/:id",         ...adminOnly, deleteRouletteDrink);
 router.get("/:id/recipe",     ...adminOnly, getRoulettedrinkRecipe);
+
+/* =========================================================
+   TICKET ROUTES — Golden Ticket VIP
+========================================================= */
+// Any authenticated user can generate a ticket after a spin
+router.post("/generate-ticket", protect, generateTicket);
+// Only admins / managers can redeem (scan) tickets at the bar
+router.post("/redeem-ticket",   ...adminOnly, redeemTicket);
 
 export default router;
