@@ -11,10 +11,12 @@ import ProbabilityEngine from "../components/ProbabilityEngine";
 import RarityBadge from "../components/RarityBadge";
 import RouletteTutorial from "../components/RouletteTutorial";
 import ToastContainer from "../components/ToastNotification";
-import RecipeQuickView from "../components/RecipeQuickView";
+import JackpotBanner from "../components/JackpotBanner";
+import WinnerCard from "../components/WinnerCard";
 import PityVault from "../components/TheLab/PityVault";
 import FaderMixer from "../components/TheLab/FaderMixer";
 import SmartPresets from "../components/TheLab/SmartPresets";
+import { rouletteSocket } from "../services/rouletteService";
 
 import {
   Shuffle,
@@ -27,7 +29,6 @@ import {
   BookOpen,
   X,
   Plus,
-  FlaskConical,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -58,6 +59,19 @@ export default function RoulettePage() {
   const [activeTab, setActiveTab] = useState<"main" | "logs">("main");
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
   const [showTheLab, setShowTheLab] = useState(false);
+
+  // ── Jackpot banner state ──────────────────────────────────────
+  const [jackpot, setJackpot] = useState<{ drinkName: string } | null>(null);
+
+  useEffect(() => {
+    rouletteSocket.onJackpot((data) => {
+      setJackpot({ drinkName: data.drinkName });
+      setTimeout(() => setJackpot(null), 8000);
+    });
+    return () => {
+      rouletteSocket.offJackpot();
+    };
+  }, []);
 
   // ── Audio: tick loop during spinning/revealing ────────────────
   const tickRafRef = useRef<number | null>(null);
@@ -156,6 +170,13 @@ export default function RoulettePage() {
 
   return (
     <div className="flex flex-col gap-10 animate-fade-in p-2 md:p-8">
+
+      {/* ================= JACKPOT BANNER ================= */}
+      <JackpotBanner
+        visible={!!jackpot}
+        drinkName={jackpot?.drinkName ?? ""}
+        onClose={() => setJackpot(null)}
+      />
 
       {/* ================= HEADER ================= */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 border-b border-white/5 pb-10">
@@ -321,122 +342,11 @@ export default function RoulettePage() {
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
 
             {/* Último ganador */}
-            <div className="glass-royale rounded-[3.5rem] p-8 border border-white/5 flex-1 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
-              <div className="absolute -right-10 -top-10 text-[100px] font-black text-white/5 pointer-events-none select-none uppercase tracking-tighter">
-                ROYALE
-              </div>
-              <div>
-                <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-5">
-                  ÚLTIMO GANADOR
-                </span>
-                {revealedResult && phase === "revealed" ? (
-                  <div className="animate-fade-in space-y-5">
-                    <div className="flex items-center gap-5">
-                      {revealedResult.result.product &&
-                      typeof revealedResult.result.product === "object" &&
-                      revealedResult.result.product.image ? (
-                        <img
-                          src={revealedResult.result.product.image}
-                          alt={revealedResult.result.name}
-                          className="w-16 h-16 rounded-2xl object-cover border border-gold/20"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-[1.5rem] bg-gold flex items-center justify-center text-3xl shadow-gold-glow animate-bounce-subtle">
-                          🍸
-                        </div>
-                      )}
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <RarityBadge rarity={revealedResult.result.rarity} size="lg" />
-                          <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">
-                            {revealedResult.result.category}
-                          </span>
-                        </div>
-                        <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase leading-tight capitalize">
-                          {revealedResult.result.name}
-                        </h2>
-                        {revealedResult.result.product &&
-                          typeof revealedResult.result.product === "object" &&
-                          revealedResult.result.product.description && (
-                            <p className="text-[9px] text-muted mt-1 line-clamp-2">
-                              {revealedResult.result.product.description}
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                    <div className="pt-4 border-t border-white/5 grid grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                          PROBABILIDAD
-                        </p>
-                        <span className="text-2xl font-black text-grad-gold tracking-tighter">
-                          {(revealedResult.result.probability || 0).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                          TIRADAS
-                        </p>
-                        <span className="text-lg font-black text-ivory tracking-tight">
-                          {revealedResult.result.totalSpins || 0}
-                        </span>
-                      </div>
-                      {revealedResult.result.product &&
-                        typeof revealedResult.result.product === "object" &&
-                        revealedResult.result.product.dynamicPrice != null && (
-                          <div>
-                            <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                              PRECIO
-                            </p>
-                            <span className="text-lg font-black text-ivory tracking-tight">
-                              ${revealedResult.result.product.dynamicPrice.toLocaleString("es-AR")}
-                            </span>
-                          </div>
-                        )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-2xl text-muted/40 mb-3 border border-white/5">
-                      🎰
-                    </div>
-                    <h3 className="text-xs font-black text-muted uppercase tracking-widest">
-                      Sin resultados aún
-                    </h3>
-                    <p className="text-[9px] text-muted/50 uppercase tracking-wider mt-2 max-w-[220px]">
-                      Lanzá la ruleta para ver el ganador
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div className="pt-6 border-t border-white/5">
-                <button
-                  onClick={actions.spin}
-                  disabled={phase !== "idle"}
-                  className="w-full flex items-center justify-center gap-4 px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] bg-grad-gold text-bg shadow-gold-glow hover:scale-102 active:scale-98 transition-all disabled:opacity-50 disabled:grayscale cursor-pointer"
-                >
-                  <Zap size={18} className={spinning ? "animate-spin" : ""} />
-                  {spinning ? "GIRANDO LA RULETA..." : "LANZAR RULETA"}
-                </button>
-              </div>
-            </div>
-
-            {/* Receta del último ganador */}
-            {revealedResult?.result?.recipe && phase === "revealed" && (
-              <div className="animate-fade-in">
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <FlaskConical size={13} className="text-gold/60" />
-                  <span className="text-[9px] font-black text-muted uppercase tracking-widest">
-                    Receta del trago ganador
-                  </span>
-                </div>
-                <RecipeQuickView
-                  recipe={revealedResult.result.recipe}
-                  drinkName={revealedResult.result.name}
-                  defaultOpen
-                />
-              </div>
-            )}
+            <WinnerCard
+              result={revealedResult}
+              phase={phase}
+              onSpin={actions.spin}
+            />
 
             {/* Pool de tragos activos */}
             <div className="glass-royale rounded-[3rem] p-7 border border-white/5 max-h-[260px] overflow-hidden flex flex-col">

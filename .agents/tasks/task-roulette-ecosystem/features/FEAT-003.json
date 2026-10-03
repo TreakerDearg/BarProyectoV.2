@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Web Obsidian palette + Backend jackpot + Desktop JackpotBanner + Desktop WinnerCard (Tasks 4, 9, 10). Groups together the web color-only change, the backend jackpot socket emit, and the two new Desktop UI components. FEAT-003 depends on FEAT-001 being complete (JackpotBanner and WinnerCard use SpinPhase). The web palette change (Task 4) is independent.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "Modify src/components/cliente/roulette/RouletteWheel.tsx: ONLY change the WHEEL_COLORS constant to: ['#0F0F14','#D4A340','#1A1A22','#B8922E','#111118','#F0C060','#0A0A0E','#C49030']. Do NOT modify any logic, hooks, CSS module, or any other line. This is a pure color swap.",
     "Modify backend/src/controllers/roulette.controller.js: find the spinRoulette function where io.emit('roulette:spin', payload) is called. Immediately after that line, add: if (selectedDrink.rarity === 'LEGENDARY') { io.emit('roulette:jackpot_alert', { drinkName: selectedDrink.name, rarity: selectedDrink.rarity, timestamp: Date.now() }); }. Use the same io import already at top of file.",
@@ -28,5 +28,5 @@
     "cd 'c:\\Users\\Usuario\\OneDrive\\Escuela\\Proyecto bartender\\bartender-system\\backend' && node --input-type=module --eval \"import './src/controllers/roulette.controller.js'\" 2>&1 | Select-Object -First 5"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "framer-motion ^12.38.0 confirmed in bartender-desktop/package.json — used for AnimatePresence+motion.div in JackpotBanner. WinnerCard absorbs the full winner panel including inline ingredient display and POS print (window.print + @media print style injection). RecipeQuickView import removed from RoulettePage as ingredient display moved into WinnerCard. rouletteSocket.offAll() updated to also off 'roulette:jackpot_alert'. RoulettePage now has jackpot useEffect and JackpotBanner rendered as first child. Both desktop and web builds exit 0. Backend controller passes node --check syntax validation."
 }

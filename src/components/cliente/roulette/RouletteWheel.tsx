@@ -11,14 +11,14 @@ import styles from "./RouletteWheel.module.css";
 // Basado en la SKILL bartender-client-design
 // ─────────────────────────────────────────────────────────────────
 const WHEEL_COLORS = [
-  "#FF5A1F", // Primary Orange
-  "#1E1E26", // Elevated dark
-  "#FFB800", // Secondary Gold
-  "#15151B", // Surface dark
-  "#B8E52E", // Accent Lime
-  "#292932", // Border dark
-  "#FF7138", // Orange hover
-  "#0B0B0F", // BG
+  "#0F0F14",
+  "#D4A340",
+  "#1A1A22",
+  "#B8922E",
+  "#111118",
+  "#F0C060",
+  "#0A0A0E",
+  "#C49030",
 ];
 
 function getSegmentColor(drink: RouletteDrinkRow, index: number): string {

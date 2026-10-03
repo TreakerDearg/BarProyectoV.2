@@ -4,6 +4,7 @@ import api from "../../../services/api";
 import { getSocket } from "../../../services/socket";
 import type {
   RouletteDrink,
+  RouletteRarity,
   RouletteSpinResult,
 } from "../types/roulette";
 
@@ -66,6 +67,16 @@ export const rouletteSocket = {
     getSocket()?.off("roulette:spin");
     getSocket()?.off("roulette:update");
     getSocket()?.off("roulette:log");
+    getSocket()?.off("roulette:jackpot_alert");
+  },
+
+  /* 💎 JACKPOT */
+  onJackpot(cb: (data: { drinkName: string; rarity: RouletteRarity; timestamp: number }) => void) {
+    getSocket()?.on("roulette:jackpot_alert", cb);
+  },
+
+  offJackpot() {
+    getSocket()?.off("roulette:jackpot_alert");
   },
 };
 

@@ -407,6 +407,13 @@ export const spinRoulette = async (req, res, next) => {
 
     if (userId) io.to(`user:${userId}`).emit("roulette:result", payload);
     io.emit("roulette:spin", payload);
+    if (selected.rarity === "LEGENDARY") {
+      io.emit("roulette:jackpot_alert", {
+        drinkName: selected.name,
+        rarity:    selected.rarity,
+        timestamp: Date.now(),
+      });
+    }
     io.to("role:admin").emit("roulette:admin:spin", { ...payload, userId });
 
     return ok(res, payload);
