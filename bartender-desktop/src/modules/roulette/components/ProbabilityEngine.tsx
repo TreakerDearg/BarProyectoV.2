@@ -1,18 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Wand2, Sparkles, TrendingUp, Settings2, Play, Sliders, Save, RefreshCw, BarChart2, Info, Trash2, Search, CheckCircle2, X, EyeOff } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Wand2, Sparkles, TrendingUp, Settings2, Play, Sliders, RefreshCw, BarChart2, Info, Trash2, Search, CheckCircle2, X, EyeOff } from "lucide-react";
 import type { RouletteDrink, RouletteRarity } from "../types/roulette";
 import RarityBadge from "./RarityBadge";
 import RouletteTooltip from "./RouletteTooltip";
 import { 
-  simulateRoulette, 
-  getRouletteConfig, 
-  updateRouletteConfig
+  simulateRoulette
 } from "../services/rouletteService";
 import type { 
-  SimulationResult, 
-  RouletteConfig 
+  SimulationResult
 } from "../services/rouletteService";
 
 interface Props {
@@ -22,7 +19,7 @@ interface Props {
   onRemove?: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-type TabType = "adjust" | "simulate" | "pity";
+type TabType = "adjust" | "simulate";
 
 export default function ProbabilityEngine({
   drinks,
@@ -150,29 +147,6 @@ export default function ProbabilityEngine({
   const [simResult, setSimResult] = useState<SimulationResult | null>(null);
   const [simulating, setSimulating] = useState<boolean>(false);
 
-  // ================= CONFIG STATE =================
-  const [config, setConfig] = useState<RouletteConfig | null>(null);
-  const [savingConfig, setSavingConfig] = useState<boolean>(false);
-  const [loadingConfig, setLoadingConfig] = useState<boolean>(false);
-
-  const fetchConfig = async () => {
-    setLoadingConfig(true);
-    try {
-      const data = await getRouletteConfig();
-      setConfig(data);
-    } catch (error) {
-      console.error("Error loading config:", error);
-    } finally {
-      setLoadingConfig(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "pity") {
-      fetchConfig();
-    }
-  }, [activeTab]);
-
   const handleSimulate = async () => {
     // Foolproof validation
     if (drinks.length === 0) {
@@ -223,21 +197,6 @@ export default function ProbabilityEngine({
     onAutoBalance(mode);
   };
 
-  const handleSaveConfig = async () => {
-    if (!config) return;
-    setSavingConfig(true);
-    try {
-      const res = await updateRouletteConfig(config);
-      setConfig(res);
-      alert("Configuración de ruleta guardada y sincronizada.");
-    } catch (error) {
-      console.error("Error saving config:", error);
-      alert("Error al guardar la configuración.");
-    } finally {
-      setSavingConfig(false);
-    }
-  };
-
   return (
     <div className="relative glass-royale border border-white/5 rounded-[2.5rem] p-8 shadow-royale overflow-hidden">
       
@@ -277,16 +236,6 @@ export default function ProbabilityEngine({
             }`}
           >
             <BarChart2 size={12} /> Simulador
-          </button>
-          <button
-            onClick={() => setActiveTab("pity")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all whitespace-nowrap ${
-              activeTab === "pity" 
-                ? "bg-gold/15 text-gold border border-gold/10" 
-                : "text-muted hover:text-ivory"
-            }`}
-          >
-            <Settings2 size={12} /> Pity Config
           </button>
         </div>
       </div>
@@ -866,173 +815,6 @@ export default function ProbabilityEngine({
               </div>
             )}
 
-          </div>
-        )}
-
-        {/* TAB 3: PITY CONFIGURATOR */}
-        {activeTab === "pity" && (
-          <div className="space-y-8">
-            {loadingConfig ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <RefreshCw className="text-gold animate-spin mb-4" size={24} />
-                <span className="text-[9px] text-muted font-black tracking-widest uppercase">Cargando Configuración...</span>
-              </div>
-            ) : config ? (
-              <div className="space-y-8 animate-fadeIn">
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  
-                  {/* Pity thresholds setup */}
-                  <div className="bg-surface-3/15 border border-white/5 rounded-3xl p-8 space-y-6">
-                    <h3 className="text-xs font-black text-ivory tracking-widest uppercase border-b border-white/5 pb-4">
-                      Umbrales de Pity (Spins Garantía)
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[9px] font-black text-muted uppercase tracking-widest">Garantía RARE</label>
-                        <input
-                          type="number"
-                          value={config.pityThresholds.RARE}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            pityThresholds: { ...config.pityThresholds, RARE: Number(e.target.value) }
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <label className="text-[9px] font-black text-muted uppercase tracking-widest">Garantía EPIC</label>
-                        <input
-                          type="number"
-                          value={config.pityThresholds.EPIC}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            pityThresholds: { ...config.pityThresholds, EPIC: Number(e.target.value) }
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <label className="text-[9px] font-black text-muted uppercase tracking-widest">Garantía LEGENDARY</label>
-                        <input
-                          type="number"
-                          value={config.pityThresholds.LEGENDARY}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            pityThresholds: { ...config.pityThresholds, LEGENDARY: Number(e.target.value) }
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-
-                      <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                        <div>
-                          <label className="text-[9px] font-black text-muted uppercase tracking-widest">Pity Boost Multiplier</label>
-                          <p className="text-[7px] text-muted uppercase tracking-wider mt-0.5">Factor multiplicador de peso al alcanzar garantía</p>
-                        </div>
-                        <input
-                          type="number"
-                          value={config.pityBoostMultiplier}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            pityBoostMultiplier: Number(e.target.value)
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* KPI luck settings and multipliers */}
-                  <div className="bg-surface-3/15 border border-white/5 rounded-3xl p-8 space-y-6">
-                    <h3 className="text-xs font-black text-ivory tracking-widest uppercase border-b border-white/5 pb-4">
-                      Gamificación KPI & Multiplicadores
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <label className="text-[9px] font-black text-muted uppercase tracking-widest">KPI Mínimo de Suerte</label>
-                          <p className="text-[7px] text-muted uppercase tracking-wider mt-0.5">Nota de desempeño mínima para activar buff de suerte</p>
-                        </div>
-                        <input
-                          type="number"
-                          value={config.kpiMinScore}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            kpiMinScore: Number(e.target.value)
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <label className="text-[9px] font-black text-muted uppercase tracking-widest">Multiplicador Máx Buff de Suerte</label>
-                          <p className="text-[7px] text-muted uppercase tracking-wider mt-0.5">Máximo empuje probabilístico por excelencia de KPI</p>
-                        </div>
-                        <input
-                          type="number"
-                          step="0.05"
-                          value={config.kpiMaxMultiplier}
-                          onChange={(e) => setConfig({
-                            ...config,
-                            kpiMaxMultiplier: Number(e.target.value)
-                          })}
-                          className="w-24 bg-surface-3 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                        />
-                      </div>
-
-                      <div className="space-y-3 pt-4 border-t border-white/5">
-                        <label className="text-[9px] font-black text-muted uppercase tracking-widest">Modificadores de Rarity Base</label>
-                        <div className="grid grid-cols-2 gap-4">
-                          {Object.keys(config.rarityModifiers).map((rarityKey) => {
-                            return (
-                              <div key={rarityKey} className="flex justify-between items-center bg-surface-3/30 border border-white/5 rounded-xl px-3 py-2">
-                                <span className="text-[8px] font-black uppercase text-muted tracking-wider">{rarityKey}</span>
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  value={config.rarityModifiers[rarityKey as RouletteRarity]}
-                                  onChange={(e) => setConfig({
-                                    ...config,
-                                    rarityModifiers: {
-                                      ...config.rarityModifiers,
-                                      [rarityKey]: Number(e.target.value)
-                                    }
-                                  })}
-                                  className="w-14 bg-surface-3 border border-white/10 rounded-lg py-1 text-[10px] font-black text-ivory text-center focus:outline-none focus:border-gold/50"
-                                />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Save button */}
-                <div className="flex justify-end pt-4 border-t border-white/5">
-                  <button
-                    onClick={handleSaveConfig}
-                    disabled={savingConfig}
-                    className="px-8 py-3.5 bg-grad-gold hover:opacity-90 text-[10px] font-black tracking-[0.2em] text-black rounded-xl border border-gold/30 shadow-gold-glow/5 uppercase transition-all flex items-center gap-3 disabled:opacity-50 active:scale-95 cursor-pointer"
-                  >
-                    <Save size={14} /> {savingConfig ? "GUARDANDO..." : "GUARDAR CONFIGURACIÓN"}
-                  </button>
-                </div>
-
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <p className="text-xs text-muted font-black uppercase tracking-widest">Error al cargar la configuración</p>
-              </div>
-            )}
           </div>
         )}
 

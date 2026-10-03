@@ -8,11 +8,13 @@ import ProductSelector from "../components/ProductSelector";
 import RouletteLogs from "../components/RouletteLogs";
 import RouletteStats from "../components/RouletteStats";
 import ProbabilityEngine from "../components/ProbabilityEngine";
-import PityTrackerPanel from "../components/PityTrackerPanel";
 import RarityBadge from "../components/RarityBadge";
 import RouletteTutorial from "../components/RouletteTutorial";
 import ToastContainer from "../components/ToastNotification";
 import RecipeQuickView from "../components/RecipeQuickView";
+import PityVault from "../components/TheLab/PityVault";
+import FaderMixer from "../components/TheLab/FaderMixer";
+import SmartPresets from "../components/TheLab/SmartPresets";
 
 import {
   Shuffle,
@@ -53,8 +55,9 @@ export default function RoulettePage() {
 
   const [viewMode, setViewMode] = useState<"playroom" | "control">("playroom");
   const [showTutorial, setShowTutorial] = useState(false);
-  const [activeTab, setActiveTab] = useState<"main" | "logs" | "pity">("main");
+  const [activeTab, setActiveTab] = useState<"main" | "logs">("main");
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
+  const [showTheLab, setShowTheLab] = useState(false);
 
   // ── Audio: tick loop during spinning/revealing ────────────────
   const tickRafRef = useRef<number | null>(null);
@@ -203,7 +206,6 @@ export default function RoulettePage() {
               { mode: "playroom", tab: "main",  icon: <Tv size={12} />,               label: "Playroom Mode" },
               { mode: "control",  tab: "main",  icon: <SlidersHorizontal size={12} />, label: "Control Deck" },
               { mode: "playroom", tab: "logs",  icon: <History size={12} />,           label: "Logs"         },
-              { mode: "playroom", tab: "pity",  icon: <Zap size={12} />,               label: "Pity Tracker" },
             ] as const
           ).map((item) => {
             const isActive = viewMode === item.mode && activeTab === item.tab;
@@ -258,16 +260,6 @@ export default function RoulettePage() {
           <div className="flex-1 overflow-y-auto max-h-[500px]">
             <RouletteLogs logs={logs} />
           </div>
-        </div>
-      ) : activeTab === "pity" ? (
-        <div className="glass-royale rounded-[3rem] p-10 border border-white/5 animate-fadeIn">
-          <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
-            <Zap size={20} className="text-gold" />
-            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">
-              Sistema de Pity
-            </h3>
-          </div>
-          <PityTrackerPanel />
         </div>
       ) : viewMode === "playroom" ? (
         /* ── PLAYROOM ── */
@@ -481,7 +473,7 @@ export default function RoulettePage() {
       ) : (
         /* ── CONTROL DECK ── */
         <div className="grid grid-cols-12 gap-6 animate-fadeIn">
-          <div className="col-span-12 xl:col-span-9 space-y-6">
+          <div className="col-span-12 xl:col-span-8 space-y-6">
             <ProbabilityEngine
               drinks={drinks}
               onUpdate={actions.update}
@@ -489,12 +481,13 @@ export default function RoulettePage() {
               onRemove={actions.remove}
             />
           </div>
-          <div className="col-span-12 xl:col-span-3">
-            <div className="glass-royale rounded-[2.5rem] p-8 border border-white/5 animate-fade-in h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-6">
+          <div className="col-span-12 xl:col-span-4 space-y-4">
+            {/* Add Drink button */}
+            <div className="glass-royale rounded-[2.5rem] p-6 border border-white/5 animate-fade-in">
+              <div className="flex items-center gap-3 mb-5">
                 <LayoutDashboard size={18} className="text-gold" />
                 <div>
-                  <h3 className="text-lg font-black text-ivory tracking-tighter uppercase">
+                  <h3 className="text-base font-black text-ivory tracking-tighter uppercase">
                     Añadir Trago
                   </h3>
                   <p className="text-[8px] text-muted uppercase tracking-[0.2em] mt-1">Inventario POS</p>
@@ -502,18 +495,55 @@ export default function RoulettePage() {
               </div>
               <button
                 onClick={() => setShowAddDrinkModal(true)}
-                className="flex-1 flex flex-col items-center justify-center gap-4 p-8 bg-gold/10 hover:bg-gold/20 border-2 border-dashed border-gold/30 hover:border-gold/50 rounded-2xl transition-all group"
+                className="w-full flex flex-col items-center justify-center gap-3 p-6 bg-gold/10 hover:bg-gold/20 border-2 border-dashed border-gold/30 hover:border-gold/50 rounded-2xl transition-all group"
               >
-                <div className="p-4 rounded-full bg-gold/20 group-hover:bg-gold/30 transition-all">
-                  <Plus size={32} className="text-gold" />
+                <div className="p-3 rounded-full bg-gold/20 group-hover:bg-gold/30 transition-all">
+                  <Plus size={24} className="text-gold" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-black text-ivory uppercase tracking-tight mb-1">
+                  <p className="text-xs font-black text-ivory uppercase tracking-tight mb-1">
                     Abrir Selector
                   </p>
                   <p className="text-[8px] text-muted uppercase tracking-widest">Busca y añade tragos</p>
                 </div>
               </button>
+            </div>
+
+            {/* THE LAB collapsible section */}
+            <div className="glass-royale rounded-[2.5rem] border border-white/5 overflow-hidden">
+              <button
+                onClick={() => setShowTheLab((v) => !v)}
+                className="w-full flex items-center justify-between px-6 py-5 hover:bg-white/3 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gold/10 text-gold">
+                    <Zap size={16} />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-black text-ivory tracking-tighter uppercase">
+                      The <span className="text-grad-gold">Lab</span>
+                    </h3>
+                    <p className="text-[8px] text-muted uppercase tracking-[0.3em] mt-0.5">
+                      Fader · Presets · Pity
+                    </p>
+                  </div>
+                </div>
+                <span className={`text-muted transition-transform duration-300 ${showTheLab ? "rotate-180" : ""}`}>
+                  ▼
+                </span>
+              </button>
+
+              {showTheLab && (
+                <div className="px-4 pb-4 space-y-4 animate-fadeIn border-t border-white/5 pt-4">
+                  <FaderMixer drinks={drinks} onUpdate={actions.update} />
+                  <SmartPresets
+                    drinks={drinks}
+                    onUpdate={actions.update}
+                    onAutoBalance={actions.autoBalance}
+                  />
+                  <PityVault />
+                </div>
+              )}
             </div>
           </div>
         </div>
