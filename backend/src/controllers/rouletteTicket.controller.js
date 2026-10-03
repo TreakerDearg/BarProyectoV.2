@@ -6,7 +6,14 @@
 import crypto from 'crypto';
 import { ok, badRequest } from '../utils/response.js';
 
-const SECRET  = process.env.TICKET_SECRET ?? 'bartender-ticket-secret';
+const SECRET  = process.env.TICKET_SECRET;
+if (!SECRET) {
+  // Fail loudly at startup rather than silently using a forgeable public string.
+  throw new Error(
+    '[rouletteTicket] TICKET_SECRET env var is not set. ' +
+    'Add it to backend/.env before starting the server.'
+  );
+}
 const TTL_MS  = 30 * 60 * 1000; // 30 minutes
 
 /**

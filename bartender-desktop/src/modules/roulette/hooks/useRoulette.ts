@@ -72,6 +72,9 @@ export const useRoulette = () => {
 
   const drinksRef = useRef<RouletteDrink[]>([]);
   const landingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref mirror of pendingResult — keeps onWheelLanded closure fresh even if
+  // a socket-driven re-render fires between "revealing" and the 400 ms timer.
+  const pendingResultRef = useRef<RouletteSpinResult | null>(null);
 
   // ── Backward compat aliases ───────────────────────────────────
   // spinning: true while wheel is in motion (not idle, not revealed)
@@ -256,6 +259,7 @@ export const useRoulette = () => {
       const angle = calculateTargetAngle(currentDrinks, result.result, tw);
 
       setPendingResult(result);
+      pendingResultRef.current = result;
       setTargetAngle(angle);
       setPhase("revealing");
 
@@ -288,11 +292,15 @@ export const useRoulette = () => {
     if (landingTimerRef.current) clearTimeout(landingTimerRef.current);
 
     landingTimerRef.current = setTimeout(() => {
-      setRevealedResult(pendingResult);
+      // Read from ref instead of closed-over state to avoid stale value
+      // if a socket update fires between "revealing" and this timer.
+      const result = pendingResultRef.current;
+      setRevealedResult(result);
       setPendingResult(null);
+      pendingResultRef.current = null;
       setPhase("revealed");
     }, 400);
-  }, [pendingResult]);
+  }, []);
 
   // Cleanup landing timer on unmount
   useEffect(() => {
