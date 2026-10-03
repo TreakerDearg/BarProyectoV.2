@@ -2,7 +2,7 @@ import UserRouletteStats from "../models/UserRouletteStats.js";
 import User from "../models/User.js";
 import { getRouletteConfig, saveRouletteConfig } from "../utils/rouletteConfig.js";
 import { ok, badRequest, notFound } from "../utils/response.js";
-import { io } from "../server.js";
+import { getIo } from "../utils/socketEvents.js";
 
 /* =========================================================
    GET ALL EMPLOYEES ROULETTE STATS (Pity Tracker Dashboard)
@@ -164,7 +164,7 @@ export const updateRouletteConfigEndpoint = async (req, res, next) => {
     }
 
     // Emit config update event so all connected clients sync
-    io.emit("roulette:config:update", newConfig);
+    getIo()?.emit("roulette:config:update", newConfig);
 
     return ok(res, newConfig, "Configuración de ruleta actualizada con éxito");
   } catch (error) {

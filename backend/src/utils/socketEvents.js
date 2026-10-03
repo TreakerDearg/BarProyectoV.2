@@ -14,6 +14,13 @@ export const initializeSocketEvents = (io) => {
 };
 
 /**
+ * Devuelve la instancia de Socket.IO de forma lazy.
+ * Usar este getter en controllers que forman parte de un ciclo de importación
+ * con server.js (evita ReferenceError de TDZ en ES modules).
+ */
+export const getIo = () => ioInstance;
+
+/**
  * Emite eventos de menú
  */
 export const emitMenuEvent = (event, data) => {

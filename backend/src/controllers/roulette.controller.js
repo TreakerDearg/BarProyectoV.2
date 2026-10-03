@@ -9,7 +9,7 @@ import { logger }    from "../config/logger.js";
 import {
   ok, created, badRequest, notFound,
 } from "../utils/response.js";
-import { io } from "../server.js";
+import { getIo } from "../utils/socketEvents.js";
 import { getRouletteConfig } from "../utils/rouletteConfig.js";
 
 const isValidId   = (id)    => mongoose.Types.ObjectId.isValid(id);
@@ -173,7 +173,7 @@ export const createRouletteDrink = async (req, res, next) => {
           { new: true }
         ).populate("product", PRODUCT_SELECT);
         await createLog({ type: "create", message: `Restaurado: "${drink.name}"`, drinkId: drink._id, performedBy: req.user?.id, location: "desktop" });
-        io.to("role:admin").emit("roulette:update", [drink]);
+        getIo().to("role:admin").emit("roulette:update", [drink]);
         return created(res, drink);
       }
       return res.status(409).json({ error: "Ya existe un trago con ese nombre en la ruleta." });
@@ -182,7 +182,7 @@ export const createRouletteDrink = async (req, res, next) => {
     const drink = await RouletteDrink.create({ name, weight, color, category, price, product, rarity, pityThreshold });
     const populated = await RouletteDrink.findById(drink._id).populate("product", PRODUCT_SELECT).lean();
     await createLog({ type: "create", message: `Creado: "${drink.name}"`, drinkId: drink._id, performedBy: req.user?.id, location: "desktop" });
-    io.to("role:admin").emit("roulette:update", [populated]);
+    getIo().to("role:admin").emit("roulette:update", [populated]);
     return created(res, populated);
   } catch (error) {
     if (error.code === 11000) return res.status(409).json({ error: "Ya existe un trago con ese nombre o producto vinculado." });
@@ -203,7 +203,7 @@ export const updateRouletteDrink = async (req, res, next) => {
     if (!drink) return notFound(res, "Trago no encontrado");
 
     await createLog({ type: "update", message: `Actualizado: "${drink.name}"`, drinkId: drink._id, performedBy: req.user?.id, location: "desktop" });
-    io.to("role:admin").emit("roulette:update", [drink]);
+    getIo().to("role:admin").emit("roulette:update", [drink]);
     return ok(res, drink);
   } catch (error) { throw error; }
 };
@@ -227,7 +227,7 @@ export const deleteRouletteDrink = async (req, res, next) => {
 
     await RouletteDrink.findByIdAndUpdate(id, { deleted: true, active: false });
     await createLog({ type: "delete", message: `Eliminado: "${drink.name}"`, drinkId: drink._id, performedBy: req.user?.id, location: "desktop" });
-    io.to("role:admin").emit("roulette:deleted", { id });
+    getIo().to("role:admin").emit("roulette:deleted", { id });
     return ok(res, { id, deleted: true });
   } catch (error) { throw error; }
 };
@@ -258,7 +258,7 @@ export const batchUpdateRouletteDrinks = async (req, res, next) => {
     const refreshed = await RouletteDrink.find({ deleted: false })
       .populate("product", PRODUCT_SELECT)
       .lean();
-    io.to("role:admin").emit("roulette:update", refreshed);
+    getIo().to("role:admin").emit("roulette:update", refreshed);
 
     return ok(res, { success: true, modifiedCount: result.modifiedCount, matchedCount: result.matchedCount });
   } catch (error) { throw error; }
@@ -405,16 +405,16 @@ export const spinRoulette = async (req, res, next) => {
       },
     };
 
-    if (userId) io.to(`user:${userId}`).emit("roulette:result", payload);
-    io.emit("roulette:spin", payload);
+    if (userId) getIo().to(`user:${userId}`).emit("roulette:result", payload);
+    getIo().emit("roulette:spin", payload);
     if (selected.rarity === "LEGENDARY") {
-      io.emit("roulette:jackpot_alert", {
+      getIo().emit("roulette:jackpot_alert", {
         drinkName: selected.name,
         rarity:    selected.rarity,
         timestamp: Date.now(),
       });
     }
-    io.to("role:admin").emit("roulette:admin:spin", { ...payload, userId });
+    getIo().to("role:admin").emit("roulette:admin:spin", { ...payload, userId });
 
     return ok(res, payload);
   } catch (error) { throw error; }
