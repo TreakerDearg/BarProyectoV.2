@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -15,9 +15,10 @@ import {
   UserCircle,
 } from 'lucide-react-native';
 
-import { Colors }   from '../theme/colors';
+import { Colors }    from '../theme/colors';
 import { Typography } from '../theme/typography';
-import { Spacing }  from '../theme/spacing';
+import { Spacing }   from '../theme/spacing';
+import { useCartStore } from '../stores/useCartStore';
 
 import HomeScreen    from '../screens/HomeScreen';
 import CartaScreen   from '../screens/CartaScreen';
@@ -36,36 +37,42 @@ const TAB_CONFIG = [
     component: HomeScreen,
     icon: Home,
     label: 'Inicio',
+    isBadge: false,
   },
   {
     name: 'Carta'    as const,
     component: CartaScreen,
     icon: UtensilsCrossed,
     label: 'Carta',
+    isBadge: false,
   },
   {
     name: 'Pedidos'  as const,
     component: PedidoScreen,
     icon: ShoppingBag,
     label: 'Pedidos',
+    isBadge: true,
   },
   {
     name: 'Reservas' as const,
     component: ReservasScreen,
     icon: CalendarDays,
     label: 'Reservas',
+    isBadge: false,
   },
   {
     name: 'Cuenta'   as const,
     component: CuentaNavigator,
     icon: UserCircle,
     label: 'Cuenta',
+    isBadge: false,
   },
 ] as const;
 
 // ── Componente ────────────────────────────────────────────────────────────────
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
+  const cartCount = useCartStore((s) => s.cart.length);
 
   return (
     <Tab.Navigator
@@ -73,6 +80,7 @@ export default function AppNavigator() {
       screenOptions={({ route }) => {
         const config = TAB_CONFIG.find((t) => t.name === route.name);
         const IconComponent = config?.icon ?? Home;
+        const showBadge = config?.isBadge && cartCount > 0;
 
         return {
           headerShown: false,
@@ -81,25 +89,29 @@ export default function AppNavigator() {
 
           // ── Tab bar style ────────────────────────────────────────
           tabBarStyle: {
-            backgroundColor:  Colors.background,           // #10131a
-            borderTopColor:   'rgba(224, 226, 236, 0.08)', // sutil, sin dominancia
+            backgroundColor:  Colors.surfaceElevated,
+            borderTopColor:   Colors.goldBorder,
             borderTopWidth:   1,
-            height:           Spacing.tabBarHeight + insets.bottom,
+            height:           Spacing.tabBarHeightNew + insets.bottom,
             paddingBottom:    Platform.OS === 'android' ? 8 : insets.bottom > 0 ? insets.bottom : 8,
             paddingTop:       8,
-            // sin shadow en Android, borde minimalista como el diseño
-            elevation:        0,
+            elevation:        16,
+            shadowColor:      '#000',
+            shadowOffset:     { width: 0, height: -2 },
+            shadowOpacity:    0.3,
+            shadowRadius:     8,
           },
 
           // ── Label ────────────────────────────────────────────────
           tabBarLabelStyle: {
-            ...Typography.labelMd,
-            marginTop: -2,
+            fontSize:      10,
+            letterSpacing: 0.3,
+            marginTop:     1,
           },
 
           // ── Colores activo/inactivo ───────────────────────────────
-          tabBarActiveTintColor:   Colors.primary,          // #f3be59 gold
-          tabBarInactiveTintColor: Colors.onSurfaceVariant, // #d3c5b1
+          tabBarActiveTintColor:   Colors.primary,
+          tabBarInactiveTintColor: Colors.onSurfaceVariant,
 
           // ── Ripple Android ───────────────────────────────────────
           tabBarItemStyle: {
@@ -108,16 +120,44 @@ export default function AppNavigator() {
 
           tabBarHideOnKeyboard: true,
 
-          // ── Icono dinámico con indicador ─────────────────────────
+          // ── Icono dinámico con indicador y badge ─────────────────
           tabBarIcon: ({ focused, color }) => (
             <View style={{ alignItems: 'center', gap: 2 }}>
-              <IconComponent
-                size={22}
-                color={color}
-                strokeWidth={focused ? 2.2 : 1.8}
-              />
+              <View style={{ position: 'relative' }}>
+                <IconComponent
+                  size={22}
+                  color={color}
+                  strokeWidth={focused ? 2.2 : 1.8}
+                />
+                {showBadge && (
+                  <View
+                    style={{
+                      position:        'absolute',
+                      top:             -4,
+                      right:           -6,
+                      width:           16,
+                      height:          16,
+                      borderRadius:    8,
+                      backgroundColor: Colors.badgeRed,
+                      justifyContent:  'center',
+                      alignItems:      'center',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:      '#fff',
+                        fontSize:   9,
+                        fontWeight: '700' as const,
+                        lineHeight: 11,
+                      }}
+                    >
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
               {focused && (
-                <View style={{ width: 20, height: 4, borderRadius: 2, backgroundColor: Colors.primaryContainer }} />
+                <View style={{ width: 40, height: 3, borderRadius: 2, backgroundColor: Colors.primaryContainer }} />
               )}
             </View>
           ),

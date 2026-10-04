@@ -30,6 +30,7 @@ import { Elevation }  from '../theme/elevation';
 
 import { useAuthStore }      from '../stores/useAuthStore';
 import { useFavoritesStore } from '../stores/useFavoritesStore';
+import { usePointsStore }    from '../stores/usePointsStore';
 import {
   getMyOrderHistory,
   getMyReservations,
@@ -43,6 +44,7 @@ import { socketService }     from '../socket/socketService';
 import { NInput }   from '../components/shared/NInput';
 import { NButton }  from '../components/shared/NButton';
 import { NSkeleton } from '../components/shared/NSkeleton';
+import { LoyaltyCard } from '../components/shared/LoyaltyCard';
 
 import type { RootTabParamList } from '../navigation/types';
 
@@ -308,6 +310,7 @@ export default function AccountScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { user, token, logout } = useAuthStore();
   const { favorites, loadFromBackend } = useFavoritesStore();
+  const { balance: pointsBalance, totalEarned: pointsTotalEarned } = usePointsStore();
 
   // ── Historial ─────────────────────────────────────────────────
   const [orderHistory,     setOrderHistory]     = useState<OrderHistoryItem[]>([]);
@@ -357,6 +360,7 @@ export default function AccountScreen() {
     fetchHistory();
     fetchNextReservation();
     loadFromBackend();
+    usePointsStore.getState().loadPoints();
   }, [token]);
 
   // ── Socket: pedido activo en tiempo real ──────────────────────
@@ -444,6 +448,13 @@ export default function AccountScreen() {
             </View>
           </View>
         </View>
+
+        {/* ── LoyaltyCard ──────────────────────────────────── */}
+        <LoyaltyCard
+          balance={pointsBalance}
+          totalEarned={pointsTotalEarned}
+          userId={user?.id ?? ''}
+        />
 
         {/* ── Pedido activo (tiempo real) ───────────────────── */}
         {activeOrderStatus && (

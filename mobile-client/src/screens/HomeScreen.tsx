@@ -7,6 +7,7 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   Modal,
@@ -26,7 +27,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
@@ -39,6 +40,7 @@ import { getPublicProducts }   from '../api/menuApi';
 import { getPublicPromotions } from '../api/promoApi';
 import { getMyOrderHistory }   from '../api/authApi';
 import { getTableDetails }     from '../api/tableApi';
+import { getPublicRouletteDrinks } from '../api/rouletteApi';
 import { socketService }       from '../socket/socketService';
 
 import { MesaCard }            from '../components/shared/MesaCard';
@@ -48,14 +50,19 @@ import { SommelierCard }       from '../components/shared/SommelierCard';
 import { NSkeleton }           from '../components/shared/NSkeleton';
 import { NToast }              from '../components/shared/NToast';
 import { CategoryPills }       from '../components/CategoryPills';
+import { HeroCarousel }        from '../components/HeroCarousel';
+import { CategoryHeroRow }     from '../components/CategoryHeroRow';
+import { ProductGridCard }     from '../components/shared/ProductGridCard';
 import { RouletteScreen }      from './RouletteScreen';
 import { ProductCustomizerSheet } from '../components/ProductCustomizerSheet';
+import { MobileWheel }         from '../components/roulette/MobileWheel';
 
 import type {
   ProductPublicDTO,
   PromotionPublicDTO,
   OrderPublicDTO,
   TablePublicDTO,
+  RouletteDrinkDTO,
 } from '../types/api';
 import type { RootTabParamList } from '../navigation/types';
 
@@ -145,6 +152,14 @@ export default function HomeScreen() {
   const [showRoulette,     setShowRoulette]     = useState(false);
   const [homeToast,        setHomeToast]        = useState<string | null>(null);
   const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
+  const [idleWheelDrinks,  setIdleWheelDrinks]  = useState<RouletteDrinkDTO[]>([]);
+
+  // ── Idle wheel drinks ─────────────────────────────────────────
+  useEffect(() => {
+    getPublicRouletteDrinks()
+      .then((drinks) => setIdleWheelDrinks(drinks))
+      .catch(() => {});
+  }, []);
 
   // ── Stagger animations ────────────────────────────────────────
   const anim = useRef({
@@ -465,71 +480,79 @@ export default function HomeScreen() {
               )}
             </Animated.View>
 
-            {/* ── Promo destacada ──────────────────────────── */}
+            {/* ── Promo destacada → HeroCarousel ───────────── */}
             <Animated.View
               style={{
                 opacity: anim.promo.o,
                 transform: [{ translateY: anim.promo.y }],
               }}
             >
-              {promos.length > 0 ? (
-                <PromoBanner promo={promos[0]} onPress={goToCarta} />
-              ) : (
-                <PromoBannerFallback onPress={goToCarta} />
-              )}
+              <HeroCarousel
+                slides={promos.map((p) => ({
+                  id:       p.id,
+                  title:    p.name,
+                  subtitle: p.description,
+                  onPress:  goToCarta,
+                }))}
+              />
             </Animated.View>
 
-            {/* ── Accesos rápidos ──────────────────────────── */}
-            <Animated.View
-              style={[styles.section, {
-                opacity: anim.quick.o,
-                transform: [{ scale: anim.quick.s }],
-              }]}
-            >
-              <View style={styles.sectionRow}>
-                <QuickActionCard
-                  label="Carta"
-                  icon={<ChefHat size={22} color={Colors.primary} />}
-                  bg={Colors.goldMuted}
-                  onPress={goToCarta}
-                />
-                <QuickActionCard
-                  label="Pedido"
-                  icon={<ShoppingBag size={22} color={Colors.success} />}
-                  bg="rgba(52, 185, 100, 0.08)"
-                  onPress={goToPedidos}
-                />
-                <QuickActionCard
-                  label="Reservas"
-                  icon={<CalendarDays size={22} color={Colors.info} />}
-                  bg="rgba(56, 189, 248, 0.08)"
-                  onPress={goToReservas}
-                />
-                <QuickActionCard
-                  label="Ruleta"
-                  icon={<RotateCw size={22} color={Colors.primary} />}
-                  bg="rgba(243, 190, 89, 0.08)"
-                  onPress={() => setShowRoulette(true)}
-                />
-              </View>
-            </Animated.View>
-
-            {/* ── Explorar la carta ────────────────────────── */}
+            {/* ── CategoryHeroRow (replaces CategoryPills + QuickActions) ── */}
             <View style={styles.section}>
-              <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Explorar la carta</Text>
-                <TouchableOpacity onPress={goToCarta} style={styles.seeAllBtn}>
-                  <Text style={styles.seeAllText}>Deslizar →</Text>
-                </TouchableOpacity>
-              </View>
-              <CategoryPills
+              <CategoryHeroRow
                 categories={categories}
-                selectedCategory={selectedCategory}
-                onSelectCategory={handleCartaCategory}
+                activeCategory={selectedCategory}
+                onSelect={handleCartaCategory}
+                onRuletaPress={() => setShowRoulette(true)}
               />
             </View>
 
-            {/* ── Selección del Sommelier ───────────────────── */}
+            {/* ── Lo más pedido ─────────────────────────────── */}
+            {featuredProducts.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.sectionTitle}>Lo más pedido</Text>
+                  <TouchableOpacity onPress={goToCarta} style={styles.seeAllBtn}>
+                    <Text style={styles.seeAllText}>Ver todo</Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={featuredProducts.slice(0, 4)}
+                  numColumns={2}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  columnWrapperStyle={{ gap: Spacing.gridGap }}
+                  ItemSeparatorComponent={() => <View style={{ height: Spacing.gridGap }} />}
+                  renderItem={({ item }) => (
+                    <View style={{ flex: 1 }}>
+                      <ProductGridCard
+                        product={item}
+                        isFavorite={false}
+                        cartQty={useCartStore.getState().cart.find((l) => l.productId === item.id)?.quantity ?? 0}
+                        onAdd={(p) =>
+                          useCartStore.getState().addToCart({
+                            productId: p.id,
+                            name:      p.name,
+                            price:     p.dynamicPrice ?? p.price,
+                            image:     p.image,
+                            notes:     '',
+                            quantity:  1,
+                          })
+                        }
+                        onRemove={(p) => {
+                          const qty = useCartStore.getState().cart.find((l) => l.productId === p.id)?.quantity ?? 0;
+                          if (qty <= 1) useCartStore.getState().removeFromCart(p.id);
+                          else useCartStore.getState().setLineQty(p.id, qty - 1);
+                        }}
+                        onPress={() => navigation.navigate('Carta')}
+                      />
+                    </View>
+                  )}
+                />
+              </View>
+            )}
+
+            {/* ── Selección del Sommelier (first 2) ────────── */}
             {featuredProducts.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
@@ -545,7 +568,7 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.sommelierList}>
-                  {featuredProducts.map((product, i) => {
+                  {featuredProducts.slice(0, 2).map((product, i) => {
                     const s = anim.sommelier[Math.min(i, anim.sommelier.length - 1)];
                     return (
                       <Animated.View
@@ -567,7 +590,7 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* ── Ruleta CTA ───────────────────────────────── */}
+            {/* ── Ruleta CTA — with idle MobileWheel ───────── */}
             <TouchableOpacity
               style={styles.rouletteCard}
               onPress={() => setShowRoulette(true)}
@@ -575,7 +598,15 @@ export default function HomeScreen() {
             >
               <View style={styles.roulettLeft}>
                 <View style={styles.rouletteIconWrap}>
-                  <Sparkles size={28} color={Colors.primary} />
+                  {idleWheelDrinks.length > 0 ? (
+                    <MobileWheel
+                      drinks={idleWheelDrinks}
+                      spinAnim={new Animated.Value(0)}
+                      size={80}
+                    />
+                  ) : (
+                    <Sparkles size={28} color={Colors.primary} />
+                  )}
                 </View>
                 <View>
                   <Text style={styles.rouletteTitle}>Ruleta Nebula</Text>
@@ -583,9 +614,6 @@ export default function HomeScreen() {
                     Girá y descubrí tu cóctel de la noche
                   </Text>
                 </View>
-              </View>
-              <View style={styles.rouletteBtn}>
-                <RotateCw size={18} color={Colors.onPrimary} />
               </View>
             </TouchableOpacity>
           </>
@@ -623,6 +651,7 @@ const styles = StyleSheet.create({
     justifyContent:  'space-between',
     paddingHorizontal: Spacing.gutter,
     paddingVertical:   Spacing.smMd,
+    backgroundColor: NocturneColors.surfaceElevated,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(224, 226, 236, 0.06)',
   },

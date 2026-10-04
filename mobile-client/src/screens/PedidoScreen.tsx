@@ -11,20 +11,22 @@ import {
   View,
   Text,
   ScrollView,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   Modal,
-  ActivityIndicator,
+  Image,
   Alert,
   Animated,
   Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ShoppingBag, Send, Minus, Plus, Trash2,
+  ShoppingBag, Send,
   CheckCircle2, Flame, Sparkles,
   AlertCircle, RefreshCw, QrCode,
   UtensilsCrossed, Receipt, ChefHat, PhoneCall,
+  Clock,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -47,9 +49,13 @@ import { socketService }             from '../socket/socketService';
 import { NEmptyState } from '../components/shared/NEmptyState';
 import { NButton }     from '../components/shared/NButton';
 import { NToast }      from '../components/shared/NToast';
+import { CartItemRow } from '../components/shared/CartItemRow';
+import { ProductGridCard } from '../components/shared/ProductGridCard';
 import { QRScannerScreen } from './QRScannerScreen';
 
-import type { OrderPublicDTO, TablePublicDTO } from '../types/api';
+import { getPublicProducts } from '../api/menuApi';
+
+import type { OrderPublicDTO, TablePublicDTO, ProductPublicDTO } from '../types/api';
 import type { RootTabParamList } from '../navigation/types';
 
 type PedidoNav = BottomTabNavigationProp<RootTabParamList, 'Pedidos'>;
@@ -181,7 +187,7 @@ function CartView({
   onOpenScanner:   () => void;
 }) {
   const {
-    cart, removeFromCart, setLineQty, clearCart,
+    cart, addToCart, removeFromCart, setLineQty, clearCart,
     appliedCoupon,
     tipPercent, setTipPercent,
     getSubtotal, getDiscountAmount, getTipAmount, getTotalWithTipAndDiscount,
@@ -194,31 +200,22 @@ function CartView({
     tableId ? 'mesa' : 'bar'
   );
 
-  const subtotal      = getSubtotal();
-  const discountAmount = getDiscountAmount();
-  const tipAmount     = getTipAmount();
-  const total         = getTotalWithTipAndDiscount();
-  const hasMesa       = !!tableId && !!sessionId;
-  const showGate      = !hasMesa && !gateSkipped;
-
-  // Item stagger animations
-  const itemAnims = useRef(
-    Array.from({ length: 5 }, () => ({
-      opacity:    new Animated.Value(0),
-      translateX: new Animated.Value(20),
-    }))
-  ).current;
-
+  // UpsellRow: featured products
+  const [upsellProducts, setUpsellProducts] = useState<ProductPublicDTO[]>([]);
   useEffect(() => {
-    Animated.stagger(50,
-      itemAnims.slice(0, Math.min(cart.length, 5)).map((a) =>
-        Animated.parallel([
-          Animated.timing(a.opacity,    { toValue: 1, duration: 300, useNativeDriver: true }),
-          Animated.timing(a.translateX, { toValue: 0, duration: 300, useNativeDriver: true }),
-        ])
+    getPublicProducts()
+      .then((all) =>
+        setUpsellProducts(all.filter((p) => p.featured && p.available).slice(0, 3))
       )
-    ).start();
+      .catch(() => {});
   }, []);
+
+  const subtotal       = getSubtotal();
+  const discountAmount = getDiscountAmount();
+  const tipAmount      = getTipAmount();
+  const total          = getTotalWithTipAndDiscount();
+  const hasMesa        = !!tableId && !!sessionId;
+  const showGate       = !hasMesa && !gateSkipped;
 
   const handleSubmit = async () => {
     if (!hasMesa && !gateSkipped) {
@@ -274,6 +271,12 @@ function CartView({
         </TouchableOpacity>
       </View>
 
+      {/* Estimated time badge */}
+      <View style={subStyles.estimateBadge}>
+        <Clock size={16} color={Colors.info} />
+        <Text style={subStyles.estimateBadgeText}>~15 min · Entrega estimada</Text>
+      </View>
+
       {/* Mesa status */}
       <View style={[subStyles.mesaBar, !hasMesa && subStyles.mesaBarWarn]}>
         {hasMesa ? (
@@ -305,58 +308,61 @@ function CartView({
         />
       )}
 
-      {/* Items del carrito */}
-      {cart.map((item, index) => {
-        const anim = index < 5 ? itemAnims[index] : null;
-        const itemContent = (
-          <View style={subStyles.itemCard}>
-            <View style={subStyles.itemTopRow}>
-              <Text style={subStyles.itemName}>{item.name}</Text>
-              <Text style={subStyles.itemPrice}>
-                {fmtPrice(item.price * item.quantity)}
-              </Text>
-            </View>
-            {renderNotes(item.notes)}
-            <View style={subStyles.itemControlsRow}>
-              <TouchableOpacity
-                onPress={() => removeFromCart(item.productId)}
-                style={subStyles.deleteBtn}
-                hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-              >
-                <Trash2 size={14} color={Colors.error} />
-                <Text style={subStyles.deleteText}>Quitar</Text>
-              </TouchableOpacity>
-              <View style={subStyles.stepper}>
+      {/* Items del carrito — CartItemRow */}
+      {cart.map((item) => (
+        <CartItemRow
+          key={item.productId}
+          item={item}
+          onIncrement={() => setLineQty(item.productId, item.quantity + 1)}
+          onDecrement={() => setLineQty(item.productId, item.quantity - 1)}
+          onRemove={() => removeFromCart(item.productId)}
+        />
+      ))}
+
+      {/* UpsellRow — compact horizontal FlatList */}
+      {upsellProducts.length > 0 && (
+        <View style={subStyles.upsellSection}>
+          <Text style={subStyles.upsellTitle}>También te puede gustar</Text>
+          <FlatList
+            data={upsellProducts}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(p) => p.id}
+            contentContainerStyle={{ gap: 10 }}
+            renderItem={({ item }) => (
+              <View style={subStyles.upsellCard}>
+                {item.image ? (
+                  <Image
+                    source={{ uri: item.image }}
+                    style={subStyles.upsellImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[subStyles.upsellImage, subStyles.upsellImageFallback]}>
+                    <Text style={{ fontSize: 18 }}>🍹</Text>
+                  </View>
+                )}
+                <Text style={subStyles.upsellName} numberOfLines={2}>{item.name}</Text>
                 <TouchableOpacity
-                  style={subStyles.stepBtn}
-                  onPress={() => setLineQty(item.productId, item.quantity - 1)}
+                  style={subStyles.upsellAdd}
+                  onPress={() =>
+                    addToCart({
+                      productId: item.id,
+                      name:      item.name,
+                      price:     item.dynamicPrice ?? item.price,
+                      image:     item.image,
+                      notes:     '',
+                      quantity:  1,
+                    })
+                  }
                 >
-                  <Minus size={13} color={Colors.onSurface} />
-                </TouchableOpacity>
-                <Text style={subStyles.stepCount}>{item.quantity}</Text>
-                <TouchableOpacity
-                  style={subStyles.stepBtn}
-                  onPress={() => setLineQty(item.productId, item.quantity + 1)}
-                >
-                  <Plus size={13} color={Colors.onSurface} />
+                  <Text style={subStyles.upsellAddText}>+ Agregar</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        );
-
-        if (anim) {
-          return (
-            <Animated.View
-              key={item.productId}
-              style={{ opacity: anim.opacity, transform: [{ translateX: anim.translateX }] }}
-            >
-              {itemContent}
-            </Animated.View>
-          );
-        }
-        return <View key={item.productId}>{itemContent}</View>;
-      })}
+            )}
+          />
+        </View>
+      )}
 
       {/* Selector de propina */}
       <View style={subStyles.tipCard}>
@@ -406,7 +412,7 @@ function CartView({
 
       {/* Botón enviar */}
       <NButton
-        label={submitting ? 'Enviando...' : `Enviar a Barra · ${fmtPrice(total)}`}
+        label={submitting ? 'Enviando...' : `Confirmar Pedido · ${fmtPrice(total)}`}
         onPress={handleSubmit}
         loading={submitting}
         fullWidth
@@ -824,6 +830,72 @@ const styles = StyleSheet.create({
 // ── Estilos de sub-vistas ─────────────────────────────────────────────────────
 const subStyles = StyleSheet.create({
   emptyWrap: { flex: 1 },
+
+  // Estimate badge
+  estimateBadge: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.sm,
+    backgroundColor: Colors.infoMuted,
+    borderRadius:    Radius.md,
+    paddingHorizontal: Spacing.smMd,
+    paddingVertical:   8,
+    borderWidth:     1,
+    borderColor:     'rgba(56,189,248,0.20)',
+  },
+  estimateBadgeText: {
+    ...Typography.bodyMd,
+    color: Colors.info,
+  },
+
+  // Upsell section
+  upsellSection: {
+    gap: Spacing.sm,
+  },
+  upsellTitle: {
+    ...Typography.labelMd,
+    color: Colors.onSurfaceVariant,
+    textTransform: 'none' as const,
+  },
+  upsellCard: {
+    width:           120,
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius:    Radius.lg,
+    overflow:        'hidden',
+    borderWidth:     1,
+    borderColor:     'rgba(224,226,236,0.07)',
+    gap:             4,
+    paddingBottom:   Spacing.xs,
+  },
+  upsellImage: {
+    width:  120,
+    height: 80,
+  },
+  upsellImageFallback: {
+    backgroundColor: Colors.surfaceContainerHighest,
+    justifyContent:  'center',
+    alignItems:      'center',
+  },
+  upsellName: {
+    ...Typography.bodySm,
+    color:             Colors.onSurface,
+    paddingHorizontal: Spacing.xs,
+  },
+  upsellAdd: {
+    marginHorizontal:  Spacing.xs,
+    backgroundColor:   Colors.goldMuted,
+    borderRadius:      Radius.sm,
+    paddingVertical:   4,
+    alignItems:        'center',
+    borderWidth:       1,
+    borderColor:       Colors.goldBorder,
+  },
+  upsellAddText: {
+    ...Typography.labelSm,
+    color:         Colors.primary,
+    textTransform: 'none' as const,
+    fontSize:      10,
+  },
 
   // ── Cart ─────────────────────────────────────────────────────
   cartScroll: {

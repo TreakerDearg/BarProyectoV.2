@@ -1,20 +1,19 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — CartaScreen
-// Catálogo completo: búsqueda, categorías, SommelierCard (featured),
-// CompactProductRow (resto), ModifierModal, FloatingCartBar.
+// NEBULA — CartaScreen  (FEAT-002 T10)
+// FlatList numColumns=2 with ProductGridCard, CategoryHeroRow header,
+// SearchBar, FloatingCartBar, ModifierModal, ProductCustomizerSheet, NToast.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, {
-  useState, useEffect, useMemo, useCallback, useRef,
+  useState, useEffect, useMemo, useCallback,
 } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Modal,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,6 +34,7 @@ import { useFavoritesStore } from '../stores/useFavoritesStore';
 
 import { SommelierCard }      from '../components/shared/SommelierCard';
 import { CompactProductRow }  from '../components/shared/CompactProductRow';
+import { ProductGridCard }    from '../components/shared/ProductGridCard';
 import { NEmptyState }        from '../components/shared/NEmptyState';
 import {
   SkeletonSommelierCard,
@@ -44,13 +44,12 @@ import { NToast }            from '../components/shared/NToast';
 import { FloatingCartBar }   from '../components/FloatingCartBar';
 import { ModifierModal }     from '../components/ModifierModal';
 import { ProductCustomizerSheet } from '../components/ProductCustomizerSheet';
-import { CategoryPills }     from '../components/CategoryPills';
+import { CategoryHeroRow }   from '../components/CategoryHeroRow';
 
 import type { ProductPublicDTO } from '../types/api';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/** Agrupa categorías únicas con un "Todos" al inicio */
 function buildCategories(products: ProductPublicDTO[]) {
   const set = new Set<string>();
   products.forEach((p) => { if (p.category) set.add(p.category); });
@@ -63,12 +62,9 @@ function buildCategories(products: ProductPublicDTO[]) {
   ];
 }
 
-const FEATURED_COUNT = 3; // primeros N productos featured como SommelierCard
-
-// ── Componente ────────────────────────────────────────────────────────────────
-
 type CartaNav = BottomTabNavigationProp<RootTabParamList, 'Carta'>;
 
+// ── Componente ────────────────────────────────────────────────────────────────
 export default function CartaScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const navigation   = useNavigation<CartaNav>();
@@ -80,18 +76,18 @@ export default function CartaScreen() {
   const [error,      setError]      = useState<string | null>(null);
 
   // ── Filtros ───────────────────────────────────────────────────
-  const [searchQuery,  setSearchQuery]  = useState('');
+  const [searchQuery,    setSearchQuery]    = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
   // ── Modals ────────────────────────────────────────────────────
-  const [selectedProduct, setSelectedProduct] = useState<ProductPublicDTO | null>(null);
-  const [toastMsg,        setToastMsg]        = useState<string | null>(null);
+  const [selectedProduct,   setSelectedProduct]   = useState<ProductPublicDTO | null>(null);
+  const [toastMsg,          setToastMsg]          = useState<string | null>(null);
   const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
 
   // ── Stores ────────────────────────────────────────────────────
-  const { cart, addToCart }          = useCartStore();
-  const { token }                    = useAuthStore();
-  const { isFavorite, toggleFavorite, loadFromBackend } = useFavoritesStore();
+  const { cart, addToCart, setLineQty, removeFromCart } = useCartStore();
+  const { token }                                        = useAuthStore();
+  const { isFavorite, toggleFavorite, loadFromBackend }  = useFavoritesStore();
 
   // ── Carga de datos ────────────────────────────────────────────
   const fetchProducts = useCallback(async (isRefresh = false) => {
@@ -135,29 +131,13 @@ export default function CartaScreen() {
     return list;
   }, [products, activeCategory, searchQuery]);
 
-  // Featured (solo sin filtros activos): primeros N con featured=true
-  const featuredProducts = useMemo(
-    () =>
-      activeCategory === 'all' && !searchQuery.trim()
-        ? products.filter((p) => p.featured && p.available).slice(0, FEATURED_COUNT)
-        : [],
-    [products, activeCategory, searchQuery]
-  );
-
-  // Lista normal: excluye los featured del top cuando están visibles
-  const listProducts = useMemo(() => {
-    if (featuredProducts.length === 0) return filtered;
-    const featuredIds = new Set(featuredProducts.map((p) => p.id));
-    return filtered.filter((p) => !featuredIds.has(p.id));
-  }, [filtered, featuredProducts]);
-
   // ── Acciones ──────────────────────────────────────────────────
   const getCartQty = useCallback(
     (id: string) => cart.find((l) => l.productId === id)?.quantity ?? 0,
     [cart]
   );
 
-  const handleQuickAdd = useCallback((product: ProductPublicDTO) => {
+  const handleAdd = useCallback((product: ProductPublicDTO) => {
     addToCart({
       productId: product.id,
       name:      product.name,
@@ -169,6 +149,15 @@ export default function CartaScreen() {
     setToastMsg(`${product.name} agregado`);
     setTimeout(() => setToastMsg(null), 2800);
   }, [addToCart]);
+
+  const handleRemove = useCallback((product: ProductPublicDTO) => {
+    const qty = getCartQty(product.id);
+    if (qty <= 1) {
+      removeFromCart(product.id);
+    } else {
+      setLineQty(product.id, qty - 1);
+    }
+  }, [getCartQty, setLineQty, removeFromCart]);
 
   const handleDetailAdd = useCallback(
     (product: ProductPublicDTO, quantity: number, notes: string) => {
@@ -191,53 +180,18 @@ export default function CartaScreen() {
 
   const clearSearch = useCallback(() => setSearchQuery(''), []);
 
-  // ── Render: estado de carga ───────────────────────────────────
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.headerBar}>
-          <Text style={styles.screenTitle}>Nuestra Carta</Text>
-        </View>
-        <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: tabBarHeight + Spacing.xxl }]}
-          showsVerticalScrollIndicator={false}
-        >
-          <SkeletonSommelierCard />
-          <SkeletonSommelierCard />
-          {[...Array(4)].map((_, i) => <SkeletonCompactRow key={i} />)}
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // ── Render: error ─────────────────────────────────────────────
-  if (error && products.length === 0) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <NEmptyState
-          icon={<UtensilsCrossed size={32} color={Colors.error} />}
-          title="No pudimos cargar la carta"
-          subtitle={error}
-          action={{ label: 'Reintentar', onPress: () => fetchProducts() }}
-        />
-      </SafeAreaView>
-    );
-  }
-
-  // ── Render principal ──────────────────────────────────────────
-  return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* ── Header ────────────────────────────────────────── */}
+  // ── ListHeaderComponent ───────────────────────────────────────
+  const ListHeader = useMemo(() => (
+    <View style={styles.listHeader}>
+      {/* Title */}
       <View style={styles.headerBar}>
         <Text style={styles.screenTitle}>Nuestra Carta</Text>
         {products.length > 0 && (
-          <Text style={styles.productCount}>
-            {products.length} productos
-          </Text>
+          <Text style={styles.productCount}>{products.length} productos</Text>
         )}
       </View>
 
-      {/* ── SearchBar ─────────────────────────────────────── */}
+      {/* SearchBar */}
       <View style={styles.searchWrap}>
         <View style={styles.searchBar}>
           <Search size={16} color={Colors.outline} />
@@ -259,66 +213,75 @@ export default function CartaScreen() {
         </View>
       </View>
 
-      {/* ── Categorías ────────────────────────────────────── */}
-      <View style={styles.categoryWrap}>
-        <CategoryPills
-          categories={categories}
-          selectedCategory={activeCategory}
-          onSelectCategory={(id) => {
-            setActiveCategory(id);
-            setSearchQuery('');
-          }}
-        />
-      </View>
+      {/* CategoryHeroRow */}
+      <CategoryHeroRow
+        categories={categories}
+        activeCategory={activeCategory}
+        onSelect={(id) => {
+          setActiveCategory(id);
+          setSearchQuery('');
+        }}
+        onRuletaPress={() => {/* navigation to roulette handled in HomeScreen */}}
+      />
 
-      {/* ── Lista de productos ────────────────────────────── */}
-      <ScrollView
+      {/* Section heading */}
+      {(searchQuery.trim() || activeCategory !== 'all') && (
+        <View style={styles.sectionHeadingWrap}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery.trim()
+              ? `${filtered.length} resultado${filtered.length !== 1 ? 's' : ''}`
+              : categories.find((c) => c.id === activeCategory)?.name ?? activeCategory}
+          </Text>
+        </View>
+      )}
+    </View>
+  ), [products.length, searchQuery, categories, activeCategory, filtered.length, clearSearch]);
+
+  // ── Render: estado de carga ───────────────────────────────────
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.headerBar}>
+          <Text style={styles.screenTitle}>Nuestra Carta</Text>
+        </View>
+        <View style={{ gap: Spacing.md, padding: Spacing.gutter }}>
+          <SkeletonSommelierCard />
+          <SkeletonSommelierCard />
+          {[...Array(4)].map((_, i) => <SkeletonCompactRow key={i} />)}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Render: error ─────────────────────────────────────────────
+  if (error && products.length === 0) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <NEmptyState
+          icon={<UtensilsCrossed size={32} color={Colors.error} />}
+          title="No pudimos cargar la carta"
+          subtitle={error}
+          action={{ label: 'Reintentar', onPress: () => fetchProducts() }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // ── Render principal ──────────────────────────────────────────
+  return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <FlatList
+        data={filtered}
+        numColumns={2}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={[
-          styles.scroll,
+          styles.flatListContent,
           { paddingBottom: tabBarHeight + Spacing.xxl + 20 },
         ]}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => fetchProducts(true)}
-            tintColor={Colors.primary}
-            colors={[Colors.primary]}
-          />
-        }
-      >
-        {/* Featured — Selección del Sommelier */}
-        {featuredProducts.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Selección del Sommelier</Text>
-              <Text style={styles.sectionSub}>Recomendaciones exclusivas</Text>
-            </View>
-            <View style={styles.sommelierList}>
-              {featuredProducts.map((product) => (
-                <SommelierCard
-                  key={product.id}
-                  product={product}
-                  isFavorite={isFavorite(product.id)}
-                  onAdd={(p) => setCustomizerProduct(p)}
-                  onPress={setSelectedProduct}
-                  onFavorite={token ? handleFavorite : undefined}
-                  featureBadge={
-                    product.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
-                  }
-                />
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Divisor */}
-        {featuredProducts.length > 0 && listProducts.length > 0 && (
-          <View style={styles.divider} />
-        )}
-
-        {/* Carta completa / filtrada */}
-        {listProducts.length === 0 && !loading ? (
+        columnWrapperStyle={styles.columnWrapper}
+        ItemSeparatorComponent={() => <View style={{ height: Spacing.gridGap }} />}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={
           <NEmptyState
             icon={<UtensilsCrossed size={28} color={Colors.outline} />}
             title={
@@ -343,38 +306,32 @@ export default function CartaScreen() {
                 : undefined
             }
           />
-        ) : (
-          <View style={styles.section}>
-            {(searchQuery.trim() || activeCategory !== 'all') && (
-              <Text style={styles.sectionTitle}>
-                {searchQuery.trim()
-                  ? `${listProducts.length} resultado${listProducts.length !== 1 ? 's' : ''}`
-                  : categories.find((c) => c.id === activeCategory)?.name ?? activeCategory}
-              </Text>
-            )}
-            {!searchQuery.trim() && activeCategory === 'all' && (
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Explorar la carta</Text>
-              </View>
-            )}
-            <View style={styles.compactList}>
-              {listProducts.map((product) => (
-                <CompactProductRow
-                  key={product.id}
-                  product={product}
-                  isFavorite={isFavorite(product.id)}
-                  cartQty={getCartQty(product.id)}
-                  onAdd={handleQuickAdd}
-                  onPress={setSelectedProduct}
-                  onFavorite={token ? handleFavorite : undefined}
-                />
-              ))}
-            </View>
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchProducts(true)}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <View style={styles.gridItem}>
+            <ProductGridCard
+              product={item}
+              isFavorite={isFavorite(item.id)}
+              cartQty={getCartQty(item.id)}
+              onAdd={handleAdd}
+              onRemove={handleRemove}
+              onFavorite={token ? handleFavorite : undefined}
+              onPress={setSelectedProduct}
+            />
           </View>
         )}
-      </ScrollView>
+      />
 
-      {/* ── FloatingCartBar (navega a tab Pedidos) ────────── */}
+      {/* ── FloatingCartBar ──────────────────────────────── */}
       <View style={[styles.floatingBarContainer, { bottom: tabBarHeight + 12 }]}>
         <FloatingCartBar onPress={() => navigation.navigate('Pedidos')} />
       </View>
@@ -387,7 +344,7 @@ export default function CartaScreen() {
         onConfirm={handleDetailAdd}
       />
 
-      {/* ── ProductCustomizerSheet (for SommelierCards) ───── */}
+      {/* ── ProductCustomizerSheet ───────────────────────── */}
       <ProductCustomizerSheet
         visible={!!customizerProduct}
         product={customizerProduct}
@@ -395,7 +352,7 @@ export default function CartaScreen() {
         onConfirm={handleDetailAdd}
       />
 
-      {/* ── Toast de confirmación ────────────────────────── */}
+      {/* ── Toast ────────────────────────────────────────── */}
       <NToast
         visible={!!toastMsg}
         message={toastMsg ?? ''}
@@ -409,14 +366,29 @@ export default function CartaScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
 
-  // ── Header ─────────────────────────────────────────────────────
+  // ── FlatList content ──────────────────────────────────────────
+  flatListContent: {
+    paddingHorizontal: Spacing.gutter,
+    paddingTop:        Spacing.sm,
+  },
+  columnWrapper: {
+    gap: Spacing.gridGap,
+  },
+  gridItem: {
+    flex: 1,
+  },
+
+  // ── List header sub-styles ────────────────────────────────────
+  listHeader: {
+    marginBottom: Spacing.sm,
+    gap:          Spacing.sm,
+  },
   headerBar: {
     flexDirection:   'row',
     alignItems:      'baseline',
     justifyContent:  'space-between',
-    paddingHorizontal: Spacing.gutter,
     paddingTop:      Spacing.md,
-    paddingBottom:   Spacing.sm,
+    paddingBottom:   Spacing.xs,
   },
   screenTitle: {
     ...Typography.headlineLg,
@@ -429,8 +401,7 @@ const styles = StyleSheet.create({
 
   // ── Search ─────────────────────────────────────────────────────
   searchWrap: {
-    paddingHorizontal: Spacing.gutter,
-    paddingBottom:     Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   searchBar: {
     flexDirection:   'row',
@@ -444,55 +415,25 @@ const styles = StyleSheet.create({
     gap:             Spacing.sm,
   },
   searchInput: {
-    flex:      1,
+    flex:    1,
     ...Typography.bodyMd,
-    color:     Colors.onSurface,
-    padding:   0,
+    color:   Colors.onSurface,
+    padding: 0,
   },
 
-  // ── Categories ─────────────────────────────────────────────────
-  categoryWrap: {
-    paddingLeft: Spacing.gutter,
-  },
-
-  // ── Scroll ─────────────────────────────────────────────────────
-  scroll: {
-    paddingHorizontal: Spacing.gutter,
-    paddingTop:        Spacing.sm,
-    gap:               Spacing.md,
-  },
-
-  // ── Sections ───────────────────────────────────────────────────
-  section: {
-    gap: Spacing.sm,
-  },
-  sectionHeader: {
-    gap: 2,
+  // ── Section heading ────────────────────────────────────────────
+  sectionHeadingWrap: {
+    paddingTop: Spacing.xs,
   },
   sectionTitle: {
     ...Typography.headlineSm,
     color: Colors.onSurface,
   },
-  sectionSub: {
-    ...Typography.bodySm,
-    color: Colors.onSurfaceVariant,
-  },
-  sommelierList: {
-    gap: Spacing.md,
-  },
-  compactList: {
-    gap: Spacing.sm,
-  },
-  divider: {
-    height:          1,
-    backgroundColor: 'rgba(224, 226, 236, 0.06)',
-    marginVertical:  Spacing.xs,
-  },
 
-  // ── FloatingCartBar (reposicionado sobre tab bar) ───────────────
+  // ── FloatingCartBar ────────────────────────────────────────────
   floatingBarContainer: {
-    position:  'absolute',
-    left:      Spacing.gutter,
-    right:     Spacing.gutter,
+    position: 'absolute',
+    left:     Spacing.gutter,
+    right:    Spacing.gutter,
   },
 });
