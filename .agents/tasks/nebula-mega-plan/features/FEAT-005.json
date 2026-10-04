@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Phase 5 mobile + Phase 6 docs (T18a-T21). Creates mobile rewards API, usePointsStore Zustand store, RewardsCatalog bottom-sheet modal, finishes AccountScreen with Mis Recompensas button, wires points toasts into RouletteScreen and PedidoScreen, and creates the final NEBULA_MEGA_PLAN.md documentation. Depends on FEAT-001 (rouletteApi fix for pointsEarned), FEAT-002 (LoyaltyCard/AccountScreen shell), FEAT-003 (RouletteScreen), and FEAT-004 (backend rewards routes + usePointsStore imported by T12b already wired).",
+  "status": "pending",
+  "steps": [
+    "T18a — Create mobile-client/src/api/rewardApi.ts. Import {api} from './client'. Import {ApiResponse} from '../types/api'. Define interfaces: RewardItem{_id:string,name:string,description?:string,image?:string,pointsCost:number,category:string,active:boolean,stock:number,validFrom?:string,validUntil?:string}, MovementEntry{type:string,amount:number,description:string,createdAt:string}, UserPointsSummary{balance:number,totalEarned:number,totalRedeemed:number,movements:MovementEntry[]}, RedeemResult{reward:RewardItem,newBalance:number}. Export: getPublicRewards():Promise<RewardItem[]>, getMyPoints():Promise<UserPointsSummary>, redeemReward(rewardId:string):Promise<RedeemResult>. Each uses api.get/post and returns res.data.data.",
+    "T18b — Create mobile-client/src/stores/usePointsStore.ts. Import create from zustand. Import persist,createJSONStorage from zustand/middleware. Import AsyncStorage from @react-native-async-storage/async-storage. Import getMyPoints from '../api/rewardApi'. Import {MovementEntry} from '../api/rewardApi'. State: balance:number(0), totalEarned:number(0), movements:MovementEntry[]([]). Actions: loadPoints():Promise<void> — calls getMyPoints(), sets balance/totalEarned/movements; addLocal(amount:number,description:string):void — increments balance, prepends a movement entry {type:amount>0?'earn':'redeem',amount:Math.abs(amount),description,createdAt:new Date().toISOString()}, trims to 50. Persist key: 'nebula-points-storage'.",
+    "T19a — Create mobile-client/src/components/shared/RewardsCatalog.tsx. RN Modal with animationType='slide', presentationStyle='pageSheet'. Header with title 'Mis Recompensas' + balance badge (Colors.primary). On open (useEffect[visible]), load getPublicRewards(). Render ScrollView with reward cards: each card (Colors.surfaceContainer bg, borderRadius Radius.xl, padding Spacing.md) shows reward image placeholder (or Image), name, description, pointsCost badge, stock info. 'Canjear' NButton: disabled when balance < pointsCost, loading state, onPress calls redeemReward(reward._id) then addLocal(-reward.pointsCost, ...) then shows success toast. Props: visible:boolean, onClose:()=>void.",
+    "T19b — Read mobile-client/src/screens/AccountScreen.tsx. Add showCatalog state (useState false). Import RewardsCatalog. Import usePointsStore. After the LoyaltyCard (added in FEAT-002 T12b), add a TouchableOpacity button: style gold pill (backgroundColor Colors.goldMuted, borderColor Colors.goldBorder, borderWidth 1, borderRadius Radius.full, paddingHorizontal 20, paddingVertical 10, flexDirection row, gap sm). Icon: Gift from lucide-react-native (size 16, Colors.primary). Text: 'Mis Recompensas'. onPress: setShowCatalog(true). Add <RewardsCatalog visible={showCatalog} onClose={()=>setShowCatalog(false)} /> before the ScrollView closing tag. Add mini movements log section after 'Historial de pedidos': title 'Últimos movimientos de puntos', render last 5 movements from usePointsStore (each row: amount badge + description + date).",
+    "T20a — Read mobile-client/src/screens/RouletteScreen.tsx. Import usePointsStore. After triggerReveal(res.selected) call (inside handleSpin catch-try block after stopAllHapticTimers), add: if(res.pointsEarned && res.pointsEarned>0){ usePointsStore.getState().addLocal(res.pointsEarned, `Ruleta: ${res.selected.name} [${res.selected.rarity}]`); setToastMsg(`+${res.pointsEarned} pts ganados`); }",
+    "T20b — Read mobile-client/src/screens/PedidoScreen.tsx. In CartView function, import usePointsStore at the top of the file. In handleSubmit, before clearCart() capture: const itemCount = cart.length. After clearCart() and onSubmitSuccess(order) calls, add: const pts = itemCount * 5; usePointsStore.getState().addLocal(pts, `Pedido enviado (${itemCount} items)`);",
+    "T21 — Create NEBULA_MEGA_PLAN.md at c:/Users/Usuario/OneDrive/Escuela/Proyecto bartender/bartender-system/NEBULA_MEGA_PLAN.md. Include: ## Executive Summary (3 paragraphs describing the 6-phase plan and goals). ## Task Table (markdown table: Task ID | Phase | Platform | Key Files | Status). ## Points System Diagram (ASCII art: ROULETTE SPIN → +5-100pts, ORDER PLACED → +N*5pts → UserPoints.balance → REDEEM REWARD → -Xpts). ## Example Rewards Table (10 rows: ID, Name, Points, Category, Stock). ## Technical Decisions (4 decisions with rationale: Zustand persist for offline points, fire-and-forget for order points, ES Modules in backend, optimistic addLocal vs server sync). ## Category Color Guide (table: Category | Color | Hex)."
+  ],
+  "acceptance_criteria": [
+    "rewardApi.ts exports getPublicRewards, getMyPoints, redeemReward",
+    "usePointsStore has loadPoints and addLocal actions",
+    "RewardsCatalog modal opens, loads rewards, disables Canjear when balance < pointsCost",
+    "AccountScreen has Mis Recompensas button that opens RewardsCatalog",
+    "AccountScreen shows mini movements log from usePointsStore",
+    "RouletteScreen calls addLocal and shows +pts toast after successful spin",
+    "PedidoScreen calls addLocal after order submission",
+    "NEBULA_MEGA_PLAN.md exists at workspace root with all sections",
+    "npx tsc --noEmit in mobile-client exits 0"
+  ],
+  "verification": [
+    "cd mobile-client && npx tsc --noEmit",
+    "Test-Path 'c:/Users/Usuario/OneDrive/Escuela/Proyecto bartender/bartender-system/NEBULA_MEGA_PLAN.md'"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

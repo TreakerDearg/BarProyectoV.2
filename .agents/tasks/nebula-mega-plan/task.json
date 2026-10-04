@@ -1,0 +1,7 @@
+{
+  "task_id": "task-nebula-mega-plan",
+  "task_description": "Full Nebula redesign: bug fix, design tokens, 5 new mobile components, 5 screen redesigns, cinematic roulette (wheel + particles + golden ticket), rewards system across backend + mobile + desktop, and docs.",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null
+}
