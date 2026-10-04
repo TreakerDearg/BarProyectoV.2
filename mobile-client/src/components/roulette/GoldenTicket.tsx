@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Animated,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -47,7 +48,21 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
   onClose,
 }) => {
   const [remainingMs, setRemainingMs] = useState<number>(() => expiresAt - Date.now());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Slide-up entry animation ──────────────────────────────────────────
+  const slideAnim   = useRef(new Animated.Value(100)).current;
+  const shimmerAnim = useRef(new Animated.Value(-200)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, { toValue: 0, friction: 7, tension: 100, useNativeDriver: true }).start();
+  }, []);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(shimmerAnim, { toValue: 400, duration: 2500, useNativeDriver: true })
+    ).start();
+  }, []);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -74,6 +89,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
         <View style={styles.card}>
           {/* Rarity badge */}
           <View style={[styles.rarityBadge, { backgroundColor: badge.bg }]}>
@@ -100,7 +116,7 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
 
           {/* Countdown */}
           {!expired ? (
-            <Text style={styles.countdown}>
+            <Text style={[styles.countdown, remainingMs < 300000 && styles.countdownCritical]}>
               Válido por {fmtMs(remainingMs)}
             </Text>
           ) : (
@@ -115,11 +131,15 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
             Presentá este código al bartender para canjear tu bebida.
           </Text>
 
+          {/* Shimmer overlay */}
+          <Animated.View style={[styles.shimmer, { transform: [{ translateX: shimmerAnim }] }]} />
+
           {/* Close button */}
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Cerrar ticket">
             <Text style={styles.closeBtnText}>Cerrar</Text>
           </TouchableOpacity>
         </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -197,6 +217,9 @@ const styles = StyleSheet.create({
     color:      '#D4A340',
     fontWeight: '600',
   },
+  countdownCritical: {
+    color: '#ef4444',
+  },
   countdownExpired: {
     fontSize:   15,
     color:      '#ef4444',
@@ -233,5 +256,14 @@ const styles = StyleSheet.create({
     color:      '#D4A340',
     fontWeight: '600',
     fontSize:   15,
+  },
+
+  // Shimmer
+  shimmer: {
+    position:        'absolute',
+    top:             0,
+    bottom:          0,
+    width:           80,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
 });

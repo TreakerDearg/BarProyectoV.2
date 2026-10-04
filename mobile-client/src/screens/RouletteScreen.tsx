@@ -29,10 +29,12 @@ import { getPublicRouletteDrinks, spinPublicRoulette, generateRouletteTicket } f
 import { getErrorMessage } from '../api/client';
 import { useCartStore } from '../stores/useCartStore';
 import { useSessionStore } from '../stores/useSessionStore';
+import { usePointsStore } from '../stores/usePointsStore';
 import { NToast } from '../components/shared/NToast';
 import { NButton } from '../components/shared/NButton';
 import { MobileWheel } from '../components/roulette/MobileWheel';
 import { GoldenTicket } from '../components/roulette/GoldenTicket';
+import { RevealExplosion } from '../components/roulette/RevealExplosion';
 
 import type { RouletteDrinkDTO } from '../types/api';
 import type { RootTabParamList } from '../navigation/types';
@@ -49,10 +51,10 @@ interface SpinHistoryItem {
 
 // ── Rarity config ─────────────────────────────────────────────────────────────
 const RARITY_CONFIG = {
-  COMMON:    { border: '#9b8f7d', label: Colors.outline,          glow: 'rgba(155,143,125,0.25)', emoji: '⚪', badgeBg: Colors.surfaceContainerHigh, badgeText: Colors.outline    },
-  RARE:      { border: '#38BDF8', label: Colors.info,             glow: 'rgba(56,189,248,0.25)',  emoji: '🔵', badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info       },
-  EPIC:      { border: '#a855f7', label: '#a855f7',               glow: 'rgba(168,85,247,0.25)',  emoji: '🟣', badgeBg: 'rgba(168,85,247,0.12)',       badgeText: '#a855f7'         },
-  LEGENDARY: { border: Colors.primary, label: Colors.primary,     glow: NocturneColors.goldGlowStrong, emoji: '⭐', badgeBg: Colors.goldMuted, badgeText: Colors.primary },
+  COMMON:    { border: '#9b8f7d', label: Colors.outline,          glow: 'rgba(155,143,125,0.25)', emoji: '⚪', badgeBg: Colors.surfaceContainerHigh, badgeText: Colors.outline,    bgColor: '#9b8f7d' },
+  RARE:      { border: '#38BDF8', label: Colors.info,             glow: 'rgba(56,189,248,0.25)',  emoji: '🔵', badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info,       bgColor: '#38BDF8' },
+  EPIC:      { border: '#a855f7', label: '#a855f7',               glow: 'rgba(168,85,247,0.25)',  emoji: '🟣', badgeBg: 'rgba(168,85,247,0.12)',       badgeText: '#a855f7',         bgColor: '#a855f7' },
+  LEGENDARY: { border: Colors.primary, label: Colors.primary,     glow: NocturneColors.goldGlowStrong, emoji: '⭐', badgeBg: Colors.goldMuted, badgeText: Colors.primary,           bgColor: Colors.primary },
 } as const;
 
 function fmtTime(d: Date): string {
@@ -77,6 +79,8 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   const [toastMsg,      setToastMsg]     = useState<string | null>(null);
   const [ticketData,    setTicketData]   = useState<{ ticket: string; expiresAt: number } | null>(null);
   const [isGeneratingTicket, setIsGeneratingTicket] = useState(false);
+  const [countdown,     setCountdown]    = useState<number | null>(null);
+  const [showExplosion, setShowExplosion] = useState(false);
 
   // ── Animation refs ────────────────────────────────────────────
   const rotateAnim      = useRef(new Animated.Value(0)).current;
@@ -84,6 +88,7 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   const scaleAnim       = useRef(new Animated.Value(0.7)).current;
   const opacityAnim     = useRef(new Animated.Value(0)).current;
   const chevronAnim     = useRef(new Animated.Value(0)).current;
+  const bgTintAnim      = useRef(new Animated.Value(0)).current;
   const rotLoopRef      = useRef<Animated.CompositeAnimation | null>(null);
   const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -96,6 +101,9 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   const hapticTimeout3Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
   const revealTimeoutRef  = useRef<ReturnType<typeof setTimeout>  | null>(null);
 
+  // Countdown timeout refs
+  const countdownRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
   // ── Load drinks ───────────────────────────────────────────────
   useEffect(() => {
     getPublicRouletteDrinks()
@@ -107,6 +115,7 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   useEffect(() => {
     return () => {
       stopAllHapticTimers();
+      countdownRefs.current.forEach(clearTimeout);
       if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
       rotLoopRef.current?.stop();
       if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
@@ -191,11 +200,20 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
 
     revealTimeoutRef.current = setTimeout(() => {
       setSpinState('result');
+      setShowExplosion(true);
+      setTimeout(() => setShowExplosion(false), 2800);
+
       Animated.parallel([
         Animated.spring(scaleAnim,   { toValue: 1, friction: 6, useNativeDriver: true }),
         Animated.timing(opacityAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
       ]).start();
       try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+
+      // EPIC/LEGENDARY bg tint flash
+      if (result.rarity === 'EPIC' || result.rarity === 'LEGENDARY') {
+        bgTintAnim.setValue(0);
+        Animated.timing(bgTintAnim, { toValue: 1, duration: 600, useNativeDriver: false }).start();
+      }
     }, 500);
   };
 
@@ -207,57 +225,79 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     rotateAnim.setValue(0);
     scaleAnim.setValue(0.7);
     opacityAnim.setValue(0);
+    bgTintAnim.setValue(0);
     setSelectedDrink(null);
-    setSpinState('spinning');
     setIsRecipeOpen(false);
     chevronAnim.setValue(0);
     setTicketData(null);
 
-    // Initial heavy impact
-    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
+    // ── Countdown 3 → 2 → 1 → null ───────────────────────────
+    setCountdown(3);
+    countdownRefs.current.forEach(clearTimeout);
+    countdownRefs.current = [
+      setTimeout(() => setCountdown(2),    900),
+      setTimeout(() => setCountdown(1),    1800),
+      setTimeout(() => {
+        setCountdown(null);
 
-    // Progressive haptic sequence
-    startProgressiveHaptics();
+        // Now actually start spinning
+        setSpinState('spinning');
 
-    // Wheel rotation loop
-    rotLoopRef.current = Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 1200,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    rotLoopRef.current.start();
+        // Initial heavy impact
+        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
 
-    // Name cycling (kept for cycling label in pool count area)
-    if (drinks.length > 0) {
-      cycleIntervalRef.current = setInterval(() => {
-        // cycling no longer needed for display; kept as an optional side-effect
-      }, 80);
-    }
+        // Progressive haptic sequence
+        startProgressiveHaptics();
 
-    try {
-      const res = await spinPublicRoulette();
+        // Wheel rotation loop
+        rotLoopRef.current = Animated.loop(
+          Animated.timing(rotateAnim, {
+            toValue: 1,
+            duration: 1200,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          })
+        );
+        rotLoopRef.current.start();
 
-      // Stop all progressive haptics
-      stopAllHapticTimers();
-      if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
+        // Name cycling (kept for cycling label in pool count area)
+        if (drinks.length > 0) {
+          cycleIntervalRef.current = setInterval(() => {
+            // cycling no longer needed for display; kept as an optional side-effect
+          }, 80);
+        }
 
-      // Add to history before reveal so it shows on result
-      setHistory((prev) => [
-        { id: res.selected._id + Date.now(), name: res.selected.name, rarity: res.selected.rarity, timestamp: new Date() },
-        ...prev,
-      ].slice(0, 5));
+        spinPublicRoulette()
+          .then((res) => {
+            // Stop all progressive haptics
+            stopAllHapticTimers();
+            if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
 
-      triggerReveal(res.selected);
-    } catch (err) {
-      rotLoopRef.current?.stop();
-      stopAllHapticTimers();
-      if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
-      setSpinState('idle');
-      Alert.alert('Error en la Ruleta', getErrorMessage(err));
-    }
+            // Add to history before reveal so it shows on result
+            setHistory((prev) => [
+              { id: res.selected._id + Date.now(), name: res.selected.name, rarity: res.selected.rarity, timestamp: new Date() },
+              ...prev,
+            ].slice(0, 5));
+
+            triggerReveal(res.selected);
+
+            // Points integration
+            try {
+              if (res.pointsEarned && res.pointsEarned > 0) {
+                usePointsStore.getState().addLocal(res.pointsEarned, `Ruleta: ${res.selected.name}`);
+                setToastMsg(`+${res.pointsEarned} pts ganados`);
+              }
+            } catch {}
+          })
+          .catch((err) => {
+            rotLoopRef.current?.stop();
+            stopAllHapticTimers();
+            if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
+            setSpinState('idle');
+            Alert.alert('Error en la Ruleta', getErrorMessage(err));
+          });
+      }, 2700),
+    ];
   };
 
   // ── Add to cart ───────────────────────────────────────────────
@@ -318,6 +358,12 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     outputRange: ['0deg', '180deg'],
   });
 
+  // BgTint opacity interpolated for EPIC/LEGENDARY reveal
+  const bgTintOpacity = bgTintAnim.interpolate({
+    inputRange:  [0, 0.5, 1],
+    outputRange: [0, 0.18, 0],
+  });
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <NToast
@@ -326,6 +372,27 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
         variant="success"
         onHide={() => setToastMsg(null)}
       />
+
+      {/* Particle explosion overlay */}
+      <RevealExplosion
+        rarity={selectedDrink?.rarity ?? 'COMMON'}
+        visible={showExplosion}
+      />
+
+      {/* EPIC/LEGENDARY background tint flash */}
+      {(selectedDrink?.rarity === 'EPIC' || selectedDrink?.rarity === 'LEGENDARY') && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: rarityConf.bgColor,
+              opacity:         bgTintOpacity,
+              zIndex:          5,
+            },
+          ]}
+        />
+      )}
 
       {/* Golden Ticket overlay */}
       {ticketData && selectedDrink && (
@@ -336,6 +403,13 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
           rarity={selectedDrink.rarity}
           onClose={() => setTicketData(null)}
         />
+      )}
+
+      {/* ── Countdown overlay ──────────────────────────────────── */}
+      {countdown !== null && (
+        <Animated.View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
+          <Animated.Text style={styles.countdownNumber}>{countdown}</Animated.Text>
+        </Animated.View>
       )}
 
       {/* HEADER */}
@@ -497,6 +571,7 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
         <View style={styles.footer}>
           <NButton
             label={
+              countdown !== null    ? `${countdown}...` :
               spinState === 'spinning'  ? 'Girando...' :
               spinState === 'revealing' ? 'Revelando...' :
               'GIRAR AHORA'
@@ -505,7 +580,7 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
             loading={spinState === 'spinning' || spinState === 'revealing'}
             fullWidth
             size="lg"
-            icon={spinState === 'idle' ? <RotateCw size={20} color={Colors.onPrimary} /> : undefined}
+            icon={spinState === 'idle' && countdown === null ? <RotateCw size={20} color={Colors.onPrimary} /> : undefined}
           />
         </View>
       )}
@@ -719,5 +794,18 @@ const styles = StyleSheet.create({
     paddingBottom:  Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: Colors.outlineVariant,
+  },
+
+  // ── Countdown overlay ─────────────────────────────────────────
+  countdownOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent:  'center',
+    alignItems:      'center',
+    zIndex:          50,
+  },
+  countdownNumber: {
+    fontFamily: 'Outfit_600SemiBold',
+    fontSize:   120,
+    color:      Colors.primary,
   },
 });

@@ -3,12 +3,13 @@
 // Props:
 //   drinks    – array of RouletteDrinkDTO to render as pie segments
 //   spinAnim  – Animated.Value [0..n]; mapped to [0deg..360n deg] via outputRange
+//   phase     – optional spin phase string (for future use)
 //   size      – diameter in dp (default 280)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
 import { Animated } from 'react-native';
-import Svg, { G, Path, Circle, Text as SvgText, Polygon } from 'react-native-svg';
+import Svg, { G, Path, Circle, Text as SvgText, Polygon, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 import type { RouletteDrinkDTO } from '../../types/api';
 
@@ -54,6 +55,7 @@ interface MobileWheelProps {
   drinks:   RouletteDrinkDTO[];
   /** Accepts Animated.Value or Animated.AnimatedAddition (from Animated.add) */
   spinAnim: Animated.Value | Animated.AnimatedAddition<number>;
+  phase?:   string;
   size?:    number;
 }
 
@@ -61,6 +63,7 @@ interface MobileWheelProps {
 export const MobileWheel: React.FC<MobileWheelProps> = ({
   drinks,
   spinAnim,
+  phase: _phase,
   size = 280,
 }) => {
   const cx = size / 2;
@@ -90,6 +93,15 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
 
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Gradient definitions */}
+      <Defs>
+        <LinearGradient id="shimmer" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0"   stopColor="rgba(255,255,255,0)" />
+          <Stop offset="0.5" stopColor="rgba(255,255,255,0.12)" />
+          <Stop offset="1"   stopColor="rgba(255,255,255,0)" />
+        </LinearGradient>
+      </Defs>
+
       {/* Rotating wheel group — transform rotates around centre */}
       <AnimatedG
         // @ts-ignore — AnimatedG inherits G transform props; style not available
@@ -104,6 +116,12 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
               fill={color}
               stroke="rgba(0,0,0,0.3)"
               strokeWidth={1}
+            />
+            {/* Shimmer overlay per segment */}
+            <Path
+              d={arcPath(cx, cy, r, start, sweep)}
+              fill="url(#shimmer)"
+              opacity={0.8}
             />
 
             {/* Label — only render when segment is wide enough to be legible */}
@@ -129,23 +147,44 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
           </React.Fragment>
         ))}
 
-        {/* Centre hub — drawn on top of segments */}
-        <Circle
-          cx={cx}
-          cy={cy}
-          r={hubR}
-          fill="#1A1A22"
-          stroke="#D4A340"
-          strokeWidth={2}
-        />
+        {/* ── Improved centre hub ──────────────────────────────────── */}
+        <Circle cx={cx} cy={cy} r={hubR + 6} fill="#0A0A12" stroke="#D4A340" strokeWidth={2}/>
+        <Circle cx={cx} cy={cy} r={hubR}     fill="#0F0F18"/>
+        <SvgText
+          x={cx}
+          y={cy + hubR * 0.35}
+          textAnchor="middle"
+          fill="#D4A340"
+          fontSize={hubR * 0.85}
+          fontWeight="900"
+        >
+          N
+        </SvgText>
       </AnimatedG>
 
-      {/* ── Pointer (does NOT rotate) ───────────────────────────────────── */}
-      {/* Gold triangle pointing down from top-centre */}
-      <Polygon
-        points={`${cx - 8},${8} ${cx + 8},${8} ${cx},${28}`}
-        fill="#D4A340"
-      />
+      {/* ── Triple gold ring (OUTSIDE AnimatedG) ───────────────── */}
+      <Circle cx={cx} cy={cy} r={r + 6}  fill="none" stroke="#D4A340" strokeWidth={2}/>
+      <Circle cx={cx} cy={cy} r={r + 10} fill="none" stroke="rgba(212,163,64,0.4)" strokeWidth={1}/>
+      <Circle cx={cx} cy={cy} r={r + 13} fill="none" stroke="rgba(212,163,64,0.15)" strokeWidth={1}/>
+
+      {/* ── 24 gold rivets (OUTSIDE AnimatedG) ─────────────────── */}
+      {Array.from({ length: 24 }).map((_, i) => {
+        const angle = ((i * 15 - 90) * Math.PI) / 180;
+        return (
+          <React.Fragment key={`r${i}`}>
+            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={4} fill="#0A0A12"/>
+            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={3} fill="#D4A340" opacity={0.9}/>
+          </React.Fragment>
+        );
+      })}
+
+      {/* ── Improved pointer (OUTSIDE AnimatedG) ───────────────── */}
+      {/* Shadow */}
+      <Polygon points={`${cx - 10},5 ${cx + 10},5 ${cx},28`} fill="rgba(0,0,0,0.6)" transform="translate(1,2)"/>
+      {/* Main pointer */}
+      <Polygon points={`${cx - 9},4 ${cx + 9},4 ${cx},26`} fill="#D4A340"/>
+      {/* Highlight */}
+      <Polygon points={`${cx - 4},8 ${cx + 4},8 ${cx},20`} fill="rgba(255,255,255,0.3)"/>
     </Svg>
   );
 };

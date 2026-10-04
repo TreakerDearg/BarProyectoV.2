@@ -20,6 +20,8 @@ interface PointsState {
   loading:      boolean;
   loadPoints:   () => Promise<void>;
   resetPoints:  () => void;
+  /** Optimistically add points locally (syncs on next loadPoints) */
+  addLocal:     (amount: number, reason: string) => void;
 }
 
 export const usePointsStore = create<PointsState>()(
@@ -46,6 +48,12 @@ export const usePointsStore = create<PointsState>()(
       },
 
       resetPoints: () => set({ balance: 0, totalEarned: 0 }),
+
+      addLocal: (amount: number, _reason: string) =>
+        set((state) => ({
+          balance:     state.balance     + amount,
+          totalEarned: state.totalEarned + amount,
+        })),
     }),
     {
       name:    'nebula-points-storage',
