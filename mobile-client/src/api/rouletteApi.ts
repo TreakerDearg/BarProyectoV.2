@@ -6,9 +6,12 @@ export async function getPublicRouletteDrinks(): Promise<RouletteDrinkDTO[]> {
   return res.data.data;
 }
 
-export async function spinPublicRoulette(): Promise<{ selected: RouletteDrinkDTO; probability: number }> {
-  const res = await api.post<ApiResponse<{ selected: RouletteDrinkDTO; probability: number }>>("/roulette/public/spin");
-  return res.data.data;
+export async function spinPublicRoulette(): Promise<{ selected: RouletteDrinkDTO; probability: number; pointsEarned: number }> {
+  const res = await api.post<ApiResponse<{ result: RouletteDrinkDTO; meta?: { pointsEarned?: number } }>>("/roulette/public/spin");
+  const selected = res.data.data.result;
+  const probability = res.data.data.result.probability ?? 0;
+  const pointsEarned = res.data.data.meta?.pointsEarned ?? 0;
+  return { selected, probability, pointsEarned };
 }
 
 export interface GenerateTicketPayload {

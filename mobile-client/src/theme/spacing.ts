@@ -41,6 +41,16 @@ export const Spacing = {
   tabBarHeight:  64,
   /** Padding debajo del último elemento de un scroll */
   scrollBottom:  90,
+
+  // FEAT-001 new tokens
+  /** Altura del hero carousel */
+  heroCarouselHeight: 220,
+  /** Tamaño de pills de categoría */
+  categoryPillSize:   72,
+  /** Gap de grids */
+  gridGap:            10,
+  /** Nueva altura del tab bar */
+  tabBarHeightNew:    72,
 } as const;
 
 // ── Radios (Nocturne Gastronomy) ──────────────────────────────────────────────

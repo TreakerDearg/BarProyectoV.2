@@ -1,0 +1,23 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "Phase 0+1: Bug fix for spinPublicRoulette() + design system tokens. Fixes the data.selected vs data.result mapping bug in rouletteApi.ts, then adds 9 new NocturneColors tokens and 4 new Spacing tokens. Independent of all other FEATs except that later FEATs depend on the new tokens.",
+  "status": "completed",
+  "steps": [
+    "1. Read mobile-client/src/api/rouletteApi.ts. Replace spinPublicRoulette() function: the backend POST /roulette/public/spin returns { success, data: { result: RouletteDrinkDTO, meta: { pointsEarned, ... } } }. New return type: Promise<{ selected: RouletteDrinkDTO; probability: number; pointsEarned: number }>. Map: selected = res.data.data.result, probability = res.data.data.result.probability ?? 0, pointsEarned = res.data.data.meta?.pointsEarned ?? 0. Keep getPublicRouletteDrinks and generateRouletteTicket unchanged.",
+    "2. Read mobile-client/src/theme/colors.ts. Add to NocturneColors object: surfaceElevated:'#1e2128', goldSubtle:'rgba(243,190,89,0.06)', cardBorderActive:'rgba(243,190,89,0.35)', overlayDark:'rgba(8,9,12,0.85)', badgeRed:'#ef4444', casinoBackground:'#0a0a12', casinoPurple:'rgba(168,85,247,0.08)', casinoGold:'rgba(212,163,64,0.15)', infoMuted:'rgba(56,189,248,0.12)'. Add matching aliases to Colors export: surfaceElevated, goldSubtle, cardBorderActive, overlayDark, badgeRed, casinoBackground, casinoPurple, casinoGold, infoMuted.",
+    "3. Read mobile-client/src/theme/spacing.ts. Add to Spacing object: heroCarouselHeight:220, categoryPillSize:72, gridGap:10, tabBarHeightNew:72."
+  ],
+  "acceptance_criteria": [
+    "spinPublicRoulette() maps res.data.data.result to the returned selected field",
+    "spinPublicRoulette() returns pointsEarned from res.data.data.meta?.pointsEarned ?? 0",
+    "NocturneColors has all 9 new tokens and Colors has matching aliases",
+    "Spacing has heroCarouselHeight:220, categoryPillSize:72, gridGap:10, tabBarHeightNew:72",
+    "npx tsc --noEmit in mobile-client exits 0"
+  ],
+  "verification": [
+    "cd mobile-client && npx tsc --noEmit"
+  ],
+  "blocked_reason": null,
+  "findings": "infoMuted already existed in NocturneColors with value rgba(56,189,248,0.15); updated to the new spec value rgba(56,189,248,0.12) and added alias to Colors. All 9 tokens present. tsc --noEmit exits 0. RouletteDrinkDTO.probability is optional so ?? 0 fallback is correct."
+}

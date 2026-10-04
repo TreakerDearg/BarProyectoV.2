@@ -67,7 +67,7 @@ export const NocturneColors = {
   warning:                   '#E07828',
   warningMuted:              'rgba(224, 120, 40, 0.15)',
   info:                      '#38BDF8',
-  infoMuted:                 'rgba(56, 189, 248, 0.15)',
+  infoMuted:                 'rgba(56,189,248,0.12)',
 
   // Surface tint / glow effects
   goldGlow:                  'rgba(243, 190, 89, 0.25)',
@@ -75,6 +75,16 @@ export const NocturneColors = {
   goldBorder:                'rgba(212, 163, 64, 0.30)',
   goldMuted:                 'rgba(243, 190, 89, 0.12)',
   errorMuted:                'rgba(255, 180, 171, 0.15)',
+
+  // FEAT-001 new tokens
+  surfaceElevated:           '#1e2128',
+  goldSubtle:                'rgba(243,190,89,0.06)',
+  cardBorderActive:          'rgba(243,190,89,0.35)',
+  overlayDark:               'rgba(8,9,12,0.85)',
+  badgeRed:                  '#ef4444',
+  casinoBackground:          '#0a0a12',
+  casinoPurple:              'rgba(168,85,247,0.08)',
+  casinoGold:                'rgba(212,163,64,0.15)',
 };
 
 // ── Aliases de compatibilidad ─────────────────────────────────────────────────
@@ -135,4 +145,15 @@ export const Colors = {
   success:            NocturneColors.success,
   warning:            NocturneColors.warning,
   info:               NocturneColors.info,
+
+  // FEAT-001 aliases
+  surfaceElevated:    NocturneColors.surfaceElevated,
+  goldSubtle:         NocturneColors.goldSubtle,
+  cardBorderActive:   NocturneColors.cardBorderActive,
+  overlayDark:        NocturneColors.overlayDark,
+  badgeRed:           NocturneColors.badgeRed,
+  casinoBackground:   NocturneColors.casinoBackground,
+  casinoPurple:       NocturneColors.casinoPurple,
+  casinoGold:         NocturneColors.casinoGold,
+  infoMuted:          NocturneColors.infoMuted,
 };
