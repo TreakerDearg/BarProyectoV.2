@@ -1,4 +1,5 @@
 import mongoose      from "mongoose";
+import { addPoints } from "../utils/points.js";
 import RouletteDrink from "../models/RouletteDrink.js";
 import Product       from "../models/Product.js";
 import Recipe        from "../models/Recipe.js";
@@ -415,6 +416,19 @@ export const spinRoulette = async (req, res, next) => {
       });
     }
     getIo().to("role:admin").emit("roulette:admin:spin", { ...payload, userId });
+
+    // Award points based on rarity
+    const RARITY_POINTS = { COMMON: 5, RARE: 15, EPIC: 40, LEGENDARY: 100 };
+    let pointsEarned = 0;
+    if (userId) {
+      pointsEarned = RARITY_POINTS[selected.rarity] ?? 5;
+      try {
+        await addPoints(userId, pointsEarned, `Ruleta: ${selected.name} [${selected.rarity}]`, selected._id, 'RouletteDrink');
+      } catch (e) {
+        console.warn('[points] addPoints failed in spin:', e.message);
+      }
+    }
+    payload.meta.pointsEarned = pointsEarned;
 
     return ok(res, payload);
   } catch (error) { throw error; }

@@ -14,6 +14,7 @@ const permissionsByRole: Record<string, string[]> = {
     "/discounts/apply",
     "/promotions",
     "/roulette",
+    "/rewards",
   ],
   waiter: [
     "/dashboard",

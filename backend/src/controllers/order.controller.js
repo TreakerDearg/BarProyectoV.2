@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { addPoints } from "../utils/points.js";
 import Order        from "../models/Order.js";
 import Product      from "../models/Product.js";
 import Menu         from "../models/Menu.js";
@@ -267,6 +268,14 @@ const [order] = await Order.create(
     }
 
     await session.commitTransaction();
+
+    // Award points for placing an order (fire-and-forget, non-blocking)
+    if (order.userId || req.user?.id) {
+      const uid = order.userId || req.user.id;
+      const qty = order.items?.length ?? 1;
+      addPoints(uid, qty * 5, `Pedido #${order._id}`, order._id, 'Order')
+        .catch(err => console.warn('[points] order addPoints failed:', err.message));
+    }
 
     // Actualizar la mesa para reflejar la nueva orden
     const updatedTable = await Table.findById(table).session(session);

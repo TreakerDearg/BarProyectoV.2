@@ -19,6 +19,7 @@ import NebulaRecipeStudio from "../modules/recipes/pages/NebulaRecipeStudio";
 import TablesPage from "../modules/tables/pages/TablesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
+import RewardsPage  from "../modules/rewards/pages/RewardsPage";
 import OrdersPage from "../modules/orders/pages/OrdersPage";
 import DiscountsSuite from "../modules/discounts/pages/DiscountsSuite";
 import DiscountEventsPage from "../modules/discounts/pages/DiscountEventsPage";
@@ -118,6 +119,9 @@ export default function AppRouter() {
             </Route>
             <Route element={<RoleRoute path="/roulette" />}>
               <Route path="/roulette" element={<RoulettePage />} />
+            </Route>
+            <Route element={<RoleRoute path="/rewards" />}>
+              <Route path="/rewards" element={<RewardsPage />} />
             </Route>
 
             {/* ================= ADMIN MODULE (DYNAMIC) ================= */}

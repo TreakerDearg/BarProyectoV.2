@@ -33,6 +33,7 @@ import techniqueRoutes   from "./technique.routes.js";
 import decorationRoutes  from "./decoration.routes.js";
 import collectionRoutes  from "./collection.routes.js";
 import tagRoutes         from "./tag.routes.js";
+import rewardRoutes      from "./reward.routes.js";
 
 const router = Router();
 
@@ -69,5 +70,6 @@ router.use("/techniques",   techniqueRoutes);
 router.use("/decorations",  decorationRoutes);
 router.use("/collections",  collectionRoutes);
 router.use("/tags",         tagRoutes);
+router.use("/rewards",      rewardRoutes);
 
 export default router;
