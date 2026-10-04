@@ -44,7 +44,8 @@ import { socketService }     from '../socket/socketService';
 import { NInput }   from '../components/shared/NInput';
 import { NButton }  from '../components/shared/NButton';
 import { NSkeleton } from '../components/shared/NSkeleton';
-import { LoyaltyCard } from '../components/shared/LoyaltyCard';
+import { LoyaltyCard }     from '../components/shared/LoyaltyCard';
+import RewardsCatalog      from '../components/shared/RewardsCatalog';
 
 import type { RootTabParamList } from '../navigation/types';
 
@@ -310,7 +311,8 @@ export default function AccountScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { user, token, logout } = useAuthStore();
   const { favorites, loadFromBackend } = useFavoritesStore();
-  const { balance: pointsBalance, totalEarned: pointsTotalEarned } = usePointsStore();
+  const { balance: pointsBalance, totalEarned: pointsTotalEarned, movements: pointsMovements } = usePointsStore();
+  const [showCatalog, setShowCatalog] = useState(false);
 
   // ── Historial ─────────────────────────────────────────────────
   const [orderHistory,     setOrderHistory]     = useState<OrderHistoryItem[]>([]);
@@ -455,6 +457,42 @@ export default function AccountScreen() {
           totalEarned={pointsTotalEarned}
           userId={user?.id ?? ''}
         />
+
+        {/* ── Mis Recompensas button ────────────────────────── */}
+        <TouchableOpacity
+          style={styles.rewardsBtn}
+          onPress={() => setShowCatalog(true)}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir catálogo de recompensas"
+        >
+          <Sparkles size={18} color={Colors.primary} />
+          <Text style={styles.rewardsBtnText}>🎁 Mis Recompensas</Text>
+          <ChevronRight size={16} color={Colors.primary} />
+        </TouchableOpacity>
+
+        {/* ── Mini movements log (last 3) ───────────────────── */}
+        {pointsMovements.length > 0 && (
+          <View style={styles.movementsSection}>
+            <Text style={styles.movementsTitle}>Últimos movimientos</Text>
+            {pointsMovements.slice(0, 3).map((m, i) => (
+              <View key={i} style={styles.movementRow}>
+                <Text style={styles.movementEmoji}>
+                  {m.amount > 0 ? '💰' : '🔴'}
+                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.movementDesc} numberOfLines={1}>{m.description}</Text>
+                  <Text style={styles.movementDate}>
+                    {new Date(m.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                  </Text>
+                </View>
+                <Text style={[styles.movementAmount, { color: m.amount > 0 ? Colors.success : Colors.error }]}>
+                  {m.amount > 0 ? `+${m.amount}` : `${m.amount}`} pts
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* ── Pedido activo (tiempo real) ───────────────────── */}
         {activeOrderStatus && (
@@ -610,6 +648,12 @@ export default function AccountScreen() {
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* ── RewardsCatalog modal ──────────────────────────── */}
+      <RewardsCatalog
+        visible={showCatalog}
+        onClose={() => setShowCatalog(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -762,4 +806,57 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,180,171,0.05)',
   },
   logoutText: { ...Typography.labelLg, color: Colors.error },
+
+  // ── Rewards button ──────────────────────────────────────────────
+  rewardsBtn: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.sm,
+    backgroundColor: Colors.goldMuted,
+    borderRadius:    Radius.lg,
+    padding:         Spacing.md,
+    borderWidth:     1,
+    borderColor:     Colors.goldBorder,
+  },
+  rewardsBtnText: {
+    ...Typography.labelLg,
+    color: Colors.primary,
+    flex:  1,
+  },
+
+  // ── Movements log ────────────────────────────────────────────────
+  movementsSection: {
+    gap: Spacing.xs,
+  },
+  movementsTitle: {
+    ...Typography.labelSm,
+    color: Colors.onSurfaceVariant,
+    marginBottom: 4,
+  },
+  movementRow: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.sm,
+    backgroundColor: Colors.surfaceContainer,
+    borderRadius:    Radius.md,
+    padding:         Spacing.smMd,
+    borderWidth:     1,
+    borderColor:     'rgba(224,226,236,0.05)',
+  },
+  movementEmoji: {
+    fontSize:   16,
+    lineHeight: 20,
+  },
+  movementDesc: {
+    ...Typography.bodyMd,
+    color: Colors.onSurface,
+  },
+  movementDate: {
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
+  },
+  movementAmount: {
+    ...Typography.labelMd,
+    fontWeight: '700' as const,
+  },
 });

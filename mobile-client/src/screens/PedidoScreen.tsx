@@ -41,6 +41,7 @@ import { Elevation }  from '../theme/elevation';
 import { useCartStore }    from '../stores/useCartStore';
 import { useSessionStore } from '../stores/useSessionStore';
 import { useAuthStore }    from '../stores/useAuthStore';
+import { usePointsStore }  from '../stores/usePointsStore';
 import { createOrder, getOrderById } from '../api/orderApi';
 import { getTableDetails }           from '../api/tableApi';
 import { getErrorMessage }           from '../api/client';
@@ -236,7 +237,9 @@ function CartView({
         notes: tipPercent > 0 ? `Propina sugerida: ${tipPercent}% ($${tipAmount})` : '',
       });
       try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+      const itemCount = cart.length;
       clearCart();
+      usePointsStore.getState().addLocal(itemCount * 5, `Pedido enviado (${itemCount} items)`);
       onSubmitSuccess(order);
     } catch (err) {
       try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); } catch {}
