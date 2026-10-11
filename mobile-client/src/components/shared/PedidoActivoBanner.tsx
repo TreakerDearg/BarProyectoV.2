@@ -14,6 +14,8 @@ import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
 import type { OrderPublicDTO } from '../../types/api';
+import { getOrderStatusMeta } from '../../utils/status';
+import { StatusBadge } from './StatusBadge';
 
 interface PedidoActivoBannerProps {
   order:    OrderPublicDTO;
@@ -21,27 +23,12 @@ interface PedidoActivoBannerProps {
   estimatedMinutes?: number;
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  pending:       Colors.warning,
-  'in-progress': Colors.primary,
-  completed:     Colors.success,
-  cancelled:     Colors.error,
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  pending:       'Pedido recibido',
-  'in-progress': 'En barra',
-  completed:     'Listo para servir',
-  cancelled:     'Cancelado',
-};
-
 export function PedidoActivoBanner({
   order,
   onPress,
   estimatedMinutes = 15,
 }: PedidoActivoBannerProps) {
-  const accentColor = STATUS_COLOR[order.status] ?? Colors.primary;
-  const statusLabel = STATUS_LABEL[order.status] ?? order.status;
+  const accentColor = getOrderStatusMeta(order.status).color;
 
   // Primeros 2 items para thumbnails
   const previewItems = order.items?.slice(0, 2) ?? [];
@@ -64,11 +51,7 @@ export function PedidoActivoBanner({
             <Text style={styles.orderRef}>
               Pedido #{order.id.slice(-4).toUpperCase()}
             </Text>
-            <View style={[styles.statusChip, { borderColor: `${accentColor}40`, backgroundColor: `${accentColor}15` }]}>
-              <Text style={[styles.statusChipText, { color: accentColor }]}>
-                {statusLabel}
-              </Text>
-            </View>
+            <StatusBadge kind="order" status={order.status} />
           </View>
 
           {/* Tiempo estimado */}
@@ -132,13 +115,6 @@ const styles = StyleSheet.create({
     flexWrap:      'wrap',
   },
   orderRef: { ...Typography.labelLg, color: Colors.onSurface },
-  statusChip: {
-    borderRadius:    Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical:   2,
-    borderWidth:     1,
-  },
-  statusChipText: { ...Typography.labelSm, textTransform: 'none' as const },
   timeRow: {
     flexDirection: 'row',
     alignItems:    'center',

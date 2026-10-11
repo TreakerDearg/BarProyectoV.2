@@ -5,9 +5,9 @@
 // Selected: surfaceContainerHighest + borde gold + texto dorado + dot
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, View, Text, ScrollView, TouchableOpacity, useWindowDimensions,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors }     from '../theme/colors';
@@ -31,14 +31,27 @@ export function CategoryPills({
   selectedCategory,
   onSelectCategory,
 }: CategoryPillsProps) {
+  const { width }   = useWindowDimensions();
+  const scrollRef   = useRef<ScrollView>(null);
+  const pillLayouts = useRef<Record<string, { x: number; w: number }>>({});
+
+  // Auto-centrado de la pill activa (taps y scroll-spy)
+  useEffect(() => {
+    const info = pillLayouts.current[selectedCategory];
+    if (!info || !scrollRef.current) return;
+    const x = Math.max(info.x - (width / 2 - info.w / 2), 0);
+    scrollRef.current.scrollTo({ x, animated: true });
+  }, [selectedCategory, width]);
+
   const handlePress = (id: string) => {
     try { Haptics.selectionAsync(); } catch {}
     onSelectCategory(id);
   };
 
   return (
-    <View style={styles.container}>
+    <View>
       <ScrollView
+        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
@@ -48,6 +61,12 @@ export function CategoryPills({
           return (
             <TouchableOpacity
               key={cat.id}
+              onLayout={(e) => {
+                pillLayouts.current[cat.id] = {
+                  x: e.nativeEvent.layout.x,
+                  w: e.nativeEvent.layout.width,
+                };
+              }}
               style={[styles.pill, isSelected && styles.pillActive]}
               onPress={() => handlePress(cat.id)}
               activeOpacity={0.75}
@@ -68,8 +87,7 @@ export function CategoryPills({
 }
 
 const styles = StyleSheet.create({
-  container: { marginVertical: Spacing.sm },
-  scroll:    { gap: Spacing.sm, paddingRight: Spacing.gutter },
+  scroll: { gap: Spacing.sm, paddingHorizontal: Spacing.gutter },
 
   pill: {
     flexDirection:   'row',

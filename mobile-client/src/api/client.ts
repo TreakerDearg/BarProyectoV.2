@@ -16,7 +16,7 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
     "X-Platform": "mobile",
-    "X-Client-Version": "1.0.0",
+    "X-Client-Version": "1.1.0",
   },
   timeout: 15000,
 });

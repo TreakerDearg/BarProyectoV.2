@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { TableProperties, Receipt, PhoneCall, RotateCw } from 'lucide-react-native';
 import { Colors }     from '../../theme/colors';
+import { StatusBadge } from './StatusBadge';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
@@ -17,7 +18,6 @@ import { Elevation }  from '../../theme/elevation';
 interface MesaCardProps {
   tableNumber:    number;
   zone?:          string;
-  status?:        string;
   totalAmount?:   number;
   onViewConsumos?: () => void;
   onCallWaiter?:   () => void;
@@ -27,7 +27,6 @@ interface MesaCardProps {
 export function MesaCard({
   tableNumber,
   zone,
-  status = 'activa',
   totalAmount,
   onViewConsumos,
   onCallWaiter,
@@ -43,10 +42,7 @@ export function MesaCard({
         <View style={styles.info}>
           <View style={styles.nameBadgeRow}>
             <Text style={styles.mesaName}>Mesa {tableNumber}</Text>
-            <View style={styles.statusBadge}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>Mesa {status}</Text>
-            </View>
+            <StatusBadge kind="service" status="table" />
           </View>
           {zone ? (
             <Text style={styles.zone} numberOfLines={1}>{zone}</Text>
@@ -99,7 +95,7 @@ export function MesaCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.xl,
     borderWidth:     1,
     borderColor:     'rgba(224, 226, 236, 0.08)',
@@ -130,23 +126,6 @@ const styles = StyleSheet.create({
     flexWrap:      'wrap',
   },
   mesaName: { ...Typography.headlineSm, color: Colors.onSurface },
-  statusBadge: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    gap:             5,
-    backgroundColor: 'rgba(52, 185, 100, 0.10)',
-    borderRadius:    Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-    borderWidth:     1,
-    borderColor:     'rgba(52, 185, 100, 0.25)',
-  },
-  statusDot: {
-    width: 6, height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.success,
-  },
-  statusText: { ...Typography.labelSm, color: Colors.success, textTransform: 'none' as const },
   zone: { ...Typography.bodySm, color: Colors.onSurfaceVariant },
 
   divider: {

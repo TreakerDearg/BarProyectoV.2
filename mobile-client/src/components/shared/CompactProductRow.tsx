@@ -41,6 +41,7 @@ export function CompactProductRow({
   const hasDiscount = product.dynamicPrice < product.price;
 
   const handleAdd = () => {
+    if (!product.available) return;
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
     onAdd(product);
   };
@@ -81,6 +82,11 @@ export function CompactProductRow({
       <View style={styles.content}>
         <View style={styles.titleRow}>
           <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
+          {!product.available && (
+            <View style={styles.soldOutBadge}>
+              <Text style={styles.soldOutText}>Agotado</Text>
+            </View>
+          )}
           {product.drinkStyle === 'author' && (
             <View style={styles.authorBadge}>
               <Text style={styles.authorText}>AUTOR</Text>
@@ -122,15 +128,28 @@ export function CompactProductRow({
 
             {/* Botón + con badge de cantidad */}
             <TouchableOpacity
-              style={[styles.addBtn, cartQty > 0 && styles.addBtnActive]}
+              style={[
+                styles.addBtn,
+                cartQty > 0 && styles.addBtnActive,
+                !product.available && styles.addBtnDisabled,
+              ]}
               onPress={handleAdd}
               activeOpacity={0.8}
-              accessibilityLabel={`Agregar ${product.name} al carrito`}
+              disabled={!product.available}
+              accessibilityLabel={
+                product.available
+                  ? `Agregar ${product.name} al carrito`
+                  : `${product.name} no está disponible`
+              }
             >
               {cartQty > 0 ? (
                 <Text style={styles.qtyText}>{cartQty}</Text>
               ) : (
-                <Plus size={16} color={Colors.onPrimary} strokeWidth={2.5} />
+                <Plus
+                  size={16}
+                  color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
+                  strokeWidth={2.5}
+                />
               )}
             </TouchableOpacity>
           </View>
@@ -215,6 +234,20 @@ const styles = StyleSheet.create({
     color:     Colors.primary,
     fontSize:  9,
   },
+  soldOutBadge: {
+    backgroundColor: Colors.surfaceContainerHighest,
+    borderRadius:    Radius.xs,
+    paddingHorizontal: 5,
+    paddingVertical:   1,
+    borderWidth:     1,
+    borderColor:     Colors.outlineVariant,
+  },
+  soldOutText: {
+    ...Typography.labelSm,
+    color:         Colors.onSurfaceVariant,
+    textTransform: 'none' as const,
+    fontSize:      9,
+  },
   description: {
     ...Typography.bodySm,
     color:      Colors.onSurfaceVariant,
@@ -233,9 +266,8 @@ const styles = StyleSheet.create({
     gap:           6,
   },
   price: {
-    ...Typography.labelLg,
-    color:    Colors.primary,
-    fontSize: 15,
+    ...Typography.price,
+    color: Colors.primary,
   },
   originalPrice: {
     ...Typography.bodySm,
@@ -257,6 +289,9 @@ const styles = StyleSheet.create({
   },
   addBtnActive: {
     backgroundColor: Colors.goldDark,
+  },
+  addBtnDisabled: {
+    backgroundColor: Colors.surfaceContainerHighest,
   },
   qtyText: {
     ...Typography.labelLg,

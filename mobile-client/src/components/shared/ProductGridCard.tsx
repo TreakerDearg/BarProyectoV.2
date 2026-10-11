@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Heart, Minus, Plus } from 'lucide-react-native';
 
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
@@ -54,6 +54,13 @@ export function ProductGridCard({
     action();
   };
 
+  // Precio protagonista: descuento explícito cuando dynamicPrice < price
+  const currentPrice = product.dynamicPrice ?? product.price;
+  const hasDiscount  = currentPrice < product.price;
+  const discountPct  = hasDiscount
+    ? Math.round((1 - currentPrice / product.price) * 100)
+    : 0;
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -89,10 +96,24 @@ export function ProductGridCard({
           </TouchableOpacity>
         )}
 
-        {/* Unavailable overlay */}
+        {/* Badges de la tarjeta */}
+        <View style={styles.badgesCol} pointerEvents="none">
+          {product.featured && (
+            <View style={styles.featuredBadge}>
+              <Text style={styles.featuredBadgeText}>Más pedido</Text>
+            </View>
+          )}
+          {hasDiscount && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountBadgeText}>-{discountPct}%</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Agotado overlay */}
         {!product.available && (
           <View style={styles.unavailableOverlay}>
-            <Text style={styles.unavailableText}>No disponible</Text>
+            <Text style={styles.unavailableText}>Agotado</Text>
           </View>
         )}
       </View>
@@ -100,9 +121,12 @@ export function ProductGridCard({
       {/* ── Info ─────────────────────────────────────────── */}
       <View style={styles.infoWrap}>
         <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
-        <Text style={styles.productPrice}>
-          {fmtPrice(product.dynamicPrice ?? product.price)}
-        </Text>
+        <View style={styles.priceRow}>
+          <Text style={styles.productPrice}>{fmtPrice(currentPrice)}</Text>
+          {hasDiscount && (
+            <Text style={styles.priceOriginal}>{fmtPrice(product.price)}</Text>
+          )}
+        </View>
 
         {/* ── Stepper / Add button ─────────────────────── */}
         {cartQty === 0 ? (
@@ -184,6 +208,37 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
   },
+  badgesCol: {
+    position:   'absolute',
+    top:        Spacing.xs,
+    left:       Spacing.xs,
+    gap:        4,
+    alignItems: 'flex-start',
+  },
+  featuredBadge: {
+    backgroundColor:   Colors.goldMuted,
+    borderRadius:      Radius.full,
+    borderWidth:       1,
+    borderColor:       Colors.goldBorder,
+    paddingHorizontal: 8,
+    paddingVertical:   3,
+  },
+  featuredBadgeText: {
+    ...Typography.labelSm,
+    color:         Colors.primary,
+    textTransform: 'none' as const,
+  },
+  discountBadge: {
+    backgroundColor:   NocturneColors.errorContainer,
+    borderRadius:      Radius.full,
+    paddingHorizontal: 8,
+    paddingVertical:   3,
+  },
+  discountBadgeText: {
+    ...Typography.labelSm,
+    color:         NocturneColors.onErrorContainer,
+    textTransform: 'none' as const,
+  },
   unavailableOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(8,9,12,0.65)',
@@ -206,10 +261,19 @@ const styles = StyleSheet.create({
     color:      Colors.onSurface,
     lineHeight: 18,
   },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems:    'baseline',
+    gap:           6,
+  },
   productPrice: {
     ...Typography.price,
-    color:    Colors.primary,
-    fontSize: 15,
+    color: Colors.primary,
+  },
+  priceOriginal: {
+    ...Typography.bodySm,
+    color:              Colors.outline,
+    textDecorationLine: 'line-through',
   },
 
   // ── Add button ─────────────────────────────────────────────────

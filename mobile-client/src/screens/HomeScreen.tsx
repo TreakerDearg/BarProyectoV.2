@@ -18,9 +18,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  Sparkles, Zap,
-  ChefHat, ShoppingBag, CalendarDays,
-  RotateCw,
+  Sparkles, ChevronDown,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -45,17 +43,18 @@ import { socketService }       from '../socket/socketService';
 
 import { MesaCard }            from '../components/shared/MesaCard';
 import { PedidoActivoBanner }  from '../components/shared/PedidoActivoBanner';
-import { PromoBanner, PromoBannerFallback } from '../components/shared/PromoBanner';
 import { SommelierCard }       from '../components/shared/SommelierCard';
 import { NSkeleton }           from '../components/shared/NSkeleton';
 import { NToast }              from '../components/shared/NToast';
-import { CategoryPills }       from '../components/CategoryPills';
+import { FulfillmentSheet }    from '../components/shared/FulfillmentSheet';
 import { HeroCarousel }        from '../components/HeroCarousel';
 import { CategoryHeroRow }     from '../components/CategoryHeroRow';
 import { ProductGridCard }     from '../components/shared/ProductGridCard';
 import { RouletteScreen }      from './RouletteScreen';
+import { QRScannerScreen }     from './QRScannerScreen';
 import { ProductCustomizerSheet } from '../components/ProductCustomizerSheet';
 import { MobileWheel }         from '../components/roulette/MobileWheel';
+import { SERVICE_MODE_META }   from '../utils/status';
 
 import type {
   ProductPublicDTO,
@@ -76,60 +75,23 @@ function getGreeting(): string {
   return 'Buenas noches';
 }
 
-// ── Quick action card ─────────────────────────────────────────────────────────
-interface QuickAction {
-  label:   string;
-  icon:    React.ReactNode;
-  bg:      string;
-  onPress: () => void;
+// ── Promo helpers (beneficio + vigencia para el HeroCarousel) ────────────────
+function promoBenefit(p: PromotionPublicDTO): string | undefined {
+  switch (p.type) {
+    case 'PERCENT': return `-${p.value}% OFF`;
+    case 'FLAT':    return `-$${p.value.toLocaleString('es-AR')} OFF`;
+    case '2X1':     return '2x1';
+    default:        return undefined;
+  }
 }
 
-function QuickActionCard({ label, icon, bg, onPress }: QuickAction) {
-  const pressAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    Animated.spring(pressAnim, { toValue: 0.92, useNativeDriver: true, friction: 8 }).start();
-  };
-  const handlePressOut = () => {
-    Animated.spring(pressAnim, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
-  };
-
-  return (
-    <TouchableOpacity
-      style={[qStyles.card, { backgroundColor: bg }]}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={1}
-    >
-      <Animated.View
-        style={[qStyles.inner, { transform: [{ scale: pressAnim }] }]}
-      >
-        {icon}
-        <Text style={qStyles.label}>{label}</Text>
-      </Animated.View>
-    </TouchableOpacity>
-  );
+function promoValidUntil(p: PromotionPublicDTO): string | undefined {
+  const end = p.schedule?.endDate;
+  if (!end) return undefined;
+  const d = new Date(end);
+  if (isNaN(d.getTime())) return undefined;
+  return `Vigente hasta ${d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}`;
 }
-
-const qStyles = StyleSheet.create({
-  card: {
-    width:           '22%',
-    aspectRatio:     1,
-    borderRadius:    Radius.lg,
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
-    overflow:        'hidden',
-  },
-  inner: {
-    width: '100%',
-    height: '100%',
-    justifyContent:  'center',
-    alignItems:      'center',
-    gap:             4,
-  },
-  label: { ...Typography.labelSm, color: Colors.onSurface, textTransform: 'none' as const, textAlign: 'center' },
-});
 
 // ── HomeScreen ────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
@@ -137,7 +99,7 @@ export default function HomeScreen() {
   const tabBarHeight = useBottomTabBarHeight();
 
   const user          = useAuthStore((s) => s.user);
-  const { tableId, tableNumber } = useSessionStore();
+  const { tableId, tableNumber, serviceMode } = useSessionStore();
   const cartCount     = useCartStore((s) => s.cart.length);
 
   // ── Data state ────────────────────────────────────────────────
@@ -150,6 +112,8 @@ export default function HomeScreen() {
   const [refreshing,       setRefreshing]       = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showRoulette,     setShowRoulette]     = useState(false);
+  const [showFulfillment,  setShowFulfillment]  = useState(false);
+  const [showQR,           setShowQR]           = useState(false);
   const [homeToast,        setHomeToast]        = useState<string | null>(null);
   const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
   const [idleWheelDrinks,  setIdleWheelDrinks]  = useState<RouletteDrinkDTO[]>([]);
@@ -364,6 +328,31 @@ export default function HomeScreen() {
     setHomeToast(`${product.name} agregado al pedido`);
   };
 
+  // ── Session chip (destino del pedido) ─────────────────────────
+  const zoneLabel = tableInfo?.location
+    ? tableInfo.location.charAt(0).toUpperCase() + tableInfo.location.slice(1)
+    : undefined;
+
+  const hasTable = tableNumber != null;
+
+  const chipMeta = hasTable
+    ? {
+        ...SERVICE_MODE_META.table,
+        label:  `Mesa #${tableNumber}${zoneLabel ? ` · ${zoneLabel}` : ''}`,
+        border: Colors.goldBorder,
+      }
+    : serviceMode === 'bar'
+    ? { ...SERVICE_MODE_META.bar, border: NocturneColors.infoMuted }
+    : {
+        ...SERVICE_MODE_META.table,
+        label:  'Sin mesa',
+        color:  Colors.onSurfaceVariant,
+        bg:     Colors.surfaceContainerHighest,
+        border: Colors.outlineVariant,
+      };
+
+  const ChipIcon = chipMeta.icon;
+
   // ── Render: skeleton de carga ─────────────────────────────────
   const renderSkeleton = () => (
     <View style={{ gap: Spacing.md, padding: Spacing.gutter }}>
@@ -390,20 +379,33 @@ export default function HomeScreen() {
             <Sparkles size={14} color={Colors.primary} />
           </View>
           <Text style={styles.brandName}>Nebula</Text>
-          <View style={styles.zoneBadge}>
-            <Text style={styles.zoneText}>
-              {tableInfo?.location ? tableInfo.location.toUpperCase() : 'BAR'}
+
+          {/* Chip de sesión — abre FulfillmentSheet */}
+          <TouchableOpacity
+            style={[styles.sessionChip, { backgroundColor: chipMeta.bg, borderColor: chipMeta.border }]}
+            onPress={() => {
+              try { Haptics.selectionAsync(); } catch {}
+              setShowFulfillment(true);
+            }}
+            activeOpacity={0.8}
+          >
+            <ChipIcon size={12} color={chipMeta.color} />
+            <Text
+              style={[styles.sessionChipText, { color: chipMeta.color }]}
+              numberOfLines={1}
+            >
+              {chipMeta.label}
             </Text>
-          </View>
-          {/* Pulsing dot when mesa connected */}
-          {tableNumber != null && (
-            <Animated.View
-              style={[
-                styles.pulsingDot,
-                { transform: [{ scale: pulseAnim }] },
-              ]}
-            />
-          )}
+            {hasTable && (
+              <Animated.View
+                style={[
+                  styles.pulsingDot,
+                  { transform: [{ scale: pulseAnim }] },
+                ]}
+              />
+            )}
+            <ChevronDown size={12} color={chipMeta.color} />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={goToCuenta} style={styles.avatarBtn}>
@@ -455,27 +457,27 @@ export default function HomeScreen() {
               style={{
                 opacity: anim.mesa.o,
                 transform: [{ translateY: anim.mesa.y }],
+                gap: Spacing.md,
               }}
             >
-              {tableNumber != null && (
-                <MesaCard
-                  tableNumber={tableNumber}
-                  zone={tableInfo?.location
-                    ? `Zona ${tableInfo.location.charAt(0).toUpperCase() + tableInfo.location.slice(1)}`
-                    : undefined}
-                  totalAmount={tableInfo?.totalAmount}
-                  onViewConsumos={goToPedidos}
-                  onCallWaiter={handleCallWaiter}
-                  onRepeatRound={handleRepeatRound}
-                />
-              )}
-
               {/* ── Pedido activo ────────────────────────── */}
               {activeOrder && (
                 <PedidoActivoBanner
                   order={activeOrder}
                   onPress={goToPedidos}
                   estimatedMinutes={15}
+                />
+              )}
+
+              {/* ── Mesa activa ──────────────────────────── */}
+              {tableNumber != null && (
+                <MesaCard
+                  tableNumber={tableNumber}
+                  zone={zoneLabel ? `Zona ${zoneLabel}` : undefined}
+                  totalAmount={tableInfo?.totalAmount}
+                  onViewConsumos={goToPedidos}
+                  onCallWaiter={handleCallWaiter}
+                  onRepeatRound={handleRepeatRound}
                 />
               )}
             </Animated.View>
@@ -489,10 +491,12 @@ export default function HomeScreen() {
             >
               <HeroCarousel
                 slides={promos.map((p) => ({
-                  id:       p.id,
-                  title:    p.name,
-                  subtitle: p.description,
-                  onPress:  goToCarta,
+                  id:         p.id,
+                  title:      p.name,
+                  subtitle:   p.description,
+                  benefit:    promoBenefit(p),
+                  validUntil: promoValidUntil(p),
+                  onPress:    goToCarta,
                 }))}
               />
             </Animated.View>
@@ -636,6 +640,28 @@ export default function HomeScreen() {
         onClose={() => setCustomizerProduct(null)}
         onConfirm={handleCustomizerConfirm}
       />
+
+      {/* ── FulfillmentSheet — ¿Cómo recibís tu pedido? ── */}
+      <FulfillmentSheet
+        visible={showFulfillment}
+        onClose={() => setShowFulfillment(false)}
+        onOpenScanner={() => setShowQR(true)}
+      />
+
+      {/* ── Modal QR Scanner ────────────────────────────── */}
+      <Modal
+        visible={showQR}
+        animationType="slide"
+        onRequestClose={() => setShowQR(false)}
+      >
+        <QRScannerScreen
+          onClose={() => setShowQR(false)}
+          onSuccess={() => {
+            setShowQR(false);
+            setHomeToast('Mesa conectada. Ya podés pedir desde tu mesa.');
+          }}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -656,9 +682,11 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(224, 226, 236, 0.06)',
   },
   topLeft: {
+    flex:          1,
     flexDirection: 'row',
     alignItems:    'center',
     gap:           Spacing.sm,
+    marginRight:   Spacing.sm,
   },
   brandDot: {
     width:           28,
@@ -675,15 +703,21 @@ const styles = StyleSheet.create({
     color:         Colors.primary,
     letterSpacing: 1,
   },
-  zoneBadge: {
-    backgroundColor: Colors.surfaceContainerHighest,
-    borderRadius:    Radius.full,
+  sessionChip: {
+    flexShrink:        1,
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               5,
+    borderRadius:      Radius.full,
     paddingHorizontal: 8,
-    paddingVertical:   3,
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.10)',
+    paddingVertical:   4,
+    borderWidth:       1,
   },
-  zoneText: { ...Typography.labelSm, color: Colors.onSurfaceVariant },
+  sessionChipText: {
+    ...Typography.labelSm,
+    textTransform: 'none' as const,
+    flexShrink:    1,
+  },
   pulsingDot: {
     width:           8,
     height:          8,

@@ -581,6 +581,25 @@ Simplicidad mobile. Un scroll es más natural y menos cognitivamente exigente pa
 
 ---
 
+## [2026-10-11] — NOCTURNE EVOLVED (EVOLUCIÓN VISUAL CENTRADA EN CLARIDAD)
+
+### Cambio
+Se adopta "Nocturne Evolved" como marco de la evolución visual del cliente: se mantiene Nocturne Gastronomy (fondo oscuro + oro), la navegación de 5 tabs y la arquitectura actual, amplificados con patrones QSR (McDonald's / KFC / Starbucks) centrados en un principio rector: el usuario debe entender todo con solo verlo. Sin nuevas dependencias, sin cambios de backend y sin rediseño estructural.
+
+### Fundaciones (FASE 0)
+- `src/utils/status.ts` — fuente única del vocabulario de estados: label/color/fondo/icono/ETA/mensajes para pedido, ítem, reserva, mesa y modo de servicio. Reemplaza las copias duplicadas que vivían en `PedidoScreen.tsx` y `PedidoActivoBanner.tsx`.
+- `src/components/shared/StatusBadge.tsx` — píldora estándar (dot/icono + label + color): el mismo estado se ve idéntico en Home, Pedidos, Reservas y Cuenta.
+- Vocabulario en lenguaje de cliente: el estado de pedido `in-progress` pasa de "En Barra" a "En preparación".
+- Limpieza de código muerto: eliminados `CartScreen.tsx`, `OrderStatusScreen.tsx`, `HeaderContext.tsx` y `ProductCard.tsx` (sin imports, verificado).
+
+### Motivo
+Pedido explícito del usuario: tomar como referencia apps de comida reconocidas para evolucionar la experiencia, priorizando que todo se entienda de un vistazo — no un reboot del sistema.
+
+### Impacto
+`PedidoScreen.tsx` y `PedidoActivoBanner.tsx` ya consumen `utils/status.ts`. Las fases 1-4 (Home, Carta, Pedido, Reservas/Cuenta, pulido) reutilizan estas fundaciones.
+
+---
+
 # 21. ESTADO ACTUAL DE IMPLEMENTACIÓN
 
 La app está en **estado funcional completo**. Todas las pantallas y flujos principales están implementados.

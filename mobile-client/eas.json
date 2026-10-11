@@ -6,7 +6,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://barproyectov-2.onrender.com/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://barproyectov-2.onrender.com"
+      }
     },
     "preview": {
       "android": {
@@ -18,8 +22,23 @@
       }
     },
     "production": {
+      "channel": "production",
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://barproyectov-2.onrender.com/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://barproyectov-2.onrender.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal"
       }
     }
   }

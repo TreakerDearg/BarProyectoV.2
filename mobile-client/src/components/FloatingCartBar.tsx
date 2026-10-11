@@ -36,17 +36,17 @@ export function FloatingCartBar({ onPress }: FloatingCartBarProps) {
       onPress={handlePress}
       activeOpacity={0.88}
       accessibilityRole="button"
-      accessibilityLabel={`Ver carrito: ${totalItems} items, total $${totalPrice.toLocaleString('es-AR')}`}
+      accessibilityLabel={`Ver pedido: ${totalItems} ${totalItems === 1 ? 'ítem' : 'ítems'}, total $${totalPrice.toLocaleString('es-AR')}`}
     >
-      {/* Badge izquierdo */}
+      {/* Cantidad de ítems */}
       <View style={styles.badgeWrap}>
         <ShoppingBag size={18} color={Colors.onPrimary} />
-        <View style={styles.countBubble}>
-          <Text style={styles.countText}>{totalItems}</Text>
-        </View>
+        <Text style={styles.itemsText}>
+          {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}
+        </Text>
       </View>
 
-      {/* Precio central */}
+      {/* Total del pedido */}
       <Text style={styles.priceText}>
         ${totalPrice.toLocaleString('es-AR')}
       </Text>
@@ -76,20 +76,13 @@ const styles = StyleSheet.create({
     alignItems:    'center',
     gap:           6,
   },
-  countBubble: {
-    backgroundColor: 'rgba(65, 45, 0, 0.25)',
-    borderRadius:    Radius.full,
-    paddingHorizontal: 7,
-    paddingVertical:   2,
-    minWidth:          22,
-    alignItems:        'center',
-  },
-  countText: {
-    ...Typography.labelMd,
-    color: Colors.onPrimary,
+  itemsText: {
+    ...Typography.labelLg,
+    color:         Colors.onPrimary,
+    textTransform: 'none' as const,
   },
   priceText: {
-    ...Typography.headlineSm,
+    ...Typography.priceLg,
     color: Colors.onPrimary,
   },
   ctaRight: {

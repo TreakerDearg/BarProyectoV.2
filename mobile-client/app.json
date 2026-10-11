@@ -3,7 +3,7 @@
     "name": "Nebula Bar",
     "slug": "sistema-nebula",
     "owner": "nebulaclients-team",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -12,9 +12,17 @@
       "resizeMode": "contain",
       "backgroundColor": "#10131a"
     },
+    "updates": {
+      "url": "https://u.expo.dev/afa743b2-56d9-4885-8da5-8f2db3a660f0",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.nebulabar.cliente"
+      "bundleIdentifier": "com.nebulabar.cliente",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +30,7 @@
         "backgroundColor": "#10131a"
       },
       "package": "com.nebulabar.cliente",
+      "versionCode": 2,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.VIBRATE",
@@ -36,7 +45,8 @@
         }
       ],
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-image"
     ],
     "extra": {
       "eas": {

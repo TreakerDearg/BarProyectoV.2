@@ -25,7 +25,7 @@ import {
   ShoppingBag, Send,
   CheckCircle2, Flame, Sparkles,
   AlertCircle, RefreshCw, QrCode,
-  UtensilsCrossed, Receipt, ChefHat, PhoneCall,
+  UtensilsCrossed, Receipt, ChefHat, PhoneCall, TicketPercent,
   Clock,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -33,7 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
@@ -46,12 +46,17 @@ import { createOrder, getOrderById } from '../api/orderApi';
 import { getTableDetails }           from '../api/tableApi';
 import { getErrorMessage }           from '../api/client';
 import { socketService }             from '../socket/socketService';
+import {
+  ORDER_STATUS_STEPS, getOrderStepIndex, getOrderEtaMinutes,
+  getOrderStatusMessage, getOrderStatusMeta, SERVICE_MODE_META,
+} from '../utils/status';
 
 import { NEmptyState } from '../components/shared/NEmptyState';
 import { NButton }     from '../components/shared/NButton';
 import { NToast }      from '../components/shared/NToast';
 import { CartItemRow } from '../components/shared/CartItemRow';
-import { ProductGridCard } from '../components/shared/ProductGridCard';
+import { StatusBadge } from '../components/shared/StatusBadge';
+import { FulfillmentSheet } from '../components/shared/FulfillmentSheet';
 import { QRScannerScreen } from './QRScannerScreen';
 
 import { getPublicProducts } from '../api/menuApi';
@@ -66,41 +71,6 @@ type ScreenState = 'empty' | 'cart' | 'tracking';
 function fmtPrice(n: number) {
   return `$${n.toLocaleString('es-AR')}`;
 }
-
-const ORDER_STATUS_STEPS = ['pending', 'in-progress', 'completed'] as const;
-
-function getStepIndex(status: string) {
-  return ORDER_STATUS_STEPS.indexOf(status as any);
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  pending:       'Recibido',
-  'in-progress': 'En Barra',
-  completed:     'Servido',
-  cancelled:     'Cancelado',
-};
-
-const STATUS_MSG: Record<string, string> = {
-  pending:       'Tu comanda fue recibida por el personal. Pronto comenzará la preparación.',
-  'in-progress': 'El bartender está preparando tus bebidas con las recetas oficiales.',
-  completed:     '¡Tu pedido fue servido! Disfrutá la experiencia Nebula.',
-  cancelled:     'Esta comanda fue cancelada.',
-};
-
-const ITEM_STATUS_LABEL: Record<string, string> = {
-  pending:    'En cola',
-  preparing:  'Preparando',
-  ready:      'Listo',
-  served:     'Servido',
-  cancelled:  'Cancelado',
-};
-
-const ESTIMATE: Record<string, number> = {
-  pending:       15,
-  'in-progress': 8,
-  completed:     0,
-  cancelled:     0,
-};
 
 // ── Notes renderer ────────────────────────────────────────────────────────────
 function renderNotes(notes: string | undefined): React.ReactNode {
@@ -140,6 +110,8 @@ function EmptyCartView({ onGoToCarta }: { onGoToCarta: () => void }) {
 }
 
 // ─── Mesa Gate ────────────────────────────────────────────────────────────────
+// Respaldo cuando el destino elegido es "Mesa" pero todavía no hay mesa
+// conectada. Mismo lenguaje que FulfillmentSheet.
 function MesaGate({
   onOpenScanner,
   onSkip,
@@ -155,12 +127,12 @@ function MesaGate({
       <View style={subStyles.gateText}>
         <Text style={subStyles.gateTitle}>Conectá tu mesa</Text>
         <Text style={subStyles.gateSub}>
-          Ingresá el código de 3 dígitos para que el personal sepa adónde llevar tu pedido.
+          Escaneá el QR de la mesa o ingresá el código de 3 dígitos para que sepamos adónde llevar tu pedido.
         </Text>
       </View>
       <View style={subStyles.gateActions}>
         <NButton
-          label="Conectar mesa"
+          label="Escanear QR de mesa"
           onPress={onOpenScanner}
           variant="primary"
           size="sm"
@@ -168,7 +140,7 @@ function MesaGate({
           icon={<QrCode size={16} color={Colors.onPrimary} />}
         />
         <NButton
-          label="Pedir sin mesa (retiro en barra)"
+          label="Prefiero retiro en barra"
           onPress={onSkip}
           variant="text"
           size="sm"
@@ -183,9 +155,11 @@ function MesaGate({
 function CartView({
   onSubmitSuccess,
   onOpenScanner,
+  onChangeDestination,
 }: {
-  onSubmitSuccess: (order: OrderPublicDTO) => void;
-  onOpenScanner:   () => void;
+  onSubmitSuccess:     (order: OrderPublicDTO) => void;
+  onOpenScanner:       () => void;
+  onChangeDestination: () => void;
 }) {
   const {
     cart, addToCart, removeFromCart, setLineQty, clearCart,
@@ -193,13 +167,9 @@ function CartView({
     tipPercent, setTipPercent,
     getSubtotal, getDiscountAmount, getTipAmount, getTotalWithTipAndDiscount,
   } = useCartStore();
-  const { tableId, sessionId, tableNumber, tableCode } = useSessionStore();
+  const { tableId, sessionId, tableNumber, tableCode, serviceMode, setServiceMode } = useSessionStore();
   const { token }                                       = useAuthStore();
   const [submitting, setSubmitting] = useState(false);
-  const [gateSkipped, setGateSkipped] = useState(false);
-  const [destinationMode, setDestinationMode] = useState<'mesa' | 'bar'>(
-    tableId ? 'mesa' : 'bar'
-  );
 
   // UpsellRow: featured products
   const [upsellProducts, setUpsellProducts] = useState<ProductPublicDTO[]>([]);
@@ -216,10 +186,18 @@ function CartView({
   const tipAmount      = getTipAmount();
   const total          = getTotalWithTipAndDiscount();
   const hasMesa        = !!tableId && !!sessionId;
-  const showGate       = !hasMesa && !gateSkipped;
+  const usingTable     = hasMesa && serviceMode === 'table';
+  const showGate       = serviceMode === 'table' && !hasMesa;
+
+  // Destino del pedido: siempre visible y cambiable
+  const destMeta  = usingTable ? SERVICE_MODE_META.table : SERVICE_MODE_META.bar;
+  const DestIcon  = destMeta.icon;
+  const destValue = usingTable
+    ? `Mesa #${tableNumber}${tableCode ? ` · Código ${tableCode}` : ''}`
+    : SERVICE_MODE_META.bar.label;
 
   const handleSubmit = async () => {
-    if (!hasMesa && !gateSkipped) {
+    if (serviceMode === 'table' && !hasMesa) {
       onOpenScanner();
       return;
     }
@@ -227,8 +205,8 @@ function CartView({
     try {
       try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
       const order = await createOrder({
-        table:     destinationMode === 'mesa' ? (tableId ?? '') : '',
-        sessionId: destinationMode === 'mesa' ? (sessionId ?? '') : '',
+        table:     usingTable ? (tableId ?? '') : '',
+        sessionId: usingTable ? (sessionId ?? '') : '',
         items:     cart.map((l) => ({
           product:  l.productId,
           quantity: l.quantity,
@@ -254,23 +232,21 @@ function CartView({
       contentContainerStyle={subStyles.cartScroll}
       showsVerticalScrollIndicator={false}
     >
-      {/* Destination selector */}
-      <View style={subStyles.destinationRow}>
+      {/* Destino del pedido — siempre visible y cambiable */}
+      <View style={subStyles.destinationCard}>
+        <View style={[subStyles.destinationIcon, { backgroundColor: destMeta.bg }]}>
+          <DestIcon size={18} color={destMeta.color} />
+        </View>
+        <View style={subStyles.destinationText}>
+          <Text style={subStyles.destinationLabel}>Recibís en</Text>
+          <Text style={subStyles.destinationValue}>{destValue}</Text>
+        </View>
         <TouchableOpacity
-          style={[subStyles.destChip, destinationMode === 'mesa' && subStyles.destChipActive]}
-          onPress={() => hasMesa && setDestinationMode('mesa')}
+          onPress={onChangeDestination}
+          style={subStyles.changeBtn}
+          accessibilityLabel="Cambiar forma de entrega"
         >
-          <Text style={[subStyles.destChipText, destinationMode === 'mesa' && subStyles.destChipTextActive]}>
-            {hasMesa ? `Mesa #${tableNumber}` : 'Mesa'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[subStyles.destChip, destinationMode === 'bar' && subStyles.destChipActive]}
-          onPress={() => setDestinationMode('bar')}
-        >
-          <Text style={[subStyles.destChipText, destinationMode === 'bar' && subStyles.destChipTextActive]}>
-            Retiro en Barra
-          </Text>
+          <Text style={subStyles.changeBtnText}>Cambiar</Text>
         </TouchableOpacity>
       </View>
 
@@ -280,34 +256,11 @@ function CartView({
         <Text style={subStyles.estimateBadgeText}>~15 min · Entrega estimada</Text>
       </View>
 
-      {/* Mesa status */}
-      <View style={[subStyles.mesaBar, !hasMesa && subStyles.mesaBarWarn]}>
-        {hasMesa ? (
-          <>
-            <View style={subStyles.mesaDot} />
-            <View style={{ flex: 1 }}>
-              <Text style={subStyles.mesaTitle}>Mesa #{tableNumber}</Text>
-              <Text style={subStyles.mesaSub}>Código: {tableCode}</Text>
-            </View>
-          </>
-        ) : (
-          <>
-            <AlertCircle size={16} color={Colors.warning} />
-            <Text style={[subStyles.mesaTitle, { color: Colors.warning, flex: 1 }]}>
-              Sin mesa conectada
-            </Text>
-            <TouchableOpacity onPress={onOpenScanner} style={subStyles.connectBtn}>
-              <Text style={subStyles.connectBtnText}>Conectar</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
-
-      {/* Gate de mesa (si no hay mesa y no se skippeó) */}
+      {/* Gate de mesa (respaldo si el destino Mesa no está conectado) */}
       {showGate && (
         <MesaGate
           onOpenScanner={onOpenScanner}
-          onSkip={() => setGateSkipped(true)}
+          onSkip={() => setServiceMode('bar')}
         />
       )}
 
@@ -392,12 +345,13 @@ function CartView({
           <Text style={subStyles.summaryValue}>{fmtPrice(subtotal)}</Text>
         </View>
         {appliedCoupon && (
-          <View style={subStyles.summaryRow}>
-            <Text style={[subStyles.summaryLabel, { color: Colors.success }]}>
-              Cupón {appliedCoupon.code} ({appliedCoupon.type === 'PERCENT' ? `-${appliedCoupon.value}%` : `-$${appliedCoupon.value}`})
-            </Text>
-            <Text style={[subStyles.summaryValue, { color: Colors.success }]}>
-              -{fmtPrice(discountAmount)}
+          <View style={subStyles.couponRow}>
+            <View style={subStyles.couponBadge}>
+              <TicketPercent size={13} color={Colors.success} />
+              <Text style={subStyles.couponCode}>{appliedCoupon.code}</Text>
+            </View>
+            <Text style={subStyles.couponSaving}>
+              Ahorrás {fmtPrice(discountAmount)}
             </Text>
           </View>
         )}
@@ -429,10 +383,10 @@ function CartView({
 // ─── Tracking View ────────────────────────────────────────────────────────────
 function TrackingView({
   order,
-  onNewOrder,
+  onReorder,
 }: {
-  order:      OrderPublicDTO;
-  onNewOrder: () => void;
+  order:     OrderPublicDTO;
+  onReorder: (order: OrderPublicDTO) => void;
 }) {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const [currentOrder, setCurrentOrder] = useState<OrderPublicDTO>(order);
@@ -440,7 +394,9 @@ function TrackingView({
   const [refreshing,   setRefreshing]   = useState(false);
   const [toastMsg,     setToastMsg]     = useState<string | null>(null);
 
-  const stepIndex = getStepIndex(currentOrder.status);
+  const stepIndex  = getOrderStepIndex(currentOrder.status);
+  const statusMeta = getOrderStatusMeta(currentOrder.status);
+  const StatusIcon = statusMeta.icon;
 
   // Animated progress bar
   const progressAnim = useRef(
@@ -478,7 +434,7 @@ function TrackingView({
         try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
         setCurrentOrder((prev) => {
           const merged = { ...prev, ...updated };
-          animateProgress(getStepIndex(merged.status));
+          animateProgress(getOrderStepIndex(merged.status));
           return merged;
         });
       }
@@ -502,7 +458,7 @@ function TrackingView({
     try {
       const fresh = await getOrderById(currentOrder.id);
       setCurrentOrder(fresh);
-      animateProgress(getStepIndex(fresh.status));
+      animateProgress(getOrderStepIndex(fresh.status));
       if (currentOrder.table) {
         const tbl = await getTableDetails(currentOrder.table);
         setTableSummary(tbl);
@@ -533,16 +489,31 @@ function TrackingView({
 
       {/* Timeline card */}
       <View style={subStyles.timelineCard}>
-        <Text style={subStyles.orderNum}>
-          #{currentOrder.id.slice(-3).toUpperCase()}
+        <Text style={subStyles.orderNumSmall}>
+          Pedido #{currentOrder.id.slice(-3).toUpperCase()}
         </Text>
 
-        {/* Estimated time */}
-        {showEstimate && (
-          <Text style={subStyles.estimatedTime}>
-            ⏱ Listo en aprox. {ESTIMATE[currentOrder.status] ?? 15} min
+        {/* Fase actual — protagonista */}
+        <View style={subStyles.statusHero}>
+          <View style={[subStyles.statusHeroIcon, { backgroundColor: statusMeta.bg }]}>
+            <StatusIcon size={22} color={statusMeta.color} />
+          </View>
+          <Text style={[subStyles.statusHeroLabel, { color: statusMeta.color }]}>
+            {statusMeta.label}
           </Text>
-        )}
+          <Text style={subStyles.statusHeroMsg}>
+            {getOrderStatusMessage(currentOrder.status)}
+          </Text>
+          {showEstimate && (
+            <View style={subStyles.etaChip}>
+              <Clock size={14} color={Colors.info} />
+              <Text style={subStyles.etaChipText}>
+                Listo en ~{getOrderEtaMinutes(currentOrder.status)} min
+              </Text>
+            </View>
+          )}
+        </View>
+
 
         {/* Barra de progreso animada */}
         {!isCancelled && (
@@ -584,7 +555,7 @@ function TrackingView({
                     subStyles.stepLabel,
                     (done || active) && subStyles.stepLabelActive,
                   ]}>
-                    {STATUS_LABEL[step]}
+                    {getOrderStatusMeta(step).label}
                   </Text>
                 </View>
               );
@@ -592,18 +563,6 @@ function TrackingView({
           </View>
         )}
 
-        {/* Mensaje de estado */}
-        <View style={[
-          subStyles.statusBanner,
-          isCancelled && { borderColor: Colors.errorContainer },
-        ]}>
-          <Text style={[
-            subStyles.statusBannerText,
-            isCancelled && { color: Colors.error },
-          ]}>
-            {STATUS_MSG[currentOrder.status] ?? STATUS_MSG['pending']}
-          </Text>
-        </View>
       </View>
 
       {/* Items de la comanda */}
@@ -620,15 +579,7 @@ function TrackingView({
                 <Text style={subStyles.trackItemNotes}>{item.notes}</Text>
               ) : null}
             </View>
-            <View style={[
-              subStyles.itemStatusBadge,
-              item.status === 'ready' && subStyles.itemStatusBadgeReady,
-              item.status === 'served' && subStyles.itemStatusBadgeServed,
-            ]}>
-              <Text style={subStyles.itemStatusText}>
-                {ITEM_STATUS_LABEL[item.status ?? 'pending'] ?? 'En cola'}
-              </Text>
-            </View>
+            <StatusBadge kind="item" status={item.status ?? 'pending'} />
           </View>
         ))}
       </View>
@@ -672,10 +623,11 @@ function TrackingView({
         />
         {(currentOrder.status === 'completed' || currentOrder.status === 'cancelled') && (
           <NButton
-            label="Hacer otro pedido"
-            onPress={onNewOrder}
+            label="Pedir de nuevo"
+            onPress={() => onReorder(currentOrder)}
             variant="primary"
             fullWidth
+            icon={<RefreshCw size={16} color={Colors.onPrimary} />}
           />
         )}
         {/* Always-visible quick actions */}
@@ -704,9 +656,11 @@ export default function PedidoScreen() {
   const navigation   = useNavigation<PedidoNav>();
 
   const cart = useCartStore((s) => s.cart);
-  const [screenState, setScreenState] = useState<ScreenState>('empty');
-  const [activeOrder,  setActiveOrder]  = useState<OrderPublicDTO | null>(null);
-  const [showQR,       setShowQR]       = useState(false);
+  const [screenState,     setScreenState]     = useState<ScreenState>('empty');
+  const [activeOrder,     setActiveOrder]     = useState<OrderPublicDTO | null>(null);
+  const [showQR,          setShowQR]          = useState(false);
+  const [showFulfillment, setShowFulfillment] = useState(false);
+  const [toastMsg,        setToastMsg]        = useState<string | null>(null);
 
   // Content fade animation
   const contentOpacity = useRef(new Animated.Value(1)).current;
@@ -737,9 +691,37 @@ export default function PedidoScreen() {
     handleStateChange('tracking');
   }, [handleStateChange]);
 
-  const handleNewOrder = useCallback(() => {
-    setActiveOrder(null);
-    handleStateChange('empty');
+  // Pedir de nuevo: recrea el carrito con precios vigentes y vuelve a "cart"
+  const handleReorder = useCallback(async (order: OrderPublicDTO) => {
+    try {
+      const products      = await getPublicProducts();
+      const byId          = new Map(products.map((p) => [p.id, p]));
+      const { addToCart } = useCartStore.getState();
+      const added = order.items?.reduce((n, it) => {
+        const pid  = typeof it.product === 'string' ? it.product : it.product?.id;
+        const prod = pid ? byId.get(pid) : undefined;
+        if (!prod || !prod.available) return n;
+        addToCart({
+          productId: prod.id,
+          name:      prod.name,
+          price:     prod.dynamicPrice ?? prod.price,
+          image:     prod.image,
+          notes:     it.notes ?? '',
+          quantity:  it.quantity,
+        });
+        return n + 1;
+      }, 0) ?? 0;
+
+      if (added === 0) {
+        setToastMsg('Los productos de este pedido no están disponibles ahora.');
+        return;
+      }
+      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+      setActiveOrder(null);
+      handleStateChange('cart');
+    } catch {
+      setToastMsg('No pudimos repetir el pedido. Probá de nuevo.');
+    }
   }, [handleStateChange]);
 
   const handleGoToCarta = useCallback(() => {
@@ -772,13 +754,14 @@ export default function PedidoScreen() {
           <CartView
             onSubmitSuccess={handleOrderSuccess}
             onOpenScanner={() => setShowQR(true)}
+            onChangeDestination={() => setShowFulfillment(true)}
           />
         )}
 
         {screenState === 'tracking' && activeOrder && (
           <TrackingView
             order={activeOrder}
-            onNewOrder={handleNewOrder}
+            onReorder={handleReorder}
           />
         )}
       </Animated.View>
@@ -791,9 +774,27 @@ export default function PedidoScreen() {
       >
         <QRScannerScreen
           onClose={() => setShowQR(false)}
-          onSuccess={() => setShowQR(false)}
+          onSuccess={() => {
+            setShowQR(false);
+            setToastMsg('Mesa conectada. Ya podés pedir desde tu mesa.');
+          }}
         />
       </Modal>
+
+      {/* FulfillmentSheet — cambiar destino sin salir del pedido */}
+      <FulfillmentSheet
+        visible={showFulfillment}
+        onClose={() => setShowFulfillment(false)}
+        onOpenScanner={() => setShowQR(true)}
+      />
+
+      {/* Toast global de la pantalla */}
+      <NToast
+        visible={!!toastMsg}
+        message={toastMsg ?? ''}
+        variant="info"
+        onHide={() => setToastMsg(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -907,60 +908,49 @@ const subStyles = StyleSheet.create({
     paddingBottom: Spacing.xxxl,
   },
 
-  // Destination row
-  destinationRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  destChip: {
-    flex: 1,
+  // Destination card — "Recibís en"
+  destinationCard: {
+    flexDirection:   'row',
+    alignItems:      'center',
     backgroundColor: Colors.surfaceContainerHigh,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(224, 226, 236, 0.06)',
+    borderRadius:    Radius.lg,
+    padding:         Spacing.smMd,
+    gap:             Spacing.smMd,
+    borderWidth:     1,
+    borderColor:     Colors.goldBorder,
   },
-  destChipActive: { backgroundColor: Colors.goldMuted, borderColor: Colors.goldBorder },
-  destChipText:   { ...Typography.labelMd, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
-  destChipTextActive: { color: Colors.primary },
-
-  // Mesa status bar
-  mesaBar: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    backgroundColor:  Colors.surfaceContainerLow,
-    borderRadius:     Radius.lg,
-    padding:          Spacing.smMd,
-    gap:              Spacing.sm,
-    borderWidth:      1,
-    borderColor:      'rgba(224, 226, 236, 0.08)',
+  destinationIcon: {
+    width:           36,
+    height:          36,
+    borderRadius:    Radius.md,
+    justifyContent:  'center',
+    alignItems:      'center',
   },
-  mesaBarWarn: {
-    backgroundColor: 'rgba(224, 120, 40, 0.08)',
-    borderColor:     'rgba(224, 120, 40, 0.25)',
+  destinationText: {
+    flex: 1,
+    gap:  2,
   },
-  mesaDot: {
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: Colors.success,
+  destinationLabel: {
+    ...Typography.labelSm,
+    color:         Colors.onSurfaceVariant,
+    textTransform: 'none' as const,
   },
-  mesaTitle: {
+  destinationValue: {
     ...Typography.titleMd,
     color: Colors.onSurface,
   },
-  mesaSub: {
-    ...Typography.bodySm,
-    color: Colors.onSurfaceVariant,
+  changeBtn: {
+    backgroundColor: Colors.goldMuted,
+    borderRadius:    Radius.full,
+    borderWidth:     1,
+    borderColor:     Colors.goldBorder,
+    paddingHorizontal: 12,
+    paddingVertical:   6,
   },
-  connectBtn: {
-    backgroundColor: Colors.primaryContainer,
-    borderRadius:    Radius.sm,
-    paddingHorizontal: 10,
-    paddingVertical:   5,
-  },
-  connectBtnText: {
+  changeBtnText: {
     ...Typography.labelMd,
-    color: Colors.onPrimary,
+    color:         Colors.primary,
+    textTransform: 'none' as const,
   },
 
   // Gate
@@ -1081,6 +1071,32 @@ const subStyles = StyleSheet.create({
   summaryRow:  { flexDirection: 'row', justifyContent: 'space-between' },
   summaryLabel:{ ...Typography.bodyMd, color: Colors.onSurfaceVariant },
   summaryValue:{ ...Typography.bodyMd, color: Colors.onSurface },
+  couponRow: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    justifyContent:  'space-between',
+    backgroundColor: NocturneColors.successMuted,
+    borderRadius:    Radius.md,
+    paddingHorizontal: Spacing.smMd,
+    paddingVertical:   8,
+    borderWidth:     1,
+    borderColor:     'rgba(52, 185, 100, 0.25)',
+  },
+  couponBadge: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           6,
+  },
+  couponCode: {
+    ...Typography.labelMd,
+    color:         Colors.success,
+    textTransform: 'none' as const,
+    letterSpacing: 0.4,
+  },
+  couponSaving: {
+    ...Typography.labelLg,
+    color: Colors.success,
+  },
   totalRow: {
     borderTopWidth:  1,
     borderTopColor:  'rgba(224, 226, 236, 0.08)',
@@ -1105,19 +1121,48 @@ const subStyles = StyleSheet.create({
     borderColor:     'rgba(224, 226, 236, 0.08)',
     ...(Elevation.card as object),
   },
-  orderNum: {
-    fontFamily:    'Outfit_600SemiBold',
-    fontSize:      32,
-    lineHeight:    38,
-    letterSpacing: -0.64,
-    color:         Colors.primary,
+  orderNumSmall: {
+    ...Typography.labelMd,
+    color:         Colors.onSurfaceVariant,
     textAlign:     'center',
-    fontWeight:    '700' as const,
+    textTransform: 'none' as const,
   },
-  estimatedTime: {
-    ...Typography.bodyMd,
-    color: Colors.onSurfaceVariant,
+  statusHero: {
+    alignItems: 'center',
+    gap:        Spacing.xs,
+  },
+  statusHeroIcon: {
+    width:           52,
+    height:          52,
+    borderRadius:    Radius.full,
+    justifyContent:  'center',
+    alignItems:      'center',
+  },
+  statusHeroLabel: {
+    ...Typography.headlineLg,
     textAlign: 'center',
+  },
+  statusHeroMsg: {
+    ...Typography.bodyMd,
+    color:      Colors.onSurfaceVariant,
+    textAlign:  'center',
+    lineHeight: 21,
+  },
+  etaChip: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             6,
+    backgroundColor: Colors.infoMuted,
+    borderRadius:    Radius.full,
+    paddingHorizontal: Spacing.smMd,
+    paddingVertical:   6,
+    borderWidth:     1,
+    borderColor:     'rgba(56,189,248,0.20)',
+    marginTop:       Spacing.xs,
+  },
+  etaChipText: {
+    ...Typography.labelMd,
+    color: Colors.info,
   },
   progressTrack: {
     height:          8,
@@ -1151,15 +1196,6 @@ const subStyles = StyleSheet.create({
   },
   stepLabel: { ...Typography.labelSm, color: Colors.outline, textTransform: 'none' as const },
   stepLabelActive: { color: Colors.onSurface },
-  statusBanner: {
-    backgroundColor: Colors.surfaceContainerHigh,
-    borderRadius:    Radius.md,
-    padding:         Spacing.smMd,
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
-  },
-  statusBannerText: { ...Typography.bodyMd, color: Colors.onSurfaceVariant, textAlign: 'center' },
-
   // Items de tracking
   itemsCard: {
     backgroundColor: Colors.surfaceContainer,
@@ -1189,15 +1225,6 @@ const subStyles = StyleSheet.create({
   trackItemQty:   { ...Typography.labelSm, color: Colors.primary },
   trackItemName:  { ...Typography.bodyMd, color: Colors.onSurface },
   trackItemNotes: { ...Typography.bodySm, color: Colors.outline },
-  itemStatusBadge: {
-    backgroundColor: Colors.surfaceContainerHigh,
-    borderRadius:    Radius.xs,
-    paddingHorizontal: 7,
-    paddingVertical:   3,
-  },
-  itemStatusBadgeReady: { backgroundColor: 'rgba(52, 185, 100, 0.15)' },
-  itemStatusBadgeServed: { backgroundColor: 'rgba(52, 185, 100, 0.25)' },
-  itemStatusText: { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
 
   // Check card
   checkCard: {

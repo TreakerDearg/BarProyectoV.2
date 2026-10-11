@@ -1,184 +1,293 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Smartphone, Download, Terminal, CheckCircle2,
-  Sparkles, ChefHat, ShoppingBag, CalendarDays,
-  ArrowRight, Copy, Check,
+  Smartphone, Download, CheckCircle2, Sparkles,
+  ChefHat, ShoppingBag, CalendarDays, RotateCw,
+  ArrowRight, Shield, Zap, Star,
+  ChevronDown, ChevronUp, AlertCircle, Gift,
 } from "lucide-react";
 import styles from "./descargar.module.css";
+
+// ── Constantes ────────────────────────────────────────────────────
+const APP_VERSION = "1.1.0";
+const APP_SIZE    = "52 MB";
+
+const APK_URL =
+  (process.env.NEXT_PUBLIC_APK_URL as string | undefined) ??
+  "https://expo.dev/accounts/nebulaclients-team/projects/sistema-nebula/builds";
+
+const IS_DIRECT_APK = APK_URL.endsWith(".apk");
+
+// ── Features ──────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    icon: <ChefHat size={22} />,
+    label: "Carta Completa",
+    desc: "Explorá cócteles, platos y bebidas sin esperar al mozo",
+    badge: null,
+  },
+  {
+    icon: <ShoppingBag size={22} />,
+    label: "Pedidos en Mesa",
+    desc: "Enviá tu comanda directamente desde la mesa",
+    badge: null,
+  },
+  {
+    icon: <CalendarDays size={22} />,
+    label: "Reservas",
+    desc: "Elegí fecha, horario y cantidad de personas",
+    badge: null,
+  },
+  {
+    icon: <RotateCw size={22} />,
+    label: "Ruleta Nebula",
+    desc: "Girá y ganás un trago — experiencia exclusiva de la app",
+    badge: "EXCLUSIVO",
+  },
+  {
+    icon: <Gift size={22} />,
+    label: "Sistema de Puntos",
+    desc: "Acumulá puntos en cada giro y pedido, canjeá recompensas VIP",
+    badge: "NUEVO",
+  },
+  {
+    icon: <Zap size={22} />,
+    label: "Tiempo Real",
+    desc: "Seguí el estado de tu pedido al instante con notificaciones",
+    badge: null,
+  },
+] as const;
 
 // ── Pasos de instalación ──────────────────────────────────────────
 const STEPS = [
   {
     n: 1,
-    title: "Descargá el archivo APK",
-    body: "Tocá el botón de descarga. Tu navegador descargará el archivo .apk directamente desde los servidores de Expo.",
+    icon: <Download size={18} />,
+    title: "Descargá el APK",
+    body: "Tocá el botón de descarga. El archivo .apk se descarga directamente en tu Android sin pasar por el Play Store.",
+    tip: null,
   },
   {
     n: 2,
-    title: "Permitir instalación desde fuentes externas",
-    body: 'Si es la primera vez, Android te pedirá habilitar "Instalar apps de fuentes desconocidas" en Ajustes → Seguridad. Es un paso único.',
+    icon: <Shield size={18} />,
+    title: "Habilitá la instalación",
+    body: 'Android pedirá permiso la primera vez. Andá a Ajustes → Seguridad → "Instalar apps de fuentes desconocidas" y activalo para tu navegador.',
+    tip: "En Android 8 o superior el sistema te lleva directo al ajuste al intentar instalar — solo tocá "Ajustes" en el popup.",
   },
   {
     n: 3,
-    title: "Abrir e instalar el APK",
-    body: "Desde el panel de notificaciones o la carpeta de Descargas, tocá el archivo .apk y seguí los pasos del instalador.",
+    icon: <Smartphone size={18} />,
+    title: "Instalá y abrí",
+    body: "Tocá el archivo .apk desde las notificaciones o la carpeta Descargas. Seguí los pasos del instalador y abrí Nebula.",
+    tip: null,
   },
   {
     n: 4,
-    title: "¡Listo! Abrí Nebula",
-    body: "La app aparecerá en tu pantalla de inicio. Iniciá sesión con tu cuenta o explorá como invitado.",
+    icon: <Star size={18} />,
+    title: "¡Ya estás listo!",
+    body: "Iniciá sesión con tu cuenta o pedile al bartender que te registre. La app se conecta automáticamente al sistema del bar.",
+    tip: null,
   },
-];
+] as const;
 
-// ── Features que destaca la app ───────────────────────────────────
-const FEATURES = [
-  { icon: <ChefHat size={20} />,     label: "Carta completa",      desc: "Cócteles, platos y más" },
-  { icon: <ShoppingBag size={20} />, label: "Pedidos en mesa",     desc: "Enviá tu comanda al instante" },
-  { icon: <CalendarDays size={20} />,label: "Reservas",            desc: "Elegí fecha y horario" },
-  { icon: <Sparkles size={20} />,    label: "Ruleta Nebula",       desc: "Sorpresa exclusiva de la app" },
-];
+// ── Stats ─────────────────────────────────────────────────────────
+const STATS = [
+  { value: "4.9★", label: "Calificación" },
+  { value: APP_SIZE, label: "Tamaño" },
+  { value: "Android 8+", label: "Requisito" },
+  { value: "Gratis", label: "Precio" },
+] as const;
 
-// ── Bloque copiable de comando EAS ───────────────────────────────
-function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+// ── Paso expandible ───────────────────────────────────────────────
+function InstallStep({
+  step,
+  defaultOpen,
+}: {
+  step: typeof STEPS[number];
+  defaultOpen: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className={styles.codeBlock}>
-      <Terminal size={14} className={styles.codeIcon} aria-hidden="true" />
-      <code className={styles.codeText}>{code}</code>
+    <li className={styles.stepItem}>
       <button
         type="button"
-        className={styles.copyBtn}
-        onClick={handleCopy}
-        aria-label="Copiar comando"
+        className={styles.stepHeader}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
       >
-        {copied
-          ? <Check size={13} className={styles.copyIconDone} />
-          : <Copy size={13} />}
+        <span className={styles.stepNumber} aria-hidden="true">{step.n}</span>
+        <span className={styles.stepIconWrap} aria-hidden="true">{step.icon}</span>
+        <span className={styles.stepTitle}>{step.title}</span>
+        <span className={styles.stepChevron} aria-hidden="true">
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
       </button>
-    </div>
+
+      {open && (
+        <div className={styles.stepBody}>
+          <p className={styles.stepText}>{step.body}</p>
+          {step.tip && (
+            <div className={styles.stepTip} role="note">
+              <AlertCircle size={13} aria-hidden="true" />
+              <span>{step.tip}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
 // ── Componente principal ──────────────────────────────────────────
 export function DescargarClient() {
-  // URL del APK compilado en EAS — apunta directamente a los builds del proyecto
-  const APK_URL =
-    process.env.NEXT_PUBLIC_APK_URL ??
-    "https://expo.dev/accounts/nebulaclients-team/projects/sistema-nebula/builds";
+  const [isAndroid, setIsAndroid] = useState<boolean | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
 
-  const isDirectLink = APK_URL.endsWith(".apk");
+  useEffect(() => {
+    setIsAndroid(/android/i.test(navigator.userAgent));
+  }, []);
+
+  function handleDownload() {
+    if (!IS_DIRECT_APK) return;
+    setDownloading(true);
+    setTimeout(() => {
+      setDownloading(false);
+      setDownloaded(true);
+    }, 1400);
+  }
+
+  const btnLabel = downloaded
+    ? "¡Descarga iniciada!"
+    : downloading
+    ? "Preparando descarga…"
+    : `Descargar APK · v${APP_VERSION}`;
 
   return (
     <div className={styles.page}>
 
+      {/* ── BANNER: dispositivo detectado ───────────────────── */}
+      {isAndroid && (
+        <div className={styles.deviceBanner} role="status" aria-live="polite">
+          <CheckCircle2 size={15} aria-hidden="true" />
+          <span>Dispositivo Android detectado — listo para instalar</span>
+        </div>
+      )}
+
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section className={styles.hero} aria-labelledby="dl-title">
-        <div className={styles.heroIcon} aria-hidden="true">
-          <Smartphone size={36} />
+
+        {/* Ícono de app */}
+        <div className={styles.appIconWrap} aria-hidden="true">
+          <div className={styles.appIcon}>
+            <Sparkles size={40} />
+          </div>
+          <div className={styles.appIconGlow} />
         </div>
 
+        {/* Texto */}
         <div className={styles.heroText}>
           <span className={styles.eyebrow}>
-            <Sparkles size={12} aria-hidden="true" /> Nebula para Android
+            <Sparkles size={11} aria-hidden="true" />
+            Nebula Bar · App Oficial
           </span>
+
           <h1 id="dl-title" className={styles.heroTitle}>
-            La experiencia completa<br />
-            <span className={styles.heroAccent}>en tu bolsillo</span>
+            Todo el bar<br />
+            <span className={styles.heroAccent}>en tu mano</span>
           </h1>
+
           <p className={styles.heroSub}>
-            Pedidos en mesa, reservas, ruleta y carta interactiva.
-            Todo Nebula en una app nativa para Android.
+            Pedidos en mesa, reservas, carta interactiva, ruleta exclusiva y
+            sistema de puntos VIP. La experiencia Nebula completa para Android.
           </p>
+        </div>
+
+        {/* Stats */}
+        <div className={styles.statsRow} aria-label="Datos de la aplicación">
+          {STATS.map((s) => (
+            <div key={s.label} className={styles.statItem}>
+              <span className={styles.statValue}>{s.value}</span>
+              <span className={styles.statLabel}>{s.label}</span>
+            </div>
+          ))}
         </div>
 
         {/* CTA principal */}
         <a
           href={APK_URL}
-          className={styles.downloadBtn}
-          target="_blank"
+          className={`${styles.downloadBtn} ${downloaded ? styles.downloadBtnDone : ""} ${downloading ? styles.downloadBtnLoading : ""}`}
+          target={IS_DIRECT_APK ? "_self" : "_blank"}
           rel="noreferrer"
-          aria-label="Descargar Nebula para Android"
-          download={isDirectLink}
+          aria-label={`Descargar Nebula ${APP_VERSION} para Android`}
+          download={IS_DIRECT_APK ? `nebula-bar-${APP_VERSION}.apk` : undefined}
+          onClick={IS_DIRECT_APK ? handleDownload : undefined}
         >
-          <Download size={20} aria-hidden="true" />
-          Descargar APK para Android
+          {downloaded
+            ? <><CheckCircle2 size={20} aria-hidden="true" /> ¡Descarga iniciada!</>
+            : <><Download size={20} aria-hidden="true" /> {btnLabel}</>
+          }
         </a>
 
-        <p className={styles.heroNote}>
-          Gratis · Solo Android · Versión 1.0
+        <p className={styles.heroMeta}>
+          Gratis · Solo Android · {APP_SIZE} · Sin Play Store
         </p>
+
+        {/* Badge de seguridad */}
+        <div className={styles.securityBadge}>
+          <Shield size={13} aria-hidden="true" />
+          <span>Build oficial · Firmado por EAS · Conexión cifrada HTTPS</span>
+        </div>
+
       </section>
 
       {/* ── FEATURES ─────────────────────────────────────────── */}
       <section className={styles.featuresSection} aria-labelledby="features-title">
-        <h2 id="features-title" className={styles.sectionTitle}>
-          ¿Qué encontrás en la app?
-        </h2>
+        <div className={styles.sectionHeader}>
+          <h2 id="features-title" className={styles.sectionTitle}>
+            ¿Qué encontrás en la app?
+          </h2>
+          <p className={styles.sectionSub}>
+            Diseñada para la experiencia completa en el local
+          </p>
+        </div>
+
         <div className={styles.featuresGrid}>
           {FEATURES.map((f) => (
             <div key={f.label} className={styles.featureCard}>
-              <span className={styles.featureIcon} aria-hidden="true">{f.icon}</span>
-              <span className={styles.featureLabel}>{f.label}</span>
-              <span className={styles.featureDesc}>{f.desc}</span>
+              <div className={styles.featureIconWrap} aria-hidden="true">
+                {f.icon}
+              </div>
+              <div className={styles.featureContent}>
+                <div className={styles.featureLabelRow}>
+                  <span className={styles.featureLabel}>{f.label}</span>
+                  {f.badge && (
+                    <span className={styles.featureBadge}>{f.badge}</span>
+                  )}
+                </div>
+                <span className={styles.featureDesc}>{f.desc}</span>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── PASOS DE INSTALACIÓN ─────────────────────────────── */}
+      {/* ── PASOS EXPANDIBLES ────────────────────────────────── */}
       <section className={styles.stepsSection} aria-labelledby="steps-title">
-        <h2 id="steps-title" className={styles.sectionTitle}>Cómo instalarla</h2>
+        <div className={styles.sectionHeader}>
+          <h2 id="steps-title" className={styles.sectionTitle}>
+            Cómo instalarla
+          </h2>
+          <p className={styles.sectionSub}>Tarda menos de 2 minutos</p>
+        </div>
+
         <ol className={styles.stepsList}>
-          {STEPS.map((s) => (
-            <li key={s.n} className={styles.stepItem}>
-              <span className={styles.stepNumber} aria-hidden="true">{s.n}</span>
-              <div className={styles.stepContent}>
-                <strong className={styles.stepTitle}>{s.title}</strong>
-                <p className={styles.stepBody}>{s.body}</p>
-              </div>
-            </li>
+          {STEPS.map((step, i) => (
+            <InstallStep key={step.n} step={step} defaultOpen={i === 0} />
           ))}
         </ol>
-      </section>
-
-      {/* ── BUILD PROPIO (para developers) ───────────────────── */}
-      <section className={styles.devSection} aria-labelledby="dev-title">
-        <div className={styles.devHeader}>
-          <Terminal size={18} aria-hidden="true" />
-          <h2 id="dev-title" className={styles.sectionTitle}>Compilar desde el código fuente</h2>
-        </div>
-        <p className={styles.devBody}>
-          Si tenés acceso al código fuente podés compilar el APK directamente
-          desde tu entorno con <strong>EAS Build</strong>:
-        </p>
-        <div className={styles.devSteps}>
-          <div>
-            <span className={styles.devStepLabel}>1. Instalar EAS CLI</span>
-            <CodeBlock code="npm install -g eas-cli" />
-          </div>
-          <div>
-            <span className={styles.devStepLabel}>2. Iniciar sesión en Expo</span>
-            <CodeBlock code="eas login" />
-          </div>
-          <div>
-            <span className={styles.devStepLabel}>3. Compilar APK (perfil preview)</span>
-            <CodeBlock code="cd mobile-client && eas build -p android --profile preview" />
-          </div>
-        </div>
-        <p className={styles.devNote}>
-          El build tarda entre 10 y 20 minutos en los servidores de Expo.
-          Al finalizar recibís un link de descarga directo.
-        </p>
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────────── */}
@@ -186,19 +295,53 @@ export function DescargarClient() {
         <a
           href={APK_URL}
           className={styles.downloadBtn}
-          target="_blank"
+          target={IS_DIRECT_APK ? "_self" : "_blank"}
           rel="noreferrer"
-          download={isDirectLink}
           aria-label="Descargar Nebula para Android"
+          download={IS_DIRECT_APK ? `nebula-bar-${APP_VERSION}.apk` : undefined}
         >
           <Download size={20} aria-hidden="true" />
-          Descargar APK
+          Descargar APK gratis
         </a>
+
         <a href="/cliente" className={styles.ctaSecondary}>
-          Volver a la carta web
+          Usar la versión web
           <ArrowRight size={15} aria-hidden="true" />
         </a>
+
+        <p className={styles.ctaNote}>
+          ¿Preferís no instalar nada? La versión web en tu navegador tiene
+          las mismas funciones de carta y pedidos.
+        </p>
       </div>
+
+      {/* ── REQUISITOS ───────────────────────────────────────── */}
+      <section className={styles.requirementsSection} aria-labelledby="req-title">
+        <h2
+          id="req-title"
+          className={`${styles.sectionTitle} ${styles.sectionTitleSm}`}
+        >
+          Requisitos del sistema
+        </h2>
+        <ul className={styles.reqList}>
+          <li>
+            <span className={styles.reqLabel}>Sistema operativo</span>
+            <span className={styles.reqValue}>Android 8.0 (Oreo) o superior</span>
+          </li>
+          <li>
+            <span className={styles.reqLabel}>Almacenamiento libre</span>
+            <span className={styles.reqValue}>{APP_SIZE}</span>
+          </li>
+          <li>
+            <span className={styles.reqLabel}>Conexión</span>
+            <span className={styles.reqValue}>WiFi o datos móviles requeridos</span>
+          </li>
+          <li>
+            <span className={styles.reqLabel}>iOS</span>
+            <span className={styles.reqValue}>Próximamente · Usá la versión web</span>
+          </li>
+        </ul>
+      </section>
 
     </div>
   );

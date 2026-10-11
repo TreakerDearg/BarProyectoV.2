@@ -26,6 +26,10 @@ export interface HeroSlide {
   imageUri?: string;
   title:     string;
   subtitle?: string;
+  /** Beneficio explícito de la promo ("2x1", "-20% OFF"). */
+  benefit?:  string;
+  /** Vigencia legible ("Vigente hasta 31/10"). */
+  validUntil?: string;
   onPress?:  () => void;
 }
 
@@ -149,11 +153,20 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
             <View style={StyleSheet.absoluteFill} pointerEvents="none">
               <View style={styles.gradientOverlay} />
             </View>
+            {/* Beneficio de la promo */}
+            {item.benefit ? (
+              <View style={styles.benefitPill}>
+                <Text style={styles.benefitText}>{item.benefit}</Text>
+              </View>
+            ) : null}
             {/* Text */}
             <View style={styles.slideTextWrap}>
               <Text style={styles.slideTitle} numberOfLines={2}>{item.title}</Text>
               {item.subtitle ? (
                 <Text style={styles.slideSub} numberOfLines={2}>{item.subtitle}</Text>
+              ) : null}
+              {item.validUntil ? (
+                <Text style={styles.validText}>{item.validUntil}</Text>
               ) : null}
             </View>
           </TouchableOpacity>
@@ -218,6 +231,25 @@ const styles = StyleSheet.create({
     height:          '60%',
     backgroundColor: Colors.overlayDark,
     opacity:         0.75,
+  },
+  benefitPill: {
+    position:          'absolute',
+    top:               Spacing.smMd,
+    left:              Spacing.smMd,
+    backgroundColor:   Colors.primaryContainer,
+    borderRadius:      Radius.full,
+    paddingHorizontal: Spacing.smMd,
+    paddingVertical:   4,
+  },
+  benefitText: {
+    ...Typography.labelSm,
+    color:         Colors.onPrimary,
+    textTransform: 'none' as const,
+    letterSpacing: 0.4,
+  },
+  validText: {
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
   },
 });
 

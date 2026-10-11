@@ -16,7 +16,7 @@ import {
 import { Plus, Heart, Star, GlassWater } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
@@ -45,8 +45,12 @@ export function SommelierCard({
 }: SommelierCardProps) {
   const price     = product.dynamicPrice ?? product.price;
   const hasDiscount = product.dynamicPrice < product.price;
+  const discountPct = hasDiscount
+    ? Math.round((1 - price / product.price) * 100)
+    : 0;
 
   const handleAdd = () => {
+    if (!product.available) return;
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
     onAdd(product);
   };
@@ -92,7 +96,14 @@ export function SommelierCard({
         {/* Badge descuento */}
         {hasDiscount && (
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>OFERTA</Text>
+            <Text style={styles.discountText}>-{discountPct}%</Text>
+          </View>
+        )}
+
+        {/* Agotado */}
+        {!product.available && (
+          <View style={styles.soldOutOverlay} pointerEvents="none">
+            <Text style={styles.soldOutText}>Agotado</Text>
           </View>
         )}
 
@@ -147,12 +158,21 @@ export function SommelierCard({
           </View>
 
           <TouchableOpacity
-            style={styles.addBtn}
+            style={[styles.addBtn, !product.available && styles.addBtnDisabled]}
             onPress={handleAdd}
             activeOpacity={0.8}
-            accessibilityLabel={`Agregar ${product.name} al carrito`}
+            disabled={!product.available}
+            accessibilityLabel={
+              product.available
+                ? `Agregar ${product.name} al carrito`
+                : `${product.name} no está disponible`
+            }
           >
-            <Plus size={20} color={Colors.onPrimary} strokeWidth={2.5} />
+            <Plus
+              size={20}
+              color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
+              strokeWidth={2.5}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -224,14 +244,26 @@ const styles = StyleSheet.create({
     position:        'absolute',
     top:             Spacing.sm,
     left:            Spacing.sm,
-    backgroundColor: Colors.errorContainer,
-    borderRadius:    Radius.xs,
+    backgroundColor: NocturneColors.errorContainer,
+    borderRadius:    Radius.full,
     paddingHorizontal: 8,
     paddingVertical:   3,
   },
   discountText: {
     ...Typography.labelSm,
-    color: Colors.error,
+    color:         NocturneColors.onErrorContainer,
+    textTransform: 'none' as const,
+  },
+  soldOutOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: Colors.overlayDark,
+    justifyContent:  'center',
+    alignItems:      'center',
+  },
+  soldOutText: {
+    ...Typography.labelSm,
+    color:         Colors.onSurfaceVariant,
+    textTransform: 'none' as const,
   },
   favBtn: {
     position:        'absolute',
@@ -277,7 +309,7 @@ const styles = StyleSheet.create({
     gap:           Spacing.xs,
   },
   price: {
-    ...Typography.price,
+    ...Typography.priceLg,
     color: Colors.primary,
   },
   originalPrice: {
@@ -293,5 +325,10 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
     ...(Elevation.goldCTA as object),
+  },
+  addBtnDisabled: {
+    backgroundColor: Colors.surfaceContainerHighest,
+    shadowOpacity:   0,
+    elevation:       0,
   },
 });
