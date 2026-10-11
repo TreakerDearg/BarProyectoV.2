@@ -6,6 +6,8 @@ Este documento define exclusivamente las reglas visuales y de experiencia que de
 
 La aplicación es mobile-first y está orientada al consumidor final. Debe sentirse como una aplicación gastronómica real y moderna, tomando como referencia de usabilidad aplicaciones como McDonald's, KFC, Burger King y Starbucks, pero sin copiar su identidad visual.
 
+> **Revisión NEBULA EMBER (v3, 2026-10-11)**: este documento se actualizó con la identidad vigente. La paleta activa es **NEBULA EMBER** (brasa cálida sobre noche) y la tipografía display es **Fraunces**. El detalle de tokens vive en `03-memoria-nebula-cliente.md` §28; los valores de código, en `src/theme/`.
+
 ---
 
 ## 1. Identidad visual
@@ -42,41 +44,42 @@ La tecnología no debe dominar la experiencia. El protagonista debe seguir siend
 
 # 2. Paleta principal
 
-## Background
+## Background (escalera cálida NEBULA EMBER)
 
 | Token | Hex | Uso |
 |---|---|---|
-| Background | `#08090C` | Fondo principal |
-| Background Secondary | `#0D0F14` | Secciones y superficies |
-| Surface | `#12151C` | Cards y contenedores |
-| Surface Elevated | `#171B24` | Cards destacadas, modales y bottom sheets |
-| Surface Strong | `#1E232E` | Inputs, controles y elementos seleccionados |
+| Background | `#131014` | Fondo principal |
+| Surface Lowest | `#0C0A0D` | Fondo profundo |
+| Surface Low | `#1A1619` | Pills resting, tab bar |
+| Surface | `#201B1F` | Cards y contenedores |
+| Surface Elevated | `#2A2328` | Cards destacadas, modales y bottom sheets |
+| Surface Strong | `#352C31` | Inputs, controles y elementos seleccionados |
 
 Nunca utilizar `#000000` como fondo general.
 
 ---
 
-## 3. Dorado de Nebula
+## 3. Ember de Nebula (primario) y oro reservado
 
-El dorado es el color principal de identidad.
+El **ember** (brasa cálida) es el color principal de identidad y acción.
 
 | Token | Hex | Uso |
 |---|---|---|
-| Gold | `#D4A340` | Color principal |
-| Gold Highlight | `#E8BC5A` | Estados activos y highlights |
-| Gold Dark | `#A87C28` | Estados secundarios y profundidad |
+| Ember | `#F08A5A` | Color principal, highlights, precios |
+| Ember Container | `#D96A3B` | Fill de CTAs (bajo gradiente `emberCTA`) |
+| Ember Deep | `#D2602A` | Extremo profundo del gradiente |
 
-Usar el dorado como acento, no como color dominante de toda la interfaz.
+Usar el ember como acento, no como color dominante de toda la interfaz.
 
 Debe aparecer especialmente en:
 
 - CTA principales
 - navegación activa
 - precios destacados
-- promociones premium
 - indicadores importantes
-- elementos de branding
 - estados seleccionados
+
+**Oro reservado (no es color de acción):** `vipGold #F3BE59` / `vipGoldDark #D4A340`, solo para LEGENDARY de la ruleta, niveles de fidelidad VIP y sellos premium. El wine `#A03D52` es el secundario (EPIC de la ruleta) y nunca se usa como color de texto; sobre wine se escribe con `onSecondaryContainer #FFE3E8`.
 
 ---
 
@@ -84,10 +87,10 @@ Debe aparecer especialmente en:
 
 | Token | Hex | Uso |
 |---|---|---|
-| Success | `#34B964` | Confirmado, disponible, completado |
-| Warning | `#E07828` | Pendiente, advertencia, disponibilidad limitada |
-| Error | `#C83228` | Error, cancelación, acción destructiva |
-| Info | `#4AA3C7` | Información y estados informativos |
+| Success | `#3FBF7F` | Confirmado, disponible, completado |
+| Warning | `#E5A43D` | Pendiente, advertencia, disponibilidad limitada |
+| Error | `#FF7A6E` | Error, cancelación, acción destructiva |
+| Info | `#5AB8E8` | Información y estados informativos |
 
 Los colores funcionales nunca deben depender únicamente del color. Siempre acompañarlos con iconografía o texto.
 
@@ -97,7 +100,7 @@ Los colores funcionales nunca deben depender únicamente del color. Siempre acom
 
 ## Headings
 
-**Outfit**
+**Fraunces**
 
 Usar para:
 
@@ -106,6 +109,7 @@ Usar para:
 - Promociones
 - Precios importantes
 - Branding
+- Número de comanda (tracking)
 
 ## Body
 
@@ -175,8 +179,8 @@ Secciones principales:
 
 Estado activo:
 
-- Icono dorado
-- Label dorado
+- Icono ember
+- Label ember
 - Contraste alto
 
 Estado inactivo:
@@ -298,7 +302,7 @@ Diseñar un sistema consistente para:
 
 ### Primary
 
-Fondo dorado, texto oscuro de alto contraste.
+Gradiente ember (`#F08A5A` → `#D2602A`), texto oscuro de alto contraste.
 
 ### Secondary
 
