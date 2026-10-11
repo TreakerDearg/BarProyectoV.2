@@ -14,7 +14,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
@@ -131,14 +131,15 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection:    'row',
     alignItems:       'center',
-    backgroundColor:  Colors.surfaceContainer,    // #1d2027
+    backgroundColor:  NocturneColors.surfaceContainerLow,  // #1A1619
     borderRadius:     Radius.md,
     borderWidth:      1,
-    borderColor:      'rgba(224, 226, 236, 0.12)',
+    borderColor:      NocturneColors.borderSubtle,
     paddingHorizontal: Spacing.md,
   },
   inputWrapFocused: {
-    borderColor: Colors.primary,  // #f3be59
+    borderColor: Colors.primary,  // #F08A5A
+    backgroundColor: NocturneColors.surfaceContainer,
   },
   inputWrapError: {
     borderColor: Colors.error,

@@ -6,9 +6,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, Text, StyleSheet } from 'react-native';
 import { CheckCircle2, AlertCircle, Info } from 'lucide-react-native';
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
+import { Motion } from '../../theme/motion';
 
 type ToastVariant = 'success' | 'error' | 'info';
 
@@ -22,18 +23,18 @@ interface NToastProps {
 
 const VARIANT_CONFIG: Record<ToastVariant, { bg: string; border: string; icon: React.ReactNode }> = {
   success: {
-    bg:     'rgba(52, 185, 100, 0.12)',
-    border: 'rgba(52, 185, 100, 0.30)',
+    bg:     NocturneColors.successMuted,
+    border: NocturneColors.successBorder,
     icon:   <CheckCircle2 size={16} color={Colors.success} />,
   },
   error: {
-    bg:     'rgba(255, 180, 171, 0.10)',
-    border: 'rgba(255, 180, 171, 0.30)',
+    bg:     NocturneColors.errorMuted,
+    border: NocturneColors.errorBorder,
     icon:   <AlertCircle size={16} color={Colors.error} />,
   },
   info: {
-    bg:     'rgba(56, 189, 248, 0.10)',
-    border: 'rgba(56, 189, 248, 0.25)',
+    bg:     NocturneColors.infoMuted,
+    border: NocturneColors.infoBorder,
     icon:   <Info size={16} color={Colors.info} />,
   },
 };
@@ -54,14 +55,14 @@ export function NToast({
       if (timerRef.current) clearTimeout(timerRef.current);
 
       Animated.parallel([
-        Animated.timing(opacity,     { toValue: 1, duration: 220, useNativeDriver: true }),
-        Animated.timing(translateY,  { toValue: 0, duration: 220, useNativeDriver: true }),
+        Animated.timing(opacity,     { toValue: 1, duration: Motion.base, useNativeDriver: true }),
+        Animated.timing(translateY,  { toValue: 0, duration: Motion.base, useNativeDriver: true }),
       ]).start();
 
       timerRef.current = setTimeout(() => {
         Animated.parallel([
-          Animated.timing(opacity,    { toValue: 0, duration: 200, useNativeDriver: true }),
-          Animated.timing(translateY, { toValue: -16, duration: 200, useNativeDriver: true }),
+          Animated.timing(opacity,    { toValue: 0, duration: Motion.fast, useNativeDriver: true }),
+          Animated.timing(translateY, { toValue: -16, duration: Motion.fast, useNativeDriver: true }),
         ]).start(() => onHide?.());
       }, duration);
     }

@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, type ViewStyle } from 'react-native';
-import { Colors }  from '../../theme/colors';
+import { Colors, NocturneColors }  from '../../theme/colors';
 import { Radius }  from '../../theme/spacing';
 
 interface NSkeletonProps {
@@ -86,7 +86,7 @@ const skelStyles = StyleSheet.create({
     borderRadius:    Radius.xl,
     overflow:        'hidden',
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   body: {
     padding: 16,
@@ -99,7 +99,7 @@ const skelStyles = StyleSheet.create({
     padding:         12,
     gap:             12,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   rowBody: {
     flex: 1,

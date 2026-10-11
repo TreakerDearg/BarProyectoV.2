@@ -15,7 +15,7 @@ import {
   UserCircle,
 } from 'lucide-react-native';
 
-import { Colors }    from '../theme/colors';
+import { Colors, NocturneColors }    from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing }   from '../theme/spacing';
 import { useCartStore } from '../stores/useCartStore';
@@ -89,14 +89,14 @@ export default function AppNavigator() {
 
           // ── Tab bar style ────────────────────────────────────────
           tabBarStyle: {
-            backgroundColor:  Colors.surfaceElevated,
-            borderTopColor:   Colors.goldBorder,
+            backgroundColor:  NocturneColors.surfaceContainerLow,
+            borderTopColor:   NocturneColors.borderSubtle,
             borderTopWidth:   1,
             height:           Spacing.tabBarHeightNew + insets.bottom,
             paddingBottom:    Platform.OS === 'android' ? 8 : insets.bottom > 0 ? insets.bottom : 8,
             paddingTop:       8,
             elevation:        16,
-            shadowColor:      '#000',
+            shadowColor:      NocturneColors.surfaceContainerLowest,
             shadowOffset:     { width: 0, height: -2 },
             shadowOpacity:    0.3,
             shadowRadius:     8,
@@ -145,7 +145,7 @@ export default function AppNavigator() {
                   >
                     <Text
                       style={{
-                        color:      '#fff',
+                        color:      Colors.onPrimary,
                         fontSize:   9,
                         fontWeight: '700' as const,
                         lineHeight: 11,
@@ -157,7 +157,7 @@ export default function AppNavigator() {
                 )}
               </View>
               {focused && (
-                <View style={{ width: 40, height: 3, borderRadius: 2, backgroundColor: Colors.primaryContainer }} />
+                <View style={{ width: 20, height: 3, borderRadius: 2, backgroundColor: Colors.primary }} />
               )}
             </View>
           ),

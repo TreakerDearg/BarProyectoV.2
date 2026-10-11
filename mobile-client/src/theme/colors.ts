@@ -71,6 +71,13 @@ export const NocturneColors = {
   info:                      '#5AB8E8',
   infoMuted:                 'rgba(90, 184, 232, 0.12)',
 
+  // Bordes suaves (tokens v3 — eliminan literales rgba en componentes)
+  borderSubtle:              'rgba(241, 232, 222, 0.08)',
+  successBorder:             'rgba(63, 191, 127, 0.30)',
+  warningBorder:             'rgba(229, 164, 61, 0.30)',
+  errorBorder:               'rgba(255, 122, 110, 0.30)',
+  infoBorder:                'rgba(90, 184, 232, 0.30)',
+
   // Ember glow family (acción: los viejos gold* ahora apuntan acá)
   emberGlow:                 'rgba(240, 138, 90, 0.25)',
   emberGlowStrong:           'rgba(217, 106, 59, 0.35)',

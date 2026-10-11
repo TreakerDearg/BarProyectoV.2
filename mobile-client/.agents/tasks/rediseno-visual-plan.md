@@ -112,9 +112,11 @@ Dependencias: `0 → 1 → 2 → 3 → 4 → 5 → 6`. Dentro de 3 y 4, por comp
 
 **Archivos**: NEW `src/hooks/usePressScale.ts`, NEW `src/components/shared/NBadge.tsx` (unifica badges repetidos), `NButton.tsx` (fill con LinearGradient ember, press scale, API intacta), `NInput.tsx`, `NToast.tsx`, `NSkeleton.tsx` (shimmer cálido), `NEmptyState.tsx`, `StatusBadge.tsx`, `AppNavigator.tsx` (barra cálida, indicador ember), `FloatingCartBar.tsx` (restyle; lógica intacta).
 
-- [ ] 10. Implementar hook + NBadge y migrar NButton/NInput/NToast/NSkeleton/NEmptyState.
-- [ ] 11. Tab bar: `surfaceContainerLow` + borde sutil + indicador `primary`; verificar safe areas iOS/Android y `tabBarHideOnKeyboard`.
-- [ ] 12. Verificación: tsc + visual (botón ember con gradiente responde con press scale; badges consistentes).
+- [x] 10. Hook `usePressScale` (spring fricción 8, native driver) + `NBadge` (8 tonos tint/solid, icono opcional) creados. Migrados: `NButton` (gradiente `emberCTA` + press scale + `accessibilityState`; API intacta), `NInput` (recessed `surfaceContainerLow` + foco ember), `NToast` (tokens semánticos + `Motion.base/fast`), `NSkeleton` (bordes `borderSubtle`), `NEmptyState` (halo ember), `FloatingCartBar` (pill ember con gradiente + press scale; lógica del carrito intacta). `StatusBadge` ya era 100% token-driven: sin cambios.
+- [x] 11. Tab bar: `surfaceContainerLow` + `borderSubtle` + indicador ember de 20 px + badge del carrito con texto `onPrimary`; se conservan safe areas (`insets.bottom`) y `tabBarHideOnKeyboard: true`.
+- [x] 12. Verificación: `npx tsc --noEmit` limpio. Revisión visual en Expo Go **pendiente del usuario** (NButton primary con gradiente y press scale; pill del carrito ember; badges NBadge listos para Fase 3).
+
+**Tokens nuevos (aditivos)**: `borderSubtle`, `successBorder`, `warningBorder`, `errorBorder`, `infoBorder` — eliminan literales rgba en NToast/NSkeleton/NEmptyState/AppNavigator.
 
 ### Fase 3 — Componentes de flujo (uno por uno, props aditivas únicamente)
 

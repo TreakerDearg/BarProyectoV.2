@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors }     from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { NButton }    from './NButton';
@@ -49,12 +49,12 @@ const styles = StyleSheet.create({
     width:           72,
     height:          72,
     borderRadius:    Radius.full,
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: NocturneColors.emberSubtle,
     justifyContent:  'center',
     alignItems:      'center',
     marginBottom:    Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.emberBorder,
   },
   title: {
     ...Typography.headlineSm,

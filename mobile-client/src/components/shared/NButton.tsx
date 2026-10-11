@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — NButton
-// Botón del sistema Nocturne Gastronomy.
-// Variantes: primary (gold), ghost (borde gold), text (transparente)
+// Botón del sistema NEBULA EMBER (v3).
+// Variantes: primary (gradiente ember), ghost (borde ember), text, danger.
+// Micro-interacción: press scale con spring (usePressScale).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
@@ -11,14 +12,19 @@ import {
   StyleSheet,
   ActivityIndicator,
   View,
+  Animated,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { Colors }     from '../../theme/colors';
+
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
+import { Gradients }  from '../../theme/gradients';
+import { usePressScale } from '../../hooks/usePressScale';
 
 type Variant = 'primary' | 'ghost' | 'text' | 'danger';
 type Size    = 'sm' | 'md' | 'lg';
@@ -49,21 +55,14 @@ export function NButton({
   icon,
   style,
 }: NButtonProps) {
+  const press = usePressScale(0.97);
+  const isDisabled = disabled || loading;
+
   const handlePress = () => {
-    if (disabled || loading) return;
+    if (isDisabled) return;
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
     onPress();
   };
-
-  const containerStyle: ViewStyle[] = [
-    styles.base,
-    styles[variant],
-    { height: HEIGHT[size], paddingHorizontal: H_PAD[size] },
-    fullWidth ? { alignSelf: 'stretch' as const } : undefined,
-    (disabled || loading) ? styles.disabled : undefined,
-    variant === 'primary' ? (Elevation.goldCTA as ViewStyle) : undefined,
-    style ?? undefined,
-  ].filter(Boolean) as ViewStyle[];
 
   const labelStyle: TextStyle[] = [
     styles.label,
@@ -72,35 +71,74 @@ export function NButton({
   ];
 
   return (
-    <TouchableOpacity
-      style={containerStyle}
-      onPress={handlePress}
-      activeOpacity={0.80}
-      disabled={disabled || loading}
-      accessibilityRole="button"
-      accessibilityLabel={label}
+    <Animated.View
+      style={[
+        styles.shell,
+        { height: HEIGHT[size] },
+        fullWidth && styles.fullWidth,
+        variant === 'primary' && styles.shellPrimary,
+        variant === 'primary' && (Elevation.emberCTA as ViewStyle),
+        isDisabled && styles.disabled,
+        style,
+        press.animatedStyle,
+      ]}
     >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'primary' ? Colors.onPrimary : Colors.primary}
-        />
-      ) : (
-        <View style={styles.inner}>
-          {icon && <View style={styles.iconWrap}>{icon}</View>}
-          <Text style={labelStyle}>{label}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.touch, styles[variant], { paddingHorizontal: H_PAD[size] }]}
+        onPress={handlePress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        activeOpacity={0.9}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
+      >
+        {variant === 'primary' && (
+          <LinearGradient
+            colors={Gradients.emberCTA.colors}
+            start={Gradients.emberCTA.start}
+            end={Gradients.emberCTA.end}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        )}
+
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={variant === 'primary' ? Colors.onPrimary : Colors.primary}
+          />
+        ) : (
+          <View style={styles.inner}>
+            {icon && <View style={styles.iconWrap}>{icon}</View>}
+            <Text style={labelStyle}>{label}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  base: {
-    borderRadius:    Radius.lg,
-    alignItems:      'center',
-    justifyContent:  'center',
-    flexDirection:   'row',
+  // ── Capa exterior: sombra + transform (sin overflow para no comerse el glow) ──
+  shell: {
+    borderRadius: Radius.lg,
+  },
+  shellPrimary: {
+    backgroundColor: Colors.primaryContainer,
+  },
+  fullWidth: {
+    alignSelf: 'stretch' as const,
+  },
+  // ── Touchable interno: clipea el gradiente contra el radio ──
+  touch: {
+    flex:           1,
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'center',
+    borderRadius:   Radius.lg,
+    overflow:       'hidden',
   },
   inner: {
     flexDirection:  'row',
@@ -112,14 +150,12 @@ const styles = StyleSheet.create({
     alignItems:     'center',
   },
 
-  // ── Variantes ─────────────────────────────────────────────────
-  primary: {
-    backgroundColor: Colors.primaryContainer,  // #d4a340
-  },
+  // ── Variantes (el primary pinta el gradiente encima) ──────────
+  primary: {},
   ghost: {
     backgroundColor: 'transparent',
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
   },
   text: {
     backgroundColor: 'transparent',
@@ -135,8 +171,8 @@ const styles = StyleSheet.create({
 
   // ── Labels ────────────────────────────────────────────────────
   label: {},
-  label_primary: { color: Colors.onPrimary },      // #412d00
-  label_ghost:   { color: Colors.primary },         // #f3be59
-  label_text:    { color: Colors.onSurface },       // #e0e2ec
-  label_danger:  { color: Colors.error },           // #ffb4ab
+  label_primary: { color: Colors.onPrimary },                 // #2A0F04 sobre ember
+  label_ghost:   { color: Colors.primary },                   // #F08A5A
+  label_text:    { color: Colors.onSurface },                 // #F1E8DE
+  label_danger:  { color: NocturneColors.onErrorContainer },  // #FFDAD4
 });
