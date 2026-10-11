@@ -22,7 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { Colors, NocturneColors } from '../theme/colors';
-import { Typography } from '../theme/typography';
+import { Typography, FontFamily } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 
 import { getPublicRouletteDrinks, spinPublicRoulette, generateRouletteTicket } from '../api/rouletteApi';
@@ -672,10 +672,7 @@ const styles = StyleSheet.create({
     textTransform: 'none' as const,
   },
   drinkName: {
-    fontFamily:    'Outfit_600SemiBold',
-    fontSize:      26,
-    lineHeight:    32,
-    letterSpacing: -0.26,
+    ...Typography.displaySm,
   },
   drinkDesc: {
     ...Typography.bodyMd,
@@ -804,7 +801,7 @@ const styles = StyleSheet.create({
     zIndex:          50,
   },
   countdownNumber: {
-    fontFamily: 'Outfit_600SemiBold',
+    fontFamily: FontFamily.frauncesBold,
     fontSize:   120,
     color:      Colors.primary,
   },

@@ -1,62 +1,60 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — Typography Scale: Nocturne Gastronomy
-// Outfit: headings, display, prices, branding
-// Inter: body, labels, navigation, forms
+// NEBULA — Typography Scale: NEBULA EMBER (v3)
+// Fraunces: display, precios, branding (editorial, cálida)
+// Inter: body, labels, navegación, forms
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { TextStyle } from 'react-native';
 
 // ── Font families ─────────────────────────────────────────────────────────────
-// Las fuentes se cargan con expo-google-fonts en App.tsx.
+// Las fuentes se cargan con expo-google-fonts en App.tsx (6 pesos en total).
 // Mientras no estén cargadas, RN usa el system font sin error.
 
 export const FontFamily = {
-  outfit:          'Outfit_400Regular',
-  outfitMedium:    'Outfit_500Medium',
-  outfitSemiBold:  'Outfit_600SemiBold',
-  outfitBold:      'Outfit_700Bold',
+  fraunces:        'Fraunces_600SemiBold',
+  frauncesBold:    'Fraunces_700Bold',
   inter:           'Inter_400Regular',
   interMedium:     'Inter_500Medium',
   interSemiBold:   'Inter_600SemiBold',
   interBold:       'Inter_700Bold',
 } as const;
 
-// ── Type scale (Nocturne Gastronomy) ─────────────────────────────────────────
+// ── Type scale (NEBULA EMBER) ────────────────────────────────────────────────
 
 export const Typography = {
-  // ── Display — Outfit (promociones, hero titles, precios grandes) ──
+  // ── Display — Fraunces (saludo, títulos de pantalla, resultado ruleta) ──
   displayLg: {
-    fontFamily:     FontFamily.outfitSemiBold,
-    fontSize:       32,
-    lineHeight:     38,
-    letterSpacing:  -0.64,  // -0.02em × 32
+    fontFamily:     FontFamily.fraunces,
+    fontSize:       34,
+    lineHeight:     40,
+    letterSpacing:  -0.68,  // -0.02em × 34
   } satisfies TextStyle,
 
   displaySm: {
-    fontFamily:     FontFamily.outfitSemiBold,
-    fontSize:       26,
+    fontFamily:     FontFamily.fraunces,
+    fontSize:       27,
     lineHeight:     32,
-    letterSpacing:  -0.26,  // -0.01em × 26
+    letterSpacing:  -0.54,  // -0.02em × 27
   } satisfies TextStyle,
 
-  // ── Headlines — Outfit (títulos de sección, nombres de platos) ──
+  // ── Headlines — Fraunces (títulos de sección) / Inter (subtítulos) ──
   headlineLg: {
-    fontFamily:     FontFamily.outfitSemiBold,
+    fontFamily:     FontFamily.fraunces,
     fontSize:       22,
     lineHeight:     28,
-    letterSpacing:  -0.22,
+    letterSpacing:  -0.22,  // -0.01em × 22
   } satisfies TextStyle,
 
   headlineSm: {
-    fontFamily:     FontFamily.outfitMedium,
+    fontFamily:     FontFamily.interSemiBold,
     fontSize:       18,
     lineHeight:     24,
     letterSpacing:  0,
   } satisfies TextStyle,
 
-  // ── Title — Outfit (subtítulos, categorías) ──
+  // ── Title — Inter (subtítulos, categorías) ──
   titleMd: {
-    fontFamily:     FontFamily.outfitMedium,
+    fontFamily:     FontFamily.interMedium,
     fontSize:       16,
     lineHeight:     22,
     letterSpacing:  0,
@@ -107,19 +105,27 @@ export const Typography = {
     textTransform:  'uppercase' as const,
   } satisfies TextStyle,
 
-  // ── Price — Outfit (precios destacados en gold) ──
+  // ── Price — Fraunces (precios protagonistas en ember) ──
   price: {
-    fontFamily:     FontFamily.outfitSemiBold,
-    fontSize:       18,
-    lineHeight:     22,
+    fontFamily:     FontFamily.fraunces,
+    fontSize:       19,
+    lineHeight:     24,
     letterSpacing:  0,
   } satisfies TextStyle,
 
   priceLg: {
-    fontFamily:     FontFamily.outfitSemiBold,
-    fontSize:       22,
-    lineHeight:     26,
+    fontFamily:     FontFamily.fraunces,
+    fontSize:       24,
+    lineHeight:     28,
     letterSpacing:  0,
+  } satisfies TextStyle,
+
+  // ── Order number — Fraunces (número de comanda gigante del tracker) ──
+  orderNumber: {
+    fontFamily:     FontFamily.frauncesBold,
+    fontSize:       56,
+    lineHeight:     60,
+    letterSpacing:  -1.12,  // -0.02em × 56
   } satisfies TextStyle,
 } as const;
 

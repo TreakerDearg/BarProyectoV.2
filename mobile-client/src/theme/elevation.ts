@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — Elevation System: Nocturne Gastronomy
+// NEBULA — Elevation System: NEBULA EMBER (v3)
 // Visual hierarchy via tonal stacking — no heavy blurred glass.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -45,9 +45,18 @@ export const Elevation = {
     elevation:     12,
   } satisfies ViewStyle,
 
-  /** Gold Focal — Solo para CTA primarios. Glow dorado difuso */
+  /** Ember Focal — Solo para CTA primarios. Glow ember difuso */
+  emberCTA: {
+    shadowColor:   '#D96A3B',
+    shadowOffset:  { width: 0, height: 4 },
+    shadowOpacity: 0.30,
+    shadowRadius:  16,
+    elevation:     8,
+  } satisfies ViewStyle,
+
+  /** @deprecated Usar `emberCTA` — se mantiene como alias de compatibilidad */
   goldCTA: {
-    shadowColor:   '#d4a340',
+    shadowColor:   '#D96A3B',
     shadowOffset:  { width: 0, height: 4 },
     shadowOpacity: 0.30,
     shadowRadius:  16,

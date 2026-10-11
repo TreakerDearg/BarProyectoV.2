@@ -80,10 +80,33 @@ Dependencias: `0 → 1 → 2 → 3 → 4 → 5 → 6`. Dentro de 3 y 4, por comp
 
 **Archivos**: `src/theme/colors.ts`, `typography.ts`, `elevation.ts` (nuevo `emberCTA`, `goldCTA` queda como alias deprecated), `spacing.ts` (sin cambios estructurales), NEW `gradients.ts` + `motion.ts`, `index.ts` (exportar nuevos), `App.tsx` (font load 6 fuentes, `NavigationTheme` fonts/colors, splash).
 
-- [ ] 6. Reescribir valores de paleta según tabla (keys y nombres de export intactos).
-- [ ] 7. Actualizar tipografía según tabla + `orderNumber`.
-- [ ] 8. **Validación WCAG**: tabla de pares texto/fondo ≥4.5:1 (texto normal) y ≥3:1 (texto grande/UI); si algo falla, ajustar luminosidad ±5% y registrar en memoria.
-- [ ] 9. Verificación: `npx tsc --noEmit` + Expo Go (toda la app cambia de mood vía tokens, sin editar componentes). Los hardcodeos catalogados quedan como pendientes por componente (fases 2-4).
+- [x] 6. Reescribir valores de paleta según tabla (keys y nombres de export intactos). `colors.ts`: escalera cálida + ember (primary) + wine (secondary) + gold reservado (`vipGold*`, tertiary); claves nuevas `ember*`/`wine*`/`vipGold*`; los `gold*` de acción quedan apuntando a ember. `statusCompleted` (legacy, sin uso) pasa a `outline` neutro.
+- [x] 7. Actualizar tipografía según tabla + `orderNumber`. `FontFamily` = Fraunces 600/700 + Inter (4); `headlineSm`/`titleMd` a Inter; `price`/`priceLg` a Fraunces; `orderNumber` nuevo (56/60). `App.tsx` carga 6 pesos; `@expo-google-fonts/outfit` desinstalado. Fix puntual para no dejar fuente en fallback: `RouletteScreen` tenía 2 `fontFamily: 'Outfit_…'` hardcodeados (L675/L807) → migrados a `displaySm` y `FontFamily.frauncesBold`.
+- [x] 8. **Validación WCAG** — 27/29 pares OK, ver tabla abajo. Ajustes aplicados: `emberDeep` `#C8551F`→`#D2602A` (4.09→4.66:1 sobre `onPrimary`); regla de uso: **wine nunca como texto** sobre canvas/superficies (2.95:1) — solo fill con `#FFE3E8` encima.
+- [x] 9. Verificación: `npx tsc --noEmit` limpio. Revisión visual en Expo Go **pendiente del usuario** (toda la app cambia de mood vía tokens, sin editar componentes). Los hardcodeos catalogados quedan como pendientes por componente (fases 2-4).
+
+**Nuevos archivos de esta fase**: `gradients.ts` (heroOverlay, emberCTA `#F08A5A→#D2602A`, nightWash, cardSheen + `Direction`), `motion.ts` (`Motion.fast/base/slow`, `Easings`, `SpringPress` fricción 8), `elevation.ts` (`emberCTA`; `goldCTA` queda como alias `@deprecated`), `index.ts` exporta todo.
+
+#### Tabla WCAG (Fase 1 — pares texto/fondo)
+
+| Par (texto sobre fondo) | Ratio | AA |
+|---|---|---|
+| onSurface `#F1E8DE` / background `#131014` | 15.59 | ✓ |
+| onSurface / surfaceContainer `#201B1F` | 14.00 | ✓ |
+| onSurface / surfaceContainerHigh `#2A2328` | 12.66 | ✓ |
+| onSurfaceVariant `#D6C6B6` / background · / card · / cardHigh | 11.34 · 10.19 · 9.21 | ✓ |
+| outline `#9E8C7B` (texto muted) / background · / card | 5.84 · 5.24 | ✓ |
+| primary `#F08A5A` / background · / card · / cardHigh | 7.63 · 6.86 · 6.20 | ✓ |
+| onPrimary `#2A0F04` / primaryContainer `#D96A3B` · / emberDeep `#D2602A` · / primary | 5.20 · 4.66 · 7.26 | ✓ |
+| onSecondaryContainer `#FFE3E8` / secondaryContainer `#5E2130` · / secondary `#A03D52` | 10.02 · 5.30 | ✓ |
+| **secondary `#A03D52` como texto / canvas** | **2.95** | **✗ → solo fill** |
+| success `#3FBF7F` / background | 8.07 | ✓ |
+| warning `#E5A43D` / background · / card | 8.73 · 7.84 | ✓ |
+| error `#FF7A6E` / background · / card | 7.43 · 6.67 | ✓ |
+| info `#5AB8E8` / background | 8.50 | ✓ |
+| vipGold `#F3BE59` / background · / card | 11.08 · 9.95 | ✓ |
+| onSurface / errorContainer `#8E1F2C` · onSurfaceVariant / errorContainer | 7.28 · 5.29 | ✓ |
+| outline / background (borde UI, min 3:1) | 5.84 | ✓ |
 
 ### Fase 2 — Primitivas de identidad
 

@@ -8,14 +8,12 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 
-// ── Fuentes Nocturne Gastronomy ───────────────────────────────────────────────
+// ── Fuentes NEBULA EMBER (Fraunces display + Inter UI, 6 pesos) ──────────────
 import {
   useFonts,
-  Outfit_400Regular,
-  Outfit_500Medium,
-  Outfit_600SemiBold,
-  Outfit_700Bold,
-} from '@expo-google-fonts/outfit';
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+} from '@expo-google-fonts/fraunces';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -61,10 +59,8 @@ export default function App() {
   const loadSession = useAuthStore((s) => s.loadSession);
 
   const [fontsLoaded, fontError] = useFonts({
-    Outfit_400Regular,
-    Outfit_500Medium,
-    Outfit_600SemiBold,
-    Outfit_700Bold,
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
