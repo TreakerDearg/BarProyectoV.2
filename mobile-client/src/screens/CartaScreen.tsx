@@ -96,6 +96,8 @@ export default function CartaScreen() {
 
   // ── Filtros ───────────────────────────────────────────────────
   const [searchQuery,    setSearchQuery]    = useState('');
+  // Valor debounced: el filtrado espera 300 ms desde la última tecla
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
 
   // ── Medidas de la barra sticky ────────────────────────────────
@@ -120,6 +122,12 @@ export default function CartaScreen() {
   const activeRef         = useRef('all');
 
   activeRef.current = activeCategory;
+
+  // ── Debounce de búsqueda (300 ms desde la última tecla) ───────
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // ── Carga de datos ────────────────────────────────────────────
   const fetchProducts = useCallback(async (isRefresh = false) => {
@@ -152,7 +160,7 @@ export default function CartaScreen() {
 
   // ── Secciones: agrupadas por categoría en filas de 2 ──────────
   const sections = useMemo<CartaSection[]>(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = debouncedQuery.trim().toLowerCase();
     const base = q
       ? products.filter(
           (p) =>
@@ -182,14 +190,14 @@ export default function CartaScreen() {
       out.push({ title: cat.name, categoryId: cat.id, count: items.length, data: rows });
     });
     return out;
-  }, [products, orderedCategories, searchQuery]);
+  }, [products, orderedCategories, debouncedQuery]);
 
   const resultCount = useMemo(
     () => sections.reduce((n, s) => n + s.count, 0),
     [sections]
   );
 
-  const searching = searchQuery.trim().length > 0;
+  const searching = debouncedQuery.trim().length > 0;
 
   // ── Scroll-spy: la categoría visible manda ────────────────────
   const handleScrollSpy = useCallback(
@@ -307,10 +315,14 @@ export default function CartaScreen() {
     [toggleFavorite]
   );
 
-  const clearSearch = useCallback(() => setSearchQuery(''), []);
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+  }, []);
 
   const resetSearch = useCallback(() => {
     setSearchQuery('');
+    setDebouncedQuery('');
     activeRef.current = 'all';
     setActiveCategory('all');
   }, []);
@@ -350,7 +362,7 @@ export default function CartaScreen() {
         {/* Resultados de búsqueda */}
         {searching && (
           <Text style={styles.resultsText}>
-            {resultCount} resultado{resultCount !== 1 ? 's' : ''} para "{searchQuery.trim()}"
+            {resultCount} resultado{resultCount !== 1 ? 's' : ''} para "{debouncedQuery.trim()}"
           </Text>
         )}
       </View>
@@ -370,7 +382,7 @@ export default function CartaScreen() {
       />
     </View>
   ), [
-    products.length, searchQuery, searching, resultCount,
+    products.length, searchQuery, debouncedQuery, searching, resultCount,
     categories, activeCategory, clearSearch, scrollToCategory, barHeight,
   ]);
 

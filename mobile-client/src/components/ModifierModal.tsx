@@ -85,7 +85,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productCategory}>{product.category}</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
               <X size={20} color={Colors.onSurfaceVariant} />
             </TouchableOpacity>
           </View>

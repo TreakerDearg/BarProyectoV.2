@@ -142,7 +142,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                 pointerEvents="none"
               />
               {/* Close button */}
-              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose}>
+              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
                 <X size={20} color={Colors.onSurface} />
               </TouchableOpacity>
               {/* Heart */}
@@ -152,7 +152,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
             </View>
           ) : (
             <View style={styles.heroPlaceholder}>
-              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose}>
+              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
                 <X size={20} color={Colors.onSurface} />
               </TouchableOpacity>
             </View>

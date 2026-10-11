@@ -4,7 +4,7 @@
 // cantidad, badges NBadge y CTA "Agregar" con gradiente ember.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useRef } from 'react';
+import React, { useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -38,7 +38,7 @@ interface ProductGridCardProps {
   onPress?:    (p: ProductPublicDTO) => void;
 }
 
-export function ProductGridCard({
+export const ProductGridCard = memo(function ProductGridCard({
   product,
   isFavorite,
   cartQty,
@@ -133,6 +133,7 @@ export function ProductGridCard({
             onPress={() => product.available && onAdd(product)}
             activeOpacity={0.8}
             disabled={!product.available}
+            hitSlop={{ top: 6, bottom: 6 }}
           >
             {product.available && (
               <LinearGradient
@@ -157,6 +158,7 @@ export function ProductGridCard({
               <TouchableOpacity
                 style={styles.stepBtn}
                 onPress={() => springPress(minusAnim, () => onRemove(product))}
+                hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
               >
                 <Minus size={13} color={Colors.onSurface} />
               </TouchableOpacity>
@@ -168,6 +170,7 @@ export function ProductGridCard({
               <TouchableOpacity
                 style={styles.stepBtn}
                 onPress={() => springPress(plusAnim, () => onAdd(product))}
+                hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
               >
                 <Plus size={13} color={Colors.onSurface} />
               </TouchableOpacity>
@@ -177,7 +180,7 @@ export function ProductGridCard({
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

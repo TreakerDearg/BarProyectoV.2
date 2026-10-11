@@ -4,7 +4,7 @@
 // stepper de cantidad (papelera cuando qty=1).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,7 @@ interface CartItemRowProps {
   onRemove:    () => void;
 }
 
-export function CartItemRow({ item, onIncrement, onDecrement, onRemove }: CartItemRowProps) {
+export const CartItemRow = memo(function CartItemRow({ item, onIncrement, onDecrement, onRemove }: CartItemRowProps) {
   const handleDecrement = () => {
     if (item.quantity === 1) {
       onRemove();
@@ -68,7 +68,7 @@ export function CartItemRow({ item, onIncrement, onDecrement, onRemove }: CartIt
         <TouchableOpacity
           style={styles.stepBtn}
           onPress={handleDecrement}
-          hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+          hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
         >
           {item.quantity === 1 ? (
             <Trash2 size={14} color={Colors.error} />
@@ -82,14 +82,14 @@ export function CartItemRow({ item, onIncrement, onDecrement, onRemove }: CartIt
         <TouchableOpacity
           style={styles.stepBtn}
           onPress={onIncrement}
-          hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+          hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
         >
           <Plus size={13} color={Colors.onSurface} />
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {
