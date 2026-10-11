@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   ruletaPill: {
     backgroundColor: NocturneColors.emberMuted,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
     borderWidth:     1,
   },
   ruletaLabel: {

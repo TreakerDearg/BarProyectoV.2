@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
 
   // ── Image ──────────────────────────────────────────────────────
   imageWrap: {
-    aspectRatio:  4 / 3,
+    aspectRatio:  1,
     width:        '100%',
     position:     'relative',
   },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     gap:           6,
   },
   productPrice: {
-    ...Typography.price,
+    ...Typography.priceLg,
     color: Colors.primary,
   },
   priceOriginal: {

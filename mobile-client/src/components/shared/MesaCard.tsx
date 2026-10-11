@@ -112,11 +112,11 @@ const styles = StyleSheet.create({
     width:           40,
     height:          40,
     borderRadius:    Radius.md,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   info: { flex: 1, gap: 3 },
   nameBadgeRow: {

@@ -29,7 +29,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { RootTabParamList } from '../navigation/types';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 
@@ -39,6 +39,7 @@ import { useAuthStore }      from '../stores/useAuthStore';
 import { useFavoritesStore } from '../stores/useFavoritesStore';
 
 import { ProductGridCard }    from '../components/shared/ProductGridCard';
+import { SommelierCard }      from '../components/shared/SommelierCard';
 import { NEmptyState }        from '../components/shared/NEmptyState';
 import { NSkeleton }          from '../components/shared/NSkeleton';
 import { NToast }             from '../components/shared/NToast';
@@ -64,10 +65,12 @@ function buildCategories(products: ProductPublicDTO[]) {
   ];
 }
 
-/** Fila del grid: 1-2 productos (chunks de 2 para numColumns manual). */
+/** Fila del grid: hero a ancho completo o 1-2 productos en 2 columnas. */
 interface CartaRow {
-  key:   string;
-  items: ProductPublicDTO[];
+  key:    string;
+  items:  ProductPublicDTO[];
+  /** Primer ítem de la sección: card hero con imagen grande. */
+  hero?:  boolean;
 }
 
 /** Sección del SectionList: una categoría. */
@@ -171,7 +174,9 @@ export default function CartaScreen() {
       const items = byCategory.get(cat.id);
       if (!items || items.length === 0) return;
       const rows: CartaRow[] = [];
-      for (let i = 0; i < items.length; i += 2) {
+      // El primer ítem de cada categoría abre la sección como hero
+      rows.push({ key: `${cat.id}-hero`, items: [items[0]], hero: true });
+      for (let i = 1; i < items.length; i += 2) {
         rows.push({ key: `${cat.id}-${i}`, items: items.slice(i, i + 2) });
       }
       out.push({ title: cat.name, categoryId: cat.id, count: items.length, data: rows });
@@ -472,24 +477,41 @@ export default function CartaScreen() {
           ref={listRef}
           sections={sections}
           keyExtractor={(row) => row.key}
-          renderItem={({ item }) => (
-            <View style={styles.rowWrap}>
-              {item.items.map((p) => (
-                <View key={p.id} style={styles.gridItem}>
-                  <ProductGridCard
-                    product={p}
-                    isFavorite={isFavorite(p.id)}
-                    cartQty={getCartQty(p.id)}
-                    onAdd={handleAdd}
-                    onRemove={handleRemove}
-                    onFavorite={token ? handleFavorite : undefined}
-                    onPress={setSelectedProduct}
-                  />
-                </View>
-              ))}
-              {item.items.length === 1 && <View style={styles.gridItem} />}
-            </View>
-          )}
+          renderItem={({ item }) => {
+            const [first] = item.items;
+
+            // Hero de sección: primer ítem a ancho completo
+            if (item.hero && first) {
+              return (
+                <SommelierCard
+                  product={first}
+                  isFavorite={isFavorite(first.id)}
+                  onAdd={(p) => setCustomizerProduct(p)}
+                  onPress={(p) => setSelectedProduct(p)}
+                  onFavorite={token ? handleFavorite : undefined}
+                />
+              );
+            }
+
+            return (
+              <View style={styles.rowWrap}>
+                {item.items.map((p) => (
+                  <View key={p.id} style={styles.gridItem}>
+                    <ProductGridCard
+                      product={p}
+                      isFavorite={isFavorite(p.id)}
+                      cartQty={getCartQty(p.id)}
+                      onAdd={handleAdd}
+                      onRemove={handleRemove}
+                      onFavorite={token ? handleFavorite : undefined}
+                      onPress={setSelectedProduct}
+                    />
+                  </View>
+                ))}
+                {item.items.length === 1 && <View style={styles.gridItem} />}
+              </View>
+            );
+          }}
           renderSectionHeader={({ section }) => (
             <View
               style={styles.sectionHeader}
@@ -650,7 +672,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical:   10,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.10)',
+    borderColor:     NocturneColors.borderSubtle,
     gap:             Spacing.sm,
   },
   searchInput: {
@@ -671,7 +693,7 @@ const styles = StyleSheet.create({
     right:           0,
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(224, 226, 236, 0.06)',
+    borderBottomColor: NocturneColors.borderSubtle,
     zIndex:          10,
   },
   stickyBarInner: {
@@ -699,7 +721,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.full,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     paddingHorizontal: 12,
     paddingVertical:   6,
   },

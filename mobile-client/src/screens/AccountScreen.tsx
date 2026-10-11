@@ -9,21 +9,23 @@ import React, {
 } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, Image, Alert,
+  TouchableOpacity, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import {
   LogOut, ChefHat, ShoppingBag, CalendarDays, Sparkles,
   Heart, ClipboardList, Pencil, Save, X as XIcon,
   Lock, Eye, EyeOff, AlertTriangle, CheckCircle2,
   ChevronRight, Phone, Loader2, RefreshCw,
+  TrendingUp, TrendingDown,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation }        from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
@@ -44,7 +46,7 @@ import { socketService }     from '../socket/socketService';
 import { NInput }   from '../components/shared/NInput';
 import { NButton }  from '../components/shared/NButton';
 import { NSkeleton } from '../components/shared/NSkeleton';
-import { LoyaltyCard }     from '../components/shared/LoyaltyCard';
+import { LoyaltyCard, getLevel } from '../components/shared/LoyaltyCard';
 import RewardsCatalog      from '../components/shared/RewardsCatalog';
 
 import type { RootTabParamList } from '../navigation/types';
@@ -271,7 +273,7 @@ const pStyles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainer,
     borderRadius:    Radius.xl,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     overflow:        'hidden',
   },
   header: {
@@ -285,16 +287,16 @@ const pStyles = StyleSheet.create({
   lockRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   editBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderRadius: Radius.full,
     paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: Colors.goldBorder,
+    borderWidth: 1, borderColor: Colors.emberBorder,
   },
   editBtnText: { ...Typography.labelSm, color: Colors.primary, textTransform: 'none' as const },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: Spacing.smMd },
   key: { ...Typography.bodyMd, color: Colors.onSurfaceVariant },
   val: { ...Typography.bodyMd, color: Colors.onSurface, flex: 1, textAlign: 'right', marginLeft: Spacing.md },
-  divider: { height: 1, backgroundColor: 'rgba(224,226,236,0.06)', marginHorizontal: Spacing.md },
+  divider: { height: 1, backgroundColor: NocturneColors.borderSubtle, marginHorizontal: Spacing.md },
   form: { padding: Spacing.md, gap: Spacing.sm },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   errorText: { ...Typography.bodySm, color: Colors.error, flex: 1 },
@@ -329,6 +331,9 @@ export default function AccountScreen() {
     .split(' ').slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
+
+  // Nivel de fidelidad (el oro queda reservado para VIP)
+  const level = getLevel(pointsBalance);
 
   // ── Carga inicial ─────────────────────────────────────────────
   const fetchHistory = useCallback(async () => {
@@ -400,10 +405,10 @@ export default function AccountScreen() {
 
   // ── Quick actions ─────────────────────────────────────────────
   const QUICK_LINKS = [
-    { label: 'Carta',    icon: <ChefHat    size={22} color={Colors.primary} />, bg: Colors.goldMuted,                  onPress: () => navigation.navigate('Carta')    },
-    { label: 'Pedidos',  icon: <ShoppingBag size={22} color={Colors.success} />, bg: 'rgba(52,185,100,0.08)',            onPress: goToPedidos  },
-    { label: 'Reservas', icon: <CalendarDays size={22} color={Colors.info} />,    bg: 'rgba(56,189,248,0.08)',            onPress: goToReservas },
-    { label: 'Favoritos',icon: <Heart       size={22} color={Colors.error}  />,    bg: 'rgba(255,180,171,0.08)',           onPress: goToFavorites },
+    { label: 'Carta',    icon: <ChefHat    size={22} color={Colors.primary} />, bg: Colors.emberMuted,            onPress: () => navigation.navigate('Carta')    },
+    { label: 'Pedidos',  icon: <ShoppingBag size={22} color={Colors.success} />, bg: NocturneColors.successMuted,  onPress: goToPedidos  },
+    { label: 'Reservas', icon: <CalendarDays size={22} color={Colors.info} />,    bg: NocturneColors.infoMuted,     onPress: goToReservas },
+    { label: 'Favoritos',icon: <Heart       size={22} color={Colors.error}  />,    bg: NocturneColors.errorMuted,    onPress: goToFavorites },
   ];
 
   return (
@@ -430,12 +435,21 @@ export default function AccountScreen() {
           <View style={styles.heroOrb} />
           {/* Hero row */}
           <View style={styles.hero}>
-            <View style={styles.avatarWrap}>
-              {user?.avatar ? (
-                <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
-              ) : (
-                <Text style={styles.avatarText}>{initials}</Text>
-              )}
+            {/* Anillo de nivel VIP: el color lo aporta el nivel */}
+            <View style={[styles.levelRing, { borderColor: `${level.color}66` }]}>
+              <View style={[styles.avatarWrap, { borderColor: level.color }]}>
+                {user?.avatar ? (
+                  <ExpoImage
+                    source={{ uri: user.avatar }}
+                    style={styles.avatarImg}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={150}
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>{initials}</Text>
+                )}
+              </View>
             </View>
             <View style={styles.heroInfo}>
               <Text style={styles.heroGreeting}>
@@ -447,6 +461,24 @@ export default function AccountScreen() {
                   {user?.role === 'client' ? 'Cliente' : user?.role ?? 'Cliente'}
                 </Text>
               </View>
+            </View>
+          </View>
+
+          {/* Stats row: nivel, puntos y favoritos */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: level.color }]}>{level.label}</Text>
+              <Text style={styles.statLabel}>Nivel</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{pointsBalance.toLocaleString('es-AR')}</Text>
+              <Text style={styles.statLabel}>Puntos</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{favorites.length}</Text>
+              <Text style={styles.statLabel}>Favoritos</Text>
             </View>
           </View>
         </View>
@@ -467,7 +499,7 @@ export default function AccountScreen() {
           accessibilityLabel="Abrir catálogo de recompensas"
         >
           <Sparkles size={18} color={Colors.primary} />
-          <Text style={styles.rewardsBtnText}>🎁 Mis Recompensas</Text>
+          <Text style={styles.rewardsBtnText}>Mis Recompensas</Text>
           <ChevronRight size={16} color={Colors.primary} />
         </TouchableOpacity>
 
@@ -477,9 +509,14 @@ export default function AccountScreen() {
             <Text style={styles.movementsTitle}>Últimos movimientos</Text>
             {pointsMovements.slice(0, 3).map((m, i) => (
               <View key={i} style={styles.movementRow}>
-                <Text style={styles.movementEmoji}>
-                  {m.amount > 0 ? '💰' : '🔴'}
-                </Text>
+                <View style={[
+                  styles.movementIcon,
+                  m.amount > 0 ? styles.movementIconIn : styles.movementIconOut,
+                ]}>
+                  {m.amount > 0
+                    ? <TrendingUp   size={14} color={Colors.success} />
+                    : <TrendingDown size={14} color={Colors.error} />}
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.movementDesc} numberOfLines={1}>{m.description}</Text>
                   <Text style={styles.movementDate}>
@@ -681,7 +718,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.xl,
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     overflow:        'hidden',
     padding:         Spacing.md,
   },
@@ -700,14 +737,21 @@ const styles = StyleSheet.create({
     width:           160,
     height:          160,
     borderRadius:    80,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberGlow,
   },
   hero: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  // Anillo de nivel VIP: el color lo aporta el nivel (oro reservado para Gold)
+  levelRing: {
+    width: 66, height: 66, borderRadius: 33,
+    borderWidth: 2, padding: 3,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NocturneColors.surfaceContainerLowest,
+  },
   avatarWrap: {
-    width: 64, height: 64, borderRadius: Radius.full,
+    width: 56, height: 56, borderRadius: Radius.full,
     backgroundColor: Colors.primaryContainer,
     justifyContent: 'center', alignItems: 'center',
-    borderWidth: 2, borderColor: Colors.goldBorder, overflow: 'hidden',
+    borderWidth: 2, overflow: 'hidden',
   },
   avatarImg:  { width: '100%', height: '100%' },
   avatarText: { ...Typography.headlineSm, color: Colors.onPrimary, fontWeight: '700' as const },
@@ -717,21 +761,32 @@ const styles = StyleSheet.create({
   heroEmail:  { ...Typography.bodySm, color: Colors.onSurfaceVariant },
   roleBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.goldMuted, borderRadius: Radius.xs,
+    backgroundColor: NocturneColors.surfaceContainerHighest, borderRadius: Radius.xs,
     paddingHorizontal: 8, paddingVertical: 2,
-    borderWidth: 1, borderColor: Colors.goldBorder,
+    borderWidth: 1, borderColor: NocturneColors.borderSubtle,
   },
-  roleText: { ...Typography.labelSm, color: Colors.primary, textTransform: 'none' as const },
+  roleText: { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
+
+  // Stats row (dentro del hero VIP)
+  statsRow: {
+    flexDirection: 'row', alignItems: 'center',
+    marginTop: Spacing.md, paddingTop: Spacing.smMd,
+    borderTopWidth: 1, borderTopColor: NocturneColors.borderSubtle,
+  },
+  statItem:    { flex: 1, alignItems: 'center', gap: 2 },
+  statDivider: { width: 1, height: 28, backgroundColor: NocturneColors.borderSubtle },
+  statValue:   { ...Typography.headlineSm, fontWeight: '700' as const, color: Colors.onSurface },
+  statLabel:   { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
 
   // ── Live order banner ──────────────────────────────────────────
   liveOrderBanner: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-    backgroundColor: 'rgba(243,190,89,0.08)',
+    backgroundColor: NocturneColors.warningMuted,
     borderRadius: Radius.lg, padding: Spacing.md,
-    borderWidth: 1, borderColor: 'rgba(243,190,89,0.25)',
+    borderWidth: 1, borderColor: NocturneColors.warningBorder,
   },
-  liveOrderBannerPrep: { backgroundColor: 'rgba(224,120,40,0.08)', borderColor: 'rgba(224,120,40,0.25)' },
-  liveOrderBannerDone: { backgroundColor: 'rgba(52,185,100,0.08)', borderColor: 'rgba(52,185,100,0.25)' },
+  liveOrderBannerPrep: { backgroundColor: NocturneColors.emberMuted, borderColor: NocturneColors.emberBorder },
+  liveOrderBannerDone: { backgroundColor: NocturneColors.successMuted, borderColor: NocturneColors.successBorder },
   liveOrderDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
   liveOrderLabel: { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
   liveOrderStatus: { ...Typography.titleMd, color: Colors.onSurface },
@@ -739,9 +794,9 @@ const styles = StyleSheet.create({
   // ── Reservation banner ─────────────────────────────────────────
   reservationBanner: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-    backgroundColor: 'rgba(56,189,248,0.08)',
+    backgroundColor: NocturneColors.infoMuted,
     borderRadius: Radius.lg, padding: Spacing.md,
-    borderWidth: 1, borderColor: 'rgba(56,189,248,0.20)',
+    borderWidth: 1, borderColor: NocturneColors.infoBorder,
   },
   reservationLabel: { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
   reservationDetail: { ...Typography.bodyMd, color: Colors.onSurface },
@@ -757,7 +812,7 @@ const styles = StyleSheet.create({
   quickCard: {
     flex: 1, aspectRatio: 1,
     borderRadius: Radius.lg, justifyContent: 'center', alignItems: 'center',
-    gap: 6, borderWidth: 1, borderColor: 'rgba(224,226,236,0.06)',
+    gap: 6, borderWidth: 1, borderColor: NocturneColors.borderSubtle,
   },
   quickLabel: { ...Typography.labelSm, color: Colors.onSurface, textTransform: 'none' as const, textAlign: 'center' },
 
@@ -775,13 +830,13 @@ const styles = StyleSheet.create({
   historyCard: {
     backgroundColor: Colors.surfaceContainer,
     borderRadius: Radius.lg, padding: Spacing.md,
-    borderWidth: 1, borderColor: 'rgba(224,226,236,0.06)',
+    borderWidth: 1, borderColor: NocturneColors.borderSubtle,
     borderLeftWidth: 3,
   },
   historyTop: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
   historyItems: { ...Typography.labelLg, color: Colors.onSurface },
   historyDate:  { ...Typography.bodySm, color: Colors.onSurfaceVariant },
-  historyTotal: { ...Typography.labelLg, color: Colors.primary, textAlign: 'right', marginTop: 4 },
+  historyTotal: { ...Typography.price, color: Colors.primary, textAlign: 'right', marginTop: 4 },
   statusBadge: {
     alignSelf: 'flex-end',
     borderRadius: Radius.full, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1,
@@ -793,7 +848,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
     backgroundColor: Colors.surfaceContainer,
     borderRadius: Radius.lg, padding: Spacing.md,
-    borderWidth: 1, borderColor: 'rgba(224,226,236,0.06)',
+    borderWidth: 1, borderColor: NocturneColors.borderSubtle,
   },
   favPreviewText: { ...Typography.bodyMd, color: Colors.onSurface, flex: 1 },
 
@@ -802,8 +857,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: Spacing.sm, paddingVertical: Spacing.md,
     borderRadius: Radius.lg, borderWidth: 1,
-    borderColor: 'rgba(255,180,171,0.25)',
-    backgroundColor: 'rgba(255,180,171,0.05)',
+    borderColor: NocturneColors.errorBorder,
+    backgroundColor: NocturneColors.errorMuted,
   },
   logoutText: { ...Typography.labelLg, color: Colors.error },
 
@@ -812,11 +867,11 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap:             Spacing.sm,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderRadius:    Radius.lg,
     padding:         Spacing.md,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   rewardsBtnText: {
     ...Typography.labelLg,
@@ -841,12 +896,15 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.md,
     padding:         Spacing.smMd,
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.05)',
+    borderColor:     NocturneColors.borderSubtle,
   },
-  movementEmoji: {
-    fontSize:   16,
-    lineHeight: 20,
+  movementIcon: {
+    width: 30, height: 30, borderRadius: 15,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
   },
+  movementIconIn:  { backgroundColor: NocturneColors.successMuted, borderColor: NocturneColors.successBorder },
+  movementIconOut: { backgroundColor: NocturneColors.errorMuted,   borderColor: NocturneColors.errorBorder },
   movementDesc: {
     ...Typography.bodyMd,
     color: Colors.onSurface,

@@ -22,6 +22,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
   CalendarDays, Users, Clock, CheckCircle2,
@@ -30,10 +31,11 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
+import { Gradients }  from '../theme/gradients';
 
 import { useAuthStore } from '../stores/useAuthStore';
 import { checkAvailability, createReservation, getMyReservationsFromApi } from '../api/reservationApi';
@@ -259,10 +261,28 @@ export default function ReservasScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* ── Header ──────────────────────────────────── */}
-          <View style={styles.header}>
-            <Text style={styles.screenLabel}>RESERVAS</Text>
-            <Text style={styles.screenTitle}>Reservá tu mesa</Text>
+          {/* ── Hero de marca ───────────────────────────── */}
+          <View style={styles.hero}>
+            <LinearGradient
+              {...Gradients.cardSheen}
+              style={styles.heroFill}
+              pointerEvents="none"
+            />
+            <View style={styles.heroWatermark} pointerEvents="none">
+              <CalendarDays size={120} color={NocturneColors.emberGlow} strokeWidth={1} />
+            </View>
+            <LinearGradient
+              {...Gradients.heroOverlay}
+              style={styles.heroBottomFade}
+              pointerEvents="none"
+            />
+            <View style={styles.heroContent}>
+              <Text style={styles.screenLabel}>RESERVAS</Text>
+              <Text style={styles.screenTitle}>Reservá tu mesa</Text>
+              <Text style={styles.heroSub}>
+                Elegí fecha, horario y personas — te confirmamos al toque
+              </Text>
+            </View>
           </View>
 
           {/* ── Banner de éxito ─────────────────────────── */}
@@ -356,7 +376,7 @@ export default function ReservasScreen() {
                     }}
                     disabled={guests <= 1}
                   >
-                    <Minus size={16} color={guests > 1 ? Colors.onSurface : Colors.outline} />
+                    <Minus size={18} color={guests > 1 ? Colors.onSurface : Colors.outline} />
                   </TouchableOpacity>
                   <Text style={styles.stepCount}>{guests}</Text>
                   <TouchableOpacity
@@ -369,7 +389,7 @@ export default function ReservasScreen() {
                     }}
                     disabled={guests >= 20}
                   >
-                    <Plus size={16} color={guests < 20 ? Colors.onSurface : Colors.outline} />
+                    <Plus size={18} color={guests < 20 ? Colors.onSurface : Colors.outline} />
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.guestsLabel}>
@@ -617,31 +637,63 @@ const styles = StyleSheet.create({
     gap:               Spacing.lg,
   },
 
-  // ── Header ─────────────────────────────────────────────────────
-  header: { gap: 4 },
+  // ── Hero de marca ─────────────────────────────────────
+  hero: {
+    height:           148,
+    marginHorizontal: -Spacing.gutter,
+    marginTop:        -Spacing.md,
+    overflow:         'hidden',
+    justifyContent:   'flex-end',
+    backgroundColor:  NocturneColors.surfaceContainerLowest,
+  },
+  heroFill: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    bottom:   0,
+  },
+  heroWatermark: {
+    position: 'absolute',
+    top:      -16,
+    right:    -20,
+  },
+  heroBottomFade: {
+    position: 'absolute',
+    bottom:   0,
+    left:     0,
+    right:    0,
+    height:   '55%',
+  },
+  heroContent: {
+    paddingHorizontal: Spacing.gutter,
+    paddingBottom:     Spacing.md,
+    gap:               2,
+  },
   screenLabel: { ...Typography.labelSm, color: Colors.primary },
-  screenTitle: { ...Typography.displaySm, color: Colors.onSurface },
+  screenTitle: { ...Typography.displayLg, color: Colors.onSurface },
+  heroSub: { ...Typography.bodySm, color: Colors.onSurfaceVariant },
 
   // ── Success banner ─────────────────────────────────────────────
   successBanner: {
     flexDirection:   'row',
     alignItems:      'flex-start',
     gap:             Spacing.smMd,
-    backgroundColor: 'rgba(52, 185, 100, 0.10)',
+    backgroundColor: NocturneColors.successMuted,
     borderRadius:    Radius.lg,
     padding:         Spacing.md,
     borderWidth:     1,
-    borderColor:     'rgba(52, 185, 100, 0.30)',
+    borderColor:     NocturneColors.successBorder,
   },
   successTitle: { ...Typography.headlineSm, color: Colors.success },
   successSub:   { ...Typography.bodySm, color: Colors.onSurfaceVariant },
   successResetBtn: {
-    backgroundColor: 'rgba(52, 185, 100, 0.15)',
+    backgroundColor: NocturneColors.successMuted,
     borderRadius:    Radius.sm,
     paddingHorizontal: 10,
     paddingVertical:   5,
     borderWidth:     1,
-    borderColor:     'rgba(52, 185, 100, 0.30)',
+    borderColor:     NocturneColors.successBorder,
   },
   successResetText: { ...Typography.labelMd, color: Colors.success },
 
@@ -652,7 +704,7 @@ const styles = StyleSheet.create({
     padding:         Spacing.lg,
     gap:             Spacing.md,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     ...(Elevation.card as object),
   },
   formTitle: { ...Typography.headlineSm, color: Colors.onSurface },
@@ -670,7 +722,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical:   Spacing.smMd,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.10)',
+    borderColor:     NocturneColors.borderSubtle,
     gap:             Spacing.sm,
   },
   datePickerText: {
@@ -687,14 +739,14 @@ const styles = StyleSheet.create({
     gap:           Spacing.smMd,
   },
   stepperIcon: {
-    width:           40,
-    height:          40,
+    width:           44,
+    height:          44,
     borderRadius:    Radius.md,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
   },
   stepper: {
     flexDirection:   'row',
@@ -702,10 +754,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.md,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.10)',
+    borderColor:     NocturneColors.borderSubtle,
     paddingHorizontal: 4,
   },
-  stepBtn:   { padding: 10 },
+  stepBtn:   { padding: 13 },
   stepCount: { ...Typography.headlineSm, color: Colors.onSurface, paddingHorizontal: 12, minWidth: 40, textAlign: 'center' },
   guestsLabel: { ...Typography.bodyMd, color: Colors.onSurfaceVariant },
 
@@ -718,28 +770,28 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap:             Spacing.sm,
-    backgroundColor: 'rgba(224, 120, 40, 0.08)',
+    backgroundColor: NocturneColors.warningMuted,
     borderRadius:    Radius.md,
     padding:         Spacing.smMd,
     borderWidth:     1,
-    borderColor:     'rgba(224, 120, 40, 0.25)',
+    borderColor:     NocturneColors.warningBorder,
   },
   noSlotsText: { ...Typography.bodySm, color: Colors.warning, flex: 1 },
   slotsScroll: { gap: Spacing.sm, paddingVertical: 2 },
   slotChip: {
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical:   9,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical:   11,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.10)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   slotChipSelected: {
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberMuted,
     borderColor:     Colors.primary,
   },
   slotChipDisabled: { opacity: 0.4 },
-  slotText:         { ...Typography.labelMd, color: Colors.onSurface },
+  slotText:         { ...Typography.labelLg, color: Colors.onSurface },
   slotTextSelected: { color: Colors.primary, fontWeight: '700' as const },
   slotTextDisabled: { color: Colors.outline },
 
@@ -756,11 +808,11 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap:             Spacing.sm,
-    backgroundColor: 'rgba(255, 180, 171, 0.08)',
+    backgroundColor: NocturneColors.errorMuted,
     borderRadius:    Radius.md,
     padding:         Spacing.smMd,
     borderWidth:     1,
-    borderColor:     'rgba(255, 180, 171, 0.25)',
+    borderColor:     NocturneColors.errorBorder,
   },
   errorText: { ...Typography.bodySm, color: Colors.error, flex: 1 },
 
@@ -771,7 +823,7 @@ const styles = StyleSheet.create({
     padding:         Spacing.md,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
   },
   summaryRow: {
     flexDirection:  'row',
@@ -797,7 +849,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.lg,
     padding:         Spacing.md,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
     borderLeftWidth: 3,
     gap:             6,
   },

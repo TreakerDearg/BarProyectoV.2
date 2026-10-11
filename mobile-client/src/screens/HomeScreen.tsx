@@ -11,12 +11,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  Image,
   RefreshControl,
   Animated,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Sparkles, ChevronDown,
 } from 'lucide-react-native';
@@ -29,6 +31,9 @@ import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
+import { Gradients } from '../theme/gradients';
+import { Motion, Easings } from '../theme/motion';
+import { usePressScale } from '../hooks/usePressScale';
 
 import { useAuthStore }    from '../stores/useAuthStore';
 import { useSessionStore } from '../stores/useSessionStore';
@@ -66,6 +71,13 @@ import type {
 import type { RootTabParamList } from '../navigation/types';
 
 type HomeNav = BottomTabNavigationProp<RootTabParamList, 'Inicio'>;
+
+// Ancho del carrusel del Sommelier: 80% del viewport + peek de la próxima card
+const { width: SCREEN_W } = Dimensions.get('window');
+const SOMMELIER_CARD_WIDTH = SCREEN_W * 0.8;
+
+// Touchable con soporte de estilo animado (press scale sin reescribir el JSX)
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 // ── Greeting helper ───────────────────────────────────────────────────────────
 function getGreeting(): string {
@@ -118,6 +130,10 @@ export default function HomeScreen() {
   const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
   const [idleWheelDrinks,  setIdleWheelDrinks]  = useState<RouletteDrinkDTO[]>([]);
 
+  // Spin estático para la rueda idle del CTA (no recrear Animated.Value por render)
+  const idleSpin    = useRef(new Animated.Value(0)).current;
+  const ruletaPress = usePressScale(0.98);
+
   // ── Idle wheel drinks ─────────────────────────────────────────
   useEffect(() => {
     getPublicRouletteDrinks()
@@ -136,40 +152,42 @@ export default function HomeScreen() {
   }).current;
 
   const runStaggerAnimation = () => {
-    const dur = 350;
+    // Tokens de motion: entradas de sección con desaceleración suave
+    const dur  = Motion.base;
+    const ease = Easings.decelerate;
     Animated.parallel([
       // header
-      Animated.timing(anim.header, { toValue: 1, duration: dur, useNativeDriver: true }),
+      Animated.timing(anim.header, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
       // greeting (100ms delay)
       Animated.sequence([
         Animated.delay(100),
         Animated.parallel([
-          Animated.timing(anim.greeting.o, { toValue: 1, duration: dur, useNativeDriver: true }),
-          Animated.timing(anim.greeting.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.greeting.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+          Animated.timing(anim.greeting.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
       // mesa (200ms)
       Animated.sequence([
         Animated.delay(200),
         Animated.parallel([
-          Animated.timing(anim.mesa.o, { toValue: 1, duration: dur, useNativeDriver: true }),
-          Animated.timing(anim.mesa.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.mesa.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+          Animated.timing(anim.mesa.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
       // promo (300ms)
       Animated.sequence([
         Animated.delay(300),
         Animated.parallel([
-          Animated.timing(anim.promo.o, { toValue: 1, duration: dur, useNativeDriver: true }),
-          Animated.timing(anim.promo.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.promo.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+          Animated.timing(anim.promo.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
       // quick access (400ms)
       Animated.sequence([
         Animated.delay(400),
         Animated.parallel([
-          Animated.timing(anim.quick.o, { toValue: 1, duration: dur, useNativeDriver: true }),
-          Animated.timing(anim.quick.s, { toValue: 1, duration: dur, useNativeDriver: true }),
+          Animated.timing(anim.quick.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+          Animated.timing(anim.quick.s, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
       // sommelier cards (500ms + i*80ms)
@@ -177,8 +195,8 @@ export default function HomeScreen() {
         Animated.sequence([
           Animated.delay(500 + i * 80),
           Animated.parallel([
-            Animated.timing(s.o, { toValue: 1, duration: dur, useNativeDriver: true }),
-            Animated.timing(s.y, { toValue: 0, duration: dur, useNativeDriver: true }),
+            Animated.timing(s.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+            Animated.timing(s.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
           ]),
         ])
       ),
@@ -339,7 +357,7 @@ export default function HomeScreen() {
     ? {
         ...SERVICE_MODE_META.table,
         label:  `Mesa #${tableNumber}${zoneLabel ? ` · ${zoneLabel}` : ''}`,
-        border: Colors.goldBorder,
+        border: NocturneColors.emberBorder,
       }
     : serviceMode === 'bar'
     ? { ...SERVICE_MODE_META.bar, border: NocturneColors.infoMuted }
@@ -353,11 +371,18 @@ export default function HomeScreen() {
 
   const ChipIcon = chipMeta.icon;
 
+  // ── Imagen de ambiente del hero (primer destacado, si no la primera promo) ──
+  const heroImageUri =
+    featuredProducts[0]?.image ||
+    promos[0]?.applicableProducts?.[0]?.image ||
+    undefined;
+
   // ── Render: skeleton de carga ─────────────────────────────────
   const renderSkeleton = () => (
-    <View style={{ gap: Spacing.md, padding: Spacing.gutter }}>
+    <View style={{ gap: Spacing.md }}>
+      <NSkeleton height={230} radius={Radius.xl} />
       <NSkeleton height={72} radius={Radius.xl} />
-      <NSkeleton height={180} radius={Radius.xl} />
+      <NSkeleton height={Spacing.heroCarouselHeight} radius={Radius.xl} />
       <NSkeleton height={40} radius={Radius.md} />
       {[0, 1].map((i) => <NSkeleton key={i} height={200} radius={Radius.xl} />)}
     </View>
@@ -410,7 +435,13 @@ export default function HomeScreen() {
 
         <TouchableOpacity onPress={goToCuenta} style={styles.avatarBtn}>
           {user?.avatar ? (
-            <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
+            <Image
+              source={{ uri: user.avatar }}
+              style={styles.avatarImg}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
+            />
           ) : (
             <View style={styles.avatarInitials}>
               <Text style={styles.avatarInitialsText}>
@@ -439,17 +470,50 @@ export default function HomeScreen() {
       >
         {loading ? renderSkeleton() : (
           <>
-            {/* ── Saludo ──────────────────────────────────── */}
+            {/* ── Hero de bienvenida — imagen full-bleed + saludo ── */}
             <Animated.View
-              style={[styles.greetingSection, {
+              style={[styles.hero, {
                 opacity: anim.greeting.o,
                 transform: [{ translateY: anim.greeting.y }],
               }]}
             >
-              <Text style={styles.greetingMain}>
-                {getGreeting()}{user ? `, ${user.name.split(' ')[0]}` : ''}
-              </Text>
-              <Text style={styles.greetingSub}>¿Qué te gustaría disfrutar hoy?</Text>
+              {heroImageUri ? (
+                <Image
+                  source={{ uri: heroImageUri }}
+                  style={styles.heroImage}
+                  contentFit="cover"
+                  cachePolicy="memory-disk"
+                  transition={150}
+                />
+              ) : (
+                <View style={styles.heroImageFallback}>
+                  <LinearGradient
+                    {...Gradients.cardSheen}
+                    style={styles.heroFill}
+                    pointerEvents="none"
+                  />
+                </View>
+              )}
+
+              {/* Lavado nocturno detrás del saludo (canvas → transparente) */}
+              <LinearGradient
+                {...Gradients.nightWash}
+                style={styles.heroWash}
+                pointerEvents="none"
+              />
+              {/* Fusión inferior con el canvas */}
+              <LinearGradient
+                {...Gradients.heroOverlay}
+                style={styles.heroBottomFade}
+                pointerEvents="none"
+              />
+
+              <View style={styles.heroContent}>
+                <Text style={styles.greetingMain}>
+                  {getGreeting()}{user ? `, ${user.name.split(' ')[0]}` : ''}
+                </Text>
+                <Text style={styles.greetingSub}>¿Qué te gustaría disfrutar hoy?</Text>
+              </View>
             </Animated.View>
 
             {/* ── Mesa activa ─────────────────────────────── */}
@@ -556,7 +620,7 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* ── Selección del Sommelier (first 2) ────────── */}
+            {/* ── Selección del Sommelier — carrusel 80% viewport ── */}
             {featuredProducts.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
@@ -571,42 +635,57 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.sommelierList}>
-                  {featuredProducts.slice(0, 2).map((product, i) => {
-                    const s = anim.sommelier[Math.min(i, anim.sommelier.length - 1)];
+                <FlatList
+                  data={featuredProducts}
+                  horizontal
+                  keyExtractor={(item) => item.id}
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={SOMMELIER_CARD_WIDTH + Spacing.gridGap}
+                  decelerationRate="fast"
+                  style={styles.sommelierCarousel}
+                  contentContainerStyle={styles.sommelierCarouselContent}
+                  renderItem={({ item, index }) => {
+                    const s = anim.sommelier[Math.min(index, anim.sommelier.length - 1)];
                     return (
                       <Animated.View
-                        key={product.id}
-                        style={{ opacity: s.o, transform: [{ translateY: s.y }] }}
+                        style={{
+                          width: SOMMELIER_CARD_WIDTH,
+                          opacity: s.o,
+                          transform: [{ translateY: s.y }],
+                        }}
                       >
                         <SommelierCard
-                          product={product}
+                          product={item}
                           onAdd={(p) => setCustomizerProduct(p)}
                           onPress={() => navigation.navigate('Carta')}
                           featureBadge={
-                            product.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
+                            item.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
                           }
                         />
                       </Animated.View>
                     );
-                  })}
-                </View>
+                  }}
+                />
               </View>
             )}
 
             {/* ── Ruleta CTA — with idle MobileWheel ───────── */}
-            <TouchableOpacity
-              style={styles.rouletteCard}
+            <AnimatedTouchable
+              style={[styles.rouletteCard, ruletaPress.animatedStyle]}
               onPress={() => setShowRoulette(true)}
-              activeOpacity={0.85}
+              onPressIn={ruletaPress.onPressIn}
+              onPressOut={ruletaPress.onPressOut}
+              activeOpacity={0.88}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir la ruleta de cócteles"
             >
               <View style={styles.roulettLeft}>
                 <View style={styles.rouletteIconWrap}>
                   {idleWheelDrinks.length > 0 ? (
                     <MobileWheel
                       drinks={idleWheelDrinks}
-                      spinAnim={new Animated.Value(0)}
-                      size={80}
+                      spinAnim={idleSpin}
+                      size={52}
                     />
                   ) : (
                     <Sparkles size={28} color={Colors.primary} />
@@ -619,7 +698,7 @@ export default function HomeScreen() {
                   </Text>
                 </View>
               </View>
-            </TouchableOpacity>
+            </AnimatedTouchable>
           </>
         )}
       </ScrollView>
@@ -679,7 +758,7 @@ const styles = StyleSheet.create({
     paddingVertical:   Spacing.smMd,
     backgroundColor: NocturneColors.surfaceElevated,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(224, 226, 236, 0.06)',
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   topLeft: {
     flex:          1,
@@ -692,11 +771,11 @@ const styles = StyleSheet.create({
     width:           28,
     height:          28,
     borderRadius:    Radius.full,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
   },
   brandName: {
     ...Typography.headlineSm,
@@ -731,7 +810,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.full,
     overflow:        'hidden',
     borderWidth:     2,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
     backgroundColor: Colors.surfaceContainerHigh,
   },
   avatarImg: { width: '100%', height: '100%' },
@@ -753,8 +832,53 @@ const styles = StyleSheet.create({
     gap:               Spacing.lg,
   },
 
-  // ── Saludo ─────────────────────────────────────────────────────
-  greetingSection: { gap: 4 },
+  // ── Hero de bienvenida ─────────────────────────────────────────
+  hero: {
+    height:           230,
+    marginHorizontal: -Spacing.gutter,
+    marginTop:        -Spacing.md,
+    overflow:         'hidden',
+    backgroundColor:  NocturneColors.surfaceContainerLowest,
+  },
+  heroImage: {
+    width:  '100%',
+    height: '100%',
+  },
+  heroImageFallback: {
+    width:           '100%',
+    height:          '100%',
+    backgroundColor: NocturneColors.surfaceContainerLowest,
+  },
+  heroFill: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    bottom:   0,
+  },
+  heroWash: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    height:   '70%',
+  },
+  heroBottomFade: {
+    position: 'absolute',
+    bottom:   0,
+    left:     0,
+    right:    0,
+    height:   '45%',
+  },
+  heroContent: {
+    position:          'absolute',
+    top:               0,
+    left:              0,
+    right:             0,
+    paddingHorizontal: Spacing.gutter,
+    paddingTop:        Spacing.md,
+    gap:               4,
+  },
   greetingMain: {
     ...Typography.displayLg,
     color: Colors.onSurface,
@@ -775,12 +899,8 @@ const styles = StyleSheet.create({
   sectionSub:   { ...Typography.bodySm, color: Colors.onSurfaceVariant },
   seeAllBtn: { paddingTop: 2 },
   seeAllText: { ...Typography.labelMd, color: Colors.primary },
-  sectionRow: {
-    flexDirection:  'row',
-    justifyContent: 'space-between',
-    gap:            Spacing.sm,
-  },
-  sommelierList: { gap: Spacing.md },
+  sommelierCarousel:        { marginHorizontal: -Spacing.gutter },
+  sommelierCarouselContent: { paddingHorizontal: Spacing.gutter, gap: Spacing.gridGap },
 
   // ── Ruleta CTA ─────────────────────────────────────────────────
   rouletteCard: {
@@ -791,7 +911,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.xl,
     padding:         Spacing.md,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
     ...(Elevation.card as object),
   },
   roulettLeft: {
@@ -804,21 +924,12 @@ const styles = StyleSheet.create({
     width:           52,
     height:          52,
     borderRadius:    Radius.full,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
   },
   rouletteTitle: { ...Typography.headlineSm, color: Colors.onSurface },
   rouletteSub:   { ...Typography.bodySm, color: Colors.onSurfaceVariant },
-  rouletteBtn: {
-    width:           44,
-    height:          44,
-    borderRadius:    Radius.full,
-    backgroundColor: Colors.primaryContainer,
-    justifyContent:  'center',
-    alignItems:      'center',
-    ...(Elevation.goldCTA as object),
-  },
 });

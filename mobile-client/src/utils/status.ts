@@ -83,7 +83,7 @@ export const ITEM_STATUS_META: Record<ItemStatus, StatusMeta> = {
   pending:   { label: 'En cola',    color: Colors.textMuted, bg: NocturneColors.surfaceContainerHigh, icon: Clock },
   preparing: { label: 'Preparando', color: Colors.warning,   bg: NocturneColors.warningMuted,         icon: Flame },
   ready:     { label: 'Listo',      color: Colors.success,   bg: NocturneColors.successMuted,         icon: BellRing },
-  served:    { label: 'Servido',    color: Colors.primary,   bg: Colors.goldMuted,                    icon: UtensilsCrossed },
+  served:    { label: 'Servido',    color: Colors.primary,   bg: Colors.emberMuted,                  icon: UtensilsCrossed },
   cancelled: { label: 'Cancelado',  color: Colors.error,     bg: NocturneColors.errorMuted,           icon: XCircle },
 };
 
@@ -119,7 +119,7 @@ export const SERVICE_MODE_META: Record<ServiceMode, ServiceModeMeta> = {
     label:      'En tu mesa',
     shortLabel: 'Mesa',
     color:      Colors.primary,
-    bg:         Colors.goldMuted,
+    bg:         Colors.emberMuted,
     icon:       QrCode,
   },
   bar: {
