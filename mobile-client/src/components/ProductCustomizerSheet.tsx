@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — ProductCustomizerSheet
-// Full-screen bottom sheet customizer for SommelierCards.
-// Hero image + drink options (ice/citrus) + addon upsell + notes + sticky footer.
+// Bottom sheet full de personalización para SommelierCards.
+// Hero con imagen (expo-image), opciones de trago (hielo/cítrico), upsell de
+// acompañamientos, notas y footer fijo con CTA degradada.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
@@ -11,17 +12,20 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  Image,
   TextInput,
   StyleSheet,
 } from 'react-native';
-import { X, Heart, Plus, Minus, Check } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { X, Heart, Plus, Minus, Check, GlassWater, Sparkles, Leaf } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Elevation }  from '../theme/elevation';
+import { Gradients } from '../theme/gradients';
+import { NBadge } from './shared/NBadge';
 
 import type { ProductPublicDTO } from '../types/api';
 
@@ -127,11 +131,16 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
               <Image
                 source={{ uri: product.image }}
                 style={styles.heroImage}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={150}
               />
-              {/* Gradient simulation */}
-              <View style={styles.heroGradientSolid} />
-              <View style={styles.heroGradientFade} />
+              {/* Overlay: imagen → canvas */}
+              <LinearGradient
+                {...Gradients.heroOverlay}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
               {/* Close button */}
               <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose}>
                 <X size={20} color={Colors.onSurface} />
@@ -168,19 +177,25 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
               {/* Badges */}
               <View style={styles.badgeRow}>
                 {isDrink && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>🍸 Trago</Text>
-                  </View>
+                  <NBadge
+                    label="Trago"
+                    tone="ember"
+                    icon={<GlassWater size={11} color={Colors.primary} />}
+                  />
                 )}
                 {product.drinkStyle === 'author' && (
-                  <View style={[styles.badge, styles.badgeAuthor]}>
-                    <Text style={[styles.badgeText, { color: '#8B5CF6' }]}>✦ De Autor</Text>
-                  </View>
+                  <NBadge
+                    label="De Autor"
+                    tone="gold"
+                    icon={<Sparkles size={11} color={NocturneColors.vipGold} />}
+                  />
                 )}
                 {product.dietaryRestrictions?.includes('vegan') && (
-                  <View style={[styles.badge, styles.badgeVegan]}>
-                    <Text style={[styles.badgeText, { color: Colors.success }]}>🌱 Vegano</Text>
-                  </View>
+                  <NBadge
+                    label="Vegano"
+                    tone="success"
+                    icon={<Leaf size={11} color={Colors.success} />}
+                  />
                 )}
               </View>
             </View>
@@ -307,6 +322,11 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
               onPress={handleConfirm}
               activeOpacity={0.85}
             >
+              <LinearGradient
+                {...Gradients.emberCTA}
+                style={styles.ctaGradient}
+                pointerEvents="none"
+              />
               <Text style={styles.ctaText}>
                 AGREGAR AL PEDIDO · ${totalPrice.toLocaleString('es-AR')}
               </Text>
@@ -321,7 +341,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -342,27 +362,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  heroGradientSolid: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '40%',
-    backgroundColor: '#1d2027',
-  },
-  heroGradientFade: {
-    position: 'absolute',
-    bottom: '20%' as any,
-    left: 0,
-    right: 0,
-    height: '30%',
-    backgroundColor: 'rgba(29, 32, 39, 0.75)',
-  },
   heroCloseBtn: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(16,19,26,0.70)',
+    backgroundColor: NocturneColors.overlayDark,
     borderRadius: Radius.full,
     padding: 8,
   },
@@ -370,7 +374,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: 'rgba(16,19,26,0.70)',
+    backgroundColor: NocturneColors.overlayDark,
     borderRadius: Radius.full,
     padding: 8,
   },
@@ -413,27 +417,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: Spacing.xs,
   },
-  badge: {
-    backgroundColor: Colors.goldMuted,
-    borderRadius: Radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: Colors.goldBorder,
-  },
-  badgeAuthor: {
-    backgroundColor: 'rgba(139,92,246,0.12)',
-    borderColor: 'rgba(139,92,246,0.30)',
-  },
-  badgeVegan: {
-    backgroundColor: 'rgba(52,185,100,0.12)',
-    borderColor: 'rgba(52,185,100,0.30)',
-  },
-  badgeText: {
-    ...Typography.labelSm,
-    color: Colors.primary,
-    textTransform: 'none' as const,
-  },
 
   // ── Section ──────────────────────────────────────────────────
   section: {
@@ -457,11 +440,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
     borderWidth: 1,
     backgroundColor: Colors.surfaceContainerHigh,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
   },
   optChipSelected: {
-    backgroundColor: Colors.goldMuted,
-    borderColor: Colors.primaryContainer,
+    backgroundColor: NocturneColors.emberMuted,
+    borderColor: Colors.primary,
   },
   optChipText: {
     ...Typography.labelMd,
@@ -479,7 +462,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(224,226,236,0.06)',
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   addonInfo: {
     flex: 1,
@@ -509,26 +492,26 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: Radius.xs,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.outlineVariant,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: Spacing.sm,
   },
   checkboxChecked: {
-    backgroundColor: Colors.goldMuted,
-    borderColor: Colors.primaryContainer,
+    backgroundColor: NocturneColors.emberMuted,
+    borderColor: Colors.primary,
   },
 
   // ── Notes ────────────────────────────────────────────────────
   notesInput: {
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: Colors.surfaceContainerLow,
     color: Colors.onSurface,
     borderRadius: Radius.md,
     padding: Spacing.smMd,
     ...Typography.bodyMd,
     minHeight: 60,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
   },
   suggestionRow: {
     flexDirection: 'row',
@@ -541,7 +524,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
   },
   suggestionChipText: {
     ...Typography.labelMd,
@@ -557,7 +540,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Colors.outlineVariant,
+    borderTopColor: NocturneColors.borderSubtle,
     backgroundColor: Colors.surfaceContainer,
   },
   stepper: {
@@ -566,7 +549,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     paddingHorizontal: 6,
   },
   stepBtn: {
@@ -585,7 +568,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderRadius: Radius.lg,
-    ...(Elevation.goldCTA as object),
+    overflow: 'hidden',
+    ...(Elevation.emberCTA as object),
+  },
+  ctaGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   ctaText: {
     ...Typography.labelLg,

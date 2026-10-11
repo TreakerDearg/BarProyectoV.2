@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Sparkles, Tag } from "lucide-react-native";
-import { Colors } from "../theme/colors";
+import { Colors, NocturneColors } from "../theme/colors";
 import { Typography, Spacing, Radius } from "../theme/";
+import { NBadge } from "./shared/NBadge";
 import { getPublicPromotions } from "../api/promoApi";
 import type { PromotionPublicDTO } from "../types/api";
 
@@ -32,10 +33,12 @@ export const DealsCarousel: React.FC<DealsCarouselProps> = ({ onSelectPromo }) =
   if (promotions.length === 0) {
     return (
       <View style={styles.singleBanner}>
-        <View style={styles.dealBadge}>
-          <Sparkles size={13} color="#FFF" />
-          <Text style={styles.dealBadgeText}>EXCLUSIVO APP</Text>
-        </View>
+        <NBadge
+          label="EXCLUSIVO APP"
+          tone="ember"
+          solid
+          icon={<Sparkles size={12} color={Colors.onPrimary} />}
+        />
         <Text style={styles.dealTitle}>Happy Hour 2×1 en Tragos de Autor</Text>
         <Text style={styles.dealSubtitle}>
           Pide desde tu mesa y recibe la ronda en minutos.
@@ -70,10 +73,11 @@ export const DealsCarousel: React.FC<DealsCarouselProps> = ({ onSelectPromo }) =
               onPress={() => onSelectPromo?.(promo)}
             >
               <View style={styles.cardHeader}>
-                <View style={styles.dealBadge}>
-                  <Sparkles size={11} color="#FFF" />
-                  <Text style={styles.dealBadgeText}>{badgeText}</Text>
-                </View>
+                <NBadge
+                  label={badgeText}
+                  tone="error"
+                  icon={<Sparkles size={11} color={Colors.error} />}
+                />
                 <Text style={styles.appOnlyText}>En App</Text>
               </View>
 
@@ -120,28 +124,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: Spacing.sm,
-  },
-  dealBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.errorContainer,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: 6,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,180,171,0.20)',
-  },
-  dealBadgeText: {
-    ...Typography.labelSm,
-    color: Colors.error,
   },
   appOnlyText: {
     ...Typography.labelSm,
@@ -161,7 +150,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     marginVertical: Spacing.smMd,
   },
   dealTitle: {

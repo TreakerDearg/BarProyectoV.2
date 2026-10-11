@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// GoldenTicket — VIP ticket overlay with QR code and countdown timer
+// GoldenTicket — ticket VIP (overlay) con QR y cuenta regresiva
+// Contexto VIP/LEGENDARY: el oro está reservado para este artefacto.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -13,12 +14,17 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
-// ── Rarity badge colors ───────────────────────────────────────────────────
+import { Colors, NocturneColors } from '../../theme/colors';
+
+// Efecto neutro de render (shimmer blanco), no es color de identidad
+const SHIMMER_COLOR = 'rgba(255,255,255,0.06)';
+
+// ── Colores de rareza (LEGENDARY conserva oro reservado) ─────────────────
 const RARITY_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  COMMON:    { bg: 'rgba(155,143,125,0.18)', text: '#9b8f7d', label: '⚪ COMMON'    },
-  RARE:      { bg: 'rgba(56,189,248,0.18)',  text: '#38BDF8', label: '🔵 RARE'       },
-  EPIC:      { bg: 'rgba(168,85,247,0.18)',  text: '#a855f7', label: '🟣 EPIC'       },
-  LEGENDARY: { bg: 'rgba(212,163,64,0.18)',  text: '#D4A340', label: '⭐ LEGENDARY'  },
+  COMMON:    { bg: NocturneColors.surfaceContainerHigh, text: Colors.outline,                    label: '⚪ COMMON'    },
+  RARE:      { bg: NocturneColors.infoMuted,            text: Colors.info,                       label: '🔵 RARE'       },
+  EPIC:      { bg: NocturneColors.wineMuted,            text: NocturneColors.onSecondaryContainer, label: '🟣 EPIC'     },
+  LEGENDARY: { bg: NocturneColors.vipGoldMuted,         text: NocturneColors.vipGold,            label: '⭐ LEGENDARY'  },
 };
 
 // ── Format milliseconds as mm:ss ─────────────────────────────────────────
@@ -109,8 +115,8 @@ export const GoldenTicket: React.FC<GoldenTicketProps> = ({
             <QRCode
               value={ticket}
               size={200}
-              color="#D4A340"
-              backgroundColor="#0F0F14"
+              color={NocturneColors.vipGoldDark}
+              backgroundColor={NocturneColors.surfaceContainerLowest}
             />
           </View>
 
@@ -151,7 +157,7 @@ export default GoldenTicket;
 const styles = StyleSheet.create({
   overlay: {
     flex:            1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent:  'center',
     alignItems:      'center',
     padding:         24,
@@ -159,9 +165,9 @@ const styles = StyleSheet.create({
   card: {
     width:           '100%',
     maxWidth:        360,
-    backgroundColor: '#0F0F14',
+    backgroundColor: NocturneColors.surfaceContainerLowest,
     borderWidth:     2,
-    borderColor:     '#D4A340',
+    borderColor:     NocturneColors.vipGoldDark,
     borderRadius:    24,
     padding:         24,
     alignItems:      'center',
@@ -186,14 +192,15 @@ const styles = StyleSheet.create({
   drinkName: {
     fontSize:   26,
     fontWeight: '700',
-    color:      '#D4A340',
+    color:      NocturneColors.vipGold,
     textAlign:  'center',
     letterSpacing: -0.3,
   },
   subLabel: {
     fontSize:      11,
     fontWeight:    '600',
-    color:         'rgba(212,163,64,0.6)',
+    color:         NocturneColors.vipGoldDark,
+    opacity:       0.7,
     letterSpacing: 3,
     textTransform: 'uppercase',
     marginTop:     -4,
@@ -204,7 +211,7 @@ const styles = StyleSheet.create({
     padding:      12,
     borderRadius: 12,
     borderWidth:  1,
-    borderColor:  'rgba(212,163,64,0.25)',
+    borderColor:  NocturneColors.vipGoldGlow,
     marginVertical: 4,
   },
   qrExpired: {
@@ -214,15 +221,15 @@ const styles = StyleSheet.create({
   // Countdown
   countdown: {
     fontSize:   15,
-    color:      '#D4A340',
+    color:      NocturneColors.vipGoldDark,
     fontWeight: '600',
   },
   countdownCritical: {
-    color: '#ef4444',
+    color: Colors.error,
   },
   countdownExpired: {
     fontSize:   15,
-    color:      '#ef4444',
+    color:      Colors.error,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -231,29 +238,29 @@ const styles = StyleSheet.create({
   divider: {
     width:           '100%',
     height:          1,
-    backgroundColor: 'rgba(212,163,64,0.15)',
+    backgroundColor: NocturneColors.vipGoldMuted,
     marginVertical:  4,
   },
 
   // Instruction
   instruction: {
     fontSize:  13,
-    color:     'rgba(255,255,255,0.45)',
+    color:     Colors.outline,
     textAlign: 'center',
   },
 
   // Close button
   closeBtn: {
     marginTop:       4,
-    backgroundColor: 'rgba(212,163,64,0.12)',
+    backgroundColor: NocturneColors.vipGoldMuted,
     borderWidth:     1,
-    borderColor:     'rgba(212,163,64,0.35)',
+    borderColor:     NocturneColors.vipGoldGlowStrong,
     borderRadius:    100,
     paddingHorizontal: 32,
     paddingVertical:   10,
   },
   closeBtnText: {
-    color:      '#D4A340',
+    color:      NocturneColors.vipGoldDark,
     fontWeight: '600',
     fontSize:   15,
   },
@@ -264,6 +271,6 @@ const styles = StyleSheet.create({
     top:             0,
     bottom:          0,
     width:           80,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: SHIMMER_COLOR,
   },
 });

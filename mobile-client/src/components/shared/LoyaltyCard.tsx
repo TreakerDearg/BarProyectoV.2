@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — LoyaltyCard
-// Full-width loyalty card with level (Bronze/Silver/Gold/Platinum),
-// animated progress bar, card number row, and diagonal decorative overlay.
+// Card de fidelidad full-width (Bronze/Silver/Gold/Platinum), barra de
+// progreso animada, número de tarjeta y overlay decorativo diagonal.
+// Contexto VIP: el oro queda reservado para niveles y sellos premium.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef, useEffect } from 'react';
@@ -13,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 
-import { Colors } from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
@@ -33,10 +34,10 @@ interface LevelConfig {
 }
 
 const LEVELS: LevelConfig[] = [
-  { label: 'Bronze',   emoji: '🥉', color: '#cd7f32', min: 0,    max: 499   },
-  { label: 'Silver',   emoji: '🥈', color: '#a8a9ad', min: 500,  max: 1999  },
-  { label: 'Gold',     emoji: '🥇', color: '#f3be59', min: 2000, max: 4999  },
-  { label: 'Platinum', emoji: '💎', color: '#38BDF8', min: 5000, max: null  },
+  { label: 'Bronze',   emoji: '🥉', color: NocturneColors.fidelityBronze,   min: 0,    max: 499   },
+  { label: 'Silver',   emoji: '🥈', color: NocturneColors.fidelitySilver,   min: 500,  max: 1999  },
+  { label: 'Gold',     emoji: '🥇', color: NocturneColors.vipGold,          min: 2000, max: 4999  },
+  { label: 'Platinum', emoji: '💎', color: NocturneColors.fidelityPlatinum, min: 5000, max: null  },
 ];
 
 function getLevel(balance: number): LevelConfig {
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
     padding:         Spacing.md,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.vipGoldBorder,
   },
 
   // ── Decorative diagonal overlay ─────────────────────────────────
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     position:        'absolute',
     width:           200,
     height:          200,
-    backgroundColor: Colors.goldSubtle,
+    backgroundColor: NocturneColors.vipGoldSubtle,
     transform:       [{ rotate: '-15deg' }],
     top:             -40,
     right:           -40,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical:   4,
     borderWidth:       1,
-    backgroundColor:   'rgba(243,190,89,0.06)',
+    backgroundColor:   NocturneColors.vipGoldSubtle,
   },
   levelBadgeText: {
     ...Typography.labelSm,
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   // ── Card number ─────────────────────────────────────────────────
   cardNumberRow: {
     borderTopWidth:  1,
-    borderTopColor:  'rgba(224,226,236,0.08)',
+    borderTopColor:  NocturneColors.borderSubtle,
     paddingTop:      Spacing.sm,
     marginTop:       Spacing.xs,
   },

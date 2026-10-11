@@ -99,6 +99,11 @@ export const NocturneColors = {
   vipGoldMuted:              'rgba(243, 190, 89, 0.12)',
   vipGoldSubtle:             'rgba(243, 190, 89, 0.06)',
 
+  // Escalera de fidelidad (VIP) — identidad de nivel, no colores de acción
+  fidelityBronze:            '#CD7F32',
+  fidelitySilver:            '#A8A9AD',
+  fidelityPlatinum:          '#38BDF8',
+
   // Alias históricos de acción → ember (se mantienen las claves)
   goldGlow:                  'rgba(240, 138, 90, 0.25)',
   goldGlowStrong:            'rgba(217, 106, 59, 0.35)',

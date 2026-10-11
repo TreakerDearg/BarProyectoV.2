@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — RewardsCatalog
-// Full-screen modal catalog for browsing and redeeming rewards.
+// Modal full-screen de catálogo de recompensas (canje de puntos).
+// Contexto VIP: el oro está reservado para fidelidad.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -13,12 +14,12 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Gift, Star } from 'lucide-react-native';
 
-import { Colors }          from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography }      from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
@@ -106,11 +107,13 @@ export default function RewardsCatalog({ visible, onClose }: RewardsCatalogProps
             <Image
               source={{ uri: item.image }}
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
             />
           ) : (
             <View style={styles.imageFallback}>
-              <Gift size={28} color={Colors.primary} />
+              <Gift size={28} color={NocturneColors.vipGold} />
             </View>
           )}
         </View>
@@ -129,7 +132,7 @@ export default function RewardsCatalog({ visible, onClose }: RewardsCatalogProps
           <View style={styles.cardFooter}>
             {/* Points badge */}
             <View style={styles.pointsBadge}>
-              <Star size={11} color={Colors.primary} />
+              <Star size={11} color={NocturneColors.vipGold} />
               <Text style={styles.pointsBadgeText}>{item.pointsCost} pts</Text>
             </View>
 
@@ -144,7 +147,7 @@ export default function RewardsCatalog({ visible, onClose }: RewardsCatalogProps
               activeOpacity={0.8}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color={Colors.onPrimary} />
+                <ActivityIndicator size="small" color={NocturneColors.onTertiary} />
               ) : (
                 <Text
                   style={[
@@ -175,7 +178,7 @@ export default function RewardsCatalog({ visible, onClose }: RewardsCatalogProps
           <View>
             <Text style={styles.headerTitle}>Mis Recompensas</Text>
             <View style={styles.balanceRow}>
-              <Star size={14} color={Colors.primary} />
+              <Star size={14} color={NocturneColors.vipGold} />
               <Text style={styles.balanceText}>{balance} pts disponibles</Text>
             </View>
           </View>
@@ -222,7 +225,8 @@ export default function RewardsCatalog({ visible, onClose }: RewardsCatalogProps
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const GOLD = Colors.primary; // #f3be59
+// Contexto VIP: recompensas de fidelidad → oro reservado
+const GOLD = NocturneColors.vipGold;
 
 const styles = StyleSheet.create({
   safe: {
@@ -238,7 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.gutter,
     paddingVertical:   Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(224,226,236,0.06)',
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   headerTitle: {
     ...Typography.headlineSm,
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainer,
     borderRadius:    Radius.xl,
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.06)',
+    borderColor:     NocturneColors.borderSubtle,
     overflow:        'hidden',
   },
   imageWrap: {
@@ -295,7 +299,7 @@ const styles = StyleSheet.create({
   imageFallback: {
     width:           '100%',
     height:          '100%',
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.vipGoldMuted,
     borderRadius:    Radius.md,
     justifyContent:  'center',
     alignItems:      'center',
@@ -324,12 +328,12 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap: 3,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.vipGoldMuted,
     borderRadius:    Radius.full,
     paddingHorizontal: 8,
     paddingVertical:   3,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.vipGoldBorder,
   },
   pointsBadgeText: {
     ...Typography.labelSm,
@@ -347,11 +351,11 @@ const styles = StyleSheet.create({
   redeemBtnDisabled: {
     backgroundColor: Colors.surfaceContainerHigh,
     borderWidth: 1,
-    borderColor: 'rgba(224,226,236,0.10)',
+    borderColor: NocturneColors.borderSubtle,
   },
   redeemBtnText: {
     ...Typography.labelSm,
-    color: Colors.onPrimary,
+    color: NocturneColors.onTertiary,
     fontWeight: '700' as const,
   },
   redeemBtnTextDisabled: {
@@ -383,10 +387,10 @@ const styles = StyleSheet.create({
   retryBtn: {
     paddingHorizontal: Spacing.lg,
     paddingVertical:   Spacing.sm,
-    backgroundColor:   Colors.goldMuted,
+    backgroundColor:   NocturneColors.vipGoldMuted,
     borderRadius:      Radius.full,
     borderWidth:       1,
-    borderColor:       Colors.goldBorder,
+    borderColor:       NocturneColors.vipGoldBorder,
   },
   retryBtnText: {
     ...Typography.labelMd,

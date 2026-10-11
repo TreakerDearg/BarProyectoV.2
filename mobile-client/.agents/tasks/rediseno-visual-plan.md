@@ -122,9 +122,11 @@ Dependencias: `0 → 1 → 2 → 3 → 4 → 5 → 6`. Dentro de 3 y 4, por comp
 
 **Archivos**: `shared/SommelierCard.tsx` (expo-image + LinearGradient real + NBadge + press), `shared/CompactProductRow.tsx`, `shared/ProductGridCard.tsx` (placeholder con icono en vez de emoji), `HeroCarousel.tsx` (slides 16:9 + gradiente + dots ember), `CategoryPills.tsx`, `CategoryHeroRow.tsx`, `DealsCarousel.tsx`, `shared/PromoBanner.tsx`, `shared/MesaCard.tsx`, `shared/PedidoActivoBanner.tsx`, `shared/CartItemRow.tsx`, `shared/FulfillmentSheet.tsx`, `ModifierModal.tsx`, `ProductCustomizerSheet.tsx` (hero expo-image + gradiente), `shared/LoyaltyCard.tsx`, `shared/RewardsCatalog.tsx`, `roulette/*` (recoloreo ember/wine; LEGENDARY conserva gold).
 
-- [ ] 13. Migrar imágenes a `expo-image` (`contentFit="cover"`, `cachePolicy="memory-disk"`, `transition={150}`).
-- [ ] 14. Grep de consumidores antes de tocar cualquier prop (solo aditivas); eliminar hardcodeos catalogados en Fase 0.
-- [ ] 15. Verificación: tsc + visual por componente.
+- [x] 13. Migrados a `expo-image` (`contentFit="cover"` + `cachePolicy="memory-disk"` + `transition={150}`): `SommelierCard`, `CompactProductRow`, `ProductGridCard`, `HeroCarousel`, `PromoBanner`, `CartItemRow`, `ProductCustomizerSheet` (hero) y `RewardsCatalog`. El fallback emoji de `ProductGridCard` pasó a icono `GlassWater`; `CartItemRow` 🍹 → `GlassWater`; en `ProductCustomizerSheet` se eliminaron además el emoji del hero y el `#8B5CF6` literal.
+- [x] 14. Cambios aditivos únicamente (API de todos los consumidores intacta; sin props rotas). Hardcodeos eliminados en los 18 componentes: gradientes reales (`heroOverlay`/`emberCTA`/`cardSheen`), badges unificados con `NBadge` (incl. `DealsCarousel`, `HeroCarousel` y `ProductCustomizerSheet`), tintes de categoría rgba → tokens semánticos (`emberMuted`/`wineMuted`/`warningMuted`/`successMuted`/`infoMuted`/`wineGlow`), `casinoBackground`→`surfaceContainerLowest`, `Elevation.goldCTA`→`emberCTA`, y `Colors.goldDark` mal usado como acción → `emberDeep` (`CompactProductRow` `addBtnActive`). Ruleta: `MobileWheel`/`GoldenTicket`/`RevealExplosion` recoloreados a ember/wine con oro reservado solo para LEGENDARY; EPIC pasa de `#a855f7` a `wine` (texto vía `onSecondaryContainer`, respeta la regla «wine nunca como texto»). `SommelierCard` suma press scale (`usePressScale(0.98)`). Únicos rgba restantes en componentes: alphas neutros de efectos de render, centralizados como consts locales documentadas (`SVG_EFFECT` en `MobileWheel`, `SHIMMER_COLOR` en `GoldenTicket`).
+- [x] 15. Verificación: `npx tsc --noEmit` limpio. Revisión visual en Expo Go **pendiente del usuario** (press scale en cards, gradientes ember reales, badges consistentes, ruleta recoloreada).
+
+**Tokens nuevos (aditivos)**: `fidelityBronze` `#CD7F32`, `fidelitySilver` `#A8A9AD`, `fidelityPlatinum` `#38BDF8` — escalera VIP de `LoyaltyCard` sin literales (nivel Gold usa `vipGold` reservado). **Cuidado**: `Colors.goldDark` ahora apunta al oro VIP (`vipGoldDark`), NO es color de acción; los estados activos van con `emberDeep`.
 
 ### Fase 4 — Pantallas (orden por riesgo; Pedido SIEMPRE última)
 
@@ -190,7 +192,9 @@ Comando: `rg "rgba\(|#[0-9A-Fa-f]{6}"` en `mobile-client/src/components` y `mobi
 | `components/CategoryPills.tsx` | 1 | Fase 3 |
 | `shared/CompactProductRow.tsx` | 1 | Fase 3 |
 
-Hardcodeos conocidos fuera de components/screens: `navigation/AppNavigator.tsx` L91-103 (tab bar). Objetivo: **0 literales de color en componentes y pantallas** al cerrar Fase 4; todo color sale de `src/theme/colors.ts` (más `gradients.ts` para gradientes).
+Hardcodeos conocidos fuera de components/screens: `navigation/AppNavigator.tsx` L91-103 (tab bar) → **eliminados en Fase 2** (verificado con grep). Objetivo: **0 literales de color en componentes y pantallas** al cerrar Fase 4; todo color sale de `src/theme/colors.ts` (más `gradients.ts` para gradientes).
+
+**Estado tras el cierre de Fase 3**: 0 literales de paleta en `src/components/**` (fases 2-3 completas). Restan solo: alphas neutros de efecto ya documentados como consts locales + `src/screens/*` (Fase 4: `RouletteScreen` L56/685/746/767/798, `PedidoScreen` 15, `CartaScreen` L653/674/702, `HomeScreen` L682, `AccountScreen` L274/297, `ReservasScreen`, `AuthScreen`, `QRScannerScreen`).
 
 ## Plan de pruebas
 

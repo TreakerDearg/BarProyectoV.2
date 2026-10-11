@@ -6,13 +6,15 @@
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image,
+  View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, ChevronRight } from 'lucide-react-native';
 import { Colors }     from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
+import { Gradients } from '../../theme/gradients';
 import type { OrderPublicDTO } from '../../types/api';
 import { getOrderStatusMeta } from '../../utils/status';
 import { StatusBadge } from './StatusBadge';
@@ -79,6 +81,11 @@ export function PedidoActivoBanner({
 
         {/* Right: CTA */}
         <TouchableOpacity style={styles.ctaBtn} onPress={onPress} activeOpacity={0.8}>
+          <LinearGradient
+            {...Gradients.emberCTA}
+            style={styles.ctaGradient}
+            pointerEvents="none"
+          />
           <Text style={styles.ctaText}>Seguir</Text>
           <ChevronRight size={16} color={Colors.onPrimary} />
         </TouchableOpacity>
@@ -133,7 +140,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   Spacing.sm,
     gap:             4,
-    ...(Elevation.goldCTA as object),
+    overflow:        'hidden',
+    ...(Elevation.emberCTA as object),
+  },
+  ctaGradient: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    bottom:   0,
   },
   ctaText: { ...Typography.labelLg, color: Colors.onPrimary },
 });

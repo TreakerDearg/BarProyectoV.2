@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { StyleSheet, View, Text, Modal, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
-import { Colors } from "../theme/colors";
+import { Colors, NocturneColors } from "../theme/colors";
 import { Typography, Spacing, Radius, Elevation } from "../theme/";
+import { Gradients } from "../theme/gradients";
 import type { ProductPublicDTO } from "../types/api";
 
 interface ModifierModalProps {
@@ -135,6 +137,11 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
             </View>
 
             <TouchableOpacity style={styles.confirmBtn} onPress={handleAdd} activeOpacity={0.85}>
+              <LinearGradient
+                {...Gradients.emberCTA}
+                style={styles.confirmGradient}
+                pointerEvents="none"
+              />
               <ShoppingBag size={18} color={Colors.onPrimary} />
               <Text style={styles.confirmBtnText}>
                 Agregar · ${totalPrice.toLocaleString("es-AR")}
@@ -150,7 +157,7 @@ export const ModifierModal: React.FC<ModifierModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.85)",
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent: "flex-end",
   },
   sheet: {
@@ -160,7 +167,7 @@ const styles = StyleSheet.create({
     maxHeight: "85%",
     paddingBottom: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: Colors.outlineVariant,
+    borderTopColor: NocturneColors.borderSubtle,
   },
   header: {
     flexDirection: "row",
@@ -168,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: Spacing.gutter,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   titleArea: {
     flex: 1,
@@ -211,11 +218,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
   },
   presetChipSelected: {
-    borderColor: Colors.primaryContainer,
-    backgroundColor: Colors.goldMuted,
+    borderColor: Colors.primary,
+    backgroundColor: NocturneColors.emberMuted,
   },
   presetText: {
     ...Typography.labelMd,
@@ -225,7 +232,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   input: {
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: Colors.surfaceContainerLow,
     color: Colors.onSurface,
     borderRadius: Radius.md,
     padding: Spacing.smMd,
@@ -233,7 +240,7 @@ const styles = StyleSheet.create({
     minHeight: 70,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     marginBottom: Spacing.gutter,
   },
   inputFocused: {
@@ -252,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     paddingHorizontal: 6,
   },
   stepperBtn: {
@@ -272,7 +279,15 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: Radius.lg,
     gap: Spacing.sm,
-    ...(Elevation.goldCTA as object),
+    overflow: "hidden",
+    ...(Elevation.emberCTA as object),
+  },
+  confirmGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   confirmBtnText: {
     ...Typography.labelLg,
