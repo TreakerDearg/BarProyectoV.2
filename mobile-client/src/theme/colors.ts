@@ -196,7 +196,7 @@ export const Colors = {
   // ── NEBULA EMBER (v3) ─────────────────────────────────────────
   ember:              NocturneColors.primary,                 // #F08A5A
   emberDark:          NocturneColors.primaryContainer,        // #D96A3B
-  emberDeep:          NocturneColors.emberDeep,               // #C8551F
+  emberDeep:          NocturneColors.emberDeep,               // #D2602A
   emberGlow:          NocturneColors.emberGlow,
   emberBorder:        NocturneColors.emberBorder,
   emberMuted:         NocturneColors.emberMuted,

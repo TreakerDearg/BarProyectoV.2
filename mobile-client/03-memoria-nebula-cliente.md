@@ -23,6 +23,17 @@ El cliente puede descubrir, reservar, pedir y seguir su experiencia desde un sol
 
 # 2. DESIGN SYSTEM ACTIVO
 
+## [2026-10-11] — MIGRACIÓN A NEBULA EMBER (v3)
+
+### Cambio
+El design system activo pasa de **Nocturne Gastronomy** (oro `#f3be59` + Outfit) a **NEBULA EMBER v3**: brasa cálida (`#F08A5A` / `#D96A3B` / `#D2602A`) + Fraunces (display) e Inter (body) sobre una escalera de superficies cálida. El oro queda **reservado** para VIP: LEGENDARY de la ruleta y niveles de fidelidad.
+
+### Motivo
+Pedido explícito del usuario: «nueva paleta, mismo mood» — se mantiene el ADN nocturno premium de resto-bar y se reemplazan acento + tipografía. Los patrones QSR siguen siendo solo referencia de usabilidad, nunca de identidad.
+
+### Impacto
+`src/theme/` reescrito por tokens (colors/typography/elevation + `gradients.ts` y `motion.ts` nuevos); todos los componentes y pantallas migrados sin tocar stores, socket ni backend. Detalle completo: **§28**.
+
 ## [2025-10-01] — MIGRACIÓN A NOCTURNE GASTRONOMY
 
 ### Cambio
@@ -36,9 +47,10 @@ Todos los archivos de `src/theme/` fueron reescritos. Los componentes existentes
 
 ---
 
-# 3. PALETA ACTUAL — NOCTURNE GASTRONOMY
+# 3. PALETA — NOCTURNE GASTRONOMY (histórico)
 
-> Fuente de verdad: `src/theme/colors.ts`
+> ⚠️ Superada por **NEBULA EMBER v3** (§28) — se conserva como registro histórico.
+> Fuente de verdad vigente: `src/theme/colors.ts`
 
 ## Backgrounds (tonal stacking)
 
@@ -90,28 +102,29 @@ Todos los archivos de `src/theme/` fueron reescritos. Los componentes existentes
 
 ## Familias
 
-- **Outfit** (400, 500, 600, 700): Display, Headlines, Titles, Precios
+- **Fraunces** (600, 700): Display, Headlines, Precios, Número de comanda (v3 — reemplaza a Outfit)
 - **Inter** (400, 500, 600, 700): Body, Labels, Formularios, Navegación
 
-Cargadas con `@expo-google-fonts/outfit` y `@expo-google-fonts/inter` via `useFonts` en `App.tsx`.
+Cargadas con `@expo-google-fonts/fraunces` y `@expo-google-fonts/inter` via `useFonts` en `App.tsx` (6 pesos, antes 8 — mejora de arranque). `@expo-google-fonts/outfit` fue desinstalada en Fase 1.
 
 ## Escala tipográfica
 
 | Token | Familia | Size | Weight | Uso |
 |-------|---------|------|--------|-----|
-| `displayLg` | Outfit | 32 | 600 | Saludos hero, títulos de pantalla |
-| `displaySm` | Outfit | 26 | 600 | Nombres de platos, producto destacado |
-| `headlineLg` | Outfit | 22 | 600 | Títulos de sección |
-| `headlineSm` | Outfit | 18 | 500 | Sub-títulos, nombres de mesa |
-| `titleMd` | Outfit | 16 | 500 | Nombres de productos en lista |
+| `displayLg` | Fraunces | 34 | 600 | Saludos hero, títulos de pantalla |
+| `displaySm` | Fraunces | 27 | 600 | Nombres de platos, producto destacado |
+| `headlineLg` | Fraunces | 22 | 600 | Títulos de sección |
+| `headlineSm` | Inter | 18 | 600 | Sub-títulos, nombres de mesa |
+| `titleMd` | Inter | 16 | 500 | Nombres de productos en lista |
 | `bodyLg` | Inter | 16 | 400 | Texto de descripción principal |
 | `bodyMd` | Inter | 14 | 400 | Descripciones, formularios |
 | `bodySm` | Inter | 12 | 400 | Metadata, notas, subtítulos |
 | `labelLg` | Inter | 14 | 600 | Botones, precios secundarios |
 | `labelMd` | Inter | 12 | 500 | Tab labels, chips resting |
 | `labelSm` | Inter | 10 | 600 uppercase | Badges, categorías, section labels |
-| `price` | Outfit | 18 | 600 | Precios en cards |
-| `priceLg` | Outfit | 22 | 600 | Totales del carrito |
+| `price` | Fraunces | 19 | 600 | Precios en cards |
+| `priceLg` | Fraunces | 24 | 600 | Totales del carrito |
+| `orderNumber` | Fraunces | 56 | 700 | Número de comanda gigante (tracking — NUEVO v3) |
 
 No cambiar la tipografía sin una decisión explícita de rediseño.
 
@@ -132,6 +145,8 @@ No cambiar la tipografía sin una decisión explícita de rediseño.
 | `gutter` | 20 | Margen horizontal de pantalla |
 | `lg` | 24 | Entre secciones |
 | `xl` | 32 | Entre bloques mayores |
+| `xxl` | 40 | Espacios de respiro visual |
+| `xxxl` | 48 | Secciones hero |
 
 ## Radios
 
@@ -144,6 +159,8 @@ No cambiar la tipografía sin una decisión explícita de rediseño.
 | `xl` | 16 | Cards principales, hero cards |
 | `xxl` | 24 | Modales, bottom sheets |
 | `full` | 9999 | Pills, chips de categoría, avatares |
+
+> NEBULA EMBER v3 no alteró la escala de espaciado ni los radios (solo paleta, tipografía, motion y gradientes).
 
 ---
 
@@ -159,7 +176,7 @@ No cambiar la tipografía sin una decisión explícita de rediseño.
 | `card` | Cards estándar. Sombra ligera. |
 | `sheet` | Active sheets, navbars, menús. Sombra ambiental. |
 | `modal` | Modales, alertas, bottom sheets. Dual shadow. |
-| `goldCTA` | Solo para CTA primarios. Gold glow difuso. |
+| `emberCTA` | Solo para CTA primarios. Glow ember difuso. (`goldCTA` queda como alias deprecado con los mismos valores; sin consumidores en v3.) |
 
 ---
 
@@ -427,8 +444,10 @@ eas login
 
 | Paquete | Versión | Uso |
 |---------|---------|-----|
-| `@expo-google-fonts/outfit` | ^0.4.3 | Fuente Outfit |
+| `@expo-google-fonts/fraunces` | ^0.4.1 | Fuente Fraunces — display v3 (reemplaza a Outfit, desinstalada en Fase 1) |
 | `@expo-google-fonts/inter` | ^0.4.2 | Fuente Inter |
+| `expo-image` | ~57.0.5 | Imágenes con caché memory-disk y transición (v3) |
+| `expo-linear-gradient` | ~57.0.2 | Gradientes reales de los presets `Gradients` (v3) |
 | `expo-font` | ~13.0.4 | Carga de fuentes |
 | `expo-splash-screen` | ^0.29.24 | Control del splash |
 | `@react-native-community/datetimepicker` | ^9.2.1 | Date picker nativo en ReservasScreen |
@@ -600,14 +619,27 @@ Pedido explícito del usuario: tomar como referencia apps de comida reconocidas 
 
 ---
 
+## [2026-10-11] — ADOPCIÓN NEBULA EMBER (v3) COMO IDENTIDAD VISUAL
+
+### Cambio
+Nueva identidad visual completa: paleta NEBULA EMBER (brasa cálida + wine + oro reservado para VIP), tipografía Fraunces + Inter, tokens de motion y gradientes reales con `expo-linear-gradient`. Reemplaza al oro/Outfit como sistema de acción; el ADN nocturno se mantiene.
+
+### Motivo
+Pedido explícito del usuario: «nueva paleta, mismo mood». Referencia QSR (McDonald's/KFC/Starbucks) solo para usabilidad, nunca para identidad.
+
+### Impacto
+Sistema completo migrado por tokens sin tocar stores, socket ni backend. Detalle en §28; plan y pasos por fase en `.agents/tasks/rediseno-visual-plan.md`.
+
+---
+
 # 21. ESTADO ACTUAL DE IMPLEMENTACIÓN
 
 La app está en **estado funcional completo**. Todas las pantallas y flujos principales están implementados.
 
 ## ✅ Completado
 
-- Design system Nocturne Gastronomy (`src/theme/`)
-- Fuentes Outfit + Inter via expo-google-fonts
+- Design system **NEBULA EMBER v3** (`src/theme/` — colors/typography/elevation/spacing + `gradients.ts` y `motion.ts` nuevos; ver §28)
+- Fuentes Fraunces + Inter via expo-google-fonts (6 pesos, antes 8) + expo-image y expo-linear-gradient integrados
 - Navegación de 5 tabs con React Navigation 7
 - HomeScreen dinámica fiel al diseño conceptual
 - CartaScreen con SommelierCard + CompactProductRow + búsqueda + favoritos
@@ -618,7 +650,7 @@ La app está en **estado funcional completo**. Todas las pantallas y flujos prin
 - Todos los stores: useAuthStore, useCartStore, useSessionStore, useFavoritesStore
 - API layer completo: auth, menu, orders, promos, tables, reservations, roulette
 - Socket.IO integrado en Home, Pedidos y Cuenta
-- Componentes compartidos: NButton, NInput, NToast, NSkeleton, NEmptyState, SommelierCard, CompactProductRow, MesaCard, PedidoActivoBanner, PromoBanner
+- Componentes compartidos: NButton, NBadge, NInput, NToast, NSkeleton, NEmptyState, SommelierCard, CompactProductRow, ProductGridCard, CartItemRow, MesaCard, PedidoActivoBanner, PromoBanner, StatusBadge
 - Haptic feedback en acciones clave
 - app.json y eas.json configurados para build APK
 
@@ -634,6 +666,8 @@ La app está en **estado funcional completo**. Todas las pantallas y flujos prin
 ---
 
 # 22. MEJORAS VISUALES FASE 2
+
+> ⚠️ Registro histórico: el rediseño **NEBULA EMBER v3 (§28)** reemplazó los gradientes simulados, el oro y Outfit descritos en esta sección (se conserva como referencia).
 
 ## [2026] — MIGRACIÓN VISUAL COMPLETA + ANIMACIONES + PRODUCT CUSTOMIZER
 
@@ -884,12 +918,14 @@ Modo cámara con frame dorado (expo-camera). Modo teclado numérico 3 dígitos. 
 
 # 26. SISTEMA DE RAREZA — RULETA NEBULA
 
+> Actualizado en NEBULA EMBER v3 (Fase 3): EPIC pasa de violeta a wine; LEGENDARY conserva el oro reservado.
+
 | Rareza | Color Borde | Color Label | Glow | Badge |
 |--------|-------------|-------------|------|-------|
-| COMMON | `#9b8f7d` | `Colors.outline` | `rgba(155,143,125,0.25)` | ⚪ |
-| RARE | `#38BDF8` | `Colors.info` | `rgba(56,189,248,0.25)` | 🔵 |
-| EPIC | `#a855f7` | `#a855f7` | `rgba(168,85,247,0.25)` | 🟣 |
-| LEGENDARY | `#f3be59` | `Colors.primary` | `Colors.goldGlowStrong` | ⭐ |
+| COMMON | `Colors.outline` | `Colors.outline` | `${Colors.outline}40` | ⚪ |
+| RARE | `Colors.info` | `Colors.info` | `${Colors.info}40` | 🔵 |
+| EPIC | `Colors.wine` | `NocturneColors.onSecondaryContainer` (regla: wine nunca como texto) | `NocturneColors.wineGlow` | 🟣 |
+| LEGENDARY | `NocturneColors.vipGold` | `NocturneColors.vipGold` | `NocturneColors.vipGoldGlowStrong` | ⭐ |
 
 ---
 
@@ -911,3 +947,128 @@ Modo cámara con frame dorado (expo-camera). Modo teclado numérico 3 dígitos. 
 | react-native-safe-area-context | 4.12.0 | **~5.7.0** |
 | @react-native-community/datetimepicker | ^9.2.1 | **9.1.0** |
 | @react-native-async-storage/async-storage | 1.23.1 | **2.2.0** |
+
+---
+
+# 28. NEBULA EMBER (v3) — REDISEÑO VISUAL COMPLETO
+
+> Fuentes de verdad: `src/theme/{colors,typography,elevation,spacing,gradients,motion}.ts` · Plan, checkboxes y estado por fase: `.agents/tasks/rediseno-visual-plan.md` · Decisiones: §2 y §20.
+
+## Paleta (valores vigentes)
+
+### Superficies (escalera cálida)
+
+| Token | Hex | Uso |
+|-------|-----|-----|
+| `surfaceContainerLowest` | `#0C0A0D` | Fondo profundo (avatares, anillos) |
+| `background` / `surfaceDim` | `#131014` | Canvas |
+| `surfaceContainerLow` | `#1A1619` | Pills resting, tab bar |
+| `surfaceContainer` | `#201B1F` | Cards estándar |
+| `surfaceContainerHigh` | `#2A2328` | Cards destacadas, steppers |
+| `surfaceContainerHighest` | `#352C31` | Inputs, chips activos, keypad |
+
+### Texto y bordes
+
+| Token | Hex | Uso |
+|-------|-----|-----|
+| `onSurface` | `#F1E8DE` | Texto principal (crema cálida) |
+| `onSurfaceVariant` | `#D6C6B6` | Texto secundario |
+| `outline` | `#9E8C7B` | Placeholders, muted |
+| `outlineVariant` | `#4D4139` | Bordes alternos |
+| `borderSubtle` | `rgba(241,232,222,0.08)` | Borde sutil estándar de cards |
+
+### Ember (primario — reemplaza al oro como color de acción)
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `primary` | `#F08A5A` | Highlight, activo, texto de precio |
+| `primaryContainer` | `#D96A3B` | Fill CTA (bajo gradiente `emberCTA`) |
+| `onPrimary` | `#2A0F04` | Texto sobre ember |
+| `emberDeep` | `#D2602A` | Fin del gradiente CTA (ajustado por AA en Fase 1) |
+| `emberGlow` | `rgba(240,138,90,0.25)` | Glows ember |
+| `emberMuted` / `emberBorder` | rgba ember | Fondos/bordes suaves ember |
+
+### Wine (secundario) y oro reservado
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `secondary` / `wine` | `#A03D52` | EPIC de la ruleta, acentos |
+| `secondaryContainer` | `#5E2130` | Fondos wine |
+| `onSecondaryContainer` | `#FFE3E8` | Texto sobre wine (regla: wine nunca como texto) |
+| `wineGlow` | `rgba(160,61,82,0.25)` | Glow EPIC |
+| `vipGold` | `#F3BE59` | Reservado: LEGENDARY, fidelidad VIP, sellos premium |
+| `vipGoldDark` | `#D4A340` | Reservado: degradados VIP |
+| `fidelityBronze` / `Silver` / `Platinum` | `#CD7F32` / `#A8A9AD` / `#38BDF8` | Niveles de fidelidad (LoyaltyCard + anillo de Account) |
+| `overlayDark` | `rgba(12,10,13,0.85)` | Overlays de cámara, heras y modales |
+
+> Aliases: `goldMuted/goldBorder/goldGlow/goldSubtle` en `Colors` resuelven a ember (el código usa los nombres ember); `Colors.goldDark` → vipGoldDark.
+
+## Tipografía
+
+| Token | Familia | Size/Línea | Uso |
+|-------|---------|-----------|-----|
+| `displayLg` | Fraunces 600 | 34/40 | Saludo hero, títulos de pantalla |
+| `displaySm` | Fraunces 600 | 27/32 | Nombres de producto, resultado de ruleta |
+| `headlineLg` | Fraunces 600 | 22/28 | Títulos de sección |
+| `headlineSm` | Inter 600 | 18/24 | Subtítulos |
+| `price` | Fraunces 600 | 19/24 | Precios en cards |
+| `priceLg` | Fraunces 600 | 24/28 | Totales |
+| `orderNumber` | Fraunces 700 | 56/60 | Número de comanda gigante (tracking) |
+
+Alternates documentados si Fraunces no rinde: Playfair Display / DM Serif Display; regla de fallback: precios a Inter 700.
+
+## Motion (`src/theme/motion.ts`)
+
+| Token | ms | Uso |
+|-------|----|-----|
+| `fast` | 150 | Micro-feedback, fades cortos |
+| `base` | 250 | Transiciones estándar |
+| `slow` | 400 | Reveals, resultado de ruleta |
+
+Easings: `standard` / `decelerate` / `accelerate` (beziers). Preset `SpringPress` (friction 8) vía hook `usePressScale`. Regla: transform/opacity con `useNativeDriver: true`; loops con cleanup en `useEffect`. Sin reanimated (alternativa rechazada).
+
+## Gradientes (`src/theme/gradients.ts` — expo-linear-gradient)
+
+| Gradiente | Dirección | Uso |
+|-----------|-----------|-----|
+| `heroOverlay` | transparente → background, vertical (0.45→1) | Fusión de heras con el canvas |
+| `emberCTA` | `#F08A5A` → `#D2602A`, vertical | Botones primarios y adds |
+| `nightWash` | background → transparente, vertical | Lavado tras saludos y headers |
+| `cardSheen` | emberGlow → transparente, diagonal | Brillo sutil de cards |
+
+## Hardcodeos eliminados
+
+- Punto de partida (Fase 0): **171 literales** de color en 30 archivos de `src/components` y `src/screens`.
+- Estado final: **0 literales de paleta** en ambos árboles (grep `rgba\(|#[0-9A-Fa-f]{6}`). Los únicos rgba restantes son consts de efecto documentadas (overlays), `shadowColor` de elevation y alphas derivadas de tokens (`${color}40`).
+
+## Estado por fase (todas cerradas — commit por fase)
+
+| Fase | Commit | Estado |
+|------|--------|--------|
+| 0 Fundaciones (steps file, auditoría, dependencias) | `ae4d164` | ✅ |
+| 1 Tokens NEBULA EMBER (colors, typography, gradients, motion, App.tsx) | `47f0547` | ✅ |
+| 2 Primitivas (NButton, NBadge, usePressScale, tab bar, FloatingCartBar) | `5c401f4` | ✅ |
+| 3 Componentes de flujo (18/18) | `a883d45` | ✅ |
+| 4 Pantallas (8/8: Home, Carta, Reservas, Auth, Account, Ruleta, QR, Pedido) | `134209c` | ✅ |
+| 5 Performance y a11y (memo, debounce 300 ms, touch ≥44 px, banner de error Home, scan-debt) | `28b0dd9` | ✅ |
+| 6 Documentación (esta sección + design system 01 + steps) | este commit | ✅ |
+
+## Pendientes y decisiones registradas
+
+- **Pendiente de validación del usuario** en dispositivo (Expo Go Android gama baja + iOS): FPS, arranque con 6 fuentes (vs 8) y checklist manual de flujos (pedir→carrito→confirmar→tracking; reserva; login; ruleta; QR).
+- Hero de Reservas resuelto de marca (sin asset fotográfico) — decisión de Fase 4.
+- `getLevel` exportado desde `LoyaltyCard` para el anillo VIP de Account (evita duplicar los umbrales 0/500/2000/5000).
+- Segmented de propina implementado con Views (sin dependencia nueva) — decisión de Fase 4.
+- `PedidoScreen.tsx` sigue siendo el único archivo >1000 líneas (1268): extracción a subcomponentes recomendada para el módulo M8.
+- El spinner de la ruleta reutiliza los emojis por rareza en las etiquetas (los iconos lucide se usan en CTAs); consistente con el diseño kiosco.
+
+## Alternativas rechazadas
+
+1. **Reboot total de identidad (fondos claros)** — el usuario eligió «mismo mood»; el ADN nocturno es el núcleo resto-bar.
+2. **Mantener el oro como primario** — pasó a acento VIP (LEGENDARY/fidelidad), preservando continuidad.
+3. **react-native-reanimated** — el motion planificado (fade/scale/slide/rotate con native driver) no lo requiere; reevaluar solo para efectos scroll-driven.
+4. **Gradientes simulados con Views apiladas como solución definitiva** — banding y direcciones limitadas; expo-linear-gradient es oficial y compatible Expo Go.
+5. **Capa `composed.ts` de estilos compuestos** — abstracción prematura; solo se comparte lo realmente duplicado (NBadge, usePressScale).
+6. **Big-bang de una sola pasada / librería de componentes nueva** — la propagación por tokens logró el salto visual sin romper nada.
+7. **FlashList / virtualización avanzada** — prematuro para el volumen actual; se reevaluará en M8 (offline/perf).
+8. **Tocar stores, socket o backend «de paso»** — fuera de alcance: solo presentación.

@@ -153,10 +153,12 @@ Dependencias: `0 → 1 → 2 → 3 → 4 → 5 → 6`. Dentro de 3 y 4, por comp
 
 ### Fase 6 — Documentación y cierre
 
-- [ ] 30. `03-memoria-nebula-cliente.md`: nueva **Sección 28 «NEBULA EMBER (v3)»** — decisiones, tablas (paleta/tipografía/motion/gradientes), alternativas rechazadas, catálogo de hardcodeos eliminados, estado por fase; actualizar secciones 2 (design system activo), 4-6 (tipografía/espaciado/elevación), 21-23 (estado/roadmap).
-- [ ] 31. `01-design-system-nebula-cliente.md`: revisión v3 de paleta y tipografía + nota «Revisión NEBULA EMBER».
-- [ ] 32. `.agents/tasks/rediseno-visual-plan.md` (este archivo): marcar checkboxes, registrar pendientes.
-- [ ] 33. Commit final: `feat(mobile): rediseño visual NEBULA EMBER v3`.
+- [x] 30. `03-memoria-nebula-cliente.md`: **§28 «NEBULA EMBER (v3)»** nueva (paleta vigente, tipografía, motion, gradientes, hardcodeos eliminados 171→0, estado por fase con commits, pendientes, alternativas rechazadas); §2 actualizada con la migración v3; §3 marcada histórica; §4 tipografía (Fraunces + `orderNumber`); §5 nota «sin cambios de escala»; §6 `emberCTA` (goldCTA deprecado); §15 dependencias (fraunces/expo-image/expo-linear-gradient; Outfit desinstalada); §20 decisión «ADOPCIÓN NEBULA EMBER (v3)»; §21 estado; §22 marcada histórica; §26 rareza v3. Corrección extra: comentario obsoleto `#C8551F`→`#D2602A` en `colors.ts`.
+- [x] 31. `01-design-system-nebula-cliente.md`: nota «Revisión NEBULA EMBER (v3)» al inicio + paleta (escalera cálida), §3 ember + oro reservado + wine, funcionales v3, tipografía Fraunces, navegación ember, Primary con gradiente ember.
+- [x] 32. Este archivo: checkboxes 25-31 marcados, ítems 28/33 con su estado, pendientes registrados (dispositivo del usuario + extracción de PedidoScreen para M8).
+- [x] 33. Commit final: `feat(mobile): rediseño visual NEBULA EMBER v3` (incluye este archivo y la documentación).
+
+**Rediseño completo**: fases 0-6 cerradas con commit por fase (`ae4d164` → `47f0547` → `5c401f4` → `a883d45` → `134209c` → `28b0dd9` → final). Verificación: `npx tsc --noEmit` limpio tras cada fase y 0 literales de paleta en `src/`. Único pendiente activo: validación visual del usuario en dispositivo (ítem 28).
 
 ## Catálogo de hardcodeos (auditoría Fase 0)
 
