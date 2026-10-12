@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   Smartphone, Download, CheckCircle2, Sparkles,
   ChefHat, ShoppingBag, CalendarDays, RotateCw,
@@ -10,14 +10,38 @@ import {
 import styles from "./descargar.module.css";
 
 // ── Constantes ────────────────────────────────────────────────────
+// Al publicar una release nueva: actualizá APP_VERSION, APP_SIZE,
+// APK_URL y verificá que RELEASES_URL siga siendo válida.
+// (GitHub → Releases → clic derecho sobre el .apk → copiar enlace)
 const APP_VERSION = "1.1.0";
-const APP_SIZE    = "52 MB";
+const APP_SIZE    = "122 MB";
 
 const APK_URL =
   (process.env.NEXT_PUBLIC_APK_URL as string | undefined) ??
-  "https://expo.dev/accounts/nebulaclients-team/projects/sistema-nebula/builds";
+  "https://github.com/TreakerDearg/BarProyectoV.2/releases/download/App/nebula-cliente-v1.1.0.apk";
+
+const RELEASES_URL = "https://github.com/TreakerDearg/BarProyectoV.2/releases";
 
 const IS_DIRECT_APK = APK_URL.endsWith(".apk");
+
+// ── Novedades de la versión ───────────────────────────────────────
+const NEWS = [
+  {
+    icon: <Sparkles size={20} />,
+    title: "Identidad NEBULA EMBER",
+    desc: "Paleta ember sobre noche, tipografía editorial y micro-animaciones en todas las pantallas.",
+  },
+  {
+    icon: <Zap size={20} />,
+    title: "Más rápida",
+    desc: "Arranque optimizado, listas más fluidas y búsqueda que responde al instante.",
+  },
+  {
+    icon: <CheckCircle2 size={20} />,
+    title: "Más accesible",
+    desc: "Botones más grandes, mejor contraste y estados claros en cada flujo.",
+  },
+] as const;
 
 // ── Features ──────────────────────────────────────────────────────
 const FEATURES = [
@@ -73,7 +97,7 @@ const STEPS = [
     icon: <Shield size={18} />,
     title: "Habilitá la instalación",
     body: 'Android pedirá permiso la primera vez. Andá a Ajustes → Seguridad → "Instalar apps de fuentes desconocidas" y activalo para tu navegador.',
-    tip: "En Android 8 o superior el sistema te lleva directo al ajuste al intentar instalar — solo tocá "Ajustes" en el popup.",
+    tip: 'En Android 8 o superior el sistema te lleva directo al ajuste al intentar instalar — solo tocá "Ajustes" en el popup.',
   },
   {
     n: 3,
@@ -93,7 +117,7 @@ const STEPS = [
 
 // ── Stats ─────────────────────────────────────────────────────────
 const STATS = [
-  { value: "4.9★", label: "Calificación" },
+  { value: `v${APP_VERSION}`, label: "Versión" },
   { value: APP_SIZE, label: "Tamaño" },
   { value: "Android 8+", label: "Requisito" },
   { value: "Gratis", label: "Precio" },
@@ -141,14 +165,19 @@ function InstallStep({
 }
 
 // ── Componente principal ──────────────────────────────────────────
+// Suscripción vacía y estable: el user-agent no cambia durante la sesión.
+const subscribeNoop = () => () => {};
+
 export function DescargarClient() {
-  const [isAndroid, setIsAndroid] = useState<boolean | null>(null);
+  // Snapshot del cliente evaluado post-hidratación: en el servidor devuelve
+  // false (sin mismatch de hidratación) y no necesita setState en un efecto.
+  const isAndroid = useSyncExternalStore(
+    subscribeNoop,
+    () => /android/i.test(navigator.userAgent),
+    () => false,
+  );
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-
-  useEffect(() => {
-    setIsAndroid(/android/i.test(navigator.userAgent));
-  }, []);
 
   function handleDownload() {
     if (!IS_DIRECT_APK) return;
@@ -163,7 +192,7 @@ export function DescargarClient() {
     ? "¡Descarga iniciada!"
     : downloading
     ? "Preparando descarga…"
-    : `Descargar APK · v${APP_VERSION}`;
+    : "Descargar para Android";
 
   return (
     <div className={styles.page}>
@@ -177,32 +206,74 @@ export function DescargarClient() {
       )}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className={styles.hero} aria-labelledby="dl-title">
+      <section className={styles.heroStage} aria-labelledby="dl-title">
 
-        {/* Ícono de app */}
-        <div className={styles.appIconWrap} aria-hidden="true">
-          <div className={styles.appIcon}>
-            <Sparkles size={40} />
+        <div className={styles.hero}>
+          {/* Ícono de la app + chips flotantes (decorativo) */}
+          <div className={styles.heroVisual} aria-hidden="true">
+            <div className={styles.appIconGlow} />
+            <div className={styles.appIcon}>
+              <span className={styles.appIconMark}>N</span>
+              <span className={styles.appIconChip}>v{APP_VERSION}</span>
+            </div>
+            <span className={styles.floatChipA}><RotateCw size={14} /> Ruleta</span>
+            <span className={styles.floatChipB}><ChefHat size={14} /> Carta</span>
+            <span className={styles.floatChipC}><Gift size={14} /> Puntos VIP</span>
           </div>
-          <div className={styles.appIconGlow} />
+
+          {/* Texto */}
+          <div className={styles.heroText}>
+            <span className={styles.eyebrow}>
+              <Sparkles size={12} aria-hidden="true" />
+              Nebula Bar · App oficial para Android
+            </span>
+
+            <h1 id="dl-title" className={styles.heroTitle}>
+              El bar entero,<br />
+              <span className={styles.heroAccent}>en tu mano.</span>
+            </h1>
+
+            <p className={styles.heroSub}>
+              Pedidos en mesa, reservas, carta interactiva, la Ruleta Nebula y
+              puntos VIP. La experiencia completa de Nebula Bar, ahora con la
+              identidad <strong>NEBULA EMBER</strong>.
+            </p>
+          </div>
         </div>
 
-        {/* Texto */}
-        <div className={styles.heroText}>
-          <span className={styles.eyebrow}>
-            <Sparkles size={11} aria-hidden="true" />
-            Nebula Bar · App Oficial
-          </span>
+        {/* CTA principal */}
+        <div className={styles.ctaBlock}>
+          <a
+            href={APK_URL}
+            className={`${styles.downloadBtn} ${downloaded ? styles.downloadBtnDone : ""} ${downloading ? styles.downloadBtnLoading : ""}`}
+            target={IS_DIRECT_APK ? "_self" : "_blank"}
+            rel="noreferrer"
+            aria-label={`Descargar Nebula ${APP_VERSION} para Android (${APP_SIZE})`}
+            download={IS_DIRECT_APK ? `nebula-bar-${APP_VERSION}.apk` : undefined}
+            onClick={IS_DIRECT_APK ? handleDownload : undefined}
+          >
+            {downloaded
+              ? <><CheckCircle2 size={20} aria-hidden="true" /> ¡Descarga iniciada!</>
+              : <><Download size={20} aria-hidden="true" /> {btnLabel}</>
+            }
+            {!downloaded && !downloading && (
+              <span className={styles.btnSize}>{APP_SIZE}</span>
+            )}
+          </a>
 
-          <h1 id="dl-title" className={styles.heroTitle}>
-            Todo el bar<br />
-            <span className={styles.heroAccent}>en tu mano</span>
-          </h1>
-
-          <p className={styles.heroSub}>
-            Pedidos en mesa, reservas, carta interactiva, ruleta exclusiva y
-            sistema de puntos VIP. La experiencia Nebula completa para Android.
+          <p className={styles.heroMeta}>
+            Gratis · Android 8+ · Sin Play Store, instalación directa
           </p>
+
+          <a
+            className={styles.versionsLink}
+            href={RELEASES_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Ver todas las versiones
+            <ArrowRight size={13} aria-hidden="true" />
+          </a>
         </div>
 
         {/* Stats */}
@@ -215,32 +286,32 @@ export function DescargarClient() {
           ))}
         </div>
 
-        {/* CTA principal */}
-        <a
-          href={APK_URL}
-          className={`${styles.downloadBtn} ${downloaded ? styles.downloadBtnDone : ""} ${downloading ? styles.downloadBtnLoading : ""}`}
-          target={IS_DIRECT_APK ? "_self" : "_blank"}
-          rel="noreferrer"
-          aria-label={`Descargar Nebula ${APP_VERSION} para Android`}
-          download={IS_DIRECT_APK ? `nebula-bar-${APP_VERSION}.apk` : undefined}
-          onClick={IS_DIRECT_APK ? handleDownload : undefined}
-        >
-          {downloaded
-            ? <><CheckCircle2 size={20} aria-hidden="true" /> ¡Descarga iniciada!</>
-            : <><Download size={20} aria-hidden="true" /> {btnLabel}</>
-          }
-        </a>
-
-        <p className={styles.heroMeta}>
-          Gratis · Solo Android · {APP_SIZE} · Sin Play Store
-        </p>
-
         {/* Badge de seguridad */}
         <div className={styles.securityBadge}>
           <Shield size={13} aria-hidden="true" />
-          <span>Build oficial · Firmado por EAS · Conexión cifrada HTTPS</span>
+          <span>Build oficial firmada con EAS · Descarga directa desde GitHub · HTTPS</span>
         </div>
 
+      </section>
+
+      {/* ── NOVEDADES DE LA VERSIÓN ──────────────────────────── */}
+      <section className={styles.newsSection} aria-labelledby="news-title">
+        <div className={styles.sectionHeader}>
+          <h2 id="news-title" className={styles.sectionTitle}>
+            Novedades de la {APP_VERSION}
+          </h2>
+          <p className={styles.sectionSub}>Lo último que llegó a la app</p>
+        </div>
+
+        <div className={styles.newsGrid}>
+          {NEWS.map((n) => (
+            <div key={n.title} className={styles.newsCard}>
+              <div className={styles.newsIconWrap} aria-hidden="true">{n.icon}</div>
+              <span className={styles.newsTitle}>{n.title}</span>
+              <span className={styles.newsDesc}>{n.desc}</span>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── FEATURES ─────────────────────────────────────────── */}
@@ -264,7 +335,11 @@ export function DescargarClient() {
                 <div className={styles.featureLabelRow}>
                   <span className={styles.featureLabel}>{f.label}</span>
                   {f.badge && (
-                    <span className={styles.featureBadge}>{f.badge}</span>
+                    <span
+                      className={`${styles.featureBadge} ${f.badge === "EXCLUSIVO" ? styles.featureBadgeWine : ""}`}
+                    >
+                      {f.badge}
+                    </span>
                   )}
                 </div>
                 <span className={styles.featureDesc}>{f.desc}</span>
@@ -302,6 +377,7 @@ export function DescargarClient() {
         >
           <Download size={20} aria-hidden="true" />
           Descargar APK gratis
+          <span className={styles.btnSize}>{APP_SIZE}</span>
         </a>
 
         <a href="/cliente" className={styles.ctaSecondary}>
