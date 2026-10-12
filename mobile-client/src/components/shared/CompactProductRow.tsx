@@ -1,23 +1,27 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — CompactProductRow
 // Fila horizontal compacta para la lista de productos del menú.
-// Imagen 80×80 rounded-xl, nombre, descripción, precio gold, botón +.
+// Imagen 80×80 rounded-xl (expo-image), nombre, descripción, precio ember,
+// botón + con gradiente ember.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Heart, GlassWater, ChefHat } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
+import { Gradients } from '../../theme/gradients';
+import { NBadge } from './NBadge';
 import type { ProductPublicDTO } from '../../types/api';
 
 interface CompactProductRowProps {
@@ -60,7 +64,9 @@ export function CompactProductRow({
           <Image
             source={{ uri: product.image }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
           />
         ) : (
           <View style={styles.imagePlaceholder}>
@@ -72,8 +78,8 @@ export function CompactProductRow({
 
         {/* Badge de descuento */}
         {hasDiscount && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-{Math.round((1 - price / product.price) * 100)}%</Text>
+          <View style={styles.discountBadgePosition}>
+            <NBadge label={`-${Math.round((1 - price / product.price) * 100)}%`} tone="error" solid />
           </View>
         )}
       </View>
@@ -145,11 +151,20 @@ export function CompactProductRow({
               {cartQty > 0 ? (
                 <Text style={styles.qtyText}>{cartQty}</Text>
               ) : (
-                <Plus
-                  size={16}
-                  color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
-                  strokeWidth={2.5}
-                />
+                <>
+                  {product.available && (
+                    <LinearGradient
+                      {...Gradients.emberCTA}
+                      style={styles.addBtnGradient}
+                      pointerEvents="none"
+                    />
+                  )}
+                  <Plus
+                    size={16}
+                    color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
+                    strokeWidth={2.5}
+                  />
+                </>
               )}
             </TouchableOpacity>
           </View>
@@ -166,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.lg,
     overflow:        'hidden',
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
     padding:         Spacing.smMd,
     gap:             Spacing.smMd,
   },
@@ -190,19 +205,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems:     'center',
   },
-  discountBadge: {
-    position:        'absolute',
-    top:             4,
-    left:            4,
-    backgroundColor: Colors.errorContainer,
-    borderRadius:    Radius.xs,
-    paddingHorizontal: 4,
-    paddingVertical:   1,
-  },
-  discountText: {
-    ...Typography.labelSm,
-    color:     Colors.error,
-    fontSize:  9,
+  discountBadgePosition: {
+    position: 'absolute',
+    top:      Spacing.xs,
+    left:     Spacing.xs,
   },
 
   // ── Contenido ─────────────────────────────────────────────────
@@ -286,9 +292,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryContainer,
     justifyContent:  'center',
     alignItems:      'center',
+    overflow:        'hidden',
+  },
+  addBtnGradient: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    bottom:   0,
   },
   addBtnActive: {
-    backgroundColor: Colors.goldDark,
+    backgroundColor: NocturneColors.emberDeep,
   },
   addBtnDisabled: {
     backgroundColor: Colors.surfaceContainerHighest,

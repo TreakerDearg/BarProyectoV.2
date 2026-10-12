@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — CategoryPills (Nocturne Gastronomy)
+// NEBULA — CategoryPills (NEBULA EMBER)
 // Chips horizontales de filtro de categorías.
 // Resting: surfaceContainerLow + borde sutil
-// Selected: surfaceContainerHighest + borde gold + texto dorado + dot
+// Selected: surfaceContainerHighest + borde ember + texto crema + dot
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useEffect, useRef } from 'react';
@@ -10,7 +10,7 @@ import {
   StyleSheet, View, Text, ScrollView, TouchableOpacity, useWindowDimensions,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerLow,
     borderRadius:    Radius.full,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   pillActive: {
     backgroundColor: Colors.surfaceContainerHighest,

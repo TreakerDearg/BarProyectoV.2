@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — CartItemRow
-// Horizontal cart item: image, name+notes, qty stepper (Trash2 when qty=1).
+// Fila horizontal de item del carrito: imagen (expo-image), nombre + notas,
+// stepper de cantidad (papelera cuando qty=1).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
@@ -9,11 +10,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from 'react-native';
-import { Minus, Plus, Trash2 } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { Minus, Plus, Trash2, GlassWater } from 'lucide-react-native';
 
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
@@ -43,11 +44,13 @@ export function CartItemRow({ item, onIncrement, onDecrement, onRemove }: CartIt
           <Image
             source={{ uri: item.image }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
           />
         ) : (
           <View style={[styles.image, styles.imageFallback]}>
-            <Text style={{ fontSize: 20 }}>🍹</Text>
+            <GlassWater size={20} color={Colors.outline} />
           </View>
         )}
       </View>
@@ -97,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.lg,
     padding:         Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.07)',
+    borderColor:     NocturneColors.borderSubtle,
   },
 
   // ── Image ─────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — HeroCarousel
-// Auto-advancing horizontal carousel with animated dot indicators.
+// Carrusel horizontal con auto-avance y dots animados. Slides con imagen
+// full-bleed (expo-image), overlay degradado real y benefit pill ember.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -12,12 +13,16 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
+import { Gradients } from '../theme/gradients';
+import { Motion } from '../theme/motion';
+import { NBadge } from './shared/NBadge';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -42,6 +47,11 @@ interface HeroCarouselProps {
 function PlaceholderSlide({ height }: { height: number }) {
   return (
     <View style={[pStyles.placeholder, { width: screenWidth, height }]}>
+      <LinearGradient
+        {...Gradients.cardSheen}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <View style={pStyles.placeholderContent}>
         <Text style={pStyles.placeholderTitle}>Nebula</Text>
         <Text style={pStyles.placeholderSub}>Bienvenido a la experiencia</Text>
@@ -52,7 +62,7 @@ function PlaceholderSlide({ height }: { height: number }) {
 
 const pStyles = StyleSheet.create({
   placeholder: {
-    backgroundColor: Colors.casinoBackground,
+    backgroundColor: NocturneColors.surfaceContainerLowest,
     justifyContent:  'center',
     alignItems:      'center',
   },
@@ -83,7 +93,7 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
     dotAnims.forEach((anim, i) => {
       Animated.timing(anim, {
         toValue:         i === index ? 1 : 0.35,
-        duration:        250,
+        duration:        Motion.base,
         useNativeDriver: true,
       }).start();
     });
@@ -144,19 +154,23 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
               <Image
                 source={{ uri: item.imageUri }}
                 style={{ width: screenWidth, height }}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={150}
               />
             ) : (
-              <View style={{ width: screenWidth, height, backgroundColor: Colors.casinoBackground }} />
+              <View style={{ width: screenWidth, height, backgroundColor: NocturneColors.surfaceContainerLowest }} />
             )}
-            {/* Gradient overlay — simulated with a View */}
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-              <View style={styles.gradientOverlay} />
-            </View>
+            {/* Overlay real: transparente → canvas (55% inferior) */}
+            <LinearGradient
+              {...Gradients.heroOverlay}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
             {/* Beneficio de la promo */}
             {item.benefit ? (
-              <View style={styles.benefitPill}>
-                <Text style={styles.benefitText}>{item.benefit}</Text>
+              <View style={styles.benefitPosition}>
+                <NBadge label={item.benefit} tone="ember" solid />
               </View>
             ) : null}
             {/* Text */}
@@ -223,29 +237,10 @@ const styles = StyleSheet.create({
     borderRadius:    3,
     backgroundColor: Colors.primary,
   },
-  gradientOverlay: {
-    position:        'absolute',
-    left:            0,
-    right:           0,
-    bottom:          0,
-    height:          '60%',
-    backgroundColor: Colors.overlayDark,
-    opacity:         0.75,
-  },
-  benefitPill: {
-    position:          'absolute',
-    top:               Spacing.smMd,
-    left:              Spacing.smMd,
-    backgroundColor:   Colors.primaryContainer,
-    borderRadius:      Radius.full,
-    paddingHorizontal: Spacing.smMd,
-    paddingVertical:   4,
-  },
-  benefitText: {
-    ...Typography.labelSm,
-    color:         Colors.onPrimary,
-    textTransform: 'none' as const,
-    letterSpacing: 0.4,
+  benefitPosition: {
+    position: 'absolute',
+    top:      Spacing.smMd,
+    left:     Spacing.smMd,
   },
   validText: {
     ...Typography.bodySm,

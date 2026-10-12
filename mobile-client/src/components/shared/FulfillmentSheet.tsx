@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QrCode, ShoppingBag, Check, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.lg,
     borderWidth:     1,
-    borderColor:     Colors.outlineVariant,
+    borderColor:     NocturneColors.borderSubtle,
     padding:         Spacing.smMd,
   },
   optionSelected: {
     backgroundColor: Colors.goldMuted,
-    borderColor:     Colors.primaryContainer,
+    borderColor:     Colors.primary,
   },
   optionIcon: {
     width:           36,

@@ -6,13 +6,17 @@
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image,
+  View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles, Clock } from 'lucide-react-native';
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
+import { Gradients } from '../../theme/gradients';
+import { NBadge } from './NBadge';
 import type { PromotionPublicDTO } from '../../types/api';
 
 interface PromoBannerProps {
@@ -59,26 +63,32 @@ export function PromoBanner({ promo, onPress }: PromoBannerProps) {
         <Image
           source={{ uri: promo.applicableProducts[0].image }}
           style={styles.bgImage}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={150}
         />
       ) : (
         <View style={styles.bgPlaceholder} />
       )}
 
-      {/* Overlay degradado */}
-      <View style={styles.overlay} />
+      {/* Overlay degradado: transparente → oscuro (canvas) */}
+      <LinearGradient
+        {...Gradients.heroOverlay}
+        style={styles.overlay}
+        pointerEvents="none"
+      />
 
       {/* Contenido encima */}
       <View style={styles.content}>
-        {/* Badge top-left */}
+        {/* Badges top-left */}
         <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Sparkles size={10} color={Colors.onPrimary} />
-            <Text style={styles.badgeText}>ESPECIAL DE HOY</Text>
-          </View>
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{badge}</Text>
-          </View>
+          <NBadge
+            label="ESPECIAL DE HOY"
+            tone="ember"
+            solid
+            icon={<Sparkles size={10} color={Colors.onPrimary} />}
+          />
+          <NBadge label={badge} tone="error" solid />
         </View>
 
         {/* Título */}
@@ -114,16 +124,20 @@ export function PromoBannerFallback({ onPress }: { onPress?: () => void }) {
   return (
     <TouchableOpacity style={styles.banner} onPress={onPress} activeOpacity={0.9}>
       <View style={styles.bgPlaceholder} />
-      <View style={styles.overlay} />
+      <LinearGradient
+        {...Gradients.heroOverlay}
+        style={styles.overlay}
+        pointerEvents="none"
+      />
       <View style={styles.content}>
         <View style={styles.badgeRow}>
-          <View style={styles.badge}>
-            <Sparkles size={10} color={Colors.onPrimary} />
-            <Text style={styles.badgeText}>ESPECIAL DE HOY</Text>
-          </View>
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>2×1</Text>
-          </View>
+          <NBadge
+            label="ESPECIAL DE HOY"
+            tone="ember"
+            solid
+            icon={<Sparkles size={10} color={Colors.onPrimary} />}
+          />
+          <NBadge label="2×1" tone="error" solid />
         </View>
         <Text style={styles.title}>2×1 en Signature Cocktails</Text>
         <Text style={styles.description}>
@@ -166,10 +180,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
   },
   overlay: {
-    position:        'absolute',
-    inset:            0,
-    // Degradado de abajo hacia arriba: opaco abajo, transparente arriba
-    backgroundColor: 'rgba(16, 19, 26, 0.72)',
+    position: 'absolute',
+    inset:     0,
   },
   content: {
     flex:    1,
@@ -183,23 +195,6 @@ const styles = StyleSheet.create({
     gap:           Spacing.sm,
     marginBottom:  Spacing.xs,
   },
-  badge: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    gap:             4,
-    backgroundColor: Colors.primaryContainer,
-    borderRadius:    Radius.xs,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-  },
-  badgeText: { ...Typography.labelSm, color: Colors.onPrimary },
-  discountBadge: {
-    backgroundColor: Colors.errorContainer,
-    borderRadius:    Radius.xs,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-  },
-  discountText: { ...Typography.labelSm, color: Colors.error },
   title: {
     ...Typography.headlineLg,
     color: Colors.onSurface,
@@ -216,14 +211,14 @@ const styles = StyleSheet.create({
     marginTop:     Spacing.xs,
   },
   ctaBtn: {
-    backgroundColor: Colors.surfaceContainerHighest,
-    borderRadius:    Radius.md,
+    backgroundColor:   'transparent',
+    borderRadius:      Radius.md,
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   8,
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.15)',
+    borderWidth:       1,
+    borderColor:       NocturneColors.emberBorder,
   },
-  ctaText: { ...Typography.labelMd, color: Colors.onSurface },
+  ctaText: { ...Typography.labelMd, color: Colors.primary },
   validityRow: {
     flexDirection: 'row',
     alignItems:    'center',

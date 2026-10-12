@@ -1,34 +1,46 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// MobileWheel — SVG roulette wheel driven by an Animated.Value
+// MobileWheel — ruleta SVG gobernada por un Animated.Value
 // Props:
-//   drinks    – array of RouletteDrinkDTO to render as pie segments
-//   spinAnim  – Animated.Value [0..n]; mapped to [0deg..360n deg] via outputRange
-//   phase     – optional spin phase string (for future use)
-//   size      – diameter in dp (default 280)
+//   drinks    – array de RouletteDrinkDTO renderizado como porciones
+//   spinAnim  – Animated.Value [0..n]; mapeado a [0deg..360n deg]
+//   phase     – fase de giro opcional (uso futuro)
+//   size      – diámetro en dp (default 280)
+// Colores NEBULA EMBER: bordes/remo en ember + wine; LEGENDARY conserva oro.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
 import { Animated } from 'react-native';
 import Svg, { G, Path, Circle, Text as SvgText, Polygon, Defs, LinearGradient, Stop } from 'react-native-svg';
 
+import { Colors, NocturneColors } from '../../theme/colors';
 import type { RouletteDrinkDTO } from '../../types/api';
 
-// Animated SVG group — allows rotating the whole wheel via Animated.Value
+// Animated SVG group — permite rotar el wheel completo vía Animated.Value
 const AnimatedG = Animated.createAnimatedComponent(G);
 
-// ── Rarity fallback colors ─────────────────────────────────────────────────
+// ── Colores de rareza (paleta NEBULA EMBER; LEGENDARY = oro reservado) ────
 const RARITY_COLOR: Record<string, string> = {
-  COMMON:    '#9b8f7d',
-  RARE:      '#38BDF8',
-  EPIC:      '#a855f7',
-  LEGENDARY: '#D4A340',
+  COMMON:    Colors.outline,          // gris cálido
+  RARE:      Colors.info,
+  EPIC:      Colors.wine,
+  LEGENDARY: NocturneColors.vipGoldDark,
 };
+
+// Efectos de render SVG (sombras y brillos neutros del wheel).
+// No forman parte de la paleta de identidad: son alphas universales.
+const SVG_EFFECT = {
+  segmentStroke: 'rgba(0,0,0,0.30)',
+  shimmerStart:  'rgba(255,255,255,0)',
+  shimmerMid:    'rgba(255,255,255,0.12)',
+  pointerShadow: 'rgba(0,0,0,0.60)',
+  pointerGlint:  'rgba(255,255,255,0.30)',
+} as const;
 
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 function segmentColor(drink: RouletteDrinkDTO): string {
   if (drink.color && HEX_RE.test(drink.color)) return drink.color;
-  return RARITY_COLOR[drink.rarity] ?? '#9b8f7d';
+  return RARITY_COLOR[drink.rarity] ?? Colors.outline;
 }
 
 // ── Arc path helper ────────────────────────────────────────────────────────
@@ -96,9 +108,9 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
       {/* Gradient definitions */}
       <Defs>
         <LinearGradient id="shimmer" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0"   stopColor="rgba(255,255,255,0)" />
-          <Stop offset="0.5" stopColor="rgba(255,255,255,0.12)" />
-          <Stop offset="1"   stopColor="rgba(255,255,255,0)" />
+          <Stop offset="0"   stopColor={SVG_EFFECT.shimmerStart} />
+          <Stop offset="0.5" stopColor={SVG_EFFECT.shimmerMid} />
+          <Stop offset="1"   stopColor={SVG_EFFECT.shimmerStart} />
         </LinearGradient>
       </Defs>
 
@@ -114,7 +126,7 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
             <Path
               d={arcPath(cx, cy, r, start, sweep)}
               fill={color}
-              stroke="rgba(0,0,0,0.3)"
+              stroke={SVG_EFFECT.segmentStroke}
               strokeWidth={1}
             />
             {/* Shimmer overlay per segment */}
@@ -135,7 +147,7 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
                 <SvgText
                   x={textX}
                   y={textY}
-                  fill="#ffffff"
+                  fill={NocturneColors.onSurface}
                   fontSize={size * 0.035}
                   textAnchor="middle"
                   transform={`rotate(${labelAngleDeg + 90}, ${textX}, ${textY})`}
@@ -147,14 +159,14 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
           </React.Fragment>
         ))}
 
-        {/* ── Improved centre hub ──────────────────────────────────── */}
-        <Circle cx={cx} cy={cy} r={hubR + 6} fill="#0A0A12" stroke="#D4A340" strokeWidth={2}/>
-        <Circle cx={cx} cy={cy} r={hubR}     fill="#0F0F18"/>
+        {/* ── Hub central ─────────────────────────────────────────── */}
+        <Circle cx={cx} cy={cy} r={hubR + 6} fill={NocturneColors.surfaceContainerLowest} stroke={Colors.primaryContainer} strokeWidth={2}/>
+        <Circle cx={cx} cy={cy} r={hubR}     fill={NocturneColors.surfaceDim}/>
         <SvgText
           x={cx}
           y={cy + hubR * 0.35}
           textAnchor="middle"
-          fill="#D4A340"
+          fill={Colors.primary}
           fontSize={hubR * 0.85}
           fontWeight="900"
         >
@@ -162,29 +174,29 @@ export const MobileWheel: React.FC<MobileWheelProps> = ({
         </SvgText>
       </AnimatedG>
 
-      {/* ── Triple gold ring (OUTSIDE AnimatedG) ───────────────── */}
-      <Circle cx={cx} cy={cy} r={r + 6}  fill="none" stroke="#D4A340" strokeWidth={2}/>
-      <Circle cx={cx} cy={cy} r={r + 10} fill="none" stroke="rgba(212,163,64,0.4)" strokeWidth={1}/>
-      <Circle cx={cx} cy={cy} r={r + 13} fill="none" stroke="rgba(212,163,64,0.15)" strokeWidth={1}/>
+      {/* ── Triple anillo ember/wine (FUERA de AnimatedG) ──────── */}
+      <Circle cx={cx} cy={cy} r={r + 6}  fill="none" stroke={Colors.primaryContainer} strokeWidth={2}/>
+      <Circle cx={cx} cy={cy} r={r + 10} fill="none" stroke={NocturneColors.emberGlowStrong} strokeWidth={1}/>
+      <Circle cx={cx} cy={cy} r={r + 13} fill="none" stroke={NocturneColors.wineGlow} strokeWidth={1}/>
 
-      {/* ── 24 gold rivets (OUTSIDE AnimatedG) ─────────────────── */}
+      {/* ── 24 remaches ember (FUERA de AnimatedG) ──────────────── */}
       {Array.from({ length: 24 }).map((_, i) => {
         const angle = ((i * 15 - 90) * Math.PI) / 180;
         return (
           <React.Fragment key={`r${i}`}>
-            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={4} fill="#0A0A12"/>
-            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={3} fill="#D4A340" opacity={0.9}/>
+            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={4} fill={NocturneColors.surfaceContainerLowest}/>
+            <Circle cx={cx + (r + 8) * Math.cos(angle)} cy={cy + (r + 8) * Math.sin(angle)} r={3} fill={Colors.primaryContainer} opacity={0.9}/>
           </React.Fragment>
         );
       })}
 
-      {/* ── Improved pointer (OUTSIDE AnimatedG) ───────────────── */}
-      {/* Shadow */}
-      <Polygon points={`${cx - 10},5 ${cx + 10},5 ${cx},28`} fill="rgba(0,0,0,0.6)" transform="translate(1,2)"/>
-      {/* Main pointer */}
-      <Polygon points={`${cx - 9},4 ${cx + 9},4 ${cx},26`} fill="#D4A340"/>
-      {/* Highlight */}
-      <Polygon points={`${cx - 4},8 ${cx + 4},8 ${cx},20`} fill="rgba(255,255,255,0.3)"/>
+      {/* ── Pointer ember (FUERA de AnimatedG) ──────────────────── */}
+      {/* Sombra */}
+      <Polygon points={`${cx - 10},5 ${cx + 10},5 ${cx},28`} fill={SVG_EFFECT.pointerShadow} transform="translate(1,2)"/>
+      {/* Pointer principal */}
+      <Polygon points={`${cx - 9},4 ${cx + 9},4 ${cx},26`} fill={Colors.primary}/>
+      {/* Brillo */}
+      <Polygon points={`${cx - 4},8 ${cx + 4},8 ${cx},20`} fill={SVG_EFFECT.pointerGlint}/>
     </Svg>
   );
 };

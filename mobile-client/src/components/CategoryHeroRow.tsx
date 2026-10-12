@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — CategoryHeroRow
-// Horizontal scrollable pill row for product categories + Ruleta pill.
+// Fila horizontal de pills de categorías + pill de Ruleta.
+// Tints por categoría derivados de la paleta (sin literales rgba).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef } from 'react';
@@ -32,14 +33,15 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 // ── Category background color map ─────────────────────────────────────────────
+// Tints de la paleta NEBULA EMBER: cada categoría toma un tono semántico.
 const CATEGORY_COLORS: Record<string, string> = {
-  cocktail:      'rgba(168,85,247,0.15)',
-  vino:          'rgba(239,68,68,0.15)',
-  cerveza:       'rgba(245,158,11,0.15)',
-  comida:        'rgba(52,185,100,0.15)',
-  'sin alcohol': 'rgba(56,189,248,0.15)',
-  shot:          'rgba(249,115,22,0.15)',
-  general:       NocturneColors.goldMuted,
+  cocktail:      NocturneColors.emberMuted,
+  vino:          NocturneColors.wineMuted,
+  cerveza:       NocturneColors.warningMuted,
+  comida:        NocturneColors.successMuted,
+  'sin alcohol': NocturneColors.infoMuted,
+  shot:          NocturneColors.wineGlow,
+  general:       NocturneColors.emberMuted,
 };
 
 function getCategoryColor(name: string): string {
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   ruletaPill: {
-    backgroundColor: Colors.casinoGold,
+    backgroundColor: NocturneColors.emberMuted,
     borderColor:     Colors.goldBorder,
     borderWidth:     1,
   },

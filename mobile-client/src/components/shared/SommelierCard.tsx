@@ -1,18 +1,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — SommelierCard
 // Card hero grande (16:10) estilo "Selección del Sommelier" del diseño.
-// Imagen full-bleed, overlay degradado, rating, nombre Outfit, precio gold,
-// botón + circular, badge de característica, ícono de favorito.
+// Imagen full-bleed (expo-image), overlay degradado real, rating, nombre
+// Fraunces, precio ember, botón + con gradiente, badges NBadge, favorito.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
 import {
   View,
   Text,
-  Image,
+  Animated,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Heart, Star, GlassWater } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -20,7 +22,13 @@ import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 import { Elevation }  from '../../theme/elevation';
+import { Gradients } from '../../theme/gradients';
+import { NBadge } from './NBadge';
+import { usePressScale } from '../../hooks/usePressScale';
 import type { ProductPublicDTO } from '../../types/api';
+
+// Touchable con soporte de estilo animado (press scale sin reescribir el JSX)
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface SommelierCardProps {
   product:      ProductPublicDTO;
@@ -43,6 +51,7 @@ export function SommelierCard({
   featureBadge,
   rating,
 }: SommelierCardProps) {
+  const press = usePressScale(0.98);
   const price     = product.dynamicPrice ?? product.price;
   const hasDiscount = product.dynamicPrice < product.price;
   const discountPct = hasDiscount
@@ -61,9 +70,11 @@ export function SommelierCard({
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
+    <AnimatedTouchable
+      style={[styles.card, press.animatedStyle]}
       onPress={() => onPress(product)}
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       activeOpacity={0.92}
       accessibilityRole="button"
       accessibilityLabel={`Ver detalle de ${product.name}`}
@@ -74,7 +85,9 @@ export function SommelierCard({
           <Image
             source={{ uri: product.image }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
           />
         ) : (
           <View style={styles.imagePlaceholder}>
@@ -82,21 +95,24 @@ export function SommelierCard({
           </View>
         )}
 
-        {/* Simulated gradient: solid base + fade layer */}
-        <View style={styles.gradientSolid} />
-        <View style={styles.gradientFade} />
+        {/* Overlay real: imagen → canvas (55% inferior) */}
+        <LinearGradient
+          {...Gradients.heroOverlay}
+          style={styles.heroOverlay}
+          pointerEvents="none"
+        />
 
-        {/* Badge "COCKTAIL ESTRELLA" o similar */}
+        {/* Badge de característica (protagonista) */}
         {featureBadge && (
-          <View style={styles.featureBadge}>
-            <Text style={styles.featureBadgeText}>{featureBadge}</Text>
+          <View style={styles.featureBadgePosition}>
+            <NBadge label={featureBadge} tone="ember" solid />
           </View>
         )}
 
         {/* Badge descuento */}
         {hasDiscount && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-{discountPct}%</Text>
+          <View style={styles.discountBadgePosition}>
+            <NBadge label={`-${discountPct}%`} tone="error" solid />
           </View>
         )}
 
@@ -168,6 +184,13 @@ export function SommelierCard({
                 : `${product.name} no está disponible`
             }
           >
+            {product.available && (
+              <LinearGradient
+                {...Gradients.emberCTA}
+                style={styles.addBtnGradient}
+                pointerEvents="none"
+              />
+            )}
             <Plus
               size={20}
               color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
@@ -176,7 +199,7 @@ export function SommelierCard({
           </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 
@@ -188,7 +211,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.xl,
     overflow:        'hidden',
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     ...(Elevation.card as object),
   },
 
@@ -209,50 +232,22 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
   },
-  gradientSolid: {
-    position:        'absolute',
-    bottom:          0,
-    left:            0,
-    right:           0,
-    height:          '40%',
-    backgroundColor: '#1d2027',
+  heroOverlay: {
+    position: 'absolute',
+    bottom:   0,
+    left:     0,
+    right:    0,
+    height:   '55%',
   },
-  gradientFade: {
-    position:        'absolute',
-    bottom:          '20%' as any,
-    left:            0,
-    right:           0,
-    height:          '30%',
-    backgroundColor: 'rgba(29, 32, 39, 0.75)',
+  featureBadgePosition: {
+    position: 'absolute',
+    bottom:   Spacing.sm,
+    right:    Spacing.sm,
   },
-  featureBadge: {
-    position:        'absolute',
-    bottom:          Spacing.sm,
-    right:           Spacing.sm,
-    backgroundColor: 'rgba(16, 19, 26, 0.85)',
-    borderRadius:    Radius.xs,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-    borderWidth:     1,
-    borderColor:     Colors.goldBorder,
-  },
-  featureBadgeText: {
-    ...Typography.labelSm,
-    color: Colors.primary,
-  },
-  discountBadge: {
-    position:        'absolute',
-    top:             Spacing.sm,
-    left:            Spacing.sm,
-    backgroundColor: NocturneColors.errorContainer,
-    borderRadius:    Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-  },
-  discountText: {
-    ...Typography.labelSm,
-    color:         NocturneColors.onErrorContainer,
-    textTransform: 'none' as const,
+  discountBadgePosition: {
+    position: 'absolute',
+    top:      Spacing.sm,
+    left:     Spacing.sm,
   },
   soldOutOverlay: {
     ...StyleSheet.absoluteFill,
@@ -269,7 +264,7 @@ const styles = StyleSheet.create({
     position:        'absolute',
     top:             Spacing.sm,
     right:           Spacing.sm,
-    backgroundColor: 'rgba(16, 19, 26, 0.70)',
+    backgroundColor: Colors.overlayDark,
     borderRadius:    Radius.full,
     padding:         8,
   },
@@ -324,7 +319,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryContainer,
     justifyContent:  'center',
     alignItems:      'center',
-    ...(Elevation.goldCTA as object),
+    ...(Elevation.emberCTA as object),
+  },
+  addBtnGradient: {
+    position:     'absolute',
+    top:          0,
+    left:         0,
+    right:        0,
+    bottom:       0,
+    borderRadius: Radius.full,
   },
   addBtnDisabled: {
     backgroundColor: Colors.surfaceContainerHighest,

@@ -9,7 +9,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
 import { TableProperties, Receipt, PhoneCall, RotateCw } from 'lucide-react-native';
-import { Colors }     from '../../theme/colors';
+import { Colors, NocturneColors } from '../../theme/colors';
 import { StatusBadge } from './StatusBadge';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.xl,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     overflow:        'hidden',
     ...(Elevation.card as object),
   },
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
 
   divider: {
     height:           1,
-    backgroundColor:  'rgba(224, 226, 236, 0.06)',
+    backgroundColor:  NocturneColors.borderSubtle,
     marginHorizontal: Spacing.md,
   },
   actions: {
@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
   actionDivider: {
     width:           1,
     height:          20,
-    backgroundColor: 'rgba(224, 226, 236, 0.08)',
+    backgroundColor: NocturneColors.borderSubtle,
   },
 });

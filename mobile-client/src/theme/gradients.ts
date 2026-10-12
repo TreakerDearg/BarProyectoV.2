@@ -25,7 +25,7 @@ export const Gradients = {
   /** Oscurece la parte inferior de héroes (imagen full-bleed → canvas) */
   heroOverlay: {
     colors:    ['transparent', NocturneColors.background] as GradientColors,
-    locations: [0.45, 1] as readonly number[],
+    locations: [0.45, 1] as readonly [number, number],
     ...Direction.vertical,
   },
   /** Fill de CTAs primarios: brasa → ember profundo */

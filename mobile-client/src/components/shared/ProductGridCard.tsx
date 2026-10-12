@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — ProductGridCard
-// 2-column grid card for menu products with image, heart, qty stepper.
+// Card de grilla a 2 columnas: imagen (expo-image), corazón, stepper de
+// cantidad, badges NBadge y CTA "Agregar" con gradiente ember.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef } from 'react';
@@ -10,13 +11,16 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Image,
 } from 'react-native';
-import { Heart, Minus, Plus } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Heart, Minus, Plus, GlassWater } from 'lucide-react-native';
 
 import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
+import { Gradients } from '../../theme/gradients';
+import { NBadge } from './NBadge';
 
 import type { ProductPublicDTO } from '../../types/api';
 
@@ -73,11 +77,13 @@ export function ProductGridCard({
           <Image
             source={{ uri: product.image }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
           />
         ) : (
           <View style={[styles.image, styles.imagePlaceholder]}>
-            <Text style={styles.imagePlaceholderText}>🍹</Text>
+            <GlassWater size={32} color={Colors.outline} />
           </View>
         )}
 
@@ -98,16 +104,8 @@ export function ProductGridCard({
 
         {/* Badges de la tarjeta */}
         <View style={styles.badgesCol} pointerEvents="none">
-          {product.featured && (
-            <View style={styles.featuredBadge}>
-              <Text style={styles.featuredBadgeText}>Más pedido</Text>
-            </View>
-          )}
-          {hasDiscount && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountBadgeText}>-{discountPct}%</Text>
-            </View>
-          )}
+          {product.featured && <NBadge label="Más pedido" tone="ember" solid />}
+          {hasDiscount && <NBadge label={`-${discountPct}%`} tone="error" solid />}
         </View>
 
         {/* Agotado overlay */}
@@ -136,8 +134,22 @@ export function ProductGridCard({
             activeOpacity={0.8}
             disabled={!product.available}
           >
-            <Plus size={14} color={Colors.onPrimary} />
-            <Text style={styles.addBtnText}>Agregar</Text>
+            {product.available && (
+              <LinearGradient
+                {...Gradients.emberCTA}
+                style={styles.addBtnGradient}
+                pointerEvents="none"
+              />
+            )}
+            <Plus
+              size={14}
+              color={product.available ? Colors.onPrimary : Colors.onSurfaceVariant}
+            />
+            <Text
+              style={[styles.addBtnText, !product.available && styles.addBtnTextDisabled]}
+            >
+              Agregar
+            </Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.stepper}>
@@ -174,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.lg,
     overflow:        'hidden',
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.08)',
+    borderColor:     NocturneColors.borderSubtle,
   },
 
   // ── Image ──────────────────────────────────────────────────────
@@ -194,9 +206,6 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
   },
-  imagePlaceholderText: {
-    fontSize: 32,
-  },
   heartBtn: {
     position:        'absolute',
     top:             Spacing.xs,
@@ -215,33 +224,9 @@ const styles = StyleSheet.create({
     gap:        4,
     alignItems: 'flex-start',
   },
-  featuredBadge: {
-    backgroundColor:   Colors.goldMuted,
-    borderRadius:      Radius.full,
-    borderWidth:       1,
-    borderColor:       Colors.goldBorder,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-  },
-  featuredBadgeText: {
-    ...Typography.labelSm,
-    color:         Colors.primary,
-    textTransform: 'none' as const,
-  },
-  discountBadge: {
-    backgroundColor:   NocturneColors.errorContainer,
-    borderRadius:      Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-  },
-  discountBadgeText: {
-    ...Typography.labelSm,
-    color:         NocturneColors.onErrorContainer,
-    textTransform: 'none' as const,
-  },
   unavailableOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(8,9,12,0.65)',
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent:  'center',
     alignItems:      'center',
   },
@@ -286,6 +271,14 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.md,
     paddingVertical: 6,
     marginTop:       2,
+    overflow:        'hidden',
+  },
+  addBtnGradient: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    bottom:   0,
   },
   addBtnDisabled: {
     backgroundColor: Colors.surfaceContainerHighest,
@@ -294,6 +287,9 @@ const styles = StyleSheet.create({
     ...Typography.labelMd,
     color:         Colors.onPrimary,
     textTransform: 'none' as const,
+  },
+  addBtnTextDisabled: {
+    color: Colors.onSurfaceVariant,
   },
 
   // ── Stepper ────────────────────────────────────────────────────

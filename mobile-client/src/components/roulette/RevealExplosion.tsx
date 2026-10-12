@@ -1,10 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, Dimensions } from 'react-native';
 
+import { Colors, NocturneColors } from '../../theme/colors';
+import { Radius } from '../../theme/spacing';
+
 const { width: SW, height: SH } = Dimensions.get('window');
 
+// Colores por rareza (LEGENDARY conserva oro reservado)
 const RARITY_COLORS = {
-  COMMON: '#9b8f7d', RARE: '#38BDF8', EPIC: '#a855f7', LEGENDARY: '#D4A340',
+  COMMON:    Colors.outline,
+  RARE:      Colors.info,
+  EPIC:      Colors.wine,
+  LEGENDARY: NocturneColors.vipGoldDark,
 };
 const PARTICLE_COUNTS = { COMMON: 10, RARE: 16, EPIC: 24, LEGENDARY: 36 };
 
@@ -16,7 +23,7 @@ interface Props {
 
 export const RevealExplosion: React.FC<Props> = ({ rarity, visible, onComplete }) => {
   const count  = PARTICLE_COUNTS[rarity as keyof typeof PARTICLE_COUNTS] ?? 10;
-  const color  = RARITY_COLORS[rarity  as keyof typeof RARITY_COLORS]    ?? '#9b8f7d';
+  const color  = RARITY_COLORS[rarity  as keyof typeof RARITY_COLORS]    ?? Colors.outline;
   
   const particles = useRef(
     Array.from({ length: count }, () => ({
@@ -62,7 +69,7 @@ export const RevealExplosion: React.FC<Props> = ({ rarity, visible, onComplete }
             position:  'absolute',
             width:     rarity === 'LEGENDARY' ? 8 : 6,
             height:    rarity === 'LEGENDARY' ? 8 : 6,
-            borderRadius: 9999,
+            borderRadius: Radius.full,
             backgroundColor: color,
             opacity:   p.op,
             transform: [{ translateX: p.x }, { translateY: p.y }],
