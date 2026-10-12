@@ -100,6 +100,8 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   // Refs para controlar loops
   const idleLoopRef    = useRef<Animated.CompositeAnimation | null>(null);
   const spinLoopRef    = useRef<Animated.CompositeAnimation | null>(null);
+  const isSpinningRef  = useRef(false); // flag para detener los loops recursivos
+  const isIdleRef      = useRef(false); // flag para detener el loop idle
   const countdownRefs  = useRef<ReturnType<typeof setTimeout>[]>([]);
   const hapticRefs     = useRef<ReturnType<typeof setInterval>[]>([]);
   const hapticTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -120,15 +122,19 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   // ── Idle rotation ─────────────────────────────────────────────────────────
   const startIdleRotation = () => {
     idleLoopRef.current?.stop();
-    idleLoopRef.current = Animated.loop(
-      Animated.timing(spinDeg, {
+    // Giro lento continuo: cada vuelta parte del valor actual
+    const doIdleSpin = () => {
+      idleLoopRef.current = Animated.timing(spinDeg, {
         toValue:         spinDegValueRef.current + 360,
         duration:        14000,
         easing:          Easing.linear,
         useNativeDriver: true,
-      }),
-    );
-    idleLoopRef.current.start();
+      });
+      idleLoopRef.current.start(({ finished }) => {
+        if (finished) doIdleSpin(); // solo continúa si terminó sin interrupción
+      });
+    };
+    doIdleSpin();
   };
 
   useEffect(() => {
@@ -277,15 +283,19 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
         try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
         startProgressiveHaptics();
 
-        spinLoopRef.current = Animated.loop(
-          Animated.timing(spinDeg, {
+        // Giro rápido continuo acumulativo
+        const doSpin = () => {
+          spinLoopRef.current = Animated.timing(spinDeg, {
             toValue:         spinDegValueRef.current + 360,
             duration:        900,
             easing:          Easing.linear,
             useNativeDriver: true,
-          }),
-        );
-        spinLoopRef.current.start();
+          });
+          spinLoopRef.current.start(({ finished }) => {
+            if (finished) doSpin();
+          });
+        };
+        doSpin();
 
         spinPublicRoulette()
           .then((res) => {
