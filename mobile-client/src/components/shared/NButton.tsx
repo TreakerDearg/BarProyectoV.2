@@ -41,7 +41,7 @@ interface NButtonProps {
   style?:     ViewStyle;
 }
 
-const HEIGHT: Record<Size, number> = { sm: 40, md: 48, lg: 52 };
+const HEIGHT: Record<Size, number> = { sm: 44, md: 48, lg: 52 };
 const H_PAD: Record<Size, number>  = { sm: 16, md: 20, lg: 24 };
 
 export function NButton({

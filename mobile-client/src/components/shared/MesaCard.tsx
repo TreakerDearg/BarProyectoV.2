@@ -4,7 +4,7 @@
 // Muestra mesa, zona, consumo total y acciones rápidas.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
 } from 'react-native';
@@ -24,7 +24,7 @@ interface MesaCardProps {
   onRepeatRound?:  () => void;
 }
 
-export function MesaCard({
+export const MesaCard = memo(function MesaCard({
   tableNumber,
   zone,
   totalAmount,
@@ -59,6 +59,7 @@ export function MesaCard({
           style={styles.actionBtn}
           onPress={onViewConsumos}
           activeOpacity={0.75}
+          hitSlop={{ top: 6, bottom: 6 }}
         >
           <Receipt size={14} color={Colors.onSurfaceVariant} />
           <Text style={styles.actionText}>
@@ -73,6 +74,7 @@ export function MesaCard({
           style={styles.actionBtn}
           onPress={onCallWaiter}
           activeOpacity={0.75}
+          hitSlop={{ top: 6, bottom: 6 }}
         >
           <PhoneCall size={14} color={Colors.onSurfaceVariant} />
           <Text style={styles.actionText}>Llamar mozo</Text>
@@ -84,6 +86,7 @@ export function MesaCard({
           style={styles.actionBtn}
           onPress={onRepeatRound}
           activeOpacity={0.75}
+          hitSlop={{ top: 6, bottom: 6 }}
         >
           <RotateCw size={14} color={Colors.onSurfaceVariant} />
           <Text style={styles.actionText}>Repetir Ronda</Text>
@@ -91,7 +94,7 @@ export function MesaCard({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

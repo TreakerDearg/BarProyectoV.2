@@ -5,7 +5,7 @@
 // Fraunces, precio ember, botón + con gradiente, badges NBadge, favorito.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -42,7 +42,7 @@ interface SommelierCardProps {
   rating?: number;
 }
 
-export function SommelierCard({
+export const SommelierCard = memo(function SommelierCard({
   product,
   isFavorite = false,
   onAdd,
@@ -201,7 +201,7 @@ export function SommelierCard({
       </View>
     </AnimatedTouchable>
   );
-}
+});
 
 const CARD_WIDTH_RATIO = 10 / 16; // 16:10 → height = width * 10/16
 

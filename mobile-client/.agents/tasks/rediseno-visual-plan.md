@@ -142,11 +142,14 @@ Dependencias: `0 → 1 → 2 → 3 → 4 → 5 → 6`. Dentro de 3 y 4, por comp
 
 ### Fase 5 — Performance, accesibilidad y pulido
 
-- [ ] 25. `React.memo` en items de listas (SommelierCard, CompactProductRow, ProductGridCard, CartItemRow, MesaCard).
-- [ ] 26. Debounce 300 ms en la búsqueda de CartaScreen; verificar memoización de secciones.
-- [ ] 27. Auditoría final: contraste AA, touch targets ≥44 px, estados empty/loading/error en todas las pantallas.
-- [ ] 28. Prueba en dispositivo Android gama baja (FPS, arranque con 6 fuentes vs 8) + Expo Go iOS.
-- [ ] 29. `scan-debt.mjs` (skill sin-deuda-tecnica): sin aumento de deuda; comentarios en rioplatense.
+- [x] 25. `React.memo` en items de listas: los 5 componentes envueltos con `memo(function X(...))` (import + cierre `});`); `ProductGridCard` y `CartItemRow` conservan su `export default` (el const memoizado sigue exportándose). tsc limpio.
+- [x] 26. Debounce 300 ms en CartaScreen: estado `debouncedQuery` separado del input (`searchQuery`); el filtrado (`sections`), `searching` y el contador de resultados usan el valor diferido; `clearSearch`/`resetSearch` limpian ambos (respuesta inmediata). Memoización de secciones verificada (`useMemo` con deps `[products, orderedCategories, debouncedQuery]`). tsc limpio.
+- [x] 27. Auditoría a11y completada:
+  - **Contraste AA**: paleta sin cambios desde Fase 1 (tabla WCAG validada ahí); pares nuevos de Fases 3-4 verificados — niveles de fidelidad (bronce `#CD7F32` ≈6.3:1 sobre `#0C0A0D`), `onSecondaryContainer` sobre wine container, rarities de ruleta. Sin ajustes necesarios.
+  - **Touch targets ≥44 px**: `NButton` sm 40→44; pills de categoría `minHeight: 44`; hitSlop añadido a steppers de `ProductGridCard` (34×30→48×44) y `CartItemRow` (30→44), addBtn de `ProductGridCard`/`CompactProductRow` (34→44), acciones de `MesaCard` (vertical +12), cierre de `ModifierModal` (32→44) y `ProductCustomizerSheet` (36→48), corazón de `CompactProductRow` (16→28×40 efectivo; acción secundaria). Keypad QR 80×65 y dots del carousel (decorativos, sin press) OK.
+  - **Estados empty/loading/error**: Carta (skeleton/error/empty ✓), Account (skeleton/empty ✓), Pedido/QR/Roulette/Reservas/Auth (loading + Alert/error inline ✓); **HomeScreen**: catch silencioso reemplazado por banner de aviso (`warningMuted/Border` + `AlertTriangle`) con botón «Reintentar» (ghost sm, refresh sin perder contenido). tsc limpio.
+- [ ] 28. **Pendiente de validación del usuario**: prueba en dispositivo Android gama baja (FPS, arranque con 6 fuentes vs 8) + Expo Go iOS.
+- [x] 29. `scan-debt.mjs` (skill sin-deuda-tecnica): escaneo **sin aumentos** — mobile-client `any` 27→25, `catch{}` 46→45 (se eliminó el catch silencioso de HomeScreen), `console.*` 9=9, TODO 0=0, >500 L 7=7, >1000 L 1=1. Línea base de `DEUDA_TECNICA.md` §2/§3 actualizada con la salida nueva. Nota: `PedidoScreen.tsx` sigue siendo el único archivo >1000 (1248→1268, +20 líneas de estilos del ítem 23, solo presentación); su extracción a subcomponentes queda recomendada para M8. Comentarios nuevos en rioplatense ✓.
 
 ### Fase 6 — Documentación y cierre
 

@@ -5,7 +5,7 @@
 // botón + con gradiente ember.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -33,7 +33,7 @@ interface CompactProductRowProps {
   onFavorite?: (product: ProductPublicDTO) => void;
 }
 
-export function CompactProductRow({
+export const CompactProductRow = memo(function CompactProductRow({
   product,
   isFavorite = false,
   cartQty    = 0,
@@ -121,7 +121,7 @@ export function CompactProductRow({
             {onFavorite && (
               <TouchableOpacity
                 onPress={() => { try { Haptics.selectionAsync(); } catch {} onFavorite(product); }}
-                hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
+                hitSlop={{ top: 12, right: 6, bottom: 12, left: 6 }}
                 accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
               >
                 <Heart
@@ -142,6 +142,7 @@ export function CompactProductRow({
               onPress={handleAdd}
               activeOpacity={0.8}
               disabled={!product.available}
+              hitSlop={{ top: 5, right: 5, bottom: 5, left: 5 }}
               accessibilityLabel={
                 product.available
                   ? `Agregar ${product.name} al carrito`
@@ -172,7 +173,7 @@ export function CompactProductRow({
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {

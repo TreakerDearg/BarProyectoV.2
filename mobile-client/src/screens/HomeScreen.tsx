@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  Sparkles, ChevronDown,
+  Sparkles, ChevronDown, AlertTriangle,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -50,6 +50,7 @@ import { MesaCard }            from '../components/shared/MesaCard';
 import { PedidoActivoBanner }  from '../components/shared/PedidoActivoBanner';
 import { SommelierCard }       from '../components/shared/SommelierCard';
 import { NSkeleton }           from '../components/shared/NSkeleton';
+import { NButton }             from '../components/shared/NButton';
 import { NToast }              from '../components/shared/NToast';
 import { FulfillmentSheet }    from '../components/shared/FulfillmentSheet';
 import { HeroCarousel }        from '../components/HeroCarousel';
@@ -122,6 +123,7 @@ export default function HomeScreen() {
   const [tableInfo,        setTableInfo]        = useState<TablePublicDTO | null>(null);
   const [loading,          setLoading]          = useState(true);
   const [refreshing,       setRefreshing]       = useState(false);
+  const [loadError,        setLoadError]        = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showRoulette,     setShowRoulette]     = useState(false);
   const [showFulfillment,  setShowFulfillment]  = useState(false);
@@ -227,6 +229,7 @@ export default function HomeScreen() {
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
+    setLoadError(false);
 
     try {
       const [products, promotions] = await Promise.all([
@@ -267,7 +270,8 @@ export default function HomeScreen() {
         } catch {}
       }
     } catch {
-      // Silencioso
+      // La home sigue usable con datos locales: aviso + reintentar
+      setLoadError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -516,6 +520,22 @@ export default function HomeScreen() {
               </View>
             </Animated.View>
 
+            {/* ── Aviso de error de carga (la home sigue usable) ── */}
+            {loadError && (
+              <View style={styles.loadErrorBanner} accessibilityRole="alert">
+                <AlertTriangle size={16} color={Colors.warning} />
+                <Text style={styles.loadErrorText}>
+                  No pudimos actualizar las recomendaciones
+                </Text>
+                <NButton
+                  label="Reintentar"
+                  onPress={() => fetchData(true)}
+                  variant="ghost"
+                  size="sm"
+                />
+              </View>
+            )}
+
             {/* ── Mesa activa ─────────────────────────────── */}
             <Animated.View
               style={{
@@ -748,6 +768,23 @@ export default function HomeScreen() {
 // ── Estilos ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
+
+  // ── Aviso de error de carga ───────────────────────────────────
+  loadErrorBanner: {
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             Spacing.smMd,
+    backgroundColor: NocturneColors.warningMuted,
+    borderWidth:     1,
+    borderColor:     NocturneColors.warningBorder,
+    borderRadius:    Radius.lg,
+    padding:         Spacing.smMd,
+  },
+  loadErrorText: {
+    ...Typography.bodySm,
+    color: Colors.onSurfaceVariant,
+    flex:  1,
+  },
 
   // ── Top bar ────────────────────────────────────────────────────
   topBar: {
