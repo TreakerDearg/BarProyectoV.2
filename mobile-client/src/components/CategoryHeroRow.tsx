@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // NEBULA — CategoryHeroRow
 // Fila horizontal de pills de categorías + pill de Ruleta.
-// Tints por categoría derivados de la paleta (sin literales rgba).
+// Tints por categoría derivados de la paleta. Sin emojis — lucide icons.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef } from 'react';
@@ -13,27 +13,38 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
-import { RotateCw } from 'lucide-react-native';
+import {
+  RotateCw,
+  Wine,
+  GlassWater,
+  FlaskConical,
+  Star,
+  LayoutGrid,
+  Coffee,
+  Utensils,
+  Circle,
+} from 'lucide-react-native';
 
 import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 
-// ── Category emoji map ────────────────────────────────────────────────────────
-const CATEGORY_EMOJI: Record<string, string> = {
-  cocktail:      '🍹',
-  vino:          '🍷',
-  cerveza:       '🍺',
-  comida:        '🍔',
-  'sin alcohol': '🥤',
-  shot:          '🥃',
-  general:       '✨',
-  todos:         '🌟',
-  all:           '🌟',
-};
+// ── Icono por categoría (lucide, sin emojis) ──────────────────────────────────
+function getCategoryIcon(name: string, color: string, size = 22) {
+  const key = name.toLowerCase();
+  if (key === 'vino' || key === 'wine')        return <Wine size={size} color={color} />;
+  if (key === 'cerveza' || key === 'beer')     return <GlassWater size={size} color={color} />;
+  if (key === 'cocktail' || key === 'cóctel')  return <FlaskConical size={size} color={color} />;
+  if (key === 'shot')                          return <FlaskConical size={size} color={color} />;
+  if (key === 'general')                       return <Star size={size} color={color} />;
+  if (key === 'todos' || key === 'all')        return <LayoutGrid size={size} color={color} />;
+  if (key === 'sin alcohol')                   return <GlassWater size={size} color={color} />;
+  if (key === 'comida' || key === 'food')      return <Utensils size={size} color={color} />;
+  if (key === 'café' || key === 'cafe')        return <Coffee size={size} color={color} />;
+  return <Circle size={size} color={color} />;
+}
 
-// ── Category background color map ─────────────────────────────────────────────
-// Tints de la paleta NEBULA EMBER: cada categoría toma un tono semántico.
+// ── Color de fondo por categoría ──────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
   cocktail:      NocturneColors.emberMuted,
   vino:          NocturneColors.wineMuted,
@@ -45,13 +56,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 function getCategoryColor(name: string): string {
-  const key = name.toLowerCase();
-  return CATEGORY_COLORS[key] ?? Colors.surfaceContainerHigh;
-}
-
-function getCategoryEmoji(name: string): string {
-  const key = name.toLowerCase();
-  return CATEGORY_EMOJI[key] ?? '🍽️';
+  return CATEGORY_COLORS[name.toLowerCase()] ?? Colors.surfaceContainerHigh;
 }
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -68,22 +73,17 @@ function CategoryPill({
   isActive,
   onPress,
 }: {
-  category:  { id: string; name: string };
-  isActive:  boolean;
-  onPress:   () => void;
+  category: { id: string; name: string };
+  isActive: boolean;
+  onPress:  () => void;
 }) {
   const scaleAnim = useRef(new Animated.Value(isActive ? 1.08 : 1)).current;
 
   const handlePress = () => {
-    Animated.spring(scaleAnim, {
-      toValue:         1.08,
-      friction:        6,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(scaleAnim, { toValue: 1.08, friction: 6, useNativeDriver: true }).start();
     onPress();
   };
 
-  // When deactivated, spring back to 1
   React.useEffect(() => {
     Animated.spring(scaleAnim, {
       toValue:         isActive ? 1.08 : 1,
@@ -92,8 +92,8 @@ function CategoryPill({
     }).start();
   }, [isActive]);
 
-  const bg = getCategoryColor(category.name);
-  const emoji = getCategoryEmoji(category.name);
+  const bg         = getCategoryColor(category.name);
+  const iconColor  = isActive ? Colors.primary : Colors.onSurfaceVariant;
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -106,7 +106,7 @@ function CategoryPill({
           isActive && styles.pillActive,
         ]}
       >
-        <Text style={styles.pillEmoji}>{emoji}</Text>
+        {getCategoryIcon(category.name, iconColor)}
         <Text style={[styles.pillLabel, isActive && styles.pillLabelActive]} numberOfLines={1}>
           {category.name}
         </Text>
@@ -175,17 +175,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.cardBorderActive,
   },
-  pillEmoji: {
-    fontSize: 22,
-    lineHeight: 26,
-  },
   pillLabel: {
     ...Typography.labelSm,
-    color:          Colors.onSurfaceVariant,
-    textTransform:  'none' as const,
-    fontSize:       9,
-    letterSpacing:  0,
-    textAlign:      'center',
+    color:             Colors.onSurfaceVariant,
+    textTransform:     'none' as const,
+    fontSize:          9,
+    letterSpacing:     0,
+    textAlign:         'center',
     paddingHorizontal: 4,
   },
   pillLabelActive: {

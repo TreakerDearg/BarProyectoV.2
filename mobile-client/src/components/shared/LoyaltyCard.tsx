@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — LoyaltyCard
+// NEBULA — LoyaltyCard (v2)
 // Card de fidelidad full-width (Bronze/Silver/Gold/Platinum), barra de
 // progreso animada, número de tarjeta y overlay decorativo diagonal.
-// Contexto VIP: el oro queda reservado para niveles y sellos premium.
+// Sin emojis — iconos de lucide-react-native para cada nivel.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useRef, useEffect } from 'react';
@@ -13,32 +13,42 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { Award, Medal, Trophy, Gem } from 'lucide-react-native';
 
 import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
 
 const { width: screenWidth } = Dimensions.get('window');
-// Account for horizontal padding in parent scroll (2 * Spacing.gutter)
 const CARD_WIDTH = screenWidth - Spacing.gutter * 2;
 
-// ── Level thresholds (exportado: AccountScreen usa getLevel para el anillo) ──
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 type Level = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
 
 export interface LevelConfig {
-  label:    Level;
-  emoji:    string;
-  color:    string;
-  min:      number;
-  max:      number | null; // null = top tier
+  label: Level;
+  color: string;
+  min:   number;
+  max:   number | null;
 }
 
 const LEVELS: LevelConfig[] = [
-  { label: 'Bronze',   emoji: '🥉', color: NocturneColors.fidelityBronze,   min: 0,    max: 499   },
-  { label: 'Silver',   emoji: '🥈', color: NocturneColors.fidelitySilver,   min: 500,  max: 1999  },
-  { label: 'Gold',     emoji: '🥇', color: NocturneColors.vipGold,          min: 2000, max: 4999  },
-  { label: 'Platinum', emoji: '💎', color: NocturneColors.fidelityPlatinum, min: 5000, max: null  },
+  { label: 'Bronze',   color: NocturneColors.fidelityBronze,   min: 0,    max: 499   },
+  { label: 'Silver',   color: NocturneColors.fidelitySilver,   min: 500,  max: 1999  },
+  { label: 'Gold',     color: NocturneColors.vipGold,          min: 2000, max: 4999  },
+  { label: 'Platinum', color: NocturneColors.fidelityPlatinum, min: 5000, max: null  },
 ];
+
+// Icono por nivel (sin emojis)
+function LevelIcon({ level, size = 22 }: { level: Level; size?: number }) {
+  const color = LEVELS.find(l => l.label === level)?.color ?? Colors.primary;
+  switch (level) {
+    case 'Bronze':   return <Award   size={size} color={color} />;
+    case 'Silver':   return <Medal   size={size} color={color} />;
+    case 'Gold':     return <Trophy  size={size} color={color} />;
+    case 'Platinum': return <Gem     size={size} color={color} />;
+  }
+}
 
 export function getLevel(balance: number): LevelConfig {
   for (let i = LEVELS.length - 1; i >= 0; i--) {
@@ -49,7 +59,7 @@ export function getLevel(balance: number): LevelConfig {
 
 function getLevelProgress(balance: number, level: LevelConfig): number {
   if (level.max === null) return 1;
-  const range = level.max - level.min + 1;
+  const range    = level.max - level.min + 1;
   const progress = (balance - level.min) / range;
   return Math.max(0, Math.min(1, progress));
 }
@@ -65,7 +75,6 @@ export function LoyaltyCard({ balance, totalEarned, userId }: LoyaltyCardProps) 
   const level    = getLevel(balance);
   const progress = getLevelProgress(balance, level);
 
-  // Animated progress bar width
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -76,34 +85,35 @@ export function LoyaltyCard({ balance, totalEarned, userId }: LoyaltyCardProps) 
     }).start();
   }, [progress]);
 
-  // Next threshold label
-  const nextLevel = LEVELS.find((l) => l.min > balance);
-  const pointsToNext = nextLevel ? nextLevel.min - balance : 0;
-
-  // Masked card number: •••• •••• + last 4 chars of userId
-  const last4 = userId.slice(-4).toUpperCase();
+  const nextLevel     = LEVELS.find((l) => l.min > balance);
+  const pointsToNext  = nextLevel ? nextLevel.min - balance : 0;
+  const last4         = userId.slice(-4).toUpperCase();
 
   return (
     <View style={styles.card}>
-      {/* ── Diagonal overlay (decorative) ───────────────── */}
+      {/* Overlay decorativo diagonal */}
       <View style={styles.diagonalOverlay} />
 
-      {/* ── Header row ────────────────────────────────── */}
+      {/* Header */}
       <View style={styles.headerRow}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.cardLabel}>NEBULA REWARDS</Text>
-          <Text style={[styles.levelName, { color: level.color }]}>
-            {level.emoji} {level.label}
-          </Text>
+          <View style={styles.levelNameRow}>
+            <LevelIcon level={level.label} size={20} />
+            <Text style={[styles.levelName, { color: level.color }]}>
+              {level.label}
+            </Text>
+          </View>
         </View>
         <View style={[styles.levelBadge, { borderColor: `${level.color}55` }]}>
+          <LevelIcon level={level.label} size={14} />
           <Text style={[styles.levelBadgeText, { color: level.color }]}>
             {level.label.toUpperCase()}
           </Text>
         </View>
       </View>
 
-      {/* ── Balance ───────────────────────────────────── */}
+      {/* Balance */}
       <View style={styles.balanceRow}>
         <Text style={styles.balanceNumber}>{balance.toLocaleString('es-AR')}</Text>
         <Text style={styles.balanceUnit}>pts</Text>
@@ -112,7 +122,7 @@ export function LoyaltyCard({ balance, totalEarned, userId }: LoyaltyCardProps) 
         {totalEarned.toLocaleString('es-AR')} pts acumulados en total
       </Text>
 
-      {/* ── Progress bar ─────────────────────────────── */}
+      {/* Barra de progreso */}
       <View style={styles.progressSection}>
         <View style={styles.progressTrack}>
           <Animated.View
@@ -133,11 +143,11 @@ export function LoyaltyCard({ balance, totalEarned, userId }: LoyaltyCardProps) 
             {pointsToNext.toLocaleString('es-AR')} pts para {nextLevel.label}
           </Text>
         ) : (
-          <Text style={styles.progressLabel}>Nivel máximo alcanzado 🎉</Text>
+          <Text style={styles.progressLabel}>Nivel máximo alcanzado</Text>
         )}
       </View>
 
-      {/* ── Card number row ───────────────────────────── */}
+      {/* Número de tarjeta */}
       <View style={styles.cardNumberRow}>
         <Text style={styles.cardNumber}>{'•••• •••• ' + last4}</Text>
       </View>
@@ -156,8 +166,6 @@ const styles = StyleSheet.create({
     borderWidth:     1,
     borderColor:     NocturneColors.vipGoldBorder,
   },
-
-  // ── Decorative diagonal overlay ─────────────────────────────────
   diagonalOverlay: {
     position:        'absolute',
     width:           200,
@@ -168,11 +176,14 @@ const styles = StyleSheet.create({
     right:           -40,
   },
 
-  // ── Header ─────────────────────────────────────────────────────
+  // Header
   headerRow: {
     flexDirection:  'row',
     justifyContent: 'space-between',
     alignItems:     'flex-start',
+  },
+  headerLeft: {
+    gap: 4,
   },
   cardLabel: {
     ...Typography.labelSm,
@@ -180,14 +191,22 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase' as const,
     letterSpacing: 1,
   },
+  levelNameRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           Spacing.xs,
+    marginTop:     2,
+  },
   levelName: {
     ...Typography.headlineSm,
-    marginTop: 2,
   },
   levelBadge: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               5,
     borderRadius:      Radius.full,
-    paddingHorizontal: 10,
-    paddingVertical:   4,
+    paddingHorizontal: Spacing.smMd,
+    paddingVertical:   Spacing.xs,
     borderWidth:       1,
     backgroundColor:   NocturneColors.vipGoldSubtle,
   },
@@ -197,7 +216,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
 
-  // ── Balance ─────────────────────────────────────────────────────
+  // Balance
   balanceRow: {
     flexDirection: 'row',
     alignItems:    'baseline',
@@ -217,7 +236,7 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.xs,
   },
 
-  // ── Progress ────────────────────────────────────────────────────
+  // Progress
   progressSection: {
     gap: 4,
   },
@@ -236,12 +255,12 @@ const styles = StyleSheet.create({
     color: Colors.onSurfaceVariant,
   },
 
-  // ── Card number ─────────────────────────────────────────────────
+  // Card number
   cardNumberRow: {
-    borderTopWidth:  1,
-    borderTopColor:  NocturneColors.borderSubtle,
-    paddingTop:      Spacing.sm,
-    marginTop:       Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: NocturneColors.borderSubtle,
+    paddingTop:     Spacing.sm,
+    marginTop:      Spacing.xs,
   },
   cardNumber: {
     fontFamily:    'monospace',

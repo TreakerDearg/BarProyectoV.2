@@ -1,6 +1,13 @@
 import { api } from "./client";
 import type { ApiResponse, RouletteDrinkDTO } from "../types/api";
 
+export interface UserRouletteStats {
+  spinsSinceRare:      number;
+  spinsSinceEpic:      number;
+  spinsSinceLegendary: number;
+  totalSpins:          number;
+}
+
 export async function getPublicRouletteDrinks(): Promise<RouletteDrinkDTO[]> {
   const res = await api.get<ApiResponse<RouletteDrinkDTO[]>>("/roulette/public");
   return res.data.data;
@@ -33,5 +40,10 @@ export async function generateRouletteTicket(
     "/roulette/generate-ticket",
     payload,
   );
+  return res.data.data;
+}
+
+export async function getMyRouletteStats(): Promise<UserRouletteStats> {
+  const res = await api.get<ApiResponse<UserRouletteStats>>('/roulette/stats/me');
   return res.data.data;
 }

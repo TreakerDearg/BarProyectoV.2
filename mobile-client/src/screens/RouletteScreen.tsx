@@ -1,298 +1,314 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — RouletteScreen (Phase 2 redesign)
-// States: idle → spinning → revealing → result
-// Rarity: COMMON / RARE / EPIC / LEGENDARY with unique styling
+// NEBULA — RouletteScreen (v2)
+// Sin reanimated — usa Animated de RN. Compatible con Expo Go arquitectura vieja.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useReducer } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  Animated,
-  Easing,
+  StyleSheet, View, Text, TouchableOpacity,
+  Alert, ScrollView, ActivityIndicator,
+  Animated, Easing, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { X, RotateCw, ChevronDown, Martini, Ticket } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { Colors, NocturneColors } from '../theme/colors';
-import { Typography, FontFamily } from '../theme/typography';
+import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 
-import { getPublicRouletteDrinks, spinPublicRoulette, generateRouletteTicket } from '../api/rouletteApi';
-import { getErrorMessage } from '../api/client';
-import { useCartStore } from '../stores/useCartStore';
-import { useSessionStore } from '../stores/useSessionStore';
-import { usePointsStore } from '../stores/usePointsStore';
-import { NToast } from '../components/shared/NToast';
-import { NButton } from '../components/shared/NButton';
-import { MobileWheel } from '../components/roulette/MobileWheel';
-import { GoldenTicket } from '../components/roulette/GoldenTicket';
+import {
+  getPublicRouletteDrinks,
+  spinPublicRoulette,
+  generateRouletteTicket,
+  getMyRouletteStats,
+} from '../api/rouletteApi';
+import { getErrorMessage }  from '../api/client';
+import { useCartStore }     from '../stores/useCartStore';
+import { useSessionStore }  from '../stores/useSessionStore';
+import { usePointsStore }   from '../stores/usePointsStore';
+
+import { NToast }          from '../components/shared/NToast';
+import { NButton }         from '../components/shared/NButton';
+import { RarityIcon, RARITY_ICON_COLOR, RARITY_LABEL } from '../components/shared/RarityIcon';
+import { MobileWheel }     from '../components/roulette/MobileWheel';
+import { GoldenTicket }    from '../components/roulette/GoldenTicket';
 import { RevealExplosion } from '../components/roulette/RevealExplosion';
 
+import { calculateTargetAngle } from '../utils/rouletteAngle';
 import type { RouletteDrinkDTO } from '../types/api';
 import type { RootTabParamList } from '../navigation/types';
 
-// ── Types ────────────────────────────────────────────────────────────────────
+const { width: SW, height: SH } = Dimensions.get('window');
+
 type SpinState = 'idle' | 'spinning' | 'revealing' | 'result';
 
 interface SpinHistoryItem {
-  id:        string;
-  name:      string;
-  rarity:    string;
-  timestamp: Date;
+  id: string; name: string; rarity: string; timestamp: Date;
+}
+interface PityStats {
+  spinsSinceRare: number; spinsSinceEpic: number; spinsSinceLegendary: number;
 }
 
-// ── Rarity config ─────────────────────────────────────────────────────────────
 const RARITY_CONFIG = {
-  COMMON:    { border: Colors.outline,         label: Colors.outline,                      glow: `${Colors.outline}40`,            emoji: '⚪', badgeBg: Colors.surfaceContainerHigh,  badgeText: Colors.outline,                      bgColor: Colors.outline },
-  RARE:      { border: Colors.info,            label: Colors.info,                         glow: `${Colors.info}40`,               emoji: '🔵', badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info,                         bgColor: Colors.info },
-  EPIC:      { border: Colors.wine,            label: NocturneColors.onSecondaryContainer, glow: NocturneColors.wineGlow,          emoji: '🟣', badgeBg: NocturneColors.wineMuted,     badgeText: NocturneColors.onSecondaryContainer, bgColor: Colors.wine },
-  LEGENDARY: { border: NocturneColors.vipGold, label: NocturneColors.vipGold,              glow: NocturneColors.vipGoldGlowStrong, emoji: '⭐', badgeBg: NocturneColors.vipGoldMuted,  badgeText: NocturneColors.vipGold,              bgColor: NocturneColors.vipGold },
+  COMMON:    { border: Colors.outline,         label: Colors.outline,                      glow: 'rgba(158,140,123,0.40)', badgeBg: Colors.surfaceContainerHigh,  badgeText: Colors.outline,                      bgColor: Colors.outline },
+  RARE:      { border: Colors.info,            label: Colors.info,                         glow: 'rgba(90,184,232,0.40)',  badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info,                         bgColor: Colors.info },
+  EPIC:      { border: Colors.wine,            label: NocturneColors.onSecondaryContainer, glow: NocturneColors.wineGlow, badgeBg: NocturneColors.wineMuted,     badgeText: NocturneColors.onSecondaryContainer, bgColor: Colors.wine },
+  LEGENDARY: { border: NocturneColors.vipGold, label: NocturneColors.vipGold,              glow: NocturneColors.vipGoldGlowStrong, badgeBg: NocturneColors.vipGoldMuted, badgeText: NocturneColors.vipGold, bgColor: NocturneColors.vipGold },
 } as const;
+
+const PITY_THRESHOLDS = { RARE: 10, EPIC: 25, LEGENDARY: 50 };
 
 function fmtTime(d: Date): string {
   return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
-interface RouletteScreenProps {
-  onClose: () => void;
-}
+interface RouletteScreenProps { onClose: () => void; }
 
 export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { tableId } = useSessionStore();
 
-  // ── State ─────────────────────────────────────────────────────
-  const [spinState,     setSpinState]    = useState<SpinState>('idle');
-  const [drinks,        setDrinks]       = useState<RouletteDrinkDTO[]>([]);
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [spinState,     setSpinState]     = useState<SpinState>('idle');
+  const [drinks,        setDrinks]        = useState<RouletteDrinkDTO[]>([]);
   const [selectedDrink, setSelectedDrink] = useState<RouletteDrinkDTO | null>(null);
-  const [isRecipeOpen,  setIsRecipeOpen] = useState(false);
-  const [history,       setHistory]      = useState<SpinHistoryItem[]>([]);
+  const [isRecipeOpen,  setIsRecipeOpen]  = useState(false);
+  const [history,       setHistory]       = useState<SpinHistoryItem[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [toastMsg,      setToastMsg]     = useState<string | null>(null);
-  const [ticketData,    setTicketData]   = useState<{ ticket: string; expiresAt: number } | null>(null);
+  const [toastMsg,      setToastMsg]      = useState<string | null>(null);
+  const [ticketData,    setTicketData]    = useState<{ ticket: string; expiresAt: number } | null>(null);
   const [isGeneratingTicket, setIsGeneratingTicket] = useState(false);
-  const [countdown,     setCountdown]    = useState<number | null>(null);
+  const [countdown,     setCountdown]     = useState<number | null>(null);
   const [showExplosion, setShowExplosion] = useState(false);
+  const [pityStats,     setPityStats]     = useState<PityStats | null>(null);
+  const [wheelOriginY,  setWheelOriginY]  = useState(SH * 0.32);
 
-  // ── Animation refs ────────────────────────────────────────────
-  const rotateAnim      = useRef(new Animated.Value(0)).current;
-  const revealDecayAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim       = useRef(new Animated.Value(0.7)).current;
-  const opacityAnim     = useRef(new Animated.Value(0)).current;
-  const chevronAnim     = useRef(new Animated.Value(0)).current;
-  const bgTintAnim      = useRef(new Animated.Value(0)).current;
-  const rotLoopRef      = useRef<Animated.CompositeAnimation | null>(null);
-  const cycleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // ── Animated values ───────────────────────────────────────────────────────
+  // spinDeg: grados absolutos del wheel (aumenta continuamente)
+  const spinDeg       = useRef(new Animated.Value(0)).current;
+  const resultOpacity = useRef(new Animated.Value(0)).current;
+  const resultTranslY = useRef(new Animated.Value(40)).current;
+  const bgTintOpacity = useRef(new Animated.Value(0)).current;
+  const chevronRot    = useRef(new Animated.Value(0)).current;
+  const countdownScale  = useRef(new Animated.Value(0.5)).current;
+  const countdownOpacity = useRef(new Animated.Value(0)).current;
 
-  // Progressive haptic timeout refs (cleared on unmount)
-  const hapticPhase1Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
-  const hapticPhase2Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
-  const hapticPhase3Ref  = useRef<ReturnType<typeof setInterval>  | null>(null);
-  const hapticTimeout1Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
-  const hapticTimeout2Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
-  const hapticTimeout3Ref = useRef<ReturnType<typeof setTimeout>  | null>(null);
-  const revealTimeoutRef  = useRef<ReturnType<typeof setTimeout>  | null>(null);
+  // Refs para controlar loops
+  const idleLoopRef    = useRef<Animated.CompositeAnimation | null>(null);
+  const spinLoopRef    = useRef<Animated.CompositeAnimation | null>(null);
+  const countdownRefs  = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const hapticRefs     = useRef<ReturnType<typeof setInterval>[]>([]);
+  const hapticTimeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Countdown timeout refs
-  const countdownRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  // ── Load drinks ───────────────────────────────────────────────
+  // Valor actual de spinDeg (para calcular targetAngle)
+  const spinDegValueRef = useRef(0);
   useEffect(() => {
-    getPublicRouletteDrinks()
-      .then(setDrinks)
-      .catch((e) => console.warn('[Roulette] Error cargando tragos:', e));
+    const id = spinDeg.addListener(({ value }) => { spinDegValueRef.current = value; });
+    return () => spinDeg.removeListener(id);
   }, []);
 
-  // ── Cleanup on unmount ────────────────────────────────────────
+  // ── Load ──────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    getPublicRouletteDrinks().then(setDrinks).catch(console.warn);
+    getMyRouletteStats().then(setPityStats).catch(() => {});
+  }, []);
+
+  // ── Idle rotation ─────────────────────────────────────────────────────────
+  const startIdleRotation = () => {
+    idleLoopRef.current?.stop();
+    idleLoopRef.current = Animated.loop(
+      Animated.timing(spinDeg, {
+        toValue:         spinDegValueRef.current + 360,
+        duration:        14000,
+        easing:          Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    idleLoopRef.current.start();
+  };
+
+  useEffect(() => {
+    if (spinState === 'idle') {
+      startIdleRotation();
+    }
+    return () => { if (spinState !== 'idle') idleLoopRef.current?.stop(); };
+  }, [spinState]);
+
+  // ── Cleanup ───────────────────────────────────────────────────────────────
   useEffect(() => {
     return () => {
-      stopAllHapticTimers();
+      idleLoopRef.current?.stop();
+      spinLoopRef.current?.stop();
       countdownRefs.current.forEach(clearTimeout);
-      if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
-      rotLoopRef.current?.stop();
-      if (revealTimeoutRef.current) clearTimeout(revealTimeoutRef.current);
+      hapticRefs.current.forEach(clearInterval);
+      hapticTimeouts.current.forEach(clearTimeout);
     };
   }, []);
 
-  // ── Haptic helpers ────────────────────────────────────────────
-  const stopAllHapticTimers = () => {
-    if (hapticPhase1Ref.current)  clearInterval(hapticPhase1Ref.current);
-    if (hapticPhase2Ref.current)  clearInterval(hapticPhase2Ref.current);
-    if (hapticPhase3Ref.current)  clearInterval(hapticPhase3Ref.current);
-    if (hapticTimeout1Ref.current) clearTimeout(hapticTimeout1Ref.current);
-    if (hapticTimeout2Ref.current) clearTimeout(hapticTimeout2Ref.current);
-    if (hapticTimeout3Ref.current) clearTimeout(hapticTimeout3Ref.current);
+  // ── Derived animated styles ───────────────────────────────────────────────
+  const resultCardStyle = {
+    opacity:   resultOpacity,
+    transform: [{ translateY: resultTranslY }],
   };
 
-  /** Start a 3-phase progressive haptic sequence:
-   *  Phase 1 (0–1000 ms):   60 ms intervals, Light
-   *  Phase 2 (1000–2200 ms): 120 ms intervals, Light
-   *  Phase 3 (2200–3000 ms): 220 ms intervals, Medium
-   */
-  const startProgressiveHaptics = () => {
-    stopAllHapticTimers();
-
-    // Phase 1
-    hapticPhase1Ref.current = setInterval(() => {
-      try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
-    }, 60);
-
-    hapticTimeout1Ref.current = setTimeout(() => {
-      if (hapticPhase1Ref.current) clearInterval(hapticPhase1Ref.current);
-
-      // Phase 2
-      hapticPhase2Ref.current = setInterval(() => {
-        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {}
-      }, 120);
-
-      hapticTimeout2Ref.current = setTimeout(() => {
-        if (hapticPhase2Ref.current) clearInterval(hapticPhase2Ref.current);
-
-        // Phase 3
-        hapticPhase3Ref.current = setInterval(() => {
-          try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {}
-        }, 220);
-
-        hapticTimeout3Ref.current = setTimeout(() => {
-          if (hapticPhase3Ref.current) clearInterval(hapticPhase3Ref.current);
-        }, 800);
-      }, 1200);
-    }, 1000);
+  const countdownAnimStyle = {
+    opacity:   countdownOpacity,
+    transform: [{ scale: countdownScale }],
   };
 
-  // ── Recipe toggle animation ───────────────────────────────────
+  const chevronRotDeg = chevronRot.interpolate({ inputRange: [0,1], outputRange: ['0deg','180deg'] });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const toggleRecipe = () => {
     const next = !isRecipeOpen;
     setIsRecipeOpen(next);
-    Animated.timing(chevronAnim, {
-      toValue: next ? 1 : 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(chevronRot, { toValue: next ? 1 : 0, duration: 250, useNativeDriver: true }).start();
   };
 
-  // ── Deceleration (revealing state) ────────────────────────────
+  const animateCountdownIn = () => {
+    countdownScale.setValue(0.5);
+    countdownOpacity.setValue(0);
+    Animated.parallel([
+      Animated.spring(countdownScale,   { toValue: 1.0, friction: 6, useNativeDriver: true }),
+      Animated.timing(countdownOpacity, { toValue: 1,   duration: 150, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const stopHaptics = () => {
+    hapticRefs.current.forEach(clearInterval);
+    hapticTimeouts.current.forEach(clearTimeout);
+    hapticRefs.current    = [];
+    hapticTimeouts.current = [];
+  };
+
+  const startProgressiveHaptics = () => {
+    stopHaptics();
+    const i1 = setInterval(() => { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {} }, 60);
+    hapticRefs.current.push(i1);
+    const t1 = setTimeout(() => {
+      clearInterval(i1);
+      const i2 = setInterval(() => { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); } catch {} }, 120);
+      hapticRefs.current.push(i2);
+      const t2 = setTimeout(() => {
+        clearInterval(i2);
+        const i3 = setInterval(() => { try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {} }, 220);
+        hapticRefs.current.push(i3);
+        const t3 = setTimeout(() => clearInterval(i3), 800);
+        hapticTimeouts.current.push(t3);
+      }, 1200);
+      hapticTimeouts.current.push(t2);
+    }, 1000);
+    hapticTimeouts.current.push(t1);
+  };
+
+  // ── Reveal ────────────────────────────────────────────────────────────────
   const triggerReveal = (result: RouletteDrinkDTO) => {
     setSpinState('revealing');
     setSelectedDrink(result);
 
-    // Stop the spinning loop, then run a deceleration animation on a
-    // separate value that goes from 0→0.75 (i.e. an extra 270° turn slowing down)
-    rotLoopRef.current?.stop();
-    revealDecayAnim.setValue(0);
-    Animated.timing(revealDecayAnim, {
-      toValue:  0.75,
-      duration: 500,
-      easing:   Easing.out(Easing.cubic),
+    spinLoopRef.current?.stop();
+
+    const targetAngle = calculateTargetAngle(drinks, result._id, spinDegValueRef.current);
+    Animated.timing(spinDeg, {
+      toValue:         targetAngle,
+      duration:        3800,
+      easing:          Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
 
-    // Heavy impact on result reveal
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
 
-    revealTimeoutRef.current = setTimeout(() => {
+    setTimeout(() => {
       setSpinState('result');
       setShowExplosion(true);
       setTimeout(() => setShowExplosion(false), 2800);
 
+      resultOpacity.setValue(0);
+      resultTranslY.setValue(40);
       Animated.parallel([
-        Animated.spring(scaleAnim,   { toValue: 1, friction: 6, useNativeDriver: true }),
-        Animated.timing(opacityAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(resultOpacity, { toValue: 1, duration: 250, useNativeDriver: true }),
+        Animated.spring(resultTranslY, { toValue: 0, friction: 14, tension: 180, useNativeDriver: true }),
       ]).start();
-      try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
 
-      // EPIC/LEGENDARY bg tint flash
       if (result.rarity === 'EPIC' || result.rarity === 'LEGENDARY') {
-        bgTintAnim.setValue(0);
-        Animated.timing(bgTintAnim, { toValue: 1, duration: 600, useNativeDriver: false }).start();
+        bgTintOpacity.setValue(0);
+        Animated.sequence([
+          Animated.timing(bgTintOpacity, { toValue: 0.18, duration: 400, useNativeDriver: false }),
+          Animated.timing(bgTintOpacity, { toValue: 0,    duration: 600, useNativeDriver: false }),
+        ]).start();
+      }
+
+      if (result.rarity === 'LEGENDARY') {
+        try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+      } else {
+        try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch {}
       }
     }, 500);
   };
 
-  // ── Spin handler ──────────────────────────────────────────────
+  // ── Spin ──────────────────────────────────────────────────────────────────
   const handleSpin = async () => {
     if (spinState === 'spinning' || spinState === 'revealing') return;
 
-    // Reset
-    rotateAnim.setValue(0);
-    scaleAnim.setValue(0.7);
-    opacityAnim.setValue(0);
-    bgTintAnim.setValue(0);
+    idleLoopRef.current?.stop();
+    spinLoopRef.current?.stop();
     setSelectedDrink(null);
     setIsRecipeOpen(false);
-    chevronAnim.setValue(0);
+    chevronRot.setValue(0);
     setTicketData(null);
+    resultOpacity.setValue(0);
+    resultTranslY.setValue(40);
+    bgTintOpacity.setValue(0);
 
-    // ── Countdown 3 → 2 → 1 → null ───────────────────────────
     setCountdown(3);
+    animateCountdownIn();
     countdownRefs.current.forEach(clearTimeout);
     countdownRefs.current = [
-      setTimeout(() => setCountdown(2),    900),
-      setTimeout(() => setCountdown(1),    1800),
+      setTimeout(() => { setCountdown(2); animateCountdownIn(); }, 900),
+      setTimeout(() => { setCountdown(1); animateCountdownIn(); }, 1800),
       setTimeout(() => {
         setCountdown(null);
-
-        // Now actually start spinning
         setSpinState('spinning');
 
-        // Initial heavy impact
         try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); } catch {}
-
-        // Progressive haptic sequence
         startProgressiveHaptics();
 
-        // Wheel rotation loop
-        rotLoopRef.current = Animated.loop(
-          Animated.timing(rotateAnim, {
-            toValue: 1,
-            duration: 1200,
-            easing: Easing.linear,
+        spinLoopRef.current = Animated.loop(
+          Animated.timing(spinDeg, {
+            toValue:         spinDegValueRef.current + 360,
+            duration:        900,
+            easing:          Easing.linear,
             useNativeDriver: true,
-          })
+          }),
         );
-        rotLoopRef.current.start();
-
-        // Name cycling (kept for cycling label in pool count area)
-        if (drinks.length > 0) {
-          cycleIntervalRef.current = setInterval(() => {
-            // cycling no longer needed for display; kept as an optional side-effect
-          }, 80);
-        }
+        spinLoopRef.current.start();
 
         spinPublicRoulette()
           .then((res) => {
-            // Stop all progressive haptics
-            stopAllHapticTimers();
-            if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
+            stopHaptics();
+            spinLoopRef.current?.stop();
 
-            // Add to history before reveal so it shows on result
-            setHistory((prev) => [
+            setHistory(prev => [
               { id: res.selected._id + Date.now(), name: res.selected.name, rarity: res.selected.rarity, timestamp: new Date() },
               ...prev,
-            ].slice(0, 5));
+            ].slice(0, 8));
 
             triggerReveal(res.selected);
 
-            // Points integration
             try {
-              if (res.pointsEarned && res.pointsEarned > 0) {
+              if (res.pointsEarned > 0) {
                 usePointsStore.getState().addLocal(res.pointsEarned, `Ruleta: ${res.selected.name}`);
                 setToastMsg(`+${res.pointsEarned} pts ganados`);
               }
             } catch {}
           })
           .catch((err) => {
-            rotLoopRef.current?.stop();
-            stopAllHapticTimers();
-            if (cycleIntervalRef.current) clearInterval(cycleIntervalRef.current);
+            stopHaptics();
+            spinLoopRef.current?.stop();
             setSpinState('idle');
             Alert.alert('Error en la Ruleta', getErrorMessage(err));
           });
@@ -300,42 +316,31 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     ];
   };
 
-  // ── Add to cart ───────────────────────────────────────────────
   const handleAddToCart = () => {
     if (!selectedDrink) return;
     if (!tableId) {
-      Alert.alert(
-        'Conectá tu mesa',
-        'Necesitás una mesa para pedir. Podés hacerlo desde Pedidos.',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Ir a Pedidos', onPress: () => { onClose(); navigation.navigate('Pedidos'); } },
-        ]
-      );
+      Alert.alert('Conectá tu mesa', 'Necesitás una mesa para pedir.', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Ir a Pedidos', onPress: () => { onClose(); navigation.navigate('Pedidos'); } },
+      ]);
       return;
     }
     useCartStore.getState().addToCart({
-      productId: selectedDrink._id,
-      name:      selectedDrink.name,
-      price:     0,
-      image:     undefined,
-      notes:     `Ruleta Nebula — ${selectedDrink.rarity}`,
-      quantity:  1,
+      productId: selectedDrink._id, name: selectedDrink.name,
+      price: 0, image: undefined,
+      notes: `Ruleta Nebula — ${selectedDrink.rarity}`, quantity: 1,
     });
     setToastMsg('Agregado al pedido');
     navigation.navigate('Pedidos');
   };
 
-  // ── Generate Golden Ticket ────────────────────────────────────
   const handleGenerateTicket = async () => {
     if (!selectedDrink) return;
     setIsGeneratingTicket(true);
     try {
       const data = await generateRouletteTicket({
-        drinkId:   selectedDrink._id,
-        rarity:    selectedDrink.rarity,
-        drinkName: selectedDrink.name,
-        tableId:   tableId ?? null,
+        drinkId: selectedDrink._id, rarity: selectedDrink.rarity,
+        drinkName: selectedDrink.name, tableId: tableId ?? null,
       });
       setTicketData(data);
     } catch (err) {
@@ -345,467 +350,264 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
     }
   };
 
-  // ── Derived values ────────────────────────────────────────────
-  // Combined spin: loop animation + deceleration tail
-  const combinedSpinAnim = Animated.add(rotateAnim, revealDecayAnim);
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const rarityConf  = RARITY_CONFIG[(selectedDrink?.rarity as keyof typeof RARITY_CONFIG) ?? 'COMMON'] ?? RARITY_CONFIG.COMMON;
+  const isLegendary = selectedDrink?.rarity === 'LEGENDARY';
+  const isEpicPlus  = selectedDrink?.rarity === 'EPIC' || isLegendary;
 
-  const rarityConf = selectedDrink
-    ? (RARITY_CONFIG[selectedDrink.rarity as keyof typeof RARITY_CONFIG] ?? RARITY_CONFIG.COMMON)
-    : RARITY_CONFIG.COMMON;
+  const rarityCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const d of drinks) counts[d.rarity] = (counts[d.rarity] ?? 0) + 1;
+    return counts;
+  }, [drinks]);
 
-  const chevronRot = chevronAnim.interpolate({
-    inputRange:  [0, 1],
-    outputRange: ['0deg', '180deg'],
-  });
-
-  // BgTint opacity interpolated for EPIC/LEGENDARY reveal
-  const bgTintOpacity = bgTintAnim.interpolate({
-    inputRange:  [0, 0.5, 1],
-    outputRange: [0, 0.18, 0],
-  });
+  const gradColors: [string, string, string] = ['#0C0A0D', '#131014', '#1A1619'];
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <NToast
-        visible={!!toastMsg}
-        message={toastMsg ?? ''}
-        variant="success"
-        onHide={() => setToastMsg(null)}
-      />
+    <View style={styles.root}>
+      <LinearGradient colors={gradColors} style={StyleSheet.absoluteFill} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} />
 
-      {/* Particle explosion overlay */}
-      <RevealExplosion
-        rarity={selectedDrink?.rarity ?? 'COMMON'}
-        visible={showExplosion}
-      />
-
-      {/* EPIC/LEGENDARY background tint flash */}
-      {(selectedDrink?.rarity === 'EPIC' || selectedDrink?.rarity === 'LEGENDARY') && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: rarityConf.bgColor,
-              opacity:         bgTintOpacity,
-              zIndex:          5,
-            },
-          ]}
-        />
+      {/* Tint flash */}
+      {isEpicPlus && (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: rarityConf.bgColor, zIndex: 3, opacity: bgTintOpacity }]} />
       )}
 
-      {/* Golden Ticket overlay */}
+      <NToast visible={!!toastMsg} message={toastMsg ?? ''} variant="success" onHide={() => setToastMsg(null)} />
+
+      <RevealExplosion rarity={selectedDrink?.rarity ?? 'COMMON'} visible={showExplosion} originY={wheelOriginY + 150} />
+
       {ticketData && selectedDrink && (
-        <GoldenTicket
-          ticket={ticketData.ticket}
-          expiresAt={ticketData.expiresAt}
-          drinkName={selectedDrink.name}
-          rarity={selectedDrink.rarity}
-          onClose={() => setTicketData(null)}
-        />
+        <GoldenTicket ticket={ticketData.ticket} expiresAt={ticketData.expiresAt} drinkName={selectedDrink.name} rarity={selectedDrink.rarity} onClose={() => setTicketData(null)} />
       )}
 
-      {/* ── Countdown overlay ──────────────────────────────────── */}
+      {/* Countdown overlay */}
       {countdown !== null && (
-        <Animated.View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
-          <Animated.Text style={styles.countdownNumber}>{countdown}</Animated.Text>
-        </Animated.View>
+        <View style={[StyleSheet.absoluteFill, styles.countdownOverlay]}>
+          <LinearGradient colors={['rgba(12,10,13,0.95)', 'rgba(12,10,13,0.85)']} style={StyleSheet.absoluteFill} />
+          <Animated.Text style={[styles.countdownNumber, countdownAnimStyle]}>{countdown}</Animated.Text>
+        </View>
       )}
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <RotateCw size={20} color={Colors.primary} />
-          <Text style={styles.headerTitle}>Ruleta Nebula</Text>
-          <View style={styles.prizeHeader}>
-            <Text style={styles.prizeHeaderText}>PREMIO AL INSTANTE</Text>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <RotateCw size={20} color={Colors.primary} />
+            <Text style={styles.headerTitle}>Ruleta Nebula</Text>
+            <View style={styles.prizeChip}>
+              <Text style={styles.prizeChipText}>PREMIO AL INSTANTE</Text>
+            </View>
           </View>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <X size={22} color={Colors.onSurfaceVariant} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-          <X size={22} color={Colors.onSurfaceVariant} />
-        </TouchableOpacity>
-      </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── SVG Wheel ─────────────────────────────────── */}
-        <View style={styles.heroSection}>
-          <MobileWheel
-            drinks={drinks}
-            spinAnim={combinedSpinAnim}
-            size={240}
-          />
+        {/* Hero (wheel fijo) */}
+        <View style={styles.heroSection} onLayout={(e) => setWheelOriginY(e.nativeEvent.layout.y)}>
+          <LinearGradient colors={[NocturneColors.casinoBackground, NocturneColors.casinoPurple, 'transparent']} style={styles.heroBg} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} />
 
-          {/* Pool count */}
-          <Text style={styles.poolCount}>
-            {drinks.length} tragos en el pool
-          </Text>
+          <MobileWheel drinks={drinks} spinAnim={spinDeg} phase={spinState} resultRarity={selectedDrink?.rarity ?? 'COMMON'} size={300} />
 
-          {/* Revealing hint */}
           {spinState === 'revealing' && (
-            <Text style={styles.revealingHint}>Revelando resultado…</Text>
+            <View style={styles.revealingOverlay}>
+              <ActivityIndicator size="small" color={Colors.primary} />
+              <Text style={styles.revealingText}>Revelando resultado</Text>
+            </View>
+          )}
+
+          {drinks.length > 0 && spinState === 'idle' && (
+            <View style={styles.rarityCountRow}>
+              {(['COMMON','RARE','EPIC','LEGENDARY'] as const).filter(r => rarityCounts[r] > 0).map(r => (
+                <View key={r} style={styles.rarityCountChip}>
+                  <RarityIcon rarity={r} size={11} />
+                  <Text style={[styles.rarityCountText, { color: RARITY_ICON_COLOR[r] }]}>{rarityCounts[r]}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {pityStats && spinState === 'idle' && (
+            <View style={styles.pityRow}>
+              {([
+                { rarity: 'RARE',      since: pityStats.spinsSinceRare,      threshold: PITY_THRESHOLDS.RARE      },
+                { rarity: 'EPIC',      since: pityStats.spinsSinceEpic,      threshold: PITY_THRESHOLDS.EPIC      },
+                { rarity: 'LEGENDARY', since: pityStats.spinsSinceLegendary, threshold: PITY_THRESHOLDS.LEGENDARY },
+              ] as const).filter(({ since, threshold }) => since / threshold > 0.5).map(({ rarity, since, threshold }) => {
+                const pct = Math.min(1, since / threshold);
+                const col = RARITY_ICON_COLOR[rarity];
+                return (
+                  <View key={rarity} style={styles.pityItem}>
+                    <View style={styles.pityTrack}>
+                      <View style={[styles.pityBar, { width: `${pct * 100}%` as any, backgroundColor: col }]} />
+                    </View>
+                    <Text style={[styles.pityLabel, pct >= 0.8 && { color: col }]}>{since}/{threshold} {rarity}</Text>
+                  </View>
+                );
+              })}
+            </View>
           )}
         </View>
 
-        {/* ── Result card ───────────────────────────────── */}
-        {spinState === 'result' && selectedDrink && (
-          <Animated.View
-            style={[styles.resultCard, {
-              opacity:     opacityAnim,
-              transform:   [{ scale: scaleAnim }],
-              borderColor: rarityConf.border,
-              shadowColor: rarityConf.glow,
-            }]}
-          >
-            {/* Rarity badge */}
-            <View style={[styles.rarityBadge, { backgroundColor: rarityConf.badgeBg }]}>
-              <Text style={[styles.rarityBadgeText, { color: rarityConf.badgeText }]}>
-                {rarityConf.emoji} {selectedDrink.rarity}
+        {/* Scroll: resultado + historial */}
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {spinState === 'result' && selectedDrink && (
+            <Animated.View style={[styles.resultCard, { borderColor: rarityConf.border, shadowColor: rarityConf.glow }, resultCardStyle]}>
+              <View style={[styles.rarityBadge, { backgroundColor: rarityConf.badgeBg }]}>
+                <RarityIcon rarity={selectedDrink.rarity} size={14} color={rarityConf.badgeText} />
+                <Text style={[styles.rarityBadgeText, { color: rarityConf.badgeText }]}>
+                  {RARITY_LABEL[selectedDrink.rarity as keyof typeof RARITY_LABEL] ?? selectedDrink.rarity}
+                </Text>
+              </View>
+
+              <Text style={[isEpicPlus ? styles.drinkNameLg : styles.drinkNameSm, { color: rarityConf.label }]}>
+                {selectedDrink.name}
               </Text>
-            </View>
 
-            {/* Drink name */}
-            <Text style={[styles.drinkName, { color: rarityConf.label }]}>
-              {selectedDrink.name}
-            </Text>
+              {selectedDrink.recipe?.method && (
+                <Text style={styles.drinkDesc}>{selectedDrink.recipe.method}</Text>
+              )}
 
-            {/* Description */}
-            {selectedDrink.recipe?.method && (
-              <Text style={styles.drinkDesc}>{selectedDrink.recipe.method}</Text>
-            )}
+              {selectedDrink.recipe?.ingredients && selectedDrink.recipe.ingredients.length > 0 && (
+                <View style={styles.recipeSection}>
+                  <TouchableOpacity style={styles.recipeToggle} onPress={toggleRecipe}>
+                    <Text style={styles.recipeToggleText}>Ver receta del bartender</Text>
+                    <Animated.View style={{ transform: [{ rotate: chevronRotDeg }] }}>
+                      <ChevronDown size={18} color={Colors.onSurfaceVariant} />
+                    </Animated.View>
+                  </TouchableOpacity>
+                  {isRecipeOpen && (
+                    <View style={styles.recipeBody}>
+                      {selectedDrink.recipe.ingredients.map((ing, idx) => (
+                        <Text key={idx} style={styles.ingredientText}>{'\u2022'} {ing.name} — {ing.quantity} {ing.unit}</Text>
+                      ))}
+                      {selectedDrink.recipe.drinkStyle && (
+                        <View style={styles.drinkStyleBadge}><Text style={styles.drinkStyleText}>{selectedDrink.recipe.drinkStyle}</Text></View>
+                      )}
+                    </View>
+                  )}
+                </View>
+              )}
 
-            {/* Recipe toggle */}
-            {selectedDrink.recipe?.ingredients && selectedDrink.recipe.ingredients.length > 0 && (
-              <View style={styles.recipeSection}>
-                <TouchableOpacity style={styles.recipeToggle} onPress={toggleRecipe}>
-                  <Text style={styles.recipeToggleText}>Ver receta del bartender</Text>
-                  <Animated.View style={{ transform: [{ rotate: chevronRot }] }}>
-                    <ChevronDown size={18} color={Colors.onSurfaceVariant} />
-                  </Animated.View>
-                </TouchableOpacity>
-                {isRecipeOpen && (
-                  <View style={styles.recipeBody}>
-                    {selectedDrink.recipe.ingredients.map((ing, idx) => (
-                      <Text key={idx} style={styles.ingredientText}>
-                        • {ing.name} — {ing.quantity} {ing.unit}
-                      </Text>
-                    ))}
-                    {selectedDrink.recipe.drinkStyle && (
-                      <View style={styles.drinkStyleBadge}>
-                        <Text style={styles.drinkStyleText}>{selectedDrink.recipe.drinkStyle}</Text>
-                      </View>
-                    )}
-                  </View>
+              <View style={styles.resultActions}>
+                {tableId ? (
+                  <>
+                    <NButton label="Pedir este trago" icon={<Martini size={18} color={Colors.onPrimary} />} onPress={handleAddToCart} fullWidth size="lg" />
+                    <NButton label="Volver a tirar"   icon={<RotateCw size={18} color={Colors.primary} />} onPress={handleSpin} variant="ghost" fullWidth />
+                  </>
+                ) : (
+                  <NButton label="Volver a tirar" icon={<RotateCw size={18} color={Colors.onPrimary} />} onPress={handleSpin} fullWidth size="lg" />
+                )}
+                <NButton label="Generar Ticket VIP" icon={<Ticket size={18} color={Colors.primary} />} onPress={handleGenerateTicket} loading={isGeneratingTicket} variant="ghost" fullWidth />
+                {history.length > 0 && (
+                  <TouchableOpacity style={styles.historyToggleBtn} onPress={() => setIsHistoryOpen(!isHistoryOpen)}>
+                    <Text style={styles.historyToggleText}>Ver historial ({history.length})</Text>
+                    <Animated.View style={{ transform: [{ rotate: chevronRotDeg }] }}>
+                      <ChevronDown size={14} color={Colors.outline} />
+                    </Animated.View>
+                  </TouchableOpacity>
                 )}
               </View>
-            )}
+            </Animated.View>
+          )}
 
-            {/* Action buttons */}
-            <View style={styles.resultActions}>
-              <NButton
-                label="Volver a tirar"
-                icon={<RotateCw size={18} color={Colors.onPrimary} />}
-                onPress={handleSpin}
-                fullWidth
-                size="lg"
-              />
-              {tableId && (
-                <NButton
-                  label="Pedir este trago"
-                  icon={<Martini size={18} color={Colors.primary} />}
-                  onPress={handleAddToCart}
-                  variant="ghost"
-                  fullWidth
-                />
-              )}
-              <NButton
-                label="Generar Ticket VIP"
-                icon={<Ticket size={18} color={Colors.primary} />}
-                onPress={handleGenerateTicket}
-                loading={isGeneratingTicket}
-                variant="ghost"
-                fullWidth
-              />
-              <TouchableOpacity
-                style={styles.historyToggleBtn}
-                onPress={() => setIsHistoryOpen(!isHistoryOpen)}
-              >
-                <Text style={styles.historyToggleText}>
-                  Ver historial ({history.length})
-                </Text>
+          {history.length > 0 && (
+            <View style={styles.historySection}>
+              <TouchableOpacity style={styles.historyHeader} onPress={() => setIsHistoryOpen(!isHistoryOpen)}>
+                <Text style={styles.historyTitle}>Historial ({history.length})</Text>
+                <ChevronDown size={16} color={Colors.onSurfaceVariant} />
               </TouchableOpacity>
-            </View>
-          </Animated.View>
-        )}
-
-        {/* ── History section ───────────────────────────── */}
-        {(isHistoryOpen || history.length > 0) && (
-          <View style={styles.historySection}>
-            <TouchableOpacity
-              style={styles.historyHeader}
-              onPress={() => setIsHistoryOpen(!isHistoryOpen)}
-            >
-              <Text style={styles.historyTitle}>Historial de tiradas ({history.length})</Text>
-              <ChevronDown size={16} color={Colors.onSurfaceVariant} />
-            </TouchableOpacity>
-            {isHistoryOpen && history.map((item) => {
-              const rCfg = RARITY_CONFIG[item.rarity as keyof typeof RARITY_CONFIG] ?? RARITY_CONFIG.COMMON;
-              return (
-                <View key={item.id} style={styles.historyItem}>
-                  <Text style={styles.historyItemName}>{item.name}</Text>
-                  <View style={[styles.historyRarityBadge, { backgroundColor: rCfg.badgeBg }]}>
-                    <Text style={[styles.historyRarityText, { color: rCfg.badgeText }]}>
-                      {rCfg.emoji} {item.rarity}
-                    </Text>
+              {isHistoryOpen && history.map((item) => {
+                const rCfg = RARITY_CONFIG[item.rarity as keyof typeof RARITY_CONFIG] ?? RARITY_CONFIG.COMMON;
+                return (
+                  <View key={item.id} style={styles.historyItem}>
+                    <RarityIcon rarity={item.rarity} size={14} />
+                    <Text style={styles.historyItemName} numberOfLines={1}>{item.name}</Text>
+                    <View style={[styles.historyRarityBadge, { backgroundColor: rCfg.badgeBg }]}>
+                      <Text style={[styles.historyRarityText, { color: rCfg.badgeText }]}>{item.rarity}</Text>
+                    </View>
+                    <Text style={styles.historyTime}>{fmtTime(item.timestamp)}</Text>
                   </View>
-                  <Text style={styles.historyTime}>{fmtTime(item.timestamp)}</Text>
-                </View>
-              );
-            })}
+                );
+              })}
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Footer */}
+        {(spinState === 'idle' || spinState === 'spinning' || spinState === 'revealing') && (
+          <View style={styles.footer}>
+            <LinearGradient colors={['transparent','rgba(12,10,13,0.98)']} style={styles.footerGradient} />
+            <NButton
+              label={
+                countdown !== null       ? `${countdown}...`  :
+                spinState === 'spinning' ? 'Girando...'       :
+                spinState === 'revealing'? 'Revelando...'     :
+                'GIRAR AHORA'
+              }
+              onPress={handleSpin}
+              loading={spinState === 'spinning' || spinState === 'revealing'}
+              fullWidth size="lg"
+              icon={spinState === 'idle' && countdown === null ? <RotateCw size={20} color={Colors.onPrimary} /> : undefined}
+            />
           </View>
         )}
-      </ScrollView>
-
-      {/* ── Footer ────────────────────────────────────── */}
-      {(spinState === 'idle' || spinState === 'spinning' || spinState === 'revealing') && (
-        <View style={styles.footer}>
-          <NButton
-            label={
-              countdown !== null    ? `${countdown}...` :
-              spinState === 'spinning'  ? 'Girando...' :
-              spinState === 'revealing' ? 'Revelando...' :
-              'GIRAR AHORA'
-            }
-            onPress={handleSpin}
-            loading={spinState === 'spinning' || spinState === 'revealing'}
-            fullWidth
-            size="lg"
-            icon={spinState === 'idle' && countdown === null ? <RotateCw size={20} color={Colors.onPrimary} /> : undefined}
-          />
-        </View>
-      )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-
-  header: {
-    flexDirection:     'row',
-    justifyContent:    'space-between',
-    alignItems:        'center',
-    paddingHorizontal: Spacing.gutter,
-    paddingVertical:   Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.outlineVariant,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    gap:           Spacing.sm,
-    flex:          1,
-  },
-  headerTitle: {
-    ...Typography.headlineSm,
-    color: Colors.onSurface,
-  },
-  prizeHeader: {
-    backgroundColor:   Colors.emberMuted,
-    borderRadius:      Radius.xs,
-    paddingHorizontal: 8,
-    paddingVertical:   3,
-    borderWidth:       1,
-    borderColor:       Colors.emberBorder,
-  },
-  prizeHeaderText: {
-    ...Typography.labelSm,
-    color: Colors.primary,
-  },
-  closeBtn: { padding: 6 },
-
-  scroll:        { flex: 1 },
-  scrollContent: {
-    padding:       Spacing.gutter,
-    gap:           Spacing.lg,
-    alignItems:    'center',
-    paddingBottom: Spacing.xxxl,
-  },
-
-  // ── Hero section ─────────────────────────────────────────────
-  heroSection: {
-    alignItems: 'center',
-    gap:        Spacing.md,
-    marginTop:  Spacing.md,
-  },
-  poolCount: {
-    ...Typography.bodySm,
-    color: Colors.outline,
-  },
-  revealingHint: {
-    ...Typography.labelSm,
-    color:         Colors.primary,
-    letterSpacing: 1,
-  },
-
-  // ── Result card ──────────────────────────────────────────────
-  resultCard: {
-    width:           '100%',
-    backgroundColor: Colors.surfaceContainer,
-    borderRadius:    Radius.xl,
-    padding:         Spacing.lg,
-    borderWidth:     1,
-    gap:             Spacing.sm,
-    shadowOffset:    { width: 0, height: 6 },
-    shadowOpacity:   0.4,
-    shadowRadius:    16,
-    elevation:       8,
-  },
-  rarityBadge: {
-    alignSelf:         'flex-start',
-    borderRadius:      Radius.full,
-    paddingHorizontal: 12,
-    paddingVertical:   4,
-  },
-  rarityBadgeText: {
-    ...Typography.labelMd,
-    textTransform: 'none' as const,
-  },
-  drinkName: {
-    ...Typography.displaySm,
-  },
-  drinkDesc: {
-    ...Typography.bodyMd,
-    color: Colors.onSurfaceVariant,
-  },
-
-  // Recipe
-  recipeSection: {
-    borderTopWidth: 1,
-    borderTopColor: NocturneColors.borderSubtle,
-    paddingTop:     Spacing.sm,
-    marginTop:      Spacing.xs,
-    gap:            Spacing.sm,
-  },
-  recipeToggle: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'space-between',
-  },
-  recipeToggleText: {
-    ...Typography.labelMd,
-    color:         Colors.onSurfaceVariant,
-    textTransform: 'none' as const,
-  },
-  recipeBody: {
-    gap:             Spacing.xs,
-    backgroundColor: Colors.surfaceContainerHigh,
-    borderRadius:    Radius.md,
-    padding:         Spacing.smMd,
-  },
-  ingredientText: {
-    ...Typography.bodySm,
-    color: Colors.onSurfaceVariant,
-  },
-  drinkStyleBadge: {
-    alignSelf:         'flex-start',
-    backgroundColor:   Colors.emberMuted,
-    borderRadius:      Radius.full,
-    paddingHorizontal: 10,
-    paddingVertical:   3,
-    marginTop:         Spacing.xs,
-    borderWidth:       1,
-    borderColor:       Colors.emberBorder,
-  },
-  drinkStyleText: {
-    ...Typography.labelSm,
-    color: Colors.primary,
-  },
-
-  // Result actions
-  resultActions: {
-    gap:       Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  historyToggleBtn: {
-    alignItems:      'center',
-    paddingVertical: Spacing.sm,
-  },
-  historyToggleText: {
-    ...Typography.labelMd,
-    color:         Colors.outline,
-    textTransform: 'none' as const,
-  },
-
-  // History
-  historySection: {
-    width:           '100%',
-    backgroundColor: Colors.surfaceContainer,
-    borderRadius:    Radius.lg,
-    borderWidth:     1,
-    borderColor:     NocturneColors.borderSubtle,
-    overflow:        'hidden',
-  },
-  historyHeader: {
-    flexDirection:  'row',
-    justifyContent: 'space-between',
-    alignItems:     'center',
-    padding:        Spacing.smMd,
-  },
-  historyTitle: {
-    ...Typography.labelMd,
-    color:         Colors.onSurface,
-    textTransform: 'none' as const,
-  },
-  historyItem: {
-    flexDirection:     'row',
-    alignItems:        'center',
-    gap:               Spacing.sm,
-    paddingHorizontal: Spacing.smMd,
-    paddingVertical:   Spacing.sm,
-    borderTopWidth:    1,
-    borderTopColor:    NocturneColors.borderSubtle,
-  },
-  historyItemName: {
-    ...Typography.bodyMd,
-    color: Colors.onSurface,
-    flex:  1,
-  },
-  historyRarityBadge: {
-    borderRadius:      Radius.full,
-    paddingHorizontal: 8,
-    paddingVertical:   2,
-  },
-  historyRarityText: {
-    ...Typography.labelSm,
-    textTransform: 'none' as const,
-  },
-  historyTime: {
-    ...Typography.bodySm,
-    color: Colors.outline,
-  },
-
-  // Footer
-  footer: {
-    padding:        Spacing.gutter,
-    paddingBottom:  Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.outlineVariant,
-  },
-
-  // ── Countdown overlay ─────────────────────────────────────────
-  countdownOverlay: {
-    backgroundColor: NocturneColors.overlayDark,
-    justifyContent:  'center',
-    alignItems:      'center',
-    zIndex:          50,
-  },
-  countdownNumber: {
-    fontFamily: FontFamily.frauncesBold,
-    fontSize:   120,
-    color:      Colors.primary,
-  },
+  root:              { flex: 1, backgroundColor: NocturneColors.casinoBackground },
+  safe:              { flex: 1 },
+  header:            { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.gutter, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: NocturneColors.outlineVariant },
+  headerLeft:        { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flex: 1 },
+  headerTitle:       { ...Typography.headlineSm, color: Colors.onSurface },
+  prizeChip:         { backgroundColor: Colors.emberMuted, borderRadius: Radius.xs, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderWidth: 1, borderColor: Colors.emberBorder },
+  prizeChipText:     { ...Typography.labelSm, color: Colors.primary },
+  closeBtn:          { padding: 6 },
+  heroSection:       { alignItems: 'center', paddingTop: Spacing.md, paddingBottom: Spacing.sm, position: 'relative' },
+  heroBg:            { ...StyleSheet.absoluteFillObject, borderBottomLeftRadius: Radius.xxl, borderBottomRightRadius: Radius.xxl },
+  revealingOverlay:  { position: 'absolute', bottom: Spacing.xl, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: NocturneColors.overlayDark, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full },
+  revealingText:     { ...Typography.labelSm, color: Colors.onSurfaceVariant },
+  rarityCountRow:    { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm, alignItems: 'center' },
+  rarityCountChip:   { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: NocturneColors.surfaceContainerLow, borderRadius: Radius.full, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderWidth: 1, borderColor: NocturneColors.borderSubtle },
+  rarityCountText:   { ...Typography.labelSm, fontSize: 10 },
+  pityRow:           { width: '100%', paddingHorizontal: Spacing.gutter, gap: Spacing.sm, marginTop: Spacing.sm },
+  pityItem:          { gap: 3 },
+  pityTrack:         { height: 4, backgroundColor: NocturneColors.surfaceContainerHigh, borderRadius: Radius.full, overflow: 'hidden' },
+  pityBar:           { height: '100%', borderRadius: Radius.full },
+  pityLabel:         { ...Typography.labelSm, color: Colors.onSurfaceVariant, fontSize: 9 },
+  countdownOverlay:  { zIndex: 20, justifyContent: 'center', alignItems: 'center' },
+  countdownNumber:   { ...Typography.orderNumber, color: Colors.onSurface, fontSize: 120, lineHeight: 130, zIndex: 21 },
+  scroll:            { flex: 1 },
+  scrollContent:     { padding: Spacing.gutter, gap: Spacing.lg, alignItems: 'center', paddingBottom: Spacing.xxxl + Spacing.lg },
+  resultCard:        { width: '100%', backgroundColor: Colors.surfaceContainer, borderRadius: Radius.xl, padding: Spacing.lg, borderWidth: 1, gap: Spacing.sm, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 8 },
+  rarityBadge:       { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderRadius: Radius.full, paddingHorizontal: Spacing.smMd, paddingVertical: Spacing.xs },
+  rarityBadgeText:   { ...Typography.labelMd, textTransform: 'none' as const },
+  drinkNameLg:       { ...Typography.displayLg },
+  drinkNameSm:       { ...Typography.displaySm },
+  drinkDesc:         { ...Typography.bodyMd, color: Colors.onSurfaceVariant },
+  recipeSection:     { borderTopWidth: 1, borderTopColor: NocturneColors.borderSubtle, paddingTop: Spacing.sm, marginTop: Spacing.xs, gap: Spacing.sm },
+  recipeToggle:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recipeToggleText:  { ...Typography.labelMd, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
+  recipeBody:        { gap: Spacing.xs, backgroundColor: Colors.surfaceContainerHigh, borderRadius: Radius.md, padding: Spacing.smMd },
+  ingredientText:    { ...Typography.bodySm, color: Colors.onSurfaceVariant },
+  drinkStyleBadge:   { alignSelf: 'flex-start', backgroundColor: Colors.emberMuted, borderRadius: Radius.full, paddingHorizontal: Spacing.smMd, paddingVertical: 3, marginTop: Spacing.xs, borderWidth: 1, borderColor: Colors.emberBorder },
+  drinkStyleText:    { ...Typography.labelSm, color: Colors.primary },
+  resultActions:     { gap: Spacing.sm, marginTop: Spacing.sm },
+  historyToggleBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, paddingVertical: Spacing.sm },
+  historyToggleText: { ...Typography.labelMd, color: Colors.outline, textTransform: 'none' as const },
+  historySection:    { width: '100%', backgroundColor: Colors.surfaceContainer, borderRadius: Radius.lg, borderWidth: 1, borderColor: NocturneColors.borderSubtle, overflow: 'hidden' },
+  historyHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.smMd },
+  historyTitle:      { ...Typography.labelMd, color: Colors.onSurface, textTransform: 'none' as const },
+  historyItem:       { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.smMd, paddingVertical: Spacing.sm, borderTopWidth: 1, borderTopColor: NocturneColors.borderSubtle },
+  historyItemName:   { ...Typography.bodyMd, color: Colors.onSurface, flex: 1 },
+  historyRarityBadge: { borderRadius: Radius.full, paddingHorizontal: Spacing.sm, paddingVertical: 2 },
+  historyRarityText: { ...Typography.labelSm, fontSize: 9, textTransform: 'none' as const },
+  historyTime:       { ...Typography.bodySm, color: Colors.outline },
+  footer:            { paddingHorizontal: Spacing.gutter, paddingBottom: Spacing.md, paddingTop: Spacing.sm, position: 'relative' },
+  footerGradient:    { position: 'absolute', top: -Spacing.xl, left: 0, right: 0, height: Spacing.xl },
 });
+
+export default RouletteScreen;
