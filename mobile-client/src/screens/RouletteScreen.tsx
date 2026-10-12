@@ -16,7 +16,7 @@ import {
   Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, RotateCw, ChevronDown } from 'lucide-react-native';
+import { X, RotateCw, ChevronDown, Martini, Ticket } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -51,10 +51,10 @@ interface SpinHistoryItem {
 
 // ── Rarity config ─────────────────────────────────────────────────────────────
 const RARITY_CONFIG = {
-  COMMON:    { border: '#9b8f7d', label: Colors.outline,          glow: 'rgba(155,143,125,0.25)', emoji: '⚪', badgeBg: Colors.surfaceContainerHigh, badgeText: Colors.outline,    bgColor: '#9b8f7d' },
-  RARE:      { border: '#38BDF8', label: Colors.info,             glow: 'rgba(56,189,248,0.25)',  emoji: '🔵', badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info,       bgColor: '#38BDF8' },
-  EPIC:      { border: '#a855f7', label: '#a855f7',               glow: 'rgba(168,85,247,0.25)',  emoji: '🟣', badgeBg: 'rgba(168,85,247,0.12)',       badgeText: '#a855f7',         bgColor: '#a855f7' },
-  LEGENDARY: { border: Colors.primary, label: Colors.primary,     glow: NocturneColors.goldGlowStrong, emoji: '⭐', badgeBg: Colors.goldMuted, badgeText: Colors.primary,           bgColor: Colors.primary },
+  COMMON:    { border: Colors.outline,         label: Colors.outline,                      glow: `${Colors.outline}40`,            emoji: '⚪', badgeBg: Colors.surfaceContainerHigh,  badgeText: Colors.outline,                      bgColor: Colors.outline },
+  RARE:      { border: Colors.info,            label: Colors.info,                         glow: `${Colors.info}40`,               emoji: '🔵', badgeBg: NocturneColors.infoMuted,     badgeText: Colors.info,                         bgColor: Colors.info },
+  EPIC:      { border: Colors.wine,            label: NocturneColors.onSecondaryContainer, glow: NocturneColors.wineGlow,          emoji: '🟣', badgeBg: NocturneColors.wineMuted,     badgeText: NocturneColors.onSecondaryContainer, bgColor: Colors.wine },
+  LEGENDARY: { border: NocturneColors.vipGold, label: NocturneColors.vipGold,              glow: NocturneColors.vipGoldGlowStrong, emoji: '⭐', badgeBg: NocturneColors.vipGoldMuted,  badgeText: NocturneColors.vipGold,              bgColor: NocturneColors.vipGold },
 } as const;
 
 function fmtTime(d: Date): string {
@@ -506,21 +506,24 @@ export const RouletteScreen: React.FC<RouletteScreenProps> = ({ onClose }) => {
             {/* Action buttons */}
             <View style={styles.resultActions}>
               <NButton
-                label="🎲 Volver a tirar"
+                label="Volver a tirar"
+                icon={<RotateCw size={18} color={Colors.onPrimary} />}
                 onPress={handleSpin}
                 fullWidth
                 size="lg"
               />
               {tableId && (
                 <NButton
-                  label="🍸 Pedir este trago"
+                  label="Pedir este trago"
+                  icon={<Martini size={18} color={Colors.primary} />}
                   onPress={handleAddToCart}
                   variant="ghost"
                   fullWidth
                 />
               )}
               <NButton
-                label="🎫 Generar Ticket VIP"
+                label="Generar Ticket VIP"
+                icon={<Ticket size={18} color={Colors.primary} />}
                 onPress={handleGenerateTicket}
                 loading={isGeneratingTicket}
                 variant="ghost"
@@ -611,12 +614,12 @@ const styles = StyleSheet.create({
     color: Colors.onSurface,
   },
   prizeHeader: {
-    backgroundColor:   Colors.goldMuted,
+    backgroundColor:   Colors.emberMuted,
     borderRadius:      Radius.xs,
     paddingHorizontal: 8,
     paddingVertical:   3,
     borderWidth:       1,
-    borderColor:       Colors.goldBorder,
+    borderColor:       Colors.emberBorder,
   },
   prizeHeaderText: {
     ...Typography.labelSm,
@@ -682,7 +685,7 @@ const styles = StyleSheet.create({
   // Recipe
   recipeSection: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(224,226,236,0.08)',
+    borderTopColor: NocturneColors.borderSubtle,
     paddingTop:     Spacing.sm,
     marginTop:      Spacing.xs,
     gap:            Spacing.sm,
@@ -709,13 +712,13 @@ const styles = StyleSheet.create({
   },
   drinkStyleBadge: {
     alignSelf:         'flex-start',
-    backgroundColor:   Colors.goldMuted,
+    backgroundColor:   Colors.emberMuted,
     borderRadius:      Radius.full,
     paddingHorizontal: 10,
     paddingVertical:   3,
     marginTop:         Spacing.xs,
     borderWidth:       1,
-    borderColor:       Colors.goldBorder,
+    borderColor:       Colors.emberBorder,
   },
   drinkStyleText: {
     ...Typography.labelSm,
@@ -743,7 +746,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainer,
     borderRadius:    Radius.lg,
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.06)',
+    borderColor:     NocturneColors.borderSubtle,
     overflow:        'hidden',
   },
   historyHeader: {
@@ -764,7 +767,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   Spacing.sm,
     borderTopWidth:    1,
-    borderTopColor:    'rgba(224,226,236,0.05)',
+    borderTopColor:    NocturneColors.borderSubtle,
   },
   historyItemName: {
     ...Typography.bodyMd,
@@ -795,7 +798,7 @@ const styles = StyleSheet.create({
 
   // ── Countdown overlay ─────────────────────────────────────────
   countdownOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent:  'center',
     alignItems:      'center',
     zIndex:          50,

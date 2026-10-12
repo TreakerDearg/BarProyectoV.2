@@ -22,10 +22,10 @@ const { width: screenWidth } = Dimensions.get('window');
 // Account for horizontal padding in parent scroll (2 * Spacing.gutter)
 const CARD_WIDTH = screenWidth - Spacing.gutter * 2;
 
-// ── Level thresholds ──────────────────────────────────────────────────────────
+// ── Level thresholds (exportado: AccountScreen usa getLevel para el anillo) ──
 type Level = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
 
-interface LevelConfig {
+export interface LevelConfig {
   label:    Level;
   emoji:    string;
   color:    string;
@@ -40,7 +40,7 @@ const LEVELS: LevelConfig[] = [
   { label: 'Platinum', emoji: '💎', color: NocturneColors.fidelityPlatinum, min: 5000, max: null  },
 ];
 
-function getLevel(balance: number): LevelConfig {
+export function getLevel(balance: number): LevelConfig {
   for (let i = LEVELS.length - 1; i >= 0; i--) {
     if (balance >= LEVELS[i].min) return LEVELS[i];
   }

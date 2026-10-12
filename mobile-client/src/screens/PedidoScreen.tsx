@@ -15,18 +15,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
-  Image,
   Alert,
   Animated,
   Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image as ExpoImage } from 'expo-image';
 import {
   ShoppingBag, Send,
   CheckCircle2, Flame, Sparkles,
   AlertCircle, RefreshCw, QrCode,
   UtensilsCrossed, Receipt, ChefHat, PhoneCall, TicketPercent,
-  Clock,
+  Clock, Martini,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -288,14 +288,16 @@ function CartView({
             renderItem={({ item }) => (
               <View style={subStyles.upsellCard}>
                 {item.image ? (
-                  <Image
+                  <ExpoImage
                     source={{ uri: item.image }}
                     style={subStyles.upsellImage}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={150}
                   />
                 ) : (
                   <View style={[subStyles.upsellImage, subStyles.upsellImageFallback]}>
-                    <Text style={{ fontSize: 18 }}>🍹</Text>
+                    <Martini size={22} color={Colors.outline} />
                   </View>
                 )}
                 <Text style={subStyles.upsellName} numberOfLines={2}>{item.name}</Text>
@@ -369,7 +371,7 @@ function CartView({
 
       {/* Botón enviar */}
       <NButton
-        label={submitting ? 'Enviando...' : `Confirmar Pedido · ${fmtPrice(total)}`}
+        label={submitting ? 'Enviando...' : `Confirmar pedido · ${fmtPrice(total)}`}
         onPress={handleSubmit}
         loading={submitting}
         fullWidth
@@ -489,8 +491,9 @@ function TrackingView({
 
       {/* Timeline card */}
       <View style={subStyles.timelineCard}>
-        <Text style={subStyles.orderNumSmall}>
-          Pedido #{currentOrder.id.slice(-3).toUpperCase()}
+        <Text style={subStyles.orderNumLabel}>Pedido</Text>
+        <Text style={subStyles.orderNumber}>
+          #{currentOrder.id.slice(-3).toUpperCase()}
         </Text>
 
         {/* Fase actual — protagonista */}
@@ -815,12 +818,12 @@ const styles = StyleSheet.create({
     color: Colors.onSurface,
   },
   orderNumBadge: {
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderRadius:    Radius.xs,
     paddingHorizontal: 8,
     paddingVertical:   3,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   orderNumText: {
     ...Typography.labelMd,
@@ -845,7 +848,7 @@ const subStyles = StyleSheet.create({
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   8,
     borderWidth:     1,
-    borderColor:     'rgba(56,189,248,0.20)',
+    borderColor:     NocturneColors.infoBorder,
   },
   estimateBadgeText: {
     ...Typography.bodyMd,
@@ -867,7 +870,7 @@ const subStyles = StyleSheet.create({
     borderRadius:    Radius.lg,
     overflow:        'hidden',
     borderWidth:     1,
-    borderColor:     'rgba(224,226,236,0.07)',
+    borderColor:     NocturneColors.borderSubtle,
     gap:             4,
     paddingBottom:   Spacing.xs,
   },
@@ -887,12 +890,12 @@ const subStyles = StyleSheet.create({
   },
   upsellAdd: {
     marginHorizontal:  Spacing.xs,
-    backgroundColor:   Colors.goldMuted,
+    backgroundColor:   Colors.emberMuted,
     borderRadius:      Radius.sm,
     paddingVertical:   4,
     alignItems:        'center',
     borderWidth:       1,
-    borderColor:       Colors.goldBorder,
+    borderColor:       Colors.emberBorder,
   },
   upsellAddText: {
     ...Typography.labelSm,
@@ -914,14 +917,14 @@ const subStyles = StyleSheet.create({
     alignItems:      'center',
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.lg,
-    padding:         Spacing.smMd,
+    padding:         Spacing.md,
     gap:             Spacing.smMd,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   destinationIcon: {
-    width:           36,
-    height:          36,
+    width:           44,
+    height:          44,
     borderRadius:    Radius.md,
     justifyContent:  'center',
     alignItems:      'center',
@@ -936,16 +939,16 @@ const subStyles = StyleSheet.create({
     textTransform: 'none' as const,
   },
   destinationValue: {
-    ...Typography.titleMd,
+    ...Typography.headlineSm,
     color: Colors.onSurface,
   },
   changeBtn: {
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderRadius:    Radius.full,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
-    paddingHorizontal: 12,
-    paddingVertical:   6,
+    borderColor:     Colors.emberBorder,
+    paddingHorizontal: 14,
+    paddingVertical:   8,
   },
   changeBtnText: {
     ...Typography.labelMd,
@@ -960,13 +963,13 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.md,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   gateIcon: {
     width:           44,
     height:          44,
     borderRadius:    Radius.full,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
   },
@@ -981,7 +984,7 @@ const subStyles = StyleSheet.create({
     borderRadius:    Radius.lg,
     padding:         Spacing.smMd,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
     gap:             6,
   },
   itemTopRow: {
@@ -1030,7 +1033,7 @@ const subStyles = StyleSheet.create({
     borderRadius:    Radius.md,
     paddingHorizontal: 4,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   stepBtn:   { padding: 8 },
   stepCount: { ...Typography.labelLg, color: Colors.onSurface, paddingHorizontal: 8 },
@@ -1042,22 +1045,27 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.smMd,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   tipTitle: { ...Typography.labelMd, color: Colors.onSurfaceVariant },
-  tipRow:   { flexDirection: 'row', gap: 6 },
+  tipRow: {
+    flexDirection:   'row',
+    gap:             4,
+    backgroundColor: Colors.surfaceContainerHigh,
+    borderRadius:    Radius.full,
+    padding:         4,
+    borderWidth:     1,
+    borderColor:     NocturneColors.borderSubtle,
+  },
   tipChip: {
     flex:            1,
-    backgroundColor: Colors.surfaceContainerHigh,
-    paddingVertical: 8,
-    borderRadius:    Radius.md,
+    paddingVertical: 11,
+    borderRadius:    Radius.full,
     alignItems:      'center',
-    borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
   },
-  tipChipActive: { backgroundColor: Colors.goldMuted, borderColor: Colors.goldBorder },
+  tipChipActive: { backgroundColor: Colors.primaryContainer },
   tipChipText:   { ...Typography.labelSm, color: Colors.onSurfaceVariant, textTransform: 'none' as const },
-  tipChipTextActive: { color: Colors.primary },
+  tipChipTextActive: { color: Colors.onPrimary, fontWeight: '700' as const },
 
   // Resumen
   summaryCard: {
@@ -1066,7 +1074,7 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.smMd,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   summaryRow:  { flexDirection: 'row', justifyContent: 'space-between' },
   summaryLabel:{ ...Typography.bodyMd, color: Colors.onSurfaceVariant },
@@ -1080,7 +1088,7 @@ const subStyles = StyleSheet.create({
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   8,
     borderWidth:     1,
-    borderColor:     'rgba(52, 185, 100, 0.25)',
+    borderColor:     NocturneColors.successBorder,
   },
   couponBadge: {
     flexDirection: 'row',
@@ -1099,7 +1107,7 @@ const subStyles = StyleSheet.create({
   },
   totalRow: {
     borderTopWidth:  1,
-    borderTopColor:  'rgba(224, 226, 236, 0.08)',
+    borderTopColor:  NocturneColors.borderSubtle,
     paddingTop:      Spacing.sm,
     marginTop:       4,
   },
@@ -1118,14 +1126,20 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.lg,
     gap:             Spacing.md,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     ...(Elevation.card as object),
   },
-  orderNumSmall: {
-    ...Typography.labelMd,
+  orderNumLabel: {
+    ...Typography.labelSm,
     color:         Colors.onSurfaceVariant,
     textAlign:     'center',
-    textTransform: 'none' as const,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 2,
+  },
+  orderNumber: {
+    ...Typography.orderNumber,
+    color:     Colors.onSurface,
+    textAlign: 'center',
   },
   statusHero: {
     alignItems: 'center',
@@ -1157,7 +1171,7 @@ const subStyles = StyleSheet.create({
     paddingHorizontal: Spacing.smMd,
     paddingVertical:   6,
     borderWidth:     1,
-    borderColor:     'rgba(56,189,248,0.20)',
+    borderColor:     NocturneColors.infoBorder,
     marginTop:       Spacing.xs,
   },
   etaChipText: {
@@ -1174,6 +1188,12 @@ const subStyles = StyleSheet.create({
     height:          '100%',
     backgroundColor: Colors.primary,
     borderRadius:    Radius.full,
+    // Glow ember del progreso
+    shadowColor:   Colors.primary,
+    shadowOffset:  { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius:  8,
+    elevation:     4,
   },
   stepsRow: {
     flexDirection:  'row',
@@ -1188,7 +1208,7 @@ const subStyles = StyleSheet.create({
     justifyContent:  'center',
     alignItems:      'center',
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   stepIconBoxActive: {
     backgroundColor: Colors.primaryContainer,
@@ -1203,7 +1223,7 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.md,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   cardSectionTitle: { ...Typography.headlineSm, color: Colors.onSurface },
   trackItemRow: {
@@ -1212,13 +1232,13 @@ const subStyles = StyleSheet.create({
     gap:            Spacing.sm,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(224, 226, 236, 0.05)',
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   trackItemBullet: {
     width:           28,
     height:          28,
     borderRadius:    Radius.full,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     justifyContent:  'center',
     alignItems:      'center',
   },
@@ -1233,7 +1253,7 @@ const subStyles = StyleSheet.create({
     padding:         Spacing.md,
     gap:             Spacing.sm,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.06)',
+    borderColor:     NocturneColors.borderSubtle,
   },
   checkHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   checkTitle:  { ...Typography.headlineSm, color: Colors.onSurface },

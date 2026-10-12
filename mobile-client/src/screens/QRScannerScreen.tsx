@@ -12,7 +12,7 @@ import {
 import { X, QrCode, Keyboard } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Colors } from "../theme/colors";
+import { Colors, NocturneColors } from "../theme/colors";
 import { Typography, Spacing, Radius, Elevation } from "../theme/";
 import { lookupTableByCode } from "../api/tableApi";
 import { useSessionStore } from "../stores/useSessionStore";
@@ -153,7 +153,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
                 barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                 onBarcodeScanned={handleBarcodeScanned}
               />
-              {/* Dark overlay with gold-bordered square */}
+              {/* Overlay oscuro con marco ember */}
               <View style={styles.cameraOverlay}>
                 <View style={styles.cameraTopDark} />
                 <View style={styles.cameraMiddleRow}>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.gutter,
     paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.outlineVariant,
+    borderBottomColor: NocturneColors.borderSubtle,
   },
   headerTitleRow: {
     flexDirection: "row",
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   cameraTopDark: {
     flex: 1,
-    backgroundColor: 'rgba(16,19,26,0.70)',
+    backgroundColor: NocturneColors.overlayDark,
   },
   cameraMiddleRow: {
     flexDirection: 'row',
@@ -320,18 +320,18 @@ const styles = StyleSheet.create({
   },
   cameraSideDark: {
     flex: 1,
-    backgroundColor: 'rgba(16,19,26,0.70)',
+    backgroundColor: NocturneColors.overlayDark,
   },
   cameraScanBox: {
     width: 220,
     height: 220,
-    borderWidth: 2,
-    borderColor: Colors.primaryContainer,
+    borderWidth: 3,
+    borderColor: Colors.primary,
     borderRadius: Radius.xl,
   },
   cameraBottomDark: {
     flex: 1,
-    backgroundColor: 'rgba(16,19,26,0.70)',
+    backgroundColor: NocturneColors.overlayDark,
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingTop: Spacing.lg,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(16,19,26,0.6)',
+    backgroundColor: NocturneColors.overlayDark,
   },
 
   // Keyboard mode
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     backgroundColor: Colors.surfaceContainer,
     borderWidth: 2,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     justifyContent: "center",
     alignItems: "center",
     position: 'relative',
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.success,
     borderWidth: 2,
     borderRadius: Radius.xl,
-    backgroundColor: 'rgba(52,185,100,0.08)',
+    backgroundColor: NocturneColors.successMuted,
   },
   codeText: {
     ...Typography.displayLg,
@@ -424,9 +424,9 @@ const styles = StyleSheet.create({
     width: 80,
     height: 65,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.surfaceContainer,
+    backgroundColor: Colors.surfaceContainerHigh,
     borderWidth: 1,
-    borderColor: Colors.outlineVariant,
+    borderColor: NocturneColors.borderSubtle,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -435,11 +435,11 @@ const styles = StyleSheet.create({
     color: Colors.onSurface,
   },
   backspaceKey: {
-    backgroundColor: Colors.surfaceContainerHigh,
+    backgroundColor: NocturneColors.surfaceContainerHighest,
   },
   okKey: {
     backgroundColor: Colors.primaryContainer,
-    ...(Elevation.goldCTA as object),
+    ...(Elevation.emberCTA as object),
   },
   okText: {
     ...Typography.labelLg,

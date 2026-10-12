@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     padding:         Spacing.smMd,
   },
   optionSelected: {
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderColor:     Colors.primary,
   },
   optionIcon: {

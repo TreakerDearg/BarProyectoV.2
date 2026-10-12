@@ -16,12 +16,16 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles, AlertCircle } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors }     from '../theme/colors';
+import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
+import { Elevation }  from '../theme/elevation';
+import { Gradients }  from '../theme/gradients';
+import { Motion }     from '../theme/motion';
 import { useAuthStore } from '../stores/useAuthStore';
 import { NInput }  from '../components/shared/NInput';
 import { NButton } from '../components/shared/NButton';
@@ -52,16 +56,16 @@ export default function AuthScreen() {
   const tabIndicatorX    = useRef(new Animated.Value(0)).current;
   const tabContainerWidth = useRef<number>(0);
 
-  // ── Entrance animation ─────────────────────────────────────────
+  // ── Entrance animation (tokens de motion) ─────────────────────
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(heroOpacity,    { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(heroScale,      { toValue: 1, duration: 600, useNativeDriver: true }),
+      Animated.timing(heroOpacity, { toValue: 1, duration: Motion.slow, useNativeDriver: true }),
+      Animated.timing(heroScale,   { toValue: 1, duration: Motion.slow, useNativeDriver: true }),
       Animated.sequence([
-        Animated.delay(200),
+        Animated.delay(Motion.base),
         Animated.parallel([
-          Animated.timing(cardOpacity,    { toValue: 1, duration: 400, useNativeDriver: true }),
-          Animated.timing(cardTranslateY, { toValue: 0, duration: 400, useNativeDriver: true }),
+          Animated.timing(cardOpacity,    { toValue: 1, duration: Motion.slow, useNativeDriver: true }),
+          Animated.timing(cardTranslateY, { toValue: 0, duration: Motion.slow, useNativeDriver: true }),
         ]),
       ]),
     ]).start();
@@ -115,6 +119,12 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      {/* Glow cálido de fondo */}
+      <LinearGradient
+        {...Gradients.cardSheen}
+        style={styles.bgGlow}
+        pointerEvents="none"
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -282,6 +292,15 @@ const styles = StyleSheet.create({
     gap:            Spacing.lg,
   },
 
+  // ── Fondo ──────────────────────────────────────────────
+  bgGlow: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    right:    0,
+    height:   '55%',
+  },
+
   // ── Brand ──────────────────────────────────────────────────────
   brand: {
     alignItems: 'center',
@@ -294,7 +313,7 @@ const styles = StyleSheet.create({
     width:           110,
     height:          110,
     borderRadius:    55,
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: NocturneColors.emberGlow,
   },
   brandMark: {
     width:           56,
@@ -302,13 +321,13 @@ const styles = StyleSheet.create({
     borderRadius:    Radius.xl,
     backgroundColor: Colors.surfaceContainerHigh,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     NocturneColors.emberBorder,
     justifyContent:  'center',
     alignItems:      'center',
     marginBottom:    Spacing.sm,
   },
   brandName: {
-    ...Typography.displaySm,
+    ...Typography.displayLg,
     color:         Colors.primary,
     letterSpacing: 4,
   },
@@ -322,9 +341,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceContainer,
     borderRadius:    Radius.xl,
     borderWidth:     1,
-    borderColor:     'rgba(224, 226, 236, 0.08)',
+    borderColor:     NocturneColors.borderSubtle,
     padding:         Spacing.lg,
     gap:             Spacing.md,
+    ...(Elevation.card as object),
   },
 
   // ── Tabs ───────────────────────────────────────────────────────
@@ -369,9 +389,9 @@ const styles = StyleSheet.create({
     flexDirection:   'row',
     alignItems:      'center',
     gap:             8,
-    backgroundColor: 'rgba(255, 180, 171, 0.10)',
+    backgroundColor: NocturneColors.errorMuted,
     borderWidth:     1,
-    borderColor:     'rgba(255, 180, 171, 0.30)',
+    borderColor:     NocturneColors.errorBorder,
     borderRadius:    Radius.md,
     padding:         Spacing.smMd,
   },

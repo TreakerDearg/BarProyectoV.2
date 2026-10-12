@@ -228,12 +228,12 @@ const styles = StyleSheet.create({
     flex:  1,
   },
   authorBadge: {
-    backgroundColor: Colors.goldMuted,
+    backgroundColor: Colors.emberMuted,
     borderRadius:    Radius.xs,
     paddingHorizontal: 5,
     paddingVertical:   1,
     borderWidth:     1,
-    borderColor:     Colors.goldBorder,
+    borderColor:     Colors.emberBorder,
   },
   authorText: {
     ...Typography.labelSm,
