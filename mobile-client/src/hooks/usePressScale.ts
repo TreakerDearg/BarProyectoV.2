@@ -10,17 +10,21 @@ import { useCallback, useMemo, useRef } from 'react';
 import { Animated } from 'react-native';
 
 import { SpringPress } from '../theme/motion';
+import { useReducedMotion } from './useReducedMotion';
 
 export function usePressScale(scaleTo = 0.97) {
   const scale = useRef(new Animated.Value(1)).current;
+  const reduceMotion = useReducedMotion();
 
   const onPressIn = useCallback(() => {
+    if (reduceMotion) return;
     Animated.spring(scale, { toValue: scaleTo, ...SpringPress }).start();
-  }, [scale, scaleTo]);
+  }, [reduceMotion, scale, scaleTo]);
 
   const onPressOut = useCallback(() => {
+    if (reduceMotion) return;
     Animated.spring(scale, { toValue: 1, ...SpringPress }).start();
-  }, [scale]);
+  }, [reduceMotion, scale]);
 
   const animatedStyle = useMemo(
     () => ({ transform: [{ scale }] }),

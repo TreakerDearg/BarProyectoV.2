@@ -32,6 +32,7 @@ import type { RootTabParamList } from '../navigation/types';
 import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 
 import { getPublicProducts } from '../api/menuApi';
 import { useCartStore }      from '../stores/useCartStore';
@@ -87,6 +88,7 @@ type CartaNav = BottomTabNavigationProp<RootTabParamList, 'Carta'>;
 export default function CartaScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const navigation   = useNavigation<CartaNav>();
+  const { productColumns } = useResponsiveLayout();
 
   // ── Estado de datos ───────────────────────────────────────────
   const [products,   setProducts]   = useState<ProductPublicDTO[]>([]);
@@ -158,7 +160,7 @@ export default function CartaScreen() {
     [categories]
   );
 
-  // ── Secciones: agrupadas por categoría en filas de 2 ──────────
+  // ── Secciones: grid adaptable (1 / 2 / 3 columnas) ────────────
   const sections = useMemo<CartaSection[]>(() => {
     const q = debouncedQuery.trim().toLowerCase();
     const base = q
@@ -184,13 +186,13 @@ export default function CartaScreen() {
       const rows: CartaRow[] = [];
       // El primer ítem de cada categoría abre la sección como hero
       rows.push({ key: `${cat.id}-hero`, items: [items[0]], hero: true });
-      for (let i = 1; i < items.length; i += 2) {
-        rows.push({ key: `${cat.id}-${i}`, items: items.slice(i, i + 2) });
+      for (let i = 1; i < items.length; i += productColumns) {
+        rows.push({ key: `${cat.id}-${i}`, items: items.slice(i, i + productColumns) });
       }
       out.push({ title: cat.name, categoryId: cat.id, count: items.length, data: rows });
     });
     return out;
-  }, [products, orderedCategories, debouncedQuery]);
+  }, [products, orderedCategories, debouncedQuery, productColumns]);
 
   const resultCount = useMemo(
     () => sections.reduce((n, s) => n + s.count, 0),
@@ -520,7 +522,9 @@ export default function CartaScreen() {
                     />
                   </View>
                 ))}
-                {item.items.length === 1 && <View style={styles.gridItem} />}
+                {Array.from({ length: Math.max(0, productColumns - item.items.length) }).map((_, index) => (
+                  <View key={`placeholder-${index}`} style={styles.gridItem} />
+                ))}
               </View>
             );
           }}

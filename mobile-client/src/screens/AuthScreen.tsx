@@ -176,6 +176,9 @@ export default function AuthScreen() {
                 style={styles.tabBtn}
                 onPress={() => switchTab('login')}
                 activeOpacity={0.75}
+                accessibilityRole="tab"
+                accessibilityLabel="Iniciar sesión"
+                accessibilityState={{ selected: tab === 'login' }}
               >
                 <Text style={[styles.tabLabel, tab === 'login' && styles.tabLabelActive]}>
                   Iniciar sesión
@@ -185,6 +188,9 @@ export default function AuthScreen() {
                 style={styles.tabBtn}
                 onPress={() => switchTab('register')}
                 activeOpacity={0.75}
+                accessibilityRole="tab"
+                accessibilityLabel="Crear cuenta"
+                accessibilityState={{ selected: tab === 'register' }}
               >
                 <Text style={[styles.tabLabel, tab === 'register' && styles.tabLabelActive]}>
                   Crear cuenta
@@ -236,7 +242,7 @@ export default function AuthScreen() {
               />
 
               {displayError && (
-                <View style={styles.errorBanner}>
+                <View style={styles.errorBanner} accessibilityRole="alert">
                   <AlertCircle size={16} color={Colors.error} />
                   <Text style={styles.errorText}>{displayError}</Text>
                 </View>
@@ -264,6 +270,8 @@ export default function AuthScreen() {
               style={styles.switchBtn}
               onPress={() => switchTab(tab === 'login' ? 'register' : 'login')}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={tab === 'login' ? 'Crear una cuenta nueva' : 'Iniciar sesión con una cuenta existente'}
             >
               <Text style={styles.switchBtnText}>
                 {tab === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}

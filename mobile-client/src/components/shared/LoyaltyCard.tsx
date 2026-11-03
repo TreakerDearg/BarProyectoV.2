@@ -11,16 +11,13 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { Award, Medal, Trophy, Gem } from 'lucide-react-native';
 
 import { Colors, NocturneColors } from '../../theme/colors';
 import { Typography } from '../../theme/typography';
 import { Spacing, Radius } from '../../theme/spacing';
-
-const { width: screenWidth } = Dimensions.get('window');
-const CARD_WIDTH = screenWidth - Spacing.gutter * 2;
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 type Level = 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
@@ -76,14 +73,19 @@ export function LoyaltyCard({ balance, totalEarned, userId }: LoyaltyCardProps) 
   const progress = getLevelProgress(balance, level);
 
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) {
+      progressAnim.setValue(progress);
+      return;
+    }
     Animated.timing(progressAnim, {
       toValue:         progress,
       duration:        800,
       useNativeDriver: false,
     }).start();
-  }, [progress]);
+  }, [progress, reduceMotion, progressAnim]);
 
   const nextLevel     = LEVELS.find((l) => l.min > balance);
   const pointsToNext  = nextLevel ? nextLevel.min - balance : 0;

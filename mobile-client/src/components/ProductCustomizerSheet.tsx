@@ -17,8 +17,9 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Heart, Plus, Minus, Check, GlassWater, Sparkles, Leaf } from 'lucide-react-native';
+import { X, Plus, Minus, Check, GlassWater, Sparkles, Leaf } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, NocturneColors } from '../theme/colors';
 import { Typography } from '../theme/typography';
@@ -51,6 +52,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const insets = useSafeAreaInsets();
   const [quantity,       setQuantity]       = useState(1);
   const [iceChoice,      setIceChoice]      = useState<string>('Normal');
   const [citrusChoice,   setCitrusChoice]   = useState<string>('Limón');
@@ -124,7 +126,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.sheet}>
+        <View style={styles.sheet} accessibilityViewIsModal accessibilityLabel={`Personalizar ${product.name}`}>
           {/* ── Hero image ────────────────────────────────── */}
           {product.image ? (
             <View style={styles.heroWrap}>
@@ -142,17 +144,13 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                 pointerEvents="none"
               />
               {/* Close button */}
-              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
+              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }} accessibilityRole="button" accessibilityLabel="Cerrar personalización">
                 <X size={20} color={Colors.onSurface} />
-              </TouchableOpacity>
-              {/* Heart */}
-              <TouchableOpacity style={styles.heroHeartBtn}>
-                <Heart size={18} color={Colors.onSurface} />
               </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.heroPlaceholder}>
-              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
+              <TouchableOpacity style={styles.heroCloseBtn} onPress={onClose} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }} accessibilityRole="button" accessibilityLabel="Cerrar personalización">
                 <X size={20} color={Colors.onSurface} />
               </TouchableOpacity>
             </View>
@@ -162,6 +160,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
             style={styles.scrollBody}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
           >
             {/* ── Info area ─────────────────────────────── */}
             <View style={styles.infoArea}>
@@ -210,6 +209,9 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                       key={opt}
                       style={[styles.optChip, iceChoice === opt && styles.optChipSelected]}
                       onPress={() => { Haptics.selectionAsync(); setIceChoice(opt); }}
+                      accessibilityRole="radio"
+                      accessibilityLabel={opt}
+                      accessibilityState={{ selected: iceChoice === opt }}
                     >
                       <Text style={[styles.optChipText, iceChoice === opt && styles.optChipTextSelected]}>
                         {opt}
@@ -225,6 +227,9 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                       key={opt}
                       style={[styles.optChip, citrusChoice === opt && styles.optChipSelected]}
                       onPress={() => { Haptics.selectionAsync(); setCitrusChoice(opt); }}
+                      accessibilityRole="radio"
+                      accessibilityLabel={opt}
+                      accessibilityState={{ selected: citrusChoice === opt }}
                     >
                       <Text style={[styles.optChipText, citrusChoice === opt && styles.optChipTextSelected]}>
                         {opt}
@@ -246,6 +251,9 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                     style={styles.addonRow}
                     onPress={() => toggleAddon(addon.id)}
                     activeOpacity={0.8}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={`${addon.label}, suma $${addon.price.toLocaleString('es-AR')}`}
+                    accessibilityState={{ checked }}
                   >
                     <View style={styles.addonInfo}>
                       <Text style={styles.addonLabel}>{addon.label}</Text>
@@ -274,6 +282,8 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                 onChangeText={setFreeText}
                 multiline
                 textAlignVertical="top"
+                accessibilityLabel="Notas especiales del pedido"
+                accessibilityHint="Escribí alergias o instrucciones para la preparación"
               />
               <View style={styles.suggestionRow}>
                 {SUGGESTION_CHIPS.map((chip) => (
@@ -281,6 +291,8 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                     key={chip}
                     style={styles.suggestionChip}
                     onPress={() => addSuggestion(chip)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Agregar nota: ${chip}`}
                   >
                     <Text style={styles.suggestionChipText}>+ {chip}</Text>
                   </TouchableOpacity>
@@ -290,7 +302,7 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
           </ScrollView>
 
           {/* ── Sticky footer ────────────────────────────── */}
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.lg) }]}>
             {/* Stepper */}
             <View style={styles.stepper}>
               <TouchableOpacity
@@ -301,6 +313,10 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                     setQuantity((q) => q - 1);
                   }
                 }}
+                disabled={quantity <= 1}
+                accessibilityRole="button"
+                accessibilityLabel="Reducir cantidad"
+                accessibilityState={{ disabled: quantity <= 1 }}
               >
                 <Minus size={16} color={Colors.onSurface} />
               </TouchableOpacity>
@@ -311,6 +327,8 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setQuantity((q) => q + 1);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel="Aumentar cantidad"
               >
                 <Plus size={16} color={Colors.onSurface} />
               </TouchableOpacity>
@@ -321,6 +339,8 @@ export const ProductCustomizerSheet: React.FC<ProductCustomizerSheetProps> = ({
               style={styles.ctaBtn}
               onPress={handleConfirm}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={`Agregar ${quantity} ${product.name} al pedido por $${totalPrice.toLocaleString('es-AR')}`}
             >
               <LinearGradient
                 {...Gradients.emberCTA}
@@ -366,14 +386,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: NocturneColors.overlayDark,
-    borderRadius: Radius.full,
-    padding: 8,
-  },
-  heroHeartBtn: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
     backgroundColor: NocturneColors.overlayDark,
     borderRadius: Radius.full,
     padding: 8,

@@ -130,7 +130,7 @@ const ProfilePanel = memo(function ProfilePanel() {
       <View style={pStyles.header}>
         <Text style={pStyles.sectionLabel}>Perfil</Text>
         {!editing && (
-          <TouchableOpacity onPress={() => setEditing(true)} style={pStyles.editBtn} activeOpacity={0.75}>
+          <TouchableOpacity onPress={() => setEditing(true)} style={pStyles.editBtn} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel="Editar datos del perfil">
             <Pencil size={13} color={Colors.primary} />
             <Text style={pStyles.editBtnText}>Editar</Text>
           </TouchableOpacity>
@@ -232,7 +232,7 @@ const PasswordPanel = memo(function PasswordPanel() {
       </View>
 
       {!open ? (
-        <TouchableOpacity style={pStyles.changePassBtn} onPress={() => setOpen(true)} activeOpacity={0.75}>
+        <TouchableOpacity style={pStyles.changePassBtn} onPress={() => setOpen(true)} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel="Cambiar contraseña">
           <Text style={pStyles.changePassText}>Cambiar contraseña</Text>
           <ChevronRight size={16} color={Colors.onSurfaceVariant} />
         </TouchableOpacity>
@@ -423,7 +423,7 @@ export default function AccountScreen() {
         {/* ── Header ──────────────────────────────────────── */}
         <View style={styles.header}>
           <Text style={styles.screenLabel}>MI CUENTA</Text>
-          <TouchableOpacity onPress={fetchHistory} style={styles.refreshBtn} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+          <TouchableOpacity onPress={fetchHistory} style={styles.refreshBtn} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }} accessibilityRole="button" accessibilityLabel="Actualizar información de la cuenta">
             <RefreshCw size={16} color={Colors.outline} />
           </TouchableOpacity>
         </View>

@@ -99,6 +99,9 @@ function CategoryPill({
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
         onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver categoría ${category.name}`}
+        accessibilityState={{ selected: isActive }}
         activeOpacity={0.8}
         style={[
           styles.pill,
@@ -120,6 +123,8 @@ function RuletaPill({ onPress }: { onPress: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Abrir ruleta de cócteles"
       activeOpacity={0.8}
       style={[styles.pill, styles.ruletaPill]}
     >

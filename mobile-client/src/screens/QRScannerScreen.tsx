@@ -12,11 +12,13 @@ import {
 import { X, QrCode, Keyboard } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, NocturneColors } from "../theme/colors";
 import { Typography, Spacing, Radius, Elevation } from "../theme/";
 import { lookupTableByCode } from "../api/tableApi";
 import { useSessionStore } from "../stores/useSessionStore";
 import { getErrorMessage } from "../api/client";
+import { NIconButton } from "../components/shared/NIconButton";
 
 interface QRScannerScreenProps {
   onClose: () => void;
@@ -45,7 +47,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
         setMode('keyboard');
       }
     }
-  }, [permission?.granted]);
+  }, [permission?.granted, permission?.canAskAgain, requestPermission]);
 
   // Animations for keyboard mode
   const boxScaleAnims = useRef(
@@ -93,7 +95,9 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
       setScannedRef(true);
       handleValidateCode(data);
     } else {
+      setScannedRef(true);
       Alert.alert("Código inválido", "El QR no contiene un código de mesa válido.");
+      setTimeout(() => setScannedRef(false), 1500);
     }
   };
 
@@ -121,7 +125,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
@@ -129,16 +133,21 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
           <Text style={styles.headerTitle}>Conectar Mesa</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity onPress={toggleMode} style={styles.modeBtn}>
+          <NIconButton
+            label={mode === 'camera' ? 'Usar código numérico' : 'Usar cámara para escanear QR'}
+            hint="Cambia el método para conectar la mesa"
+            onPress={toggleMode}
+            style={styles.modeBtn}
+          >
             {mode === 'camera' ? (
               <Keyboard size={20} color={Colors.onSurfaceVariant} />
             ) : (
               <QrCode size={20} color={Colors.onSurfaceVariant} />
             )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+          </NIconButton>
+          <NIconButton label="Cerrar conexión de mesa" onPress={onClose} style={styles.closeBtn}>
             <X size={22} color={Colors.onSurfaceVariant} />
-          </TouchableOpacity>
+          </NIconButton>
         </View>
       </View>
 
@@ -169,7 +178,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
               </View>
             </>
           ) : (
-            <View style={styles.cameraPermDenied}>
+            <View style={styles.cameraPermDenied} accessibilityRole="alert">
               <QrCode size={48} color={Colors.outline} />
               <Text style={styles.cameraPermText}>
                 Permiso de cámara denegado. Usá el teclado numérico.
@@ -177,7 +186,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
             </View>
           )}
           {loading && (
-            <View style={styles.loadingOverlay}>
+            <View style={styles.loadingOverlay} accessibilityRole="progressbar" accessibilityLabel="Conectando mesa">
               <ActivityIndicator size="large" color={Colors.primary} />
             </View>
           )}
@@ -192,7 +201,7 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
           </Text>
 
           {/* CODE DISPLAY */}
-          <View style={styles.codeDisplay}>
+          <View style={styles.codeDisplay} accessibilityLiveRegion="polite" accessibilityLabel={`Código de mesa: ${code || 'vacío'}`}>
             {[0, 1, 2].map((idx) => {
               const isFilled = !!code[idx];
               return (
@@ -225,6 +234,9 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
                 onPress={() => handleKeyPress(key)}
                 disabled={loading}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={`Ingresar ${key}`}
+                accessibilityState={{ disabled: loading }}
               >
                 <Text style={styles.keyText}>{key}</Text>
               </TouchableOpacity>
@@ -234,6 +246,9 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
               onPress={handleBackspace}
               disabled={loading}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Borrar último dígito"
+              accessibilityState={{ disabled: loading }}
             >
               <Text style={styles.keyText}>C</Text>
             </TouchableOpacity>
@@ -242,6 +257,9 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
               onPress={() => handleKeyPress("0")}
               disabled={loading}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Ingresar 0"
+              accessibilityState={{ disabled: loading }}
             >
               <Text style={styles.keyText}>0</Text>
             </TouchableOpacity>
@@ -250,13 +268,16 @@ export const QRScannerScreen: React.FC<QRScannerScreenProps> = ({ onClose, onSuc
               onPress={() => handleValidateCode()}
               disabled={loading}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Validar código de mesa"
+              accessibilityState={{ disabled: loading }}
             >
               <Text style={styles.okText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -289,10 +310,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   modeBtn: {
-    padding: 6,
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
   },
   closeBtn: {
-    padding: 6,
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
   },
 
   // Camera mode

@@ -14,8 +14,8 @@ import {
   RefreshControl,
   Animated,
   Alert,
-  Dimensions,
 } from 'react-native';
+import { useSharedValue as useRSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,6 +34,8 @@ import { Elevation }  from '../theme/elevation';
 import { Gradients } from '../theme/gradients';
 import { Motion, Easings } from '../theme/motion';
 import { usePressScale } from '../hooks/usePressScale';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 
 import { useAuthStore }    from '../stores/useAuthStore';
 import { useSessionStore } from '../stores/useSessionStore';
@@ -73,10 +75,6 @@ import type { RootTabParamList } from '../navigation/types';
 
 type HomeNav = BottomTabNavigationProp<RootTabParamList, 'Inicio'>;
 
-// Ancho del carrusel del Sommelier: 80% del viewport + peek de la próxima card
-const { width: SCREEN_W } = Dimensions.get('window');
-const SOMMELIER_CARD_WIDTH = SCREEN_W * 0.8;
-
 // Touchable con soporte de estilo animado (press scale sin reescribir el JSX)
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -110,6 +108,9 @@ function promoValidUntil(p: PromotionPublicDTO): string | undefined {
 export default function HomeScreen() {
   const navigation   = useNavigation<HomeNav>();
   const tabBarHeight = useBottomTabBarHeight();
+  const { width, productColumns, pageGutter } = useResponsiveLayout();
+  const reduceMotion = useReducedMotion();
+  const sommelierCardWidth = Math.min(width - pageGutter * 2, width * 0.8);
 
   const user          = useAuthStore((s) => s.user);
   const { tableId, tableNumber, serviceMode } = useSessionStore();
@@ -132,8 +133,8 @@ export default function HomeScreen() {
   const [customizerProduct, setCustomizerProduct] = useState<ProductPublicDTO | null>(null);
   const [idleWheelDrinks,  setIdleWheelDrinks]  = useState<RouletteDrinkDTO[]>([]);
 
-  // Spin estático para la rueda idle del CTA (no recrear Animated.Value por render)
-  const idleSpin    = useRef(new Animated.Value(0)).current;
+  // Spin estático para la rueda idle del CTA (SharedValue para MobileWheel v4)
+  const idleSpin    = useRSharedValue(0);
   const ruletaPress = usePressScale(0.98);
 
   // ── Idle wheel drinks ─────────────────────────────────────────
@@ -154,6 +155,14 @@ export default function HomeScreen() {
   }).current;
 
   const runStaggerAnimation = () => {
+    if (reduceMotion) {
+      anim.header.setValue(1);
+      [anim.greeting, anim.mesa, anim.promo].forEach(({ o, y }) => { o.setValue(1); y.setValue(0); });
+      anim.quick.o.setValue(1);
+      anim.quick.s.setValue(1);
+      anim.sommelier.forEach(({ o, y }) => { o.setValue(1); y.setValue(0); });
+      return;
+    }
     // Tokens de motion: entradas de sección con desaceleración suave
     const dur  = Motion.base;
     const ease = Easings.decelerate;
@@ -210,7 +219,7 @@ export default function HomeScreen() {
   const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
   useEffect(() => {
-    if (tableNumber != null) {
+    if (tableNumber != null && !reduceMotion) {
       pulseLoopRef.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.5, duration: 800, useNativeDriver: true }),
@@ -223,7 +232,7 @@ export default function HomeScreen() {
       pulseAnim.setValue(1);
     }
     return () => { pulseLoopRef.current?.stop(); };
-  }, [tableNumber]);
+  }, [tableNumber, reduceMotion]);
 
   // ── Fetch all data ────────────────────────────────────────────
   const fetchData = useCallback(async (isRefresh = false) => {
@@ -605,11 +614,12 @@ export default function HomeScreen() {
                   </TouchableOpacity>
                 </View>
                 <FlatList
+                  key={`featured-${productColumns}`}
                   data={featuredProducts.slice(0, 4)}
-                  numColumns={2}
+                  numColumns={productColumns}
                   keyExtractor={(item) => item.id}
                   scrollEnabled={false}
-                  columnWrapperStyle={{ gap: Spacing.gridGap }}
+                  columnWrapperStyle={productColumns > 1 ? { gap: Spacing.gridGap } : undefined}
                   ItemSeparatorComponent={() => <View style={{ height: Spacing.gridGap }} />}
                   renderItem={({ item }) => (
                     <View style={{ flex: 1 }}>
@@ -660,7 +670,7 @@ export default function HomeScreen() {
                   horizontal
                   keyExtractor={(item) => item.id}
                   showsHorizontalScrollIndicator={false}
-                  snapToInterval={SOMMELIER_CARD_WIDTH + Spacing.gridGap}
+                  snapToInterval={sommelierCardWidth + Spacing.gridGap}
                   decelerationRate="fast"
                   style={styles.sommelierCarousel}
                   contentContainerStyle={styles.sommelierCarouselContent}
@@ -669,7 +679,7 @@ export default function HomeScreen() {
                     return (
                       <Animated.View
                         style={{
-                          width: SOMMELIER_CARD_WIDTH,
+                          width: sommelierCardWidth,
                           opacity: s.o,
                           transform: [{ translateY: s.y }],
                         }}

@@ -1,16 +1,26 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — WheelChaseRing
-// 12 luces orbitales SVG animadas alrededor del wheel.
-// Usa Animated de React Native (sin reanimated) para compatibilidad con Expo Go.
+// NEBULA — WheelChaseRing (v4 — Reanimated worklets)
+// 12 luces orbitales SVG. Toda la animación corre en el UI thread.
+// Eliminado el forceUpdate() por frame de la versión anterior.
 //
 // phase='idle'     → órbita lenta, ember sutil
 // phase='spinning' → órbita rápida, ember brillante
 // phase='result'   → todas encendidas al color de rareza
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withRepeat,
+  withTiming,
+  withDelay,
+  Easing,
+  createAnimatedComponent,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 import { Colors, NocturneColors } from '../../theme/colors';
 
@@ -23,6 +33,58 @@ const RARITY_GLOW_MAP: Record<string, string> = {
   LEGENDARY: NocturneColors.vipGold,
 };
 
+const AnimatedCircle = createAnimatedComponent(Circle);
+
+// ── Luz individual ────────────────────────────────────────────────────────────
+interface ChaseLightProps {
+  cx:         number;
+  cy:         number;
+  orbitR:     number;
+  index:      number;
+  total:      number;
+  phaseAnim:  SharedValue<number>;
+  phase:      string;
+  rarity:     string;
+}
+
+function ChaseLight({ cx, cy, orbitR, index, total, phaseAnim, phase, rarity }: ChaseLightProps) {
+  const baseAngle = (index / total) * Math.PI * 2;
+  const angle     = (index / total) * Math.PI * 2 - Math.PI / 2;
+  const lx        = cx + orbitR * Math.cos(angle);
+  const ly        = cy + orbitR * Math.sin(angle);
+
+  const isResult   = phase === 'result';
+  const isSpinning = phase === 'spinning';
+  const rarityColor = RARITY_GLOW_MAP[rarity] ?? RARITY_GLOW_MAP.COMMON;
+
+  const animatedProps = useAnimatedProps(() => {
+    'worklet';
+    if (isResult) {
+      return { opacity: 0.9 };
+    }
+    const sinVal = Math.sin(phaseAnim.value + baseAngle);
+    const maxOp  = isSpinning ? 0.9 : 0.5;
+    return { opacity: Math.max(0.05, sinVal * sinVal * maxOp) };
+  });
+
+  const color = isResult
+    ? rarityColor
+    : isSpinning
+      ? 'rgba(240,138,90,0.9)'
+      : 'rgba(240,138,90,0.5)';
+
+  return (
+    <AnimatedCircle
+      cx={lx}
+      cy={ly}
+      r={4.5}
+      fill={color}
+      animatedProps={animatedProps}
+    />
+  );
+}
+
+// ── Props ─────────────────────────────────────────────────────────────────────
 interface WheelChaseRingProps {
   cx:     number;
   cy:     number;
@@ -32,93 +94,48 @@ interface WheelChaseRingProps {
   rarity: string;
 }
 
-// Cada luz como componente puro SVG — opacidad calculada en JS desde el offset
-function ChaseLight({
-  lightX,
-  lightY,
-  opacity,
-  color,
-}: {
-  lightX:   number;
-  lightY:   number;
-  opacity:  number;
-  color:    string;
-}) {
-  return (
-    <Circle cx={lightX} cy={lightY} r={4.5} fill={color} opacity={opacity} />
-  );
-}
-
 export const WheelChaseRing: React.FC<WheelChaseRingProps> = ({
   cx, cy, orbitR, size, phase, rarity,
 }) => {
-  const phaseAnim = useRef(new Animated.Value(0)).current;
-  const animRef   = useRef<Animated.CompositeAnimation | null>(null);
-
-  // offset actual para el render (leído via listener)
-  const offsetRef  = useRef(0);
-  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  const phaseAnim = useSharedValue(0);
 
   useEffect(() => {
-    const listener = phaseAnim.addListener(({ value }) => {
-      offsetRef.current = value % (Math.PI * 2);
-      forceUpdate();
-    });
-    return () => phaseAnim.removeListener(listener);
-  }, []);
-
-  useEffect(() => {
-    animRef.current?.stop();
-
-    if (phase === 'result') return;
-
-    const duration = phase === 'spinning' ? 500 : 3500;
-    animRef.current = Animated.loop(
-      Animated.timing(phaseAnim, {
-        toValue:         phaseAnim._value + Math.PI * 2,
-        duration,
-        easing:          Easing.linear,
-        useNativeDriver: false,
-      }),
-    );
-    animRef.current.start();
-  }, [phase]);
-
-  const rarityColor = RARITY_GLOW_MAP[rarity] ?? RARITY_GLOW_MAP.COMMON;
-  const isResult    = phase === 'result';
-  const isSpinning  = phase === 'spinning';
-
-  const lights = Array.from({ length: LIGHT_COUNT }, (_, i) => {
-    const angle      = (i / LIGHT_COUNT) * Math.PI * 2 - Math.PI / 2;
-    const baseAngle  = (i / LIGHT_COUNT) * Math.PI * 2;
-    const lightX     = cx + orbitR * Math.cos(angle);
-    const lightY     = cy + orbitR * Math.sin(angle);
-
-    let opacity: number;
-    let color: string;
-
-    if (isResult) {
-      opacity = 0.9;
-      color   = rarityColor;
-    } else {
-      const sinVal = Math.sin(offsetRef.current + baseAngle);
-      opacity      = Math.max(0.05, sinVal * sinVal * (isSpinning ? 0.9 : 0.5));
-      color        = isSpinning ? 'rgba(240,138,90,0.9)' : 'rgba(240,138,90,0.5)';
+    if (phase === 'result') {
+      // Detener el loop
+      phaseAnim.value = phaseAnim.value;
+      return;
     }
-
-    return { lightX, lightY, opacity, color, key: i };
-  });
+    const duration = phase === 'spinning' ? 500 : 3500;
+    phaseAnim.value = withRepeat(
+      withTiming(phaseAnim.value + Math.PI * 2, {
+        duration,
+        easing: Easing.linear,
+      }),
+      -1,
+      false,
+    );
+  }, [phase]);
 
   return (
     <Svg
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      style={{ position: 'absolute', top: 0, left: 0 }}
+      style={StyleSheet.absoluteFill}
       pointerEvents="none"
     >
-      {lights.map(({ lightX, lightY, opacity, color, key }) => (
-        <ChaseLight key={key} lightX={lightX} lightY={lightY} opacity={opacity} color={color} />
+      {Array.from({ length: LIGHT_COUNT }, (_, i) => (
+        <ChaseLight
+          key={i}
+          cx={cx}
+          cy={cy}
+          orbitR={orbitR}
+          index={i}
+          total={LIGHT_COUNT}
+          phaseAnim={phaseAnim}
+          phase={phase}
+          rarity={rarity}
+        />
       ))}
     </Svg>
   );

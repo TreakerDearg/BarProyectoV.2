@@ -96,6 +96,10 @@ export function NInput({
           onSubmitEditing={onSubmitEditing}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+           accessibilityLabel={label ?? placeholder ?? 'Campo de texto'}
+           accessibilityHint={error ?? undefined}
+           accessibilityState={{ disabled: !editable }}
+           accessibilityLiveRegion={error ? 'polite' : 'none'}
         />
         {secureTextEntry && (
           <TouchableOpacity
@@ -103,6 +107,8 @@ export function NInput({
             style={styles.eyeBtn}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             accessibilityLabel={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: showPass }}
           >
             {showPass
               ? <EyeOff size={18} color={Colors.onSurfaceVariant} />
@@ -113,7 +119,7 @@ export function NInput({
       </View>
 
       {error && (
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText} accessibilityRole="alert">{error}</Text>
       )}
     </View>
   );

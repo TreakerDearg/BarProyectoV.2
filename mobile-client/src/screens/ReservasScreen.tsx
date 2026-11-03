@@ -301,7 +301,7 @@ export default function ReservasScreen() {
                   </Text>
                 )}
               </View>
-              <TouchableOpacity onPress={handleReset} style={styles.successResetBtn}>
+              <TouchableOpacity onPress={handleReset} style={styles.successResetBtn} accessibilityRole="button" accessibilityLabel="Crear una nueva reserva">
                 <Text style={styles.successResetText}>Nueva</Text>
               </TouchableOpacity>
             </View>
@@ -318,6 +318,8 @@ export default function ReservasScreen() {
                 style={styles.datePickerBtn}
                 onPress={() => setShowDatePicker(true)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={selectedDate ? `Cambiar fecha, ${formatDateDisplay(selectedDate)}` : 'Elegir fecha de reserva'}
               >
                 <CalendarDays size={18} color={Colors.primary} />
                 <Text style={[
@@ -375,6 +377,9 @@ export default function ReservasScreen() {
                       }
                     }}
                     disabled={guests <= 1}
+                    accessibilityRole="button"
+                    accessibilityLabel="Reducir cantidad de personas"
+                    accessibilityState={{ disabled: guests <= 1 }}
                   >
                     <Minus size={18} color={guests > 1 ? Colors.onSurface : Colors.outline} />
                   </TouchableOpacity>
@@ -388,6 +393,9 @@ export default function ReservasScreen() {
                       }
                     }}
                     disabled={guests >= 20}
+                    accessibilityRole="button"
+                    accessibilityLabel="Aumentar cantidad de personas"
+                    accessibilityState={{ disabled: guests >= 20 }}
                   >
                     <Plus size={18} color={guests < 20 ? Colors.onSurface : Colors.outline} />
                   </TouchableOpacity>
@@ -442,6 +450,9 @@ export default function ReservasScreen() {
                           }}
                           disabled={!isAvailable}
                           activeOpacity={0.8}
+                          accessibilityRole="radio"
+                          accessibilityLabel={`${formatSlotTime(slot.startTime)}${isAvailable ? '' : ', no disponible'}`}
+                          accessibilityState={{ selected: isSelected, disabled: !isAvailable }}
                         >
                           <Text style={[
                             styles.slotText,
@@ -513,7 +524,7 @@ export default function ReservasScreen() {
 
             {/* ── Error ─────────────────────────────────── */}
             {formError && (
-              <View style={styles.errorBanner}>
+              <View style={styles.errorBanner} accessibilityRole="alert">
                 <AlertCircle size={16} color={Colors.error} />
                 <Text style={styles.errorText}>{formError}</Text>
               </View>

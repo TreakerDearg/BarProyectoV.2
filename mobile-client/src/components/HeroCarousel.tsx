@@ -11,7 +11,7 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
   Animated,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -22,9 +22,8 @@ import { Typography } from '../theme/typography';
 import { Spacing, Radius } from '../theme/spacing';
 import { Gradients } from '../theme/gradients';
 import { Motion } from '../theme/motion';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { NBadge } from './shared/NBadge';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 export interface HeroSlide {
   id:        string;
@@ -44,9 +43,9 @@ interface HeroCarouselProps {
 }
 
 // ── Placeholder slide ─────────────────────────────────────────────────────────
-function PlaceholderSlide({ height }: { height: number }) {
+function PlaceholderSlide({ height, width }: { height: number; width: number }) {
   return (
-    <View style={[pStyles.placeholder, { width: screenWidth, height }]}>
+    <View style={[pStyles.placeholder, { width, height }]}>
       <LinearGradient
         {...Gradients.cardSheen}
         style={StyleSheet.absoluteFill}
@@ -81,6 +80,9 @@ const pStyles = StyleSheet.create({
 export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: HeroCarouselProps) {
   const flatListRef = useRef<FlatList<HeroSlide>>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
+  const [carouselWidth, setCarouselWidth] = useState(windowWidth);
+  const reduceMotion = useReducedMotion();
 
   // Animated opacity values for each dot
   const dotAnims = useRef(
@@ -91,6 +93,10 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
 
   const updateDots = (index: number) => {
     dotAnims.forEach((anim, i) => {
+      if (reduceMotion) {
+        anim.setValue(i === index ? 1 : 0.35);
+        return;
+      }
       Animated.timing(anim, {
         toValue:         i === index ? 1 : 0.35,
         duration:        Motion.base,
@@ -101,13 +107,13 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
 
   // Auto-advance every 3200ms
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || reduceMotion) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => {
         const next = (prev + 1) % slides.length;
         flatListRef.current?.scrollToOffset({
-          offset:   next * screenWidth,
+          offset:   next * carouselWidth,
           animated: true,
         });
         updateDots(next);
@@ -116,31 +122,34 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
     }, 3200);
 
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [slides.length, carouselWidth, reduceMotion]);
 
   // If no slides, render a single placeholder
   if (slides.length === 0) {
     return (
-      <View style={{ height }}>
-        <PlaceholderSlide height={height} />
+      <View style={{ height }} onLayout={(e) => setCarouselWidth(e.nativeEvent.layout.width)}>
+        <PlaceholderSlide height={height} width={carouselWidth} />
       </View>
     );
   }
 
   return (
-    <View style={{ height, overflow: 'hidden', borderRadius: Radius.xl }}>
+    <View
+      style={{ height, overflow: 'hidden', borderRadius: Radius.xl }}
+      onLayout={(e) => setCarouselWidth(e.nativeEvent.layout.width)}
+    >
       <FlatList
         ref={flatListRef}
         data={slides}
         keyExtractor={(item) => item.id}
         horizontal
         pagingEnabled
-        snapToInterval={screenWidth}
+        snapToInterval={carouselWidth}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
         onMomentumScrollEnd={(e) => {
-          const newIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+          const newIndex = Math.round(e.nativeEvent.contentOffset.x / carouselWidth);
           setCurrentIndex(newIndex);
           updateDots(newIndex);
         }}
@@ -148,18 +157,21 @@ export function HeroCarousel({ slides, height = Spacing.heroCarouselHeight }: He
           <TouchableOpacity
             activeOpacity={item.onPress ? 0.85 : 1}
             onPress={item.onPress}
-            style={{ width: screenWidth, height }}
+            accessibilityRole={item.onPress ? "button" : "image"}
+            accessibilityLabel={item.onPress ? `Ver promoción: ${item.title}` : item.title}
+            accessibilityHint={item.onPress ? 'Abre la carta con esta promoción' : undefined}
+            style={{ width: carouselWidth, height }}
           >
             {item.imageUri ? (
               <Image
                 source={{ uri: item.imageUri }}
-                style={{ width: screenWidth, height }}
+                style={{ width: carouselWidth, height }}
                 contentFit="cover"
                 cachePolicy="memory-disk"
                 transition={150}
               />
             ) : (
-              <View style={{ width: screenWidth, height, backgroundColor: NocturneColors.surfaceContainerLowest }} />
+              <View style={{ width: carouselWidth, height, backgroundColor: NocturneColors.surfaceContainerLowest }} />
             )}
             {/* Overlay real: transparente → canvas (55% inferior) */}
             <LinearGradient

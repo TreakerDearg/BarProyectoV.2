@@ -10,3 +10,5 @@ export { Elevation } from './elevation';
 export { Gradients, Direction } from './gradients';
 export type { GradientColors } from './gradients';
 export { Motion, Easings, SpringPress } from './motion';
+export { LayoutBreakpoint, getProductColumns, useResponsiveLayout } from '../hooks/useResponsiveLayout';
+export { useReducedMotion } from '../hooks/useReducedMotion';

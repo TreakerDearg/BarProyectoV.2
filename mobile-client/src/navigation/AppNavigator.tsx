@@ -163,6 +163,7 @@ export default function AppNavigator() {
           ),
 
           tabBarLabel: config?.label ?? route.name,
+          tabBarAccessibilityLabel: `Abrir ${config?.label ?? route.name}`,
         };
       }}
     >

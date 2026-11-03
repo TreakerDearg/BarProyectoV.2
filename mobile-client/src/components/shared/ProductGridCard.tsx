@@ -70,6 +70,11 @@ export const ProductGridCard = memo(function ProductGridCard({
       style={styles.card}
       activeOpacity={onPress ? 0.85 : 1}
       onPress={() => onPress?.(product)}
+      disabled={!onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Ver ${product.name}, ${fmtPrice(currentPrice)}${product.available ? '' : ', agotado'}`}
+      accessibilityHint={onPress ? 'Abre el detalle del producto' : undefined}
+      accessibilityState={{ disabled: !onPress || !product.available }}
     >
       {/* ── Image ─────────────────────────────────────────── */}
       <View style={styles.imageWrap}>
@@ -93,6 +98,9 @@ export const ProductGridCard = memo(function ProductGridCard({
             style={styles.heartBtn}
             onPress={() => onFavorite(product)}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? `Quitar ${product.name} de favoritos` : `Agregar ${product.name} a favoritos`}
+            accessibilityState={{ selected: isFavorite }}
           >
             <Heart
               size={16}
@@ -134,6 +142,9 @@ export const ProductGridCard = memo(function ProductGridCard({
             activeOpacity={0.8}
             disabled={!product.available}
             hitSlop={{ top: 6, bottom: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Agregar ${product.name} al pedido`}
+            accessibilityState={{ disabled: !product.available }}
           >
             {product.available && (
               <LinearGradient
@@ -159,6 +170,8 @@ export const ProductGridCard = memo(function ProductGridCard({
                 style={styles.stepBtn}
                 onPress={() => springPress(minusAnim, () => onRemove(product))}
                 hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
+                accessibilityRole="button"
+                accessibilityLabel={`Quitar una unidad de ${product.name}`}
               >
                 <Minus size={13} color={Colors.onSurface} />
               </TouchableOpacity>
@@ -171,6 +184,8 @@ export const ProductGridCard = memo(function ProductGridCard({
                 style={styles.stepBtn}
                 onPress={() => springPress(plusAnim, () => onAdd(product))}
                 hitSlop={{ top: 7, right: 7, bottom: 7, left: 7 }}
+                accessibilityRole="button"
+                accessibilityLabel={`Agregar una unidad de ${product.name}`}
               >
                 <Plus size={13} color={Colors.onSurface} />
               </TouchableOpacity>

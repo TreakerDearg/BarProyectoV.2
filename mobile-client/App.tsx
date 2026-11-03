@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // ── Fuentes NEBULA EMBER (Fraunces display + Inter UI, 6 pesos) ──────────────
 import {
@@ -87,16 +88,18 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <View
-        style={{ flex: 1, backgroundColor: Colors.background }}
-        onLayout={onLayoutRootView}
-      >
-        <StatusBar style="light" />
-        <NavigationContainer theme={NavigationTheme}>
-          <AppNavigator />
-        </NavigationContainer>
-      </View>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <View
+          style={{ flex: 1, backgroundColor: Colors.background }}
+          onLayout={onLayoutRootView}
+        >
+          <StatusBar style="light" />
+          <NavigationContainer theme={NavigationTheme}>
+            <AppNavigator />
+          </NavigationContainer>
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
