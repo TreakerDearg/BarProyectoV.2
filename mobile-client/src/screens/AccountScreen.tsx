@@ -341,7 +341,7 @@ export default function AccountScreen() {
     setLoadingHistory(true);
     try {
       const history = await getMyOrderHistory(8);
-      setOrderHistory(history);
+      setOrderHistory(Array.isArray(history) ? history : []);
       const active = history.find(
         (o) => o.status === 'pending' || o.status === 'in-progress'
       );

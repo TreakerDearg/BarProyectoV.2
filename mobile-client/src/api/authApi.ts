@@ -155,11 +155,16 @@ export async function removeFavorite(productId: string): Promise<void> {
 /** GET /orders/my-history */
 export async function getMyOrderHistory(limit = 8): Promise<OrderHistoryItem[]> {
   const res = await api.get<any>('/orders/my-history', { params: { limit } });
-  return res.data?.data ?? [];
+  // El backend puede devolver { data: [...] } o { data: { orders: [...], total: N } }
+  const raw = res.data?.data ?? res.data ?? [];
+  const arr = Array.isArray(raw) ? raw : (raw.orders ?? raw.items ?? raw.history ?? []);
+  return Array.isArray(arr) ? arr : [];
 }
 
 /** GET /reservations — filtrado por usuario autenticado */
 export async function getMyReservations(params?: { upcoming?: boolean; limit?: number }): Promise<ReservationSummary[]> {
   const res = await api.get<any>('/reservations/my', { params });
-  return res.data?.data ?? [];
+  const raw = res.data?.data ?? res.data ?? [];
+  const arr = Array.isArray(raw) ? raw : (raw.reservations ?? raw.items ?? []);
+  return Array.isArray(arr) ? arr : [];
 }

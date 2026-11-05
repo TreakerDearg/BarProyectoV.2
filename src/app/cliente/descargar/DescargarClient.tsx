@@ -13,12 +13,12 @@ import styles from "./descargar.module.css";
 // Al publicar una release nueva: actualizá APP_VERSION, APP_SIZE,
 // APK_URL y verificá que RELEASES_URL siga siendo válida.
 // (GitHub → Releases → clic derecho sobre el .apk → copiar enlace)
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 const APP_SIZE    = "122 MB";
 
 const APK_URL =
   (process.env.NEXT_PUBLIC_APK_URL as string | undefined) ??
-  "https://github.com/TreakerDearg/BarProyectoV.2/releases/download/App/nebula-cliente-v1.1.0.apk";
+  "https://github.com/TreakerDearg/BarProyectoV.2/releases/download/App/nebula-cliente-v1.2.0.apk";
 
 const RELEASES_URL = "https://github.com/TreakerDearg/BarProyectoV.2/releases";
 

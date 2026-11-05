@@ -1,5 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// NEBULA — HomeScreen
+// NEBULA — HomeScreen (redesign v4)
+// Layout: ImmersiveHero → HeroCarousel (promos) → QuickAccessTiles →
+//         PedidoActivoBanner / MesaCard → "De la barra esta noche" →
+//         "Clásicos de la casa" → RuletaCTA ampliado.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -20,7 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  Sparkles, ChevronDown, AlertTriangle,
+  Sparkles, ChevronDown, ChevronRight, AlertTriangle,
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -55,8 +58,9 @@ import { NSkeleton }           from '../components/shared/NSkeleton';
 import { NButton }             from '../components/shared/NButton';
 import { NToast }              from '../components/shared/NToast';
 import { FulfillmentSheet }    from '../components/shared/FulfillmentSheet';
+import { ImmersiveHero }       from '../components/shared/ImmersiveHero';
 import { HeroCarousel }        from '../components/HeroCarousel';
-import { CategoryHeroRow }     from '../components/CategoryHeroRow';
+import { QuickAccessTiles }    from '../components/QuickAccessTiles';
 import { ProductGridCard }     from '../components/shared/ProductGridCard';
 import { RouletteScreen }      from './RouletteScreen';
 import { QRScannerScreen }     from './QRScannerScreen';
@@ -163,13 +167,12 @@ export default function HomeScreen() {
       anim.sommelier.forEach(({ o, y }) => { o.setValue(1); y.setValue(0); });
       return;
     }
-    // Tokens de motion: entradas de sección con desaceleración suave
     const dur  = Motion.base;
     const ease = Easings.decelerate;
     Animated.parallel([
       // header
       Animated.timing(anim.header, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
-      // greeting (100ms delay)
+      // hero / greeting (100ms delay)
       Animated.sequence([
         Animated.delay(100),
         Animated.parallel([
@@ -177,28 +180,28 @@ export default function HomeScreen() {
           Animated.timing(anim.greeting.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
-      // mesa (200ms)
+      // promo carousel (200ms)
       Animated.sequence([
         Animated.delay(200),
-        Animated.parallel([
-          Animated.timing(anim.mesa.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
-          Animated.timing(anim.mesa.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
-        ]),
-      ]),
-      // promo (300ms)
-      Animated.sequence([
-        Animated.delay(300),
         Animated.parallel([
           Animated.timing(anim.promo.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
           Animated.timing(anim.promo.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
-      // quick access (400ms)
+      // quick tiles (300ms)
       Animated.sequence([
-        Animated.delay(400),
+        Animated.delay(300),
         Animated.parallel([
           Animated.timing(anim.quick.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
           Animated.timing(anim.quick.s, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+        ]),
+      ]),
+      // mesa / pedido (400ms)
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.parallel([
+          Animated.timing(anim.mesa.o, { toValue: 1, duration: dur, easing: ease, useNativeDriver: true }),
+          Animated.timing(anim.mesa.y, { toValue: 0, duration: dur, easing: ease, useNativeDriver: true }),
         ]),
       ]),
       // sommelier cards (500ms + i*80ms)
@@ -279,7 +282,6 @@ export default function HomeScreen() {
         } catch {}
       }
     } catch {
-      // La home sigue usable con datos locales: aviso + reintentar
       setLoadError(true);
     } finally {
       setLoading(false);
@@ -384,7 +386,7 @@ export default function HomeScreen() {
 
   const ChipIcon = chipMeta.icon;
 
-  // ── Imagen de ambiente del hero (primer destacado, si no la primera promo) ──
+  // ── Imagen hero: primer destacado o primera promo ─────────────
   const heroImageUri =
     featuredProducts[0]?.image ||
     promos[0]?.applicableProducts?.[0]?.image ||
@@ -393,11 +395,18 @@ export default function HomeScreen() {
   // ── Render: skeleton de carga ─────────────────────────────────
   const renderSkeleton = () => (
     <View style={{ gap: Spacing.md }}>
-      <NSkeleton height={230} radius={Radius.xl} />
-      <NSkeleton height={72} radius={Radius.xl} />
+      {/* Hero inmersivo */}
+      <NSkeleton height={280} radius={Radius.xxl} />
+      {/* HeroCarousel de promos */}
       <NSkeleton height={Spacing.heroCarouselHeight} radius={Radius.xl} />
-      <NSkeleton height={40} radius={Radius.md} />
-      {[0, 1].map((i) => <NSkeleton key={i} height={200} radius={Radius.xl} />)}
+      {/* QuickAccessTiles */}
+      <NSkeleton height={96} radius={Radius.xl} />
+      {/* PedidoActivoBanner / MesaCard */}
+      <NSkeleton height={72} radius={Radius.xl} />
+      {/* Carrusel "De la barra esta noche" */}
+      <NSkeleton height={200} radius={Radius.xl} />
+      {/* Grid "Clásicos de la casa" */}
+      <NSkeleton height={300} radius={Radius.xl} />
     </View>
   );
 
@@ -483,53 +492,21 @@ export default function HomeScreen() {
       >
         {loading ? renderSkeleton() : (
           <>
-            {/* ── Hero de bienvenida — imagen full-bleed + saludo ── */}
-            <Animated.View
-              style={[styles.hero, {
-                opacity: anim.greeting.o,
+            {/* ── 1. IMMERSIVE HERO ─────────────────────────────── */}
+            <ImmersiveHero
+              imageUri={heroImageUri}
+              greeting={`${getGreeting()}${user ? `, ${user.name.split(' ')[0]}` : ''}`}
+              sub="¿Qué te gustaría disfrutar hoy?"
+              mesaLabel={hasTable ? chipMeta.label : undefined}
+              onCTAPress={goToCarta}
+              animStyle={{
+                opacity:   anim.greeting.o,
                 transform: [{ translateY: anim.greeting.y }],
-              }]}
-            >
-              {heroImageUri ? (
-                <Image
-                  source={{ uri: heroImageUri }}
-                  style={styles.heroImage}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  transition={150}
-                />
-              ) : (
-                <View style={styles.heroImageFallback}>
-                  <LinearGradient
-                    {...Gradients.cardSheen}
-                    style={styles.heroFill}
-                    pointerEvents="none"
-                  />
-                </View>
-              )}
+              }}
+              style={styles.heroBleed}
+            />
 
-              {/* Lavado nocturno detrás del saludo (canvas → transparente) */}
-              <LinearGradient
-                {...Gradients.nightWash}
-                style={styles.heroWash}
-                pointerEvents="none"
-              />
-              {/* Fusión inferior con el canvas */}
-              <LinearGradient
-                {...Gradients.heroOverlay}
-                style={styles.heroBottomFade}
-                pointerEvents="none"
-              />
-
-              <View style={styles.heroContent}>
-                <Text style={styles.greetingMain}>
-                  {getGreeting()}{user ? `, ${user.name.split(' ')[0]}` : ''}
-                </Text>
-                <Text style={styles.greetingSub}>¿Qué te gustaría disfrutar hoy?</Text>
-              </View>
-            </Animated.View>
-
-            {/* ── Aviso de error de carga (la home sigue usable) ── */}
+            {/* ── Aviso de error de carga ──────────────────── */}
             {loadError && (
               <View style={styles.loadErrorBanner} accessibilityRole="alert">
                 <AlertTriangle size={16} color={Colors.warning} />
@@ -545,40 +522,10 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* ── Mesa activa ─────────────────────────────── */}
+            {/* ── 2. PROMOS — HeroCarousel ──────────────────── */}
             <Animated.View
               style={{
-                opacity: anim.mesa.o,
-                transform: [{ translateY: anim.mesa.y }],
-                gap: Spacing.md,
-              }}
-            >
-              {/* ── Pedido activo ────────────────────────── */}
-              {activeOrder && (
-                <PedidoActivoBanner
-                  order={activeOrder}
-                  onPress={goToPedidos}
-                  estimatedMinutes={15}
-                />
-              )}
-
-              {/* ── Mesa activa ──────────────────────────── */}
-              {tableNumber != null && (
-                <MesaCard
-                  tableNumber={tableNumber}
-                  zone={zoneLabel ? `Zona ${zoneLabel}` : undefined}
-                  totalAmount={tableInfo?.totalAmount}
-                  onViewConsumos={goToPedidos}
-                  onCallWaiter={handleCallWaiter}
-                  onRepeatRound={handleRepeatRound}
-                />
-              )}
-            </Animated.View>
-
-            {/* ── Promo destacada → HeroCarousel ───────────── */}
-            <Animated.View
-              style={{
-                opacity: anim.promo.o,
+                opacity:   anim.promo.o,
                 transform: [{ translateY: anim.promo.y }],
               }}
             >
@@ -594,21 +541,105 @@ export default function HomeScreen() {
               />
             </Animated.View>
 
-            {/* ── CategoryHeroRow (replaces CategoryPills + QuickActions) ── */}
-            <View style={styles.section}>
-              <CategoryHeroRow
-                categories={categories}
-                activeCategory={selectedCategory}
-                onSelect={handleCartaCategory}
+            {/* ── 3. QUICK ACCESS TILES ─────────────────────── */}
+            <Animated.View
+              style={{
+                opacity:   anim.quick.o,
+                transform: [{ scale: anim.quick.s }],
+              }}
+            >
+              <QuickAccessTiles
+                onCartaPress={goToCarta}
                 onRuletaPress={() => setShowRoulette(true)}
               />
-            </View>
+            </Animated.View>
 
-            {/* ── Lo más pedido ─────────────────────────────── */}
+            {/* ── 4. PEDIDO ACTIVO + MESA ───────────────────── */}
+            <Animated.View
+              style={{
+                opacity:   anim.mesa.o,
+                transform: [{ translateY: anim.mesa.y }],
+                gap:       Spacing.sm,
+              }}
+            >
+              {activeOrder && (
+                <PedidoActivoBanner
+                  order={activeOrder}
+                  onPress={goToPedidos}
+                  estimatedMinutes={15}
+                />
+              )}
+              {tableNumber != null && (
+                <MesaCard
+                  tableNumber={tableNumber}
+                  zone={zoneLabel ? `Zona ${zoneLabel}` : undefined}
+                  totalAmount={tableInfo?.totalAmount}
+                  onViewConsumos={goToPedidos}
+                  onCallWaiter={handleCallWaiter}
+                  onRepeatRound={handleRepeatRound}
+                />
+              )}
+            </Animated.View>
+
+            {/* ── 5. "DE LA BARRA ESTA NOCHE" — carrusel ───────
+                Antes: "Selección del Sommelier"              */}
             {featuredProducts.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>Lo más pedido</Text>
+                  <View>
+                    <Text style={styles.sectionTitle}>De la barra esta noche</Text>
+                    <Text style={styles.sectionSub}>
+                      Recomendaciones exclusivas de nuestra barra y cocina
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={goToCarta} style={styles.seeAllBtn}>
+                    <Text style={styles.seeAllText}>Ver todo</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <FlatList
+                  data={featuredProducts}
+                  horizontal
+                  keyExtractor={(item) => item.id}
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={sommelierCardWidth + Spacing.gridGap}
+                  decelerationRate="fast"
+                  style={styles.sommelierCarousel}
+                  contentContainerStyle={styles.sommelierCarouselContent}
+                  renderItem={({ item, index }) => {
+                    const s = anim.sommelier[Math.min(index, anim.sommelier.length - 1)];
+                    return (
+                      <Animated.View
+                        style={{
+                          width:   sommelierCardWidth,
+                          opacity: s.o,
+                          transform: [{ translateY: s.y }],
+                        }}
+                      >
+                        <SommelierCard
+                          product={item}
+                          onAdd={(p) => setCustomizerProduct(p)}
+                          onPress={() => navigation.navigate('Carta')}
+                          featureBadge={
+                            item.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
+                          }
+                        />
+                      </Animated.View>
+                    );
+                  }}
+                />
+              </View>
+            )}
+
+            {/* ── 6. "CLÁSICOS DE LA CASA" — grid ──────────────
+                Antes: "Lo más pedido"                        */}
+            {featuredProducts.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeaderRow}>
+                  <View>
+                    <Text style={styles.sectionTitle}>Clásicos de la casa</Text>
+                    <Text style={styles.sectionSub}>Los favoritos que nunca fallan</Text>
+                  </View>
                   <TouchableOpacity onPress={goToCarta} style={styles.seeAllBtn}>
                     <Text style={styles.seeAllText}>Ver todo</Text>
                   </TouchableOpacity>
@@ -650,56 +681,7 @@ export default function HomeScreen() {
               </View>
             )}
 
-            {/* ── Selección del Sommelier — carrusel 80% viewport ── */}
-            {featuredProducts.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeaderRow}>
-                  <View>
-                    <Text style={styles.sectionTitle}>Selección del Sommelier</Text>
-                    <Text style={styles.sectionSub}>
-                      Recomendaciones exclusivas de nuestra barra y cocina
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={goToCarta} style={styles.seeAllBtn}>
-                    <Text style={styles.seeAllText}>Ver todo</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <FlatList
-                  data={featuredProducts}
-                  horizontal
-                  keyExtractor={(item) => item.id}
-                  showsHorizontalScrollIndicator={false}
-                  snapToInterval={sommelierCardWidth + Spacing.gridGap}
-                  decelerationRate="fast"
-                  style={styles.sommelierCarousel}
-                  contentContainerStyle={styles.sommelierCarouselContent}
-                  renderItem={({ item, index }) => {
-                    const s = anim.sommelier[Math.min(index, anim.sommelier.length - 1)];
-                    return (
-                      <Animated.View
-                        style={{
-                          width: sommelierCardWidth,
-                          opacity: s.o,
-                          transform: [{ translateY: s.y }],
-                        }}
-                      >
-                        <SommelierCard
-                          product={item}
-                          onAdd={(p) => setCustomizerProduct(p)}
-                          onPress={() => navigation.navigate('Carta')}
-                          featureBadge={
-                            item.type === 'drink' ? 'COCKTAIL ESTRELLA' : 'PLATO DEL CHEF'
-                          }
-                        />
-                      </Animated.View>
-                    );
-                  }}
-                />
-              </View>
-            )}
-
-            {/* ── Ruleta CTA — with idle MobileWheel ───────── */}
+            {/* ── 7. RULETA CTA — ampliada ─────────────────────── */}
             <AnimatedTouchable
               style={[styles.rouletteCard, ruletaPress.animatedStyle]}
               onPress={() => setShowRoulette(true)}
@@ -715,25 +697,26 @@ export default function HomeScreen() {
                     <MobileWheel
                       drinks={idleWheelDrinks}
                       spinAnim={idleSpin}
-                      size={52}
+                      size={64}
                     />
                   ) : (
-                    <Sparkles size={28} color={Colors.primary} />
+                    <Sparkles size={32} color={Colors.primary} />
                   )}
                 </View>
-                <View>
+                <View style={styles.roulettTextCol}>
                   <Text style={styles.rouletteTitle}>Ruleta Nebula</Text>
                   <Text style={styles.rouletteSub}>
-                    Girá y descubrí tu cóctel de la noche
+                    Girá y dejá que la noche elija por vos
                   </Text>
                 </View>
               </View>
+              <ChevronRight size={20} color={Colors.primary} />
             </AnimatedTouchable>
           </>
         )}
       </ScrollView>
 
-      {/* ── Modal Ruleta ──────────────────────────────────── */}
+      {/* ── Modal Ruleta ──────────────────────────────────────── */}
       <Modal
         visible={showRoulette}
         animationType="slide"
@@ -742,7 +725,7 @@ export default function HomeScreen() {
         <RouletteScreen onClose={() => setShowRoulette(false)} />
       </Modal>
 
-      {/* ── ProductCustomizerSheet ──────────────────────── */}
+      {/* ── ProductCustomizerSheet ──────────────────────────── */}
       <ProductCustomizerSheet
         visible={!!customizerProduct}
         product={customizerProduct}
@@ -757,7 +740,7 @@ export default function HomeScreen() {
         onOpenScanner={() => setShowQR(true)}
       />
 
-      {/* ── Modal QR Scanner ────────────────────────────── */}
+      {/* ── Modal QR Scanner ────────────────────────────────── */}
       <Modal
         visible={showQR}
         animationType="slide"
@@ -798,12 +781,12 @@ const styles = StyleSheet.create({
 
   // ── Top bar ────────────────────────────────────────────────────
   topBar: {
-    flexDirection:   'row',
-    alignItems:      'center',
-    justifyContent:  'space-between',
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'space-between',
     paddingHorizontal: Spacing.gutter,
     paddingVertical:   Spacing.smMd,
-    backgroundColor: NocturneColors.surfaceElevated,
+    backgroundColor:   NocturneColors.surfaceElevated,
     borderBottomWidth: 1,
     borderBottomColor: NocturneColors.borderSubtle,
   },
@@ -850,7 +833,6 @@ const styles = StyleSheet.create({
     borderRadius:    4,
     backgroundColor: Colors.success,
   },
-
   avatarBtn: {
     width:           36,
     height:          36,
@@ -862,9 +844,10 @@ const styles = StyleSheet.create({
   },
   avatarImg: { width: '100%', height: '100%' },
   avatarInitials: {
-    width: '100%', height: '100%',
-    justifyContent: 'center',
-    alignItems:     'center',
+    width:           '100%',
+    height:          '100%',
+    justifyContent:  'center',
+    alignItems:      'center',
     backgroundColor: Colors.primaryContainer,
   },
   avatarInitialsText: {
@@ -875,64 +858,14 @@ const styles = StyleSheet.create({
   // ── Scroll ─────────────────────────────────────────────────────
   scroll: {
     paddingHorizontal: Spacing.gutter,
-    paddingTop:        Spacing.md,
-    gap:               Spacing.lg,
+    paddingTop:        0,
+    gap:               Spacing.md,
   },
 
-  // ── Hero de bienvenida ─────────────────────────────────────────
-  hero: {
-    height:           230,
+  // ── Hero: sangrando el gutter del scroll ──────────────────────
+  heroBleed: {
     marginHorizontal: -Spacing.gutter,
-    marginTop:        -Spacing.md,
-    overflow:         'hidden',
-    backgroundColor:  NocturneColors.surfaceContainerLowest,
-  },
-  heroImage: {
-    width:  '100%',
-    height: '100%',
-  },
-  heroImageFallback: {
-    width:           '100%',
-    height:          '100%',
-    backgroundColor: NocturneColors.surfaceContainerLowest,
-  },
-  heroFill: {
-    position: 'absolute',
-    top:      0,
-    left:     0,
-    right:    0,
-    bottom:   0,
-  },
-  heroWash: {
-    position: 'absolute',
-    top:      0,
-    left:     0,
-    right:    0,
-    height:   '70%',
-  },
-  heroBottomFade: {
-    position: 'absolute',
-    bottom:   0,
-    left:     0,
-    right:    0,
-    height:   '45%',
-  },
-  heroContent: {
-    position:          'absolute',
-    top:               0,
-    left:              0,
-    right:             0,
-    paddingHorizontal: Spacing.gutter,
-    paddingTop:        Spacing.md,
-    gap:               4,
-  },
-  greetingMain: {
-    ...Typography.displayLg,
-    color: Colors.onSurface,
-  },
-  greetingSub: {
-    ...Typography.bodyLg,
-    color: Colors.onSurfaceVariant,
+    marginTop:        0,
   },
 
   // ── Sections ───────────────────────────────────────────────────
@@ -949,16 +882,16 @@ const styles = StyleSheet.create({
   sommelierCarousel:        { marginHorizontal: -Spacing.gutter },
   sommelierCarouselContent: { paddingHorizontal: Spacing.gutter, gap: Spacing.gridGap },
 
-  // ── Ruleta CTA ─────────────────────────────────────────────────
+  // ── Ruleta CTA (ampliada) ──────────────────────────────────────
   rouletteCard: {
     flexDirection:   'row',
     alignItems:      'center',
     justifyContent:  'space-between',
     backgroundColor: Colors.surfaceContainerHigh,
     borderRadius:    Radius.xl,
-    padding:         Spacing.md,
-    borderWidth:     1,
-    borderColor:     NocturneColors.emberBorder,
+    padding:         Spacing.lg,
+    borderWidth:     1.5,
+    borderColor:     Colors.primary,
     ...(Elevation.card as object),
   },
   roulettLeft: {
@@ -967,9 +900,13 @@ const styles = StyleSheet.create({
     gap:           Spacing.smMd,
     flex:          1,
   },
+  roulettTextCol: {
+    flex: 1,
+    gap:  2,
+  },
   rouletteIconWrap: {
-    width:           52,
-    height:          52,
+    width:           72,
+    height:          72,
     borderRadius:    Radius.full,
     backgroundColor: NocturneColors.emberMuted,
     justifyContent:  'center',
@@ -977,6 +914,6 @@ const styles = StyleSheet.create({
     borderWidth:     1,
     borderColor:     NocturneColors.emberBorder,
   },
-  rouletteTitle: { ...Typography.headlineSm, color: Colors.onSurface },
-  rouletteSub:   { ...Typography.bodySm, color: Colors.onSurfaceVariant },
+  rouletteTitle: { ...Typography.headlineLg, color: Colors.onSurface },
+  rouletteSub:   { ...Typography.bodyMd, color: Colors.onSurfaceVariant },
 });

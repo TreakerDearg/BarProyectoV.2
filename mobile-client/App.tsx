@@ -37,6 +37,9 @@ import { Colors } from './src/theme/colors';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // ── Navigation theme (Nocturne) ───────────────────────────────────────────────
+// Definimos fonts explícitamente para no depender del build ESM de
+// @react-navigation/native (que Metro no puede resolver con commonjs).
+// react-navigation 7.x requiere las 4 claves: regular, medium, bold, heavy.
 const NavigationTheme = {
   dark: true,
   colors: {
@@ -48,10 +51,10 @@ const NavigationTheme = {
     notification: Colors.error,
   },
   fonts: {
-    regular: { fontFamily: 'Inter_400Regular',  fontWeight: '400' as const },
-    medium:  { fontFamily: 'Inter_500Medium',   fontWeight: '500' as const },
-    bold:    { fontFamily: 'Inter_600SemiBold', fontWeight: '600' as const },
-    heavy:   { fontFamily: 'Inter_700Bold',     fontWeight: '700' as const },
+    regular: { fontFamily: 'System', fontWeight: '400' as const },
+    medium:  { fontFamily: 'System', fontWeight: '500' as const },
+    bold:    { fontFamily: 'System', fontWeight: '600' as const },
+    heavy:   { fontFamily: 'System', fontWeight: '700' as const },
   },
 };
 

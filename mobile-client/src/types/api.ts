@@ -205,6 +205,14 @@ export interface TimeSlotDTO {
   tableCount?: number; // número de mesas disponibles
 }
 
+export interface AvailableTableDTO {
+  _id:      string;
+  number:   number;
+  capacity: number;
+  location: 'indoor' | 'outdoor' | 'bar';
+  status:   string;
+}
+
 export interface CreateReservationPayload {
   date:          string;   // "YYYY-MM-DD"
   startTime:     string;   // ISO string del slot seleccionado
@@ -214,20 +222,35 @@ export interface CreateReservationPayload {
   customerPhone: string;
   customerEmail?: string;
   notes?:        string;
-  dietaryRestrictions?: string[];
+  guestDietaryRestrictions?: string[];
 }
 
 export interface ReservationDTO {
   _id:          string;
+  id?:          string;
   status:       'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no-show';
   startTime:    string;
   endTime?:     string;
   guests:       number;
   customerName: string;
   customerPhone?: string;
+  customerEmail?: string;
   tableNumber?: number;
+  table?: {
+    id:       string;
+    number:   number;
+    capacity: number;
+    status:   string;
+    location: 'indoor' | 'outdoor' | 'bar';
+  } | null;
   notes?:       string;
+  guestDietaryRestrictions?: string[];
+  source?:      string;
+  isVIP?:       boolean;
+  deposit?:     number;
+  tags?:        string[];
   createdAt:    string;
+  updatedAt?:   string;
 }
 
 export interface AvailabilityCheckResponse {
