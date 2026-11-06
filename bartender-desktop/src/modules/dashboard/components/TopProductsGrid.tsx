@@ -1,9 +1,10 @@
 /**
  * TopProductsGrid — Top bebidas y comidas en 2 columnas.
  * Usa datos reales de dashboardStats.topDrinks / topFoods.
- * Incluye barra de proporción relativa al #1.
+ *
+ * REDISEÑO v3.0 — Slate Elegante
  */
-import { GlassWater, ChefHat, TrendingUp } from "lucide-react";
+import { GlassWater, ChefHat } from "lucide-react";
 import type { TopProduct } from "../services/dashboardService";
 
 interface Props {
@@ -12,75 +13,79 @@ interface Props {
   loading?:  boolean;
 }
 
+/* ── Skeleton ──────────────────────────────────────────────── */
 function ListSkeleton() {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {[0,1,2,3,4].map((i) => (
-        <div key={i} className="flex items-center gap-3 py-2 animate-pulse">
-          <div className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
-          <div className="flex-1 h-3 rounded-full bg-white/10" />
-          <div className="w-10 h-3 rounded-full bg-white/8" />
+        <div key={i} className="flex items-center gap-3 animate-pulse">
+          <div className="w-5 h-5 rounded-full bg-[#21283A] flex-shrink-0" />
+          <div className="flex-1 h-3 rounded-full bg-[#21283A]" />
+          <div className="w-8 h-3 rounded-full bg-[#21283A]" />
         </div>
       ))}
     </div>
   );
 }
 
+/* ── Product list ──────────────────────────────────────────── */
 function ProductList({
-  items,
-  barColor,
-  icon,
-  label,
-  loading,
+  items, accentColor, iconBg, icon, label, loading,
 }: {
-  items:     TopProduct[];
-  barColor:  string;
-  icon:      React.ReactNode;
-  label:     string;
-  loading?:  boolean;
+  items:       TopProduct[];
+  accentColor: string;
+  iconBg:      string;
+  icon:        React.ReactNode;
+  label:       string;
+  loading?:    boolean;
 }) {
   const maxQty = items[0]?.qty ?? 1;
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-surface-3/50 p-5 flex flex-col gap-4 min-w-0">
-      <div className="flex items-center gap-2.5">
-        <span className={`p-2 rounded-xl ${barColor.replace("bg-", "bg-").replace(/\//g, "/").includes("gold") ? "bg-gold/15 text-gold" : "bg-emerald-500/15 text-emerald-400"}`}>
-          {icon}
-        </span>
-        <h3 className="text-xs font-black text-muted uppercase tracking-[0.2em]">{label}</h3>
+    <div className="rounded-2xl border border-[#30363D] bg-[#1C2333]/50 p-6 flex flex-col gap-5 min-w-0">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <span className={`p-2.5 rounded-xl ${iconBg}`}>{icon}</span>
+        <h3 className="text-xs font-black text-[#566270] uppercase tracking-[0.18em]">{label}</h3>
       </div>
 
+      {/* Contenido */}
       {loading ? (
         <ListSkeleton />
       ) : items.length === 0 ? (
-        <div className="flex items-center justify-center py-8 text-center">
-          <div>
-            <div className="text-muted/30 mb-2">{icon}</div>
-            <p className="text-xs text-muted">Sin ventas en el período</p>
-          </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+          <div className="text-[#30363D]">{icon}</div>
+          <p className="text-sm text-[#566270]">Sin ventas en el período</p>
         </div>
       ) : (
-        <ol className="space-y-2.5">
+        <ol className="space-y-3">
           {items.slice(0, 5).map((p, i) => {
             const pct = Math.round((p.qty / maxQty) * 100);
             return (
               <li key={p.name} className="flex items-center gap-3 group">
-                <span className={`text-[10px] font-black w-4 flex-shrink-0 ${
-                  i === 0 ? "text-gold" : "text-muted/50"
+                {/* Posición */}
+                <span className={`text-xs font-black w-5 flex-shrink-0 text-center ${
+                  i === 0 ? accentColor : "text-[#566270]"
                 }`}>
                   {i + 1}
                 </span>
-                <div className="flex-1 min-w-0 space-y-1">
+
+                {/* Nombre + barra */}
+                <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-ivory truncate">{p.name}</span>
-                    <span className="text-[10px] font-bold text-muted flex-shrink-0">{p.qty}</span>
+                    <span className="text-sm font-semibold text-[#E6EDF3] truncate">{p.name}</span>
+                    <span className="text-xs font-bold text-[#8B949E] flex-shrink-0">{p.qty}</span>
                   </div>
-                  <div className="h-1.5 bg-black/30 rounded-full overflow-hidden">
+                  {/* Barra de progreso */}
+                  <div className="h-1.5 bg-[#21283A] rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        barColor.includes("gold") ? "bg-gold" : "bg-emerald-400"
-                      }`}
-                      style={{ width: `${pct}%` }}
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width:      `${pct}%`,
+                        background: i === 0
+                          ? accentColor.includes("F0B429") ? "#F0B429" : "#3FB950"
+                          : "rgba(255,255,255,0.2)",
+                      }}
                     />
                   </div>
                 </div>
@@ -93,20 +98,23 @@ function ProductList({
   );
 }
 
+/* ── Grid ─────────────────────────────────────────────────── */
 export default function TopProductsGrid({ topDrinks, topFoods, loading = false }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <ProductList
         items={topDrinks}
-        barColor="bg-gold"
-        icon={<GlassWater size={16} />}
+        accentColor="text-[#F0B429]"
+        iconBg="bg-[#F0B429]/15 text-[#F0B429]"
+        icon={<GlassWater size={17} />}
         label="Top bebidas"
         loading={loading}
       />
       <ProductList
         items={topFoods}
-        barColor="bg-emerald-400"
-        icon={<ChefHat size={16} />}
+        accentColor="text-[#3FB950]"
+        iconBg="bg-[#3FB950]/15 text-[#3FB950]"
+        icon={<ChefHat size={17} />}
         label="Top comidas"
         loading={loading}
       />

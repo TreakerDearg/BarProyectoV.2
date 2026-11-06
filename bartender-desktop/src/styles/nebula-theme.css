@@ -1,19 +1,24 @@
-/* Nebula — tema compartido (dashboard, salón, reservas, comandas) */
+/*
+  nebula-theme.css — Clases utilitarias compartidas
+  Paleta Slate Elegante v3.0
+  REGLA: No define lógica. Solo estilos visuales.
+*/
 
+/* ── Raíces de layout ──────────────────────────────────────── */
 .nebula-salon-root,
 .nebula-dashboard-root {
   position: relative;
-  color: var(--text-primary, #fff);
+  color: #E6EDF3;
 }
 
 .nebula-luxury-root {
-  --nebula-champagne: #f2d790;
-  --nebula-champagne-soft: rgba(242, 215, 144, 0.14);
-  --nebula-line: rgba(242, 215, 144, 0.16);
-  --nebula-glass-line: rgba(255, 255, 255, 0.075);
+  --nebula-champagne: #F0B429;
+  --nebula-champagne-soft: rgba(240, 180, 41, 0.14);
+  --nebula-line: rgba(48, 54, 61, 0.8);
+  --nebula-glass-line: rgba(48, 54, 61, 0.5);
   background:
-    linear-gradient(135deg, rgba(8, 9, 14, 0.96) 0%, rgba(13, 10, 20, 0.95) 44%, rgba(6, 10, 13, 0.98) 100%),
-    var(--bg, #08090c);
+    linear-gradient(135deg, rgba(13, 17, 23, 0.96) 0%, rgba(9, 14, 20, 0.95) 44%, rgba(13, 17, 23, 0.98) 100%),
+    #0D1117;
   isolation: isolate;
 }
 
@@ -24,85 +29,61 @@
   z-index: -2;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px);
+    linear-gradient(rgba(48, 54, 61, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(48, 54, 61, 0.18) 1px, transparent 1px);
   background-size: 68px 68px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent 78%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent 78%);
 }
 
-.nebula-luxury-root::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.12;
-  background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.32) 0 1px, transparent 1px 3px);
-  mix-blend-mode: overlay;
-}
-
+/* ── Aurora — gradiente ambiente frío ───────────────────────── */
 .nebula-aurora {
   position: absolute;
   inset: -20% -10%;
   background:
-    radial-gradient(ellipse 50% 40% at 15% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 35% at 85% 80%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(212, 163, 64, 0.04) 0%, transparent 45%);
+    radial-gradient(ellipse 50% 40% at 15% 10%,  rgba(56, 139, 253, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 35% at 85% 80%,  rgba(63, 185, 80,  0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%,  rgba(240, 180, 41, 0.03) 0%, transparent 45%);
   pointer-events: none;
   animation: nebula-drift 18s ease-in-out infinite alternate;
 }
 
-.nebula-luxury-root .nebula-aurora {
-  inset: 0;
-  background:
-    linear-gradient(120deg, transparent 0 26%, rgba(242, 215, 144, 0.055) 27%, transparent 31% 100%),
-    linear-gradient(165deg, transparent 0 52%, rgba(100, 217, 210, 0.05) 53%, transparent 57% 100%),
-    radial-gradient(ellipse 80% 34% at 52% -10%, rgba(126, 87, 194, 0.12), transparent 62%);
-  opacity: 0.9;
-  animation-duration: 28s;
-}
-
 @keyframes nebula-drift {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(2%, -1%) scale(1.02);
-    opacity: 1;
-  }
+  0%   { transform: translate(0, 0) scale(1);       opacity: 0.85; }
+  100% { transform: translate(2%, -1%) scale(1.02); opacity: 1; }
 }
 
+/* ── Panel base ─────────────────────────────────────────────── */
 .nebula-panel {
   background: linear-gradient(
     145deg,
-    rgba(18, 16, 28, 0.92) 0%,
-    rgba(12, 11, 18, 0.88) 100%
+    rgba(28, 35, 51, 0.92) 0%,
+    rgba(22, 27, 34, 0.88) 100%
   );
-  border: 1px solid rgba(139, 92, 246, 0.12);
+  border: 1px solid #30363D;
   border-radius: 1.25rem;
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .nebula-panel:hover {
-  border-color: rgba(139, 92, 246, 0.22);
+  border-color: rgba(240, 180, 41, 0.20);
 }
 
+/* ── Luxury panel ───────────────────────────────────────────── */
 .nebula-luxury-panel {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(145deg, rgba(19, 20, 27, 0.9), rgba(8, 9, 13, 0.94)),
-    linear-gradient(90deg, rgba(242, 215, 144, 0.08), transparent 42%);
+    linear-gradient(145deg, rgba(22, 27, 34, 0.9), rgba(13, 17, 23, 0.94)),
+    linear-gradient(90deg, rgba(240, 180, 41, 0.05), transparent 42%);
   border: 1px solid var(--nebula-line);
   border-radius: 14px;
   box-shadow:
     0 24px 70px rgba(0, 0, 0, 0.54),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(18px) saturate(1.18);
 }
 
@@ -111,49 +92,53 @@
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(242, 215, 144, 0.48), transparent);
+  background: linear-gradient(90deg, transparent, rgba(240, 180, 41, 0.40), transparent);
   opacity: 0.72;
 }
 
+/* ── Rail ───────────────────────────────────────────────────── */
 .nebula-rail {
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(20, 18, 26, 0.92), rgba(7, 8, 12, 0.92)),
-    linear-gradient(90deg, rgba(242, 215, 144, 0.1), transparent);
-  border: 1px solid var(--nebula-line);
+    linear-gradient(180deg, rgba(28, 35, 51, 0.92), rgba(13, 17, 23, 0.92)),
+    linear-gradient(90deg, rgba(240, 180, 41, 0.06), transparent);
+  border: 1px solid #30363D;
   box-shadow:
     0 22px 58px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* ── Brand mark ─────────────────────────────────────────────── */
 .nebula-brand-mark {
-  color: var(--nebula-champagne);
+  color: #F0B429;
   background:
-    linear-gradient(145deg, rgba(242, 215, 144, 0.16), rgba(116, 82, 166, 0.12)),
-    rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(242, 215, 144, 0.28);
-  box-shadow: 0 16px 36px rgba(242, 215, 144, 0.08);
+    linear-gradient(145deg, rgba(240, 180, 41, 0.14), rgba(63, 185, 80, 0.08)),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(240, 180, 41, 0.28);
+  box-shadow: 0 16px 36px rgba(240, 180, 41, 0.08);
 }
 
+/* ── Tipografía luxury ──────────────────────────────────────── */
 .nebula-luxury-title {
   letter-spacing: 0;
   text-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
 }
 
 .nebula-kicker {
-  color: rgba(242, 215, 144, 0.68);
+  color: rgba(240, 180, 41, 0.68);
   letter-spacing: 0.16em;
 }
 
+/* ── Segmented control ──────────────────────────────────────── */
 .nebula-segmented {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem;
   border-radius: 12px;
-  border: 1px solid var(--nebula-glass-line);
-  background: rgba(255, 255, 255, 0.045);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border: 1px solid #30363D;
+  background: rgba(22, 27, 34, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .nebula-segmented button {
@@ -162,12 +147,13 @@
 }
 
 .nebula-segmented button.active {
-  color: #120f09;
-  background: linear-gradient(135deg, #f2d790, #b9903d);
-  border: 1px solid rgba(255, 239, 184, 0.5);
-  box-shadow: 0 10px 24px rgba(242, 215, 144, 0.12);
+  color: #0D1117;
+  background: linear-gradient(135deg, #F0B429, #C8920F);
+  border: 1px solid rgba(245, 200, 66, 0.5);
+  box-shadow: 0 10px 24px rgba(240, 180, 41, 0.12);
 }
 
+/* ── Nav buttons ────────────────────────────────────────────── */
 .nebula-nav-button {
   width: 3.5rem;
   height: 3.5rem;
@@ -175,34 +161,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--nebula-glass-line);
-  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid #30363D;
+  background: rgba(22, 27, 34, 0.8);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 
 .nebula-nav-button:hover {
   transform: translateY(-1px);
-  border-color: rgba(242, 215, 144, 0.25);
-  background: rgba(242, 215, 144, 0.075);
+  border-color: rgba(240, 180, 41, 0.30);
+  background: rgba(240, 180, 41, 0.08);
 }
 
 .nebula-nav-button.is-active {
-  color: var(--nebula-champagne);
-  border-color: rgba(242, 215, 144, 0.34);
-  background: linear-gradient(145deg, rgba(242, 215, 144, 0.13), rgba(116, 82, 166, 0.12));
+  color: #F0B429;
+  border-color: rgba(240, 180, 41, 0.35);
+  background: linear-gradient(145deg, rgba(240, 180, 41, 0.14), rgba(63, 185, 80, 0.08));
 }
 
+/* ── Command cards (para Pedidos) ───────────────────────────── */
 .nebula-command-card {
   position: relative;
   overflow: hidden;
   border-radius: 14px;
   background:
-    linear-gradient(150deg, rgba(19, 21, 29, 0.94), rgba(7, 8, 12, 0.96)),
-    radial-gradient(ellipse at top left, var(--order-accent-soft, rgba(242, 215, 144, 0.12)), transparent 55%);
-  border: 1px solid var(--order-border, rgba(242, 215, 144, 0.18));
+    linear-gradient(150deg, rgba(22, 27, 34, 0.94), rgba(13, 17, 23, 0.96)),
+    radial-gradient(ellipse at top left, var(--order-accent-soft, rgba(240, 180, 41, 0.10)), transparent 55%);
+  border: 1px solid var(--order-border, rgba(240, 180, 41, 0.18));
   box-shadow:
     0 24px 62px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .nebula-command-card::before {
@@ -210,7 +197,7 @@
   position: absolute;
   inset: 0 0 auto;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--order-accent, #f2d790), transparent);
+  background: linear-gradient(90deg, transparent, var(--order-accent, #F0B429), transparent);
   opacity: 0.56;
 }
 
@@ -219,30 +206,29 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(120deg, transparent 0 62%, rgba(255, 255, 255, 0.045) 63%, transparent 68%);
+  background: linear-gradient(120deg, transparent 0 62%, rgba(255,255,255,0.03) 63%, transparent 68%);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
 
-.nebula-command-card:hover::after {
-  opacity: 1;
-}
+.nebula-command-card:hover::after { opacity: 1; }
 
 .nebula-command-card.is-critical {
-  --order-accent: #f06f5f;
-  --order-accent-soft: rgba(240, 111, 95, 0.14);
-  --order-border: rgba(240, 111, 95, 0.36);
+  --order-accent: #F85149;
+  --order-accent-soft: rgba(248, 81, 73, 0.12);
+  --order-border: rgba(248, 81, 73, 0.35);
   box-shadow:
     0 24px 62px rgba(0, 0, 0, 0.52),
-    0 0 34px rgba(240, 111, 95, 0.18);
+    0 0 34px rgba(248, 81, 73, 0.15);
 }
 
 .nebula-command-card.is-high {
-  --order-accent: #f0b466;
-  --order-accent-soft: rgba(240, 180, 102, 0.14);
-  --order-border: rgba(240, 180, 102, 0.32);
+  --order-accent: #FF7B54;
+  --order-accent-soft: rgba(255, 123, 84, 0.12);
+  --order-border: rgba(255, 123, 84, 0.30);
 }
 
+/* ── Table medallion ────────────────────────────────────────── */
 .nebula-table-medallion {
   width: 5rem;
   height: 5rem;
@@ -250,65 +236,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff7df;
+  color: #E6EDF3;
   background:
-    linear-gradient(145deg, rgba(242, 215, 144, 0.13), rgba(255, 255, 255, 0.045)),
-    rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(242, 215, 144, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    linear-gradient(145deg, rgba(240, 180, 41, 0.12), rgba(255, 255, 255, 0.03)),
+    rgba(22, 27, 34, 0.8);
+  border: 1px solid rgba(240, 180, 41, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+/* ── Progress bars ──────────────────────────────────────────── */
 .nebula-progress-track {
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(48, 54, 61, 0.8);
 }
 
 .nebula-progress-bar {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--order-accent, #f2d790), rgba(100, 217, 210, 0.92));
-  box-shadow: 0 0 18px var(--order-accent-soft, rgba(242, 215, 144, 0.18));
+  background: linear-gradient(90deg, var(--order-accent, #F0B429), rgba(63, 185, 80, 0.9));
+  box-shadow: 0 0 18px var(--order-accent-soft, rgba(240, 180, 41, 0.18));
 }
 
+/* ── Soft cell ──────────────────────────────────────────────── */
 .nebula-soft-cell {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid var(--nebula-glass-line);
+  background: rgba(28, 35, 51, 0.8);
+  border: 1px solid #30363D;
   border-radius: 12px;
 }
 
+/* ── Buttons ────────────────────────────────────────────────── */
 .nebula-btn-primary {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(79, 70, 229, 0.85));
-  color: #fff;
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: linear-gradient(135deg, #C8920F, #F0B429);
+  color: #0D1117;
+  border: 1px solid rgba(245, 200, 66, 0.35);
   border-radius: 0.75rem;
-  font-weight: 600;
-  transition: opacity 0.2s;
+  font-weight: 700;
+  transition: opacity 0.2s, transform 0.15s;
 }
 
 .nebula-btn-primary:hover {
   opacity: 0.92;
+  transform: translateY(-1px);
 }
 
+/* ── Mode toggle ────────────────────────────────────────────── */
 .nebula-mode-toggle {
   display: flex;
   padding: 0.25rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #30363D;
+  background: rgba(22, 27, 34, 0.8);
 }
 
 .nebula-mode-toggle button.active {
-  background: rgba(139, 92, 246, 0.25);
-  color: #e9d5ff;
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(240, 180, 41, 0.20);
+  color: #F0B429;
+  border: 1px solid rgba(240, 180, 41, 0.30);
 }
 
+/* ── Custom scrollbar ───────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(13, 17, 23, 0.8);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(240, 180, 41, 0.35);
   border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(240, 180, 41, 0.60);
 }

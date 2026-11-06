@@ -1,56 +1,64 @@
 "use client";
 
+/**
+ * LiveActivity — Feed de actividad reciente en tiempo real.
+ *
+ * REDISEÑO v3.0 — Slate Elegante
+ */
 import type { ReactNode } from "react";
 import { Activity, ArrowUpRight, Users, Gift, Package } from "lucide-react";
 import type { LiveActivityItem } from "../../store/dashboardStore";
 
 interface Props {
-  activities?: LiveActivityItem[];
+  activities?:  LiveActivityItem[];
   reservations?: { name?: string; partySize?: number; startTime?: string }[];
 }
 
-const typeStyles: Record<
-  LiveActivityItem["type"],
-  { color: string; defaultIcon: ReactNode }
-> = {
+/* Configuración visual por tipo de evento */
+const typeStyles: Record<LiveActivityItem["type"], { bg: string; border: string; color: string; icon: ReactNode }> = {
   reservation: {
-    color: "text-emerald-400 bg-emerald-400/10",
-    defaultIcon: <Users size={12} />,
+    bg:     "bg-[#3FB950]/12",
+    border: "border-[#3FB950]/20",
+    color:  "text-[#3FB950]",
+    icon:   <Users size={13} />,
   },
   order: {
-    color: "text-violet-300 bg-violet-500/10",
-    defaultIcon: <Activity size={12} />,
+    bg:     "bg-[#388BFD]/12",
+    border: "border-[#388BFD]/20",
+    color:  "text-[#388BFD]",
+    icon:   <Activity size={13} />,
   },
   discount: {
-    color: "text-gold bg-gold/10",
-    defaultIcon: <Gift size={12} />,
+    bg:     "bg-[#F0B429]/12",
+    border: "border-[#F0B429]/20",
+    color:  "text-[#F0B429]",
+    icon:   <Gift size={13} />,
   },
   inventory: {
-    color: "text-red bg-red/10",
-    defaultIcon: <Package size={12} />,
+    bg:     "bg-[#F85149]/12",
+    border: "border-[#F85149]/20",
+    color:  "text-[#F85149]",
+    icon:   <Package size={13} />,
   },
   system: {
-    color: "text-muted bg-white/5",
-    defaultIcon: <Activity size={12} />,
+    bg:     "bg-[#21283A]",
+    border: "border-[#30363D]",
+    color:  "text-[#8B949E]",
+    icon:   <Activity size={13} />,
   },
 };
 
-export default function LiveActivity({
-  activities = [],
-  reservations = [],
-}: Props) {
+export default function LiveActivity({ activities = [], reservations = [] }: Props) {
   let list: LiveActivityItem[] = activities;
 
+  /* Fallback a reservaciones si no hay actividad */
   if (list.length === 0 && reservations.length > 0) {
     list = reservations.map((res, i) => ({
-      id: `res-fallback-${i}`,
+      id:    `res-fallback-${i}`,
       title: "Reserva",
-      desc: `${res.name ?? "Cliente"} · ${res.partySize ?? "?"} personas`,
-      time: res.startTime
-        ? new Date(res.startTime).toLocaleTimeString("es-MX", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+      desc:  `${res.name ?? "Cliente"} · ${res.partySize ?? "?"} personas`,
+      time:  res.startTime
+        ? new Date(res.startTime).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
         : "—",
       type: "reservation",
     }));
@@ -58,44 +66,45 @@ export default function LiveActivity({
 
   if (list.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center opacity-40">
-        <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-          <Activity size={24} className="text-muted" />
+      <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+        <div className="w-12 h-12 rounded-full bg-[#21283A] flex items-center justify-center border border-[#30363D]">
+          <Activity size={20} className="text-[#566270]" />
         </div>
-        <p className="text-sm font-semibold text-muted uppercase tracking-wider mb-1">Sin actividad reciente</p>
-        <p className="text-xs text-muted/60">No hay eventos registrados en este momento</p>
+        <p className="text-sm font-semibold text-[#566270]">Sin actividad reciente</p>
+        <p className="text-xs text-[#3D444D]">No hay eventos registrados en este momento</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5" data-tutorial="live-activity">
+    <div className="space-y-4">
       {list.map((act, i) => {
-        const style = typeStyles[act.type] ?? typeStyles.system;
+        const s = typeStyles[act.type] ?? typeStyles.system;
         return (
-          <div key={act.id} className="flex gap-4 relative group">
+          <div key={act.id} className="flex gap-3 relative group">
+            {/* Línea conectora */}
             {i !== list.length - 1 && (
-              <div className="absolute left-5 top-10 bottom-[-1rem] w-px bg-white/5" />
+              <div className="absolute left-5 top-10 bottom-[-1rem] w-px bg-[#30363D]" />
             )}
-            <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/5 ${style.color}`}
-            >
-              {style.defaultIcon}
+
+            {/* Ícono del tipo */}
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border ${s.bg} ${s.border} ${s.color}`}>
+              {s.icon}
             </div>
-            <div className="pt-0.5 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-semibold text-ivory truncate">
-                  {act.title}
-                </p>
+
+            {/* Contenido */}
+            <div className="pt-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-semibold text-[#E6EDF3] truncate">{act.title}</p>
                 <ArrowUpRight
-                  size={10}
-                  className="text-muted opacity-0 group-hover:opacity-100 shrink-0"
+                  size={11}
+                  className="text-[#566270] opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity"
                 />
               </div>
-              <p className="text-[11px] text-muted mt-0.5 truncate">
+              <p className="text-xs text-[#566270] mt-0.5 truncate">
                 {act.desc}
-                <span className="mx-1.5 opacity-30">·</span>
-                <span className="text-violet-300/80">{act.time}</span>
+                <span className="mx-1.5 text-[#30363D]">·</span>
+                <span className={s.color}>{act.time}</span>
               </p>
             </div>
           </div>

@@ -1,36 +1,39 @@
 /**
  * QuickStatusPanel — Estado del servicio + alertas críticas.
- * Visible en modo Basic. Compacto, sin información secundaria.
+ * Visible en modo Simple. Compacto y directo.
+ *
+ * REDISEÑO v3.0 — Slate Elegante
  */
 import { ChefHat, GlassWater, ShieldAlert, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import type { DashboardStats } from "../services/dashboardService";
-import { useDashboardStore } from "../store/dashboardStore";
+import { useDashboardStore }   from "../store/dashboardStore";
 
 interface Props {
-  data:    DashboardStats;
+  data:     DashboardStats;
   loading?: boolean;
 }
 
+/* ── Barra de carga ────────────────────────────────────────── */
 function LoadBar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div className="h-1.5 bg-black/30 rounded-full overflow-hidden w-full">
+    <div className="h-2 bg-[#21283A] rounded-full overflow-hidden w-full">
       <div
-        className={`h-full rounded-full transition-all duration-700 ${color}`}
-        style={{ width: `${Math.min(pct, 100)}%` }}
+        className="h-full rounded-full transition-all duration-700"
+        style={{ width: `${Math.min(pct, 100)}%`, background: color }}
       />
     </div>
   );
 }
 
-function statusFromLoad(load: number): { label: string; color: string; bar: string } {
-  if (load > 80) return { label: "Crítico",  color: "text-red-400",     bar: "bg-red-400"     };
-  if (load > 50) return { label: "Ocupado",  color: "text-amber-400",   bar: "bg-amber-400"   };
-  return             { label: "Normal",   color: "text-emerald-400", bar: "bg-emerald-400" };
+function statusFromLoad(load: number) {
+  if (load > 80) return { label: "Crítico",  color: "#F85149", bar: "#F85149" };
+  if (load > 50) return { label: "Ocupado",  color: "#FF7B54", bar: "#FF7B54" };
+  return             { label: "Normal",   color: "#3FB950", bar: "#3FB950" };
 }
 
 export default function QuickStatusPanel({ data, loading = false }: Props) {
-  const alerts    = useDashboardStore((s) => s.alerts);
-  const dismiss   = useDashboardStore((s) => s.dismissAlert);
+  const alerts  = useDashboardStore((s) => s.alerts);
+  const dismiss = useDashboardStore((s) => s.dismissAlert);
 
   const kitchenLoad = data.kitchenLoad ?? 0;
   const barLoad     = data.barLoad     ?? 0;
@@ -44,77 +47,78 @@ export default function QuickStatusPanel({ data, loading = false }: Props) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-white/8 bg-surface-3/40 p-5 animate-pulse space-y-4">
-        <div className="h-4 w-32 rounded-full bg-white/10" />
-        <div className="h-3 w-full rounded-full bg-white/8" />
-        <div className="h-3 w-3/4 rounded-full bg-white/8" />
+      <div className="rounded-2xl border border-[#30363D] bg-[#1C2333]/50 p-6 animate-pulse space-y-4">
+        <div className="h-4 w-32 rounded-full bg-[#21283A]" />
+        <div className="h-3 w-full rounded-full bg-[#21283A]" />
+        <div className="h-3 w-3/4 rounded-full bg-[#21283A]" />
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-surface-3/50 p-5 space-y-5">
-      <h3 className="text-xs font-black text-muted uppercase tracking-[0.2em]">Estado del servicio</h3>
+    <div className="rounded-2xl border border-[#30363D] bg-[#1C2333]/50 p-6 space-y-5">
+      <h3 className="text-xs font-black text-[#566270] uppercase tracking-[0.18em]">
+        Estado del servicio
+      </h3>
 
       {/* Cocina + Barra */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-5">
         {[
           { label: "Cocina", icon: <ChefHat size={15} />, load: kitchenLoad, s: kitchen },
-          { label: "Barra",  icon: <GlassWater size={15} />, load: barLoad,    s: bar     },
+          { label: "Barra",  icon: <GlassWater size={15} />, load: barLoad,  s: bar     },
         ].map(({ label, icon, load, s }) => (
-          <div key={label} className="space-y-1.5">
+          <div key={label} className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-text-dim">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-[#8B949E]">
                 {icon} {label}
               </span>
-              <span className={`text-xs font-bold ${s.color}`}>{s.label}</span>
+              <span className="text-xs font-bold" style={{ color: s.color }}>{s.label}</span>
             </div>
             <LoadBar pct={load} color={s.bar} />
-            <p className="text-[10px] text-muted/60">{load}% de carga</p>
+            <p className="text-xs text-[#566270]">{load}% de carga</p>
           </div>
         ))}
       </div>
 
-      {/* Inventario crítico */}
+      {/* Inventario */}
       <div className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
-        outOfStock > 0 ? "bg-red-500/8 border-red-500/20" :
-        lowStock   > 0 ? "bg-amber-500/8 border-amber-500/20" :
-                         "bg-emerald-500/8 border-emerald-500/20"
+        outOfStock > 0 ? "bg-[#F85149]/8 border-[#F85149]/25" :
+        lowStock   > 0 ? "bg-[#FF7B54]/8 border-[#FF7B54]/25" :
+                         "bg-[#3FB950]/8 border-[#3FB950]/25"
       }`}>
         <div className="flex items-center gap-2.5">
           {outOfStock > 0 || lowStock > 0
-            ? <AlertTriangle size={15} className={outOfStock > 0 ? "text-red-400" : "text-amber-400"} />
-            : <CheckCircle2 size={15} className="text-emerald-400" />
+            ? <AlertTriangle size={16} className={outOfStock > 0 ? "text-[#F85149]" : "text-[#FF7B54]"} />
+            : <CheckCircle2 size={16} className="text-[#3FB950]" />
           }
-          <span className="text-xs font-semibold text-text-dim">Inventario</span>
+          <span className="text-sm font-semibold text-[#8B949E]">Inventario</span>
         </div>
-        <span className={`text-xs font-bold ${
-          outOfStock > 0 ? "text-red-400" :
-          lowStock   > 0 ? "text-amber-400" :
-                           "text-emerald-400"
-        }`}>
+        <span className="text-sm font-bold" style={{
+          color: outOfStock > 0 ? "#F85149" : lowStock > 0 ? "#FF7B54" : "#3FB950",
+        }}>
           {outOfStock > 0 ? `${outOfStock} sin stock` :
            lowStock   > 0 ? `${lowStock} por agotarse` :
                             "Estable"}
         </span>
       </div>
 
-      {/* Alertas críticas activas */}
+      {/* Alertas críticas */}
       {criticalAlerts.length > 0 && (
         <div className="space-y-2">
           {criticalAlerts.slice(0, 3).map((a) => (
-            <div key={a.id}
-              className="flex items-start gap-2.5 px-3 py-2 rounded-xl bg-red-500/8 border border-red-500/20"
+            <div
+              key={a.id}
+              className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-[#F85149]/8 border border-[#F85149]/25"
             >
-              <ShieldAlert size={13} className="text-red-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-red-300 flex-1 leading-relaxed">{a.message}</p>
+              <ShieldAlert size={14} className="text-[#F85149] mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-[#FF6B63] flex-1 leading-relaxed">{a.message}</p>
               <button
                 type="button"
                 onClick={() => dismiss(a.id)}
-                className="text-red-400/50 hover:text-red-300 transition-colors flex-shrink-0"
+                className="text-[#F85149]/50 hover:text-[#F85149] transition-colors flex-shrink-0"
                 aria-label="Descartar alerta"
               >
-                <X size={12} />
+                <X size={13} />
               </button>
             </div>
           ))}

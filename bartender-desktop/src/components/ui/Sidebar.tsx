@@ -11,12 +11,11 @@ import {
   Layers, GlassWater, Gift,
 } from "lucide-react";
 
-import { useAuthStore } from "../../store/authStore";
-import { useUIStore }   from "../../store/uiStore";
-import { canAccessPath } from "../../config/accessControl";
-import { useNotificationBell } from "../../components/shared/NotificationCenter";
+import { useAuthStore }    from "../../store/authStore";
+import { useUIStore }      from "../../store/uiStore";
+import { canAccessPath }   from "../../config/accessControl";
 
-/* ── Rutas ─────────────────────────────────────────────────────── */
+/* ── Rutas (sin cambios) ───────────────────────────────────────── */
 const PATHS = {
   DASHBOARD:                "/dashboard",
   ORDERS:                   "/orders",
@@ -41,7 +40,6 @@ const PATHS = {
   SETTINGS:                 "/settings",
 };
 
-/* ── Tipo de item ──────────────────────────────────────────────── */
 interface NavItem {
   name: string;
   path: string;
@@ -55,68 +53,72 @@ interface NavSection {
   items: NavItem[];
 }
 
-/* ── Tooltip ───────────────────────────────────────────────────── */
+/* ── Tooltip para sidebar colapsado ──────────────────────────── */
 function Tooltip({ label }: { label: string }) {
   return (
     <span className="
-      absolute left-full ml-3 z-50 px-2.5 py-1.5 text-[10px] font-semibold
-      bg-[#12121A] border border-white/10 rounded-lg
+      absolute left-full ml-3 z-50 px-3 py-1.5 text-xs font-semibold
+      bg-[#1C2333] border border-[#30363D] rounded-lg
       shadow-[0_4px_20px_rgba(0,0,0,0.5)]
       opacity-0 group-hover:opacity-100
       translate-x-2 group-hover:translate-x-0
       transition-all duration-150
-      whitespace-nowrap pointer-events-none text-ivory
+      whitespace-nowrap pointer-events-none text-[#E6EDF3]
     ">
       {label}
     </span>
   );
 }
 
-/* ── Nav item simple ───────────────────────────────────────────── */
-function NavItemLink({
-  item, collapsed,
-}: {
-  item: NavItem;
-  collapsed: boolean;
-}) {
+/* ── Ítem de navegación simple ───────────────────────────────── */
+function NavItemLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   return (
     <NavLink
       to={item.path}
       end={item.path === "/recipes"}
       className={({ isActive }) =>
-        `group relative flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium
-        transition-all duration-200 cursor-pointer
-        ${isActive
-          ? "bg-gold/10 text-gold border border-gold/20 shadow-[0_0_12px_rgba(212,163,64,0.08)]"
-          : "text-muted hover:text-ivory hover:bg-white/5"
-        }
-        ${collapsed ? "justify-center" : ""}
+        `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl
+         text-sm font-medium transition-all duration-200 cursor-pointer
+         ${isActive
+           ? "bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/25 shadow-[0_0_12px_rgba(240,180,41,0.08)]"
+           : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5 border border-transparent"
+         }
+         ${collapsed ? "justify-center" : ""}
         `
       }
     >
       {({ isActive }) => (
         <>
+          {/* Borde izquierdo indicador de activo */}
           {isActive && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full bg-gold shadow-[0_0_8px_rgba(212,163,64,0.6)]" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full bg-[#F0B429] shadow-[0_0_8px_rgba(240,180,41,0.7)]" />
           )}
+
           <item.icon
-            size={16}
-            className={`flex-shrink-0 transition-colors ${isActive ? "text-gold" : "text-muted group-hover:text-ivory"}`}
+            size={18}
+            className={`flex-shrink-0 transition-colors ${
+              isActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
+            }`}
           />
-          {!collapsed && <span className="truncate leading-none">{item.name}</span>}
-          {collapsed && <Tooltip label={item.name} />}
-          {item.badge && !collapsed && (
-            <span className="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-md bg-gold/15 text-gold border border-gold/20">
+
+          {!collapsed && (
+            <span className="truncate leading-none">{item.name}</span>
+          )}
+
+          {!collapsed && item.badge && (
+            <span className="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-md bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/25">
               {item.badge}
             </span>
           )}
+
+          {collapsed && <Tooltip label={item.name} />}
         </>
       )}
     </NavLink>
   );
 }
 
-/* ── Nav item con submenu ──────────────────────────────────────── */
+/* ── Ítem de navegación con submenu ──────────────────────────── */
 function NavItemSubmenu({
   item, collapsed, expanded, onToggle,
 }: {
@@ -132,52 +134,59 @@ function NavItemSubmenu({
       <button
         type="button"
         onClick={() => collapsed ? navigate(item.path) : onToggle()}
-        className={`group relative w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium
-          transition-all duration-200 cursor-pointer
+        className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+          text-sm font-medium transition-all duration-200 cursor-pointer
+          border
           ${expanded && !collapsed
-            ? "bg-gold/8 text-gold border border-gold/15"
-            : "text-muted hover:text-ivory hover:bg-white/5"
+            ? "bg-[#F0B429]/10 text-[#F0B429] border-[#F0B429]/20"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5 border-transparent"
           }
           ${collapsed ? "justify-center" : ""}
         `}
       >
         <item.icon
-          size={16}
+          size={18}
           className={`flex-shrink-0 transition-colors ${
-            expanded && !collapsed ? "text-gold" : "text-muted group-hover:text-ivory"
+            expanded && !collapsed ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
           }`}
         />
+
         {!collapsed && (
           <>
             <span className="flex-1 text-left truncate leading-none">{item.name}</span>
             <ChevronDown
-              size={12}
-              className={`flex-shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+              size={14}
+              className={`flex-shrink-0 text-[#566270] transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
             />
           </>
         )}
+
         {collapsed && <Tooltip label={item.name} />}
       </button>
 
+      {/* Submenu expandido */}
       {!collapsed && expanded && (
-        <div className="mt-1 ml-3 pl-3 border-l border-white/8 space-y-0.5">
+        <div className="mt-1 ml-4 pl-3 border-l-2 border-[#30363D] space-y-0.5">
           {item.submenu!.map((sub) => (
             <NavLink
               key={sub.name}
               to={sub.path}
               end
               className={({ isActive }) =>
-                `group relative flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-medium
-                transition-all duration-150
-                ${isActive
-                  ? "text-gold bg-gold/8 border border-gold/15"
-                  : "text-muted/70 hover:text-ivory hover:bg-white/4"
-                }`
+                `group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium
+                 transition-all duration-150
+                 ${isActive
+                   ? "text-[#F0B429] bg-[#F0B429]/8 border border-[#F0B429]/20"
+                   : "text-[#566270] hover:text-[#E6EDF3] hover:bg-white/4 border border-transparent"
+                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <sub.icon size={13} className={`flex-shrink-0 ${isActive ? "text-gold" : "text-muted/50"}`} />
+                  <sub.icon
+                    size={14}
+                    className={`flex-shrink-0 ${isActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#8B949E]"}`}
+                  />
                   <span className="truncate leading-none">{sub.name}</span>
                 </>
               )}
@@ -189,7 +198,7 @@ function NavItemSubmenu({
   );
 }
 
-/* ── Componente principal ──────────────────────────────────────── */
+/* ── Componente principal ────────────────────────────────────── */
 export default function Sidebar() {
   const logout   = useAuthStore((s) => s.logout);
   const user     = useAuthStore((s) => s.user);
@@ -204,7 +213,7 @@ export default function Sidebar() {
   const toggleSection = (name: string) =>
     setExpanded((prev) => (prev === name ? null : name));
 
-  /* ── Secciones ───────────────────────────────────────────────── */
+  /* ── Secciones de menú (sin cambios en lógica) ───────────── */
   const menuSections: NavSection[] = [
     {
       title: "General",
@@ -215,10 +224,10 @@ export default function Sidebar() {
     {
       title: "Operación",
       items: [
-        { name: "Pedidos",   path: PATHS.ORDERS,       icon: ClipboardList },
-        { name: "Mesas",     path: PATHS.TABLES,        icon: Armchair },
-        { name: "Reservas",  path: PATHS.RESERVATIONS,  icon: CalendarDays },
-        { name: "Descuentos",path: PATHS.DISCOUNTS,     icon: Percent },
+        { name: "Pedidos",    path: PATHS.ORDERS,      icon: ClipboardList },
+        { name: "Mesas",      path: PATHS.TABLES,      icon: Armchair },
+        { name: "Reservas",   path: PATHS.RESERVATIONS, icon: CalendarDays },
+        { name: "Descuentos", path: PATHS.DISCOUNTS,   icon: Percent },
       ],
     },
     {
@@ -232,8 +241,8 @@ export default function Sidebar() {
           path: PATHS.RECIPES,
           icon: FlaskConical,
           submenu: [
-            { name: "Biblioteca",  path: PATHS.RECIPES,      icon: BookOpen },
-            { name: "Constructor", path: PATHS.RECIPES_NEW,  icon: GlassWater },
+            { name: "Biblioteca",  path: PATHS.RECIPES,     icon: BookOpen },
+            { name: "Constructor", path: PATHS.RECIPES_NEW, icon: GlassWater },
             { name: "Técnicas",    path: `${PATHS.RECIPES}?view=techniques`, icon: Layers },
           ],
         },
@@ -247,18 +256,18 @@ export default function Sidebar() {
           path: PATHS.EMPLOYEES,
           icon: Users,
           submenu: [
-            { name: "Lista",            path: PATHS.EMPLOYEES,                  icon: Users },
-            { name: "Dashboard",        path: PATHS.EMPLOYEES_DASHBOARD,        icon: BarChart3 },
-            { name: "Roles",            path: PATHS.EMPLOYEES_ROLES,            icon: Shield },
-            { name: "Permisos",         path: PATHS.EMPLOYEES_PERMISSIONS,      icon: Shield },
-            { name: "Turnos",           path: PATHS.EMPLOYEES_SHIFTS,           icon: Clock },
-            { name: "Actividad",        path: PATHS.EMPLOYEES_ACTIVITY,         icon: Activity },
-            { name: "Gestión Turnos",   path: PATHS.EMPLOYEES_SHIFT_MANAGEMENT, icon: Calendar },
-            { name: "Métricas Turnos",  path: PATHS.EMPLOYEES_SHIFT_METRICS,    icon: TrendingUp },
+            { name: "Lista",           path: PATHS.EMPLOYEES,                  icon: Users },
+            { name: "Dashboard",       path: PATHS.EMPLOYEES_DASHBOARD,        icon: BarChart3 },
+            { name: "Roles",           path: PATHS.EMPLOYEES_ROLES,            icon: Shield },
+            { name: "Permisos",        path: PATHS.EMPLOYEES_PERMISSIONS,      icon: Shield },
+            { name: "Turnos",          path: PATHS.EMPLOYEES_SHIFTS,           icon: Clock },
+            { name: "Actividad",       path: PATHS.EMPLOYEES_ACTIVITY,         icon: Activity },
+            { name: "Gestión Turnos",  path: PATHS.EMPLOYEES_SHIFT_MANAGEMENT, icon: Calendar },
+            { name: "Métricas Turnos", path: PATHS.EMPLOYEES_SHIFT_METRICS,    icon: TrendingUp },
           ],
         },
         { name: "Ruleta",        path: PATHS.ROULETTE, icon: Dices },
-        { name: "Recompensas",   path: PATHS.REWARDS,  icon: Gift  },
+        { name: "Recompensas",   path: PATHS.REWARDS,  icon: Gift },
         { name: "Configuración", path: PATHS.SETTINGS, icon: Settings },
       ],
     },
@@ -267,74 +276,108 @@ export default function Sidebar() {
     items: section.items.filter((item) => canAccessPath(user?.role, item.path)),
   })).filter((section) => section.items.length > 0);
 
-  /* ── Avatar ──────────────────────────────────────────────────── */
+  /* ── Iniciales del usuario ───────────────────────────────── */
   const initials = user?.name
     ? user.name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
   return (
-    <aside className={`
-      h-full flex flex-col relative overflow-hidden
-      transition-all duration-300 ease-in-out
-      ${collapsed ? "w-[64px]" : "w-[230px]"}
-    `}>
+    <aside
+      className={`
+        h-full flex flex-col relative overflow-hidden
+        bg-[#0D1117]
+        transition-all duration-300 ease-in-out
+        ${collapsed ? "w-[68px]" : "w-[240px]"}
+      `}
+    >
+      {/* Separador derecho visible */}
+      <div className="absolute right-0 top-0 bottom-0 w-px bg-[#30363D]" />
 
-      {/* ── Atmósfera ────────────────────────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-gold/4 blur-[80px]" />
-        <div className="absolute -bottom-10 -right-5 w-32 h-32 bg-violet-500/4 blur-[70px]" />
-      </div>
-
-      {/* ── Logo / toggle ─────────────────────────────────── */}
-      <div className={`
-        relative z-10 flex items-center border-b border-white/6 flex-shrink-0
-        ${collapsed ? "justify-center px-3 py-4" : "justify-between px-4 py-4"}
-      `}>
+      {/* ── Logo / Toggle ──────────────────────────────────── */}
+      <div
+        className={`
+          flex items-center border-b border-[#30363D] flex-shrink-0
+          ${collapsed ? "justify-center px-3 py-4" : "justify-between px-4 py-4"}
+        `}
+      >
         {!collapsed && (
           <div className="min-w-0">
-            <p className="text-[11px] font-black tracking-[0.18em] text-ivory leading-none">BARTENDER</p>
-            <p className="text-[8px] text-gold/60 font-bold tracking-[0.25em] uppercase mt-0.5">Bar Control</p>
+            <p className="text-sm font-black tracking-[0.15em] text-[#E6EDF3] leading-none">
+              BARTENDER
+            </p>
+            <p className="text-[10px] text-[#F0B429]/70 font-bold tracking-[0.20em] uppercase mt-0.5">
+              Bar Control
+            </p>
           </div>
         )}
+
         <button
           type="button"
           onClick={toggle}
-          className="p-1.5 rounded-lg hover:bg-white/6 transition-colors flex-shrink-0"
-          title={collapsed ? "Expandir" : "Colapsar"}
+          className="p-2 rounded-lg hover:bg-white/8 transition-colors flex-shrink-0 group"
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
         >
           <ChevronLeft
-            size={14}
-            className={`text-muted transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
+            size={16}
+            className={`text-[#566270] group-hover:text-[#E6EDF3] transition-all duration-300 ${collapsed ? "rotate-180" : ""}`}
           />
         </button>
       </div>
 
-      {/* ── Perfil compacto ───────────────────────────────── */}
+      {/* ── Perfil del usuario ─────────────────────────────── */}
       {!collapsed && user && (
-        <div className="relative z-10 flex items-center gap-2.5 px-4 py-3 border-b border-white/6 flex-shrink-0">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gold/40 to-amber-600/30 border border-gold/25 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-black text-gold">{initials}</span>
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#30363D] flex-shrink-0 bg-[#161B22]/50">
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F0B429]/50 to-[#C8920F]/30 border-2 border-[#F0B429]/30 flex items-center justify-center">
+              <span className="text-xs font-black text-[#F0B429]">{initials}</span>
+            </div>
+            {/* Punto online */}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#3FB950] border-2 border-[#0D1117] shadow-[0_0_6px_#3FB950]" />
           </div>
+
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-ivory truncate leading-none">
+            <p className="text-sm font-semibold text-[#E6EDF3] truncate leading-none">
               {user.name?.split(" ")[0] || "Usuario"}
             </p>
-            <p className="text-[9px] text-muted/60 capitalize truncate mt-0.5">{user.role || "staff"}</p>
+            <p className="text-xs text-[#566270] capitalize truncate mt-0.5">
+              {user.role || "staff"}
+            </p>
           </div>
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] flex-shrink-0" />
         </div>
       )}
 
-      {/* ── Navegación ────────────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5 relative z-10 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/8">
+      {/* Avatar colapsado */}
+      {collapsed && user && (
+        <div className="flex justify-center py-3 border-b border-[#30363D] flex-shrink-0">
+          <div className="relative group">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F0B429]/50 to-[#C8920F]/30 border-2 border-[#F0B429]/30 flex items-center justify-center">
+              <span className="text-xs font-black text-[#F0B429]">{initials}</span>
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#3FB950] border-2 border-[#0D1117]" />
+            <Tooltip label={user.name?.split(" ")[0] || "Usuario"} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Navegación ─────────────────────────────────────── */}
+      <nav
+        className={`
+          flex-1 overflow-y-auto py-4 space-y-5 relative z-10
+          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#30363D]
+          ${collapsed ? "px-2" : "px-3"}
+        `}
+      >
         {menuSections.map((section) => (
           <div key={section.title}>
-            {!collapsed && (
-              <p className="text-[8px] font-black text-muted/35 tracking-[0.22em] uppercase mb-1.5 px-2">
+            {/* Título de sección */}
+            {!collapsed ? (
+              <p className="text-[10px] font-black text-[#566270] tracking-[0.18em] uppercase mb-2 px-3">
                 {section.title}
               </p>
+            ) : (
+              <div className="h-px bg-[#30363D] my-1 mx-2" />
             )}
-            {collapsed && <div className="h-px bg-white/6 my-1.5 mx-2" />}
 
             <div className="space-y-0.5">
               {section.items.map((item) =>
@@ -360,44 +403,48 @@ export default function Sidebar() {
       </nav>
 
       {/* ── Footer ────────────────────────────────────────── */}
-      <div className="relative z-10 border-t border-white/6 p-2 space-y-1 flex-shrink-0">
+      <div className="border-t border-[#30363D] p-2 space-y-1 flex-shrink-0">
         {/* Notificaciones */}
         <button
           type="button"
           title="Notificaciones"
           className={`
-            group relative w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs
-            text-muted hover:text-ivory hover:bg-white/5 transition-all duration-200
+            group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+            text-sm text-[#566270] hover:text-[#E6EDF3] hover:bg-white/5
+            transition-all duration-200 border border-transparent
             ${collapsed ? "justify-center" : ""}
           `}
         >
-          <Bell size={15} className="flex-shrink-0" />
-          {!collapsed && <span className="text-xs font-medium">Notificaciones</span>}
+          <Bell size={17} className="flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Notificaciones</span>}
           {collapsed && <Tooltip label="Notificaciones" />}
         </button>
 
-        {/* Logout */}
+        {/* Cerrar sesión */}
         <button
           type="button"
           onClick={handleLogout}
           title="Cerrar sesión"
           className={`
-            group relative w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs
-            text-red-400/70 hover:text-red-300 hover:bg-red-500/8 border border-transparent
-            hover:border-red-500/15 transition-all duration-200
+            group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+            text-sm text-[#F85149]/60 hover:text-[#F85149] hover:bg-[#F85149]/8
+            border border-transparent hover:border-[#F85149]/20
+            transition-all duration-200
             ${collapsed ? "justify-center" : ""}
           `}
         >
-          <LogOut size={15} className="flex-shrink-0" />
-          {!collapsed && <span className="text-xs font-medium">Cerrar sesión</span>}
+          <LogOut size={17} className="flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Cerrar sesión</span>}
           {collapsed && <Tooltip label="Cerrar sesión" />}
         </button>
 
-        {/* Status */}
+        {/* Indicador de estado — solo expandido */}
         {!collapsed && (
-          <div className="flex items-center gap-2 px-3 pt-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_5px_#34d399]" />
-            <span className="text-[8px] font-bold text-muted/40 uppercase tracking-[0.2em]">Sistema online</span>
+          <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+            <div className="w-2 h-2 rounded-full bg-[#3FB950] animate-pulse shadow-[0_0_6px_#3FB950]" />
+            <span className="text-[10px] font-bold text-[#566270] uppercase tracking-[0.18em]">
+              Sistema online
+            </span>
           </div>
         )}
       </div>

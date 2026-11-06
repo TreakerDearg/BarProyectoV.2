@@ -1,94 +1,75 @@
-/* =========================================================
-   DASHBOARD UNIFIED THEME
-   Tema unificado para el sistema Dashboard de Bartender Desktop
-   Optimizado para rendimiento y estética visual
-========================================================= */
+/*
+  dashboard-theme.css — Clases utilitarias del Dashboard
+  Paleta Slate Elegante v3.0
+  REGLA: Solo estilos visuales. Cero lógica.
+*/
 
 :root {
-  /* =========================================================
-     FUSION COLORS - Combining Obsidian & Luxury Palettes
-  ========================================================= */
-  
-  /* Dashboard Base Colors */
-  --dashboard-bg: #08090C;
-  --dashboard-bg-deep: #050608;
-  --dashboard-surface: #0D0F14;
-  --dashboard-surface-2: #12151C;
-  --dashboard-surface-3: #171B24;
-  --dashboard-surface-4: #1E232E;
-  
-  /* Dashboard Accent Colors - Unificados */
-  --dashboard-gold: #D4A340;
-  --dashboard-gold-light: #E8BC5A;
-  --dashboard-red: #C83228;
-  --dashboard-red-light: #E05444;
-  --dashboard-warning: #E07828;
-  --dashboard-warning-light: #F09040;
-  --dashboard-emerald: #34B964;
-  --dashboard-emerald-light: #4AD07C;
-  
-  /* Dashboard Text Colors - Mejor contraste */
-  --dashboard-text-primary: #FFFFFF;
-  --dashboard-text-secondary: #E0E0E0;
-  --dashboard-text-tertiary: #B0B0B0;
-  --dashboard-text-muted: rgba(255, 255, 255, 0.7);
-  
-  /* =========================================================
-     DASHBOARD GRADIENTS - Simplificados
-  ========================================================= */
-  --dashboard-gradient-gold: linear-gradient(135deg, #D4A340 0%, #E8BC5A 50%, #A87C28 100%);
-  --dashboard-gradient-panel: linear-gradient(145deg, rgba(18, 16, 28, 0.95) 0%, rgba(12, 11, 18, 0.92) 100%);
-  
-  /* =========================================================
-     DASHBOARD EFFECTS
-  ========================================================= */
-  --dashboard-shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --dashboard-shadow-md: 0 8px 16px rgba(0, 0, 0, 0.5);
-  --dashboard-shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.6);
-  --dashboard-shadow-gold: 0 8px 24px rgba(212, 175, 55, 0.3);
-  
-  --dashboard-glass-bg: rgba(20, 20, 30, 0.6);
-  --dashboard-glass-border: rgba(255, 255, 255, 0.08);
-  --dashboard-glass-blur: blur(12px);
-  
-  /* =========================================================
-     DASHBOARD TYPOGRAPHY
-  ========================================================= */
-  --dashboard-font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --dashboard-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  
-  /* =========================================================
-     DASHBOARD SPACING UNIFICADO (Base 4px)
-  ========================================================= */
-  --dashboard-space-xs: 4px;
-  --dashboard-space-sm: 8px;
-  --dashboard-space-md: 12px;
-  --dashboard-space-lg: 16px;
-  --dashboard-space-xl: 24px;
+  /* ── Dashboard tokens (sincronizados con index.css :root) ── */
+  --dashboard-bg:         #0D1117;
+  --dashboard-bg-deep:    #090E14;
+  --dashboard-surface:    #161B22;
+  --dashboard-surface-2:  #1C2333;
+  --dashboard-surface-3:  #21283A;
+  --dashboard-surface-4:  #293042;
+
+  --dashboard-gold:         #F0B429;
+  --dashboard-gold-light:   #F5C842;
+  --dashboard-green:        #3FB950;
+  --dashboard-green-light:  #56D364;
+  --dashboard-red:          #F85149;
+  --dashboard-red-light:    #FF6B63;
+  --dashboard-orange:       #FF7B54;
+  --dashboard-orange-light: #FF9A7A;
+  --dashboard-blue:         #388BFD;
+
+  --dashboard-text-primary:   #E6EDF3;
+  --dashboard-text-secondary: #8B949E;
+  --dashboard-text-muted:     rgba(139, 148, 158, 0.5);
+
+  --dashboard-border:        #30363D;
+  --dashboard-border-strong: #3D444D;
+
+  /* ── Gradientes ─────────────────────────────────────────── */
+  --dashboard-gradient-gold:   linear-gradient(135deg, #C8920F 0%, #F0B429 50%, #F5C842 100%);
+  --dashboard-gradient-panel:  linear-gradient(145deg, rgba(28, 35, 51, 0.95) 0%, rgba(22, 27, 34, 0.92) 100%);
+
+  /* ── Efectos ────────────────────────────────────────────── */
+  --dashboard-shadow-sm:   0 4px 6px rgba(0, 0, 0, 0.4);
+  --dashboard-shadow-md:   0 8px 16px rgba(0, 0, 0, 0.5);
+  --dashboard-shadow-lg:   0 16px 32px rgba(0, 0, 0, 0.6);
+  --dashboard-shadow-gold: 0 8px 24px rgba(240, 180, 41, 0.20);
+
+  --dashboard-glass-bg:     rgba(28, 35, 51, 0.65);
+  --dashboard-glass-border: #30363D;
+  --dashboard-glass-blur:   blur(12px);
+
+  /* ── Tipografía ─────────────────────────────────────────── */
+  --dashboard-font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --dashboard-font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* ── Espaciado (base 4px) ───────────────────────────────── */
+  --dashboard-space-xs:  4px;
+  --dashboard-space-sm:  8px;
+  --dashboard-space-md:  12px;
+  --dashboard-space-lg:  16px;
+  --dashboard-space-xl:  24px;
   --dashboard-space-2xl: 32px;
-  
-  /* =========================================================
-     DASHBOARD BORDER RADIUS UNIFICADO
-  ========================================================= */
-  --dashboard-radius-sm: 8px;
-  --dashboard-radius-md: 12px;
-  --dashboard-radius-lg: 16px;
-  --dashboard-radius-xl: 24px;
+
+  /* ── Border radius ──────────────────────────────────────── */
+  --dashboard-radius-sm:  8px;
+  --dashboard-radius-md:  12px;
+  --dashboard-radius-lg:  16px;
+  --dashboard-radius-xl:  24px;
   --dashboard-radius-2xl: 32px;
-  
-  /* =========================================================
-     DASHBOARD ANIMATIONS
-  ========================================================= */
-  --dashboard-transition-fast: 0.2s ease;
-  --dashboard-transition-base: 0.3s ease;
-  --dashboard-transition-slow: 0.5s ease;
+
+  /* ── Animaciones ────────────────────────────────────────── */
+  --dashboard-transition-fast:  0.15s ease;
+  --dashboard-transition-base:  0.25s ease;
+  --dashboard-transition-slow:  0.40s ease;
 }
 
-/* =========================================================
-   DASHBOARD COMPONENT CLASSES - SIMPLIFICADOS
-========================================================= */
-
-/* Glass Card - Dashboard */
+/* ── Glass Card ─────────────────────────────────────────────── */
 .dashboard-glass-card {
   background: var(--dashboard-glass-bg);
   backdrop-filter: var(--dashboard-glass-blur);
@@ -96,15 +77,17 @@
   border: 1px solid var(--dashboard-glass-border);
   border-radius: var(--dashboard-radius-lg);
   box-shadow: var(--dashboard-shadow-md);
-  transition: border-color var(--dashboard-transition-base), box-shadow var(--dashboard-transition-base);
+  transition:
+    border-color var(--dashboard-transition-base),
+    box-shadow   var(--dashboard-transition-base);
 }
 
 .dashboard-glass-card:hover {
-  border-color: rgba(212, 175, 55, 0.2);
+  border-color: rgba(240, 180, 41, 0.22);
   box-shadow: var(--dashboard-shadow-gold);
 }
 
-/* Status Indicators - Dashboard */
+/* ── Status dots ────────────────────────────────────────────── */
 .dashboard-status-dot {
   width: 8px;
   height: 8px;
@@ -113,7 +96,7 @@
 }
 
 .dashboard-status-dot::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: -4px;
   border-radius: 50%;
@@ -121,65 +104,73 @@
   animation: dashboard-pulse 2s infinite;
 }
 
-.dashboard-status-success { 
-  background: var(--dashboard-emerald); 
-  box-shadow: 0 0 10px rgba(52, 185, 100, 0.3);
+.dashboard-status-success {
+  background: #3FB950;
+  box-shadow: 0 0 10px rgba(63, 185, 80, 0.4);
 }
-.dashboard-status-success::after { 
-  background: var(--dashboard-emerald); 
-}
+.dashboard-status-success::after { background: #3FB950; }
 
-.dashboard-status-warning { 
-  background: var(--dashboard-warning); 
-  box-shadow: 0 0 10px rgba(224, 120, 40, 0.3);
+.dashboard-status-warning {
+  background: #FF7B54;
+  box-shadow: 0 0 10px rgba(255, 123, 84, 0.4);
 }
-.dashboard-status-warning::after { 
-  background: var(--dashboard-warning); 
-}
+.dashboard-status-warning::after { background: #FF7B54; }
 
-.dashboard-status-error { 
-  background: var(--dashboard-red); 
-  box-shadow: 0 0 10px rgba(200, 50, 40, 0.3);
+.dashboard-status-error {
+  background: #F85149;
+  box-shadow: 0 0 10px rgba(248, 81, 73, 0.4);
 }
-.dashboard-status-error::after { 
-  background: var(--dashboard-red); 
-}
+.dashboard-status-error::after { background: #F85149; }
 
 @keyframes dashboard-pulse {
   0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
+  50%       { opacity: 0.7; transform: scale(1.2); }
 }
 
-/* Scrollbar - Dashboard */
-.dashboard-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
+/* ── Scrollbar ──────────────────────────────────────────────── */
+.dashboard-scrollbar::-webkit-scrollbar { width: 6px; }
 
 .dashboard-scrollbar::-webkit-scrollbar-track {
   background: var(--dashboard-surface-2);
 }
 
 .dashboard-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--dashboard-gold);
+  background: rgba(240, 180, 41, 0.40);
   border-radius: 3px;
 }
 
 .dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--dashboard-gold-light);
+  background: rgba(240, 180, 41, 0.65);
 }
 
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+/* ── Dashboard root ─────────────────────────────────────────── */
+.dashboard-root {
+  position: relative;
+  color: var(--dashboard-text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Accessibility - Focus Indicators */
+/* ── Dashboard panel ────────────────────────────────────────── */
+.dashboard-panel {
+  background: var(--dashboard-gradient-panel);
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius-lg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.25s ease,
+    box-shadow   0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-panel:hover {
+  border-color: rgba(240, 180, 41, 0.18);
+}
+
+/* ── Accesibilidad ──────────────────────────────────────────── */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -189,7 +180,14 @@ select:focus-visible,
   outline-offset: 2px;
 }
 
-/* High contrast mode support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media (prefers-contrast: high) {
   .dashboard-panel,
   .dashboard-glass-card {
@@ -197,108 +195,41 @@ select:focus-visible,
   }
 }
 
-/* =========================================================
-   DASHBOARD ROOT & PANEL
-========================================================= */
-
-.dashboard-root {
-  position: relative;
-  color: var(--dashboard-text-primary);
-  /* Ensure dashboard uses full available height */
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-panel {
-  background: var(--dashboard-gradient-panel);
-  border: 1px solid rgba(139, 92, 246, 0.12);
-  border-radius: var(--dashboard-radius-lg);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(12px);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  /* Ensure panels can flex properly */
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-panel:hover {
-  border-color: rgba(139, 92, 246, 0.22);
-}
-
-/* =========================================================
-   RESPONSIVE BREAKPOINTS
-========================================================= */
-
-/* Extra small screens (phones) */
+/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .dashboard-root {
-    padding: 0.5rem;
-  }
-  
-  .dashboard-panel {
-    border-radius: var(--dashboard-radius-md);
-    padding: 1rem !important;
-  }
+  .dashboard-root { padding: 0.75rem; }
+  .dashboard-panel { border-radius: var(--dashboard-radius-md); padding: 1rem !important; }
 }
 
-/* Small screens (tablets) */
 @media (min-width: 481px) and (max-width: 768px) {
-  .dashboard-root {
-    padding: 1rem;
-  }
-  
-  .dashboard-panel {
-    padding: 1.25rem !important;
-  }
+  .dashboard-root { padding: 1rem; }
+  .dashboard-panel { padding: 1.25rem !important; }
 }
 
-/* Medium screens (small laptops) */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .dashboard-root {
-    padding: 1.5rem;
-  }
-  
-  .dashboard-panel {
-    padding: 1.5rem !important;
-  }
+  .dashboard-root { padding: 1.5rem; }
+  .dashboard-panel { padding: 1.5rem !important; }
 }
 
-/* Large screens (desktops) */
 @media (min-width: 1025px) and (max-width: 1440px) {
-  .dashboard-root {
-    padding: 2rem;
-  }
-  
-  .dashboard-panel {
-    padding: 1.75rem !important;
-  }
+  .dashboard-root { padding: 1.75rem; }
+  .dashboard-panel { padding: 1.75rem !important; }
 }
 
-/* Extra large screens (big monitors) */
 @media (min-width: 1441px) {
   .dashboard-root {
-    padding: 2.5rem;
+    padding: 2rem;
     max-width: 1920px;
     margin: 0 auto;
   }
-  
-  .dashboard-panel {
-    padding: 2rem !important;
-  }
+  .dashboard-panel { padding: 2rem !important; }
 }
 
-/* =========================================================
-   RESPONSIVE GRID ADJUSTMENTS
-========================================================= */
-
-/* Stack grids on mobile */
+/* ── Grid responsive ────────────────────────────────────────── */
 @media (max-width: 768px) {
   .dashboard-root > div > div[class*="grid"] {
     grid-template-columns: 1fr !important;
   }
-  
-  /* Ensure charts scale properly on mobile */
   .dashboard-panel canvas,
   .dashboard-panel svg {
     max-width: 100%;
@@ -306,63 +237,64 @@ select:focus-visible,
   }
 }
 
-/* Adjust grid for tablets */
 @media (min-width: 769px) and (max-width: 1024px) {
   .dashboard-root > div > div[class*="grid-cols-12"] {
     grid-template-columns: repeat(8, 1fr) !important;
   }
-  
   .dashboard-root > div > div[class*="lg:col-span-8"] {
     grid-column: span 5 !important;
   }
-  
   .dashboard-root > div > div[class*="lg:col-span-4"] {
     grid-column: span 3 !important;
   }
 }
 
-/* Optimize for ultra-wide screens */
-@media (min-width: 1921px) {
-  .dashboard-root > div > div[class*="grid-cols-12"] {
-    grid-template-columns: repeat(16, 1fr) !important;
-  }
-  
-  .dashboard-root > div > div[class*="lg:col-span-8"] {
-    grid-column: span 10 !important;
-  }
-  
-  .dashboard-root > div > div[class*="lg:col-span-4"] {
-    grid-column: span 6 !important;
-  }
+/* ── Select / Option — fondo oscuro para dropdown nativo ────── */
+select {
+  color-scheme: dark;
+  background-color: #1C2333;
+  color: #E6EDF3;
 }
 
-/* =========================================================
-   RESPONSIVE TYPOGRAPHY
-========================================================= */
-
-@media (max-width: 768px) {
-  .dashboard-panel h1,
-  .dashboard-panel h2,
-  .dashboard-panel h3 {
-    font-size: 0.9em !important;
-  }
-  
-  .dashboard-panel p,
-  .dashboard-panel span {
-    font-size: 0.85em !important;
-  }
+select option {
+  background-color: #1C2333;
+  color: #E6EDF3;
+  font-weight: 500;
 }
 
-@media (min-width: 1441px) {
-  .dashboard-panel h1 {
-    font-size: 1.2em !important;
-  }
-  
-  .dashboard-panel h2 {
-    font-size: 1.1em !important;
-  }
-  
-  .dashboard-panel h3 {
-    font-size: 1.05em !important;
-  }
+select option:checked,
+select option:hover {
+  background-color: #293042;
+  color: #F0B429;
+}
+
+/* Clase utilitaria explícita para cualquier select del sistema */
+.select-dark {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #1C2333;
+  color: #E6EDF3;
+  border: 1px solid #30363D;
+  border-radius: 12px;
+  padding: 8px 36px 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  /* Chevron custom */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color-scheme: dark;
+}
+
+.select-dark:focus {
+  border-color: rgba(240, 180, 41, 0.5);
+  box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.10);
+}
+
+.select-dark:hover {
+  border-color: #3D444D;
+  background-color: #21283A;
 }

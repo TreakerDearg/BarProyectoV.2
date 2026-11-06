@@ -8,206 +8,204 @@ export default {
     extend: {
 
       /* ============================================================
-         COLORES UNIFICADOS — Bartender Dashboard v3.0
-         Sistema unificado para consistencia visual
+         PALETA SLATE ELEGANTE — Bartender Desktop v3.0
+         Sincronizada con src/index.css :root
+         REGLA: Si cambias un color aquí, cámbialo también en index.css
       ============================================================ */
       colors: {
-        /* ============================================================
-           NEBULA DESIGN SYSTEM - Phase 10
-           Professional dark theme inspired by Figma, Obsidian, VSCode
-        ============================================================ */
 
-        /* Background Layers */
-        nebula: {
-          bg: {
-            DEFAULT: "#070B16",
-            1: "#0B1220",
-            2: "#111827",
-          },
-          panel: {
-            DEFAULT: "#151C2E",
-            1: "#182234",
-            2: "#1B2537",
-          },
-          hover: "#202E46",
-        },
-
-        /* Accent Colors - Violet/Indigo */
-        accent: {
-          DEFAULT: "#6366F1",
-          1: "#7C3AED",
-          2: "#8B5CF6",
-          50: "rgba(99,102,241,0.05)",
-          100: "rgba(99,102,241,0.10)",
-          200: "rgba(99,102,241,0.20)",
-          300: "rgba(99,102,241,0.30)",
-        },
-
-        /* Semantic Colors */
-        success: {
-          DEFAULT: "#10B981",
-          50: "rgba(16,185,129,0.05)",
-          100: "rgba(16,185,129,0.10)",
-          200: "rgba(16,185,129,0.20)",
-        },
-        warning: {
-          DEFAULT: "#F59E0B",
-          50: "rgba(245,158,11,0.05)",
-          100: "rgba(245,158,11,0.10)",
-          200: "rgba(245,158,11,0.20)",
-        },
-        danger: {
-          DEFAULT: "#EF4444",
-          50: "rgba(239,68,68,0.05)",
-          100: "rgba(239,68,68,0.10)",
-          200: "rgba(239,68,68,0.20)",
-        },
-
-        /* Text Colors */
-        text: {
-          DEFAULT: "#FFFFFF",
-          1: "#D1D5DB",
-          2: "#9CA3AF",
-          3: "#6B7280",
-        },
-
-        /* Legacy colors for backward compatibility */
-        gold: {
-          DEFAULT: "#D4A340",
-          light: "#E8BC5A",
-          dark: "#A87C28",
-          50: "rgba(212,163,64,0.05)",
-          100: "rgba(212,163,64,0.10)",
-          200: "rgba(212,163,64,0.20)",
-          300: "rgba(212,163,64,0.30)",
-        },
-        red: {
-          DEFAULT: "#C83228",
-          light: "#E05444",
-          dark: "#981E16",
-          50: "rgba(200,50,40,0.05)",
-          100: "rgba(200,50,40,0.12)",
-          200: "rgba(200,50,40,0.20)",
-          300: "rgba(200,50,40,0.30)",
-        },
-        emerald: {
-          DEFAULT: "#34B964",
-          light: "#4AD07C",
-          dark: "#228A46",
-          50: "rgba(52,185,100,0.05)",
-          100: "rgba(52,185,100,0.12)",
-          200: "rgba(52,185,100,0.20)",
-          300: "rgba(52,185,100,0.30)",
-        },
-        neutral: {
-          DEFAULT: "#3D4150",
-          light: "#565D70",
-          dark: "#252830",
-        },
+        /* ── Fondos ─────────────────────────────────────────────── */
         bg: {
-          DEFAULT: "#08090C",
-          deep: "#050608",
+          DEFAULT: "#0D1117",
+          deep:    "#090E14",
         },
         surface: {
-          DEFAULT: "#0D0F14",
-          2: "#12151C",
-          3: "#171B24",
-          4: "#1E232E",
+          DEFAULT: "#161B22",
+          2:       "#1C2333",
+          3:       "#21283A",
+          4:       "#293042",
         },
-        ivory: "#F5F0E8",
-        muted: "rgba(255,255,255,0.6)",
-        brand: {
-          DEFAULT: "#C83228",
-          light: "#E05444",
-          dark: "#981E16",
+
+        /* ── Primario — Dorado vivo ──────────────────────────────── */
+        gold: {
+          DEFAULT: "#F0B429",
+          light:   "#F5C842",
+          dark:    "#C8920F",
+          50:  "rgba(240,180,41,0.05)",
+          100: "rgba(240,180,41,0.10)",
+          200: "rgba(240,180,41,0.20)",
+          300: "rgba(240,180,41,0.30)",
         },
+
+        /* ── Éxito — Verde GitHub ────────────────────────────────── */
+        emerald: {
+          DEFAULT: "#3FB950",
+          light:   "#56D364",
+          dark:    "#2EA043",
+          50:  "rgba(63,185,80,0.05)",
+          100: "rgba(63,185,80,0.12)",
+          200: "rgba(63,185,80,0.20)",
+          300: "rgba(63,185,80,0.30)",
+        },
+
+        /* ── Peligro — Rojo claro ────────────────────────────────── */
+        red: {
+          DEFAULT: "#F85149",
+          light:   "#FF6B63",
+          dark:    "#D1322A",
+          50:  "rgba(248,81,73,0.05)",
+          100: "rgba(248,81,73,0.12)",
+          200: "rgba(248,81,73,0.20)",
+          300: "rgba(248,81,73,0.30)",
+        },
+
+        /* ── Advertencia — Naranja suave ─────────────────────────── */
         ember: {
-          DEFAULT: "#E07828",
-          light: "#F09040",
-          dark: "#B05A18",
+          DEFAULT: "#FF7B54",
+          light:   "#FF9A7A",
+          dark:    "#D95830",
+          50:  "rgba(255,123,84,0.05)",
+          100: "rgba(255,123,84,0.12)",
+          200: "rgba(255,123,84,0.20)",
+          300: "rgba(255,123,84,0.30)",
+        },
+
+        /* ── Amber (acento cálido secundario) ────────────────────── */
+        amber: {
+          DEFAULT: "#F5A623",
+          light:   "#F7BC52",
+          dark:    "#C87D0F",
+          50:  "rgba(245,166,35,0.05)",
+          100: "rgba(245,166,35,0.12)",
+          200: "rgba(245,166,35,0.20)",
+          300: "rgba(245,166,35,0.30)",
+        },
+
+        /* ── Texto ──────────────────────────────────────────────── */
+        ivory:  "#E6EDF3",       /* --text  */
+        muted:  "#8B949E",       /* --text-dim */
+
+        /* ── Borde ──────────────────────────────────────────────── */
+        border: {
+          DEFAULT: "#30363D",
+          strong:  "#3D444D",
+        },
+
+        /* ── Neutro ─────────────────────────────────────────────── */
+        neutral: {
+          DEFAULT: "#3D444D",
+          light:   "#566270",
+          dark:    "#21262D",
+        },
+
+        /* ── Colores semánticos (aliases para Tailwind) ─────────── */
+        success: {
+          DEFAULT: "#3FB950",
+          50:  "rgba(63,185,80,0.05)",
+          100: "rgba(63,185,80,0.10)",
+          200: "rgba(63,185,80,0.20)",
+        },
+        warning: {
+          DEFAULT: "#FF7B54",
+          50:  "rgba(255,123,84,0.05)",
+          100: "rgba(255,123,84,0.10)",
+          200: "rgba(255,123,84,0.20)",
+        },
+        danger: {
+          DEFAULT: "#F85149",
+          50:  "rgba(248,81,73,0.05)",
+          100: "rgba(248,81,73,0.10)",
+          200: "rgba(248,81,73,0.20)",
+        },
+
+        /* ── Legacy names — backward compat ────────────────────── */
+        brand: {
+          DEFAULT: "#F85149",
+          light:   "#FF6B63",
+          dark:    "#D1322A",
         },
         lime: {
-          DEFAULT: "#34B964",
-          light: "#4AD07C",
-          dark: "#228A46",
+          DEFAULT: "#3FB950",
+          light:   "#56D364",
+          dark:    "#2EA043",
         },
         obsidian: {
-          DEFAULT: "#0D0F14",
-          light: "#12151C",
-          dark: "#08090C",
+          DEFAULT: "#161B22",
+          light:   "#1C2333",
+          dark:    "#0D1117",
         },
-        void: "#030207",
+        void: "#090E14",
+
+        /* ── Nebula aliases ─────────────────────────────────────── */
+        nebula: {
+          bg:    { DEFAULT: "#090E14", 1: "#0D1117", 2: "#161B22" },
+          panel: { DEFAULT: "#1C2333", 1: "#21283A", 2: "#293042" },
+          hover: "#21283A",
+        },
+        accent: {
+          DEFAULT: "#F0B429",
+          1: "#3FB950",
+          2: "#FF7B54",
+          50:  "rgba(240,180,41,0.05)",
+          100: "rgba(240,180,41,0.10)",
+          200: "rgba(240,180,41,0.20)",
+          300: "rgba(240,180,41,0.30)",
+        },
+        text: {
+          DEFAULT: "#E6EDF3",
+          1: "#C8D3E0",
+          2: "#8B949E",
+          3: "#566270",
+        },
       },
 
       /* ============================================================
-         FUENTES UNIFICADAS
+         FUENTES
       ============================================================ */
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans:    ["Inter", "system-ui", "sans-serif"],
         display: ["Inter", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
-      },
-
-      fontWeight: {
-        normal: "400",
-        medium: "500",
-        semibold: "600",
-        bold: "700",
-      },
-
-      /* ============================================================
-         ESPACIADO UNIFICADO (Base 4px)
-      ============================================================ */
-      spacing: {
-        1: "4px",
-        2: "8px",
-        3: "12px",
-        4: "16px",
-        5: "20px",
-        6: "24px",
-        8: "32px",
-        10: "40px",
-        12: "48px",
+        mono:    ["JetBrains Mono", "monospace"],
       },
 
       /* ============================================================
          GRADIENTES
       ============================================================ */
       backgroundImage: {
-        "grad-gold":   "linear-gradient(135deg, #D4A340 0%, #E8BC5A 50%, #A87C28 100%)",
-        "grad-red":    "linear-gradient(135deg, #981E16 0%, #C83228 50%, #E05444 100%)",
-        "grad-orange": "linear-gradient(135deg, #B05A18 0%, #E07828 50%, #F09040 100%)",
-        "grad-green":  "linear-gradient(135deg, #228A46 0%, #34B964 50%, #4AD07C 100%)",
-        "grad-brand":  "linear-gradient(135deg, #C83228 0%, #D4A340 60%, #E07828 100%)",
-        "grad-dark":   "linear-gradient(180deg, #0D0F14 0%, #08090C 100%)",
-        "grad-surface":"linear-gradient(180deg, #12151C 0%, #0D0F14 100%)",
+        "grad-gold":    "linear-gradient(135deg, #C8920F 0%, #F0B429 50%, #F5C842 100%)",
+        "grad-green":   "linear-gradient(135deg, #2EA043 0%, #3FB950 50%, #56D364 100%)",
+        "grad-red":     "linear-gradient(135deg, #D1322A 0%, #F85149 50%, #FF6B63 100%)",
+        "grad-orange":  "linear-gradient(135deg, #D95830 0%, #FF7B54 50%, #FF9A7A 100%)",
+        "grad-brand":   "linear-gradient(135deg, #F85149 0%, #F0B429 60%, #FF7B54 100%)",
+        "grad-dark":    "linear-gradient(180deg, #161B22 0%, #0D1117 100%)",
+        "grad-surface": "linear-gradient(180deg, #1C2333 0%, #161B22 100%)",
       },
 
       /* ============================================================
-         BORDER RADIUS UNIFICADO
+         BORDER RADIUS
       ============================================================ */
       borderRadius: {
-        sm: "8px",
-        DEFAULT: "12px",
-        md: "12px",
-        lg: "16px",
-        xl: "24px",
-        "2xl": "32px",
+        sm:     "6px",
+        DEFAULT:"10px",
+        md:     "12px",
+        lg:     "16px",
+        xl:     "24px",
+        "2xl":  "32px",
       },
 
       /* ============================================================
-         BOX SHADOWS
+         SOMBRAS
       ============================================================ */
       boxShadow: {
-        xs:    "0 2px 8px rgba(0,0,0,0.35)",
-        sm:    "0 4px 16px rgba(0,0,0,0.45)",
-        DEFAULT:"0 8px 32px rgba(0,0,0,0.60)",
-        lg:    "0 16px 56px rgba(0,0,0,0.75)",
-        gold:  "0 4px 24px rgba(212,163,64,0.22)",
-        red:   "0 4px 24px rgba(200,50,40,0.22)",
-        orange:"0 4px 24px rgba(224,120,40,0.18)",
-        green: "0 4px 24px rgba(52,185,100,0.18)",
-        glow:  "0 0 32px rgba(212,163,64,0.18)",
+        xs:     "0 2px 8px rgba(0,0,0,0.40)",
+        sm:     "0 4px 16px rgba(0,0,0,0.50)",
+        DEFAULT:"0 8px 32px rgba(0,0,0,0.65)",
+        lg:     "0 16px 56px rgba(0,0,0,0.80)",
+        gold:   "0 4px 24px rgba(240,180,41,0.20)",
+        red:    "0 4px 24px rgba(248,81,73,0.20)",
+        green:  "0 4px 24px rgba(63,185,80,0.18)",
+        orange: "0 4px 24px rgba(255,123,84,0.18)",
+        glow:   "0 0 32px rgba(240,180,41,0.18)",
       },
 
       /* ============================================================
@@ -223,8 +221,8 @@ export default {
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
         pulseGold: {
-          "0%, 100%": { boxShadow: "0 0 0 0 rgba(212,163,64,0)" },
-          "50%":      { boxShadow: "0 0 0 6px rgba(212,163,64,0.15)" },
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(240,180,41,0)" },
+          "50%":      { boxShadow: "0 0 0 6px rgba(240,180,41,0.15)" },
         },
         shimmer: {
           "0%":   { backgroundPosition: "-200% 0" },
@@ -253,9 +251,24 @@ export default {
       },
 
       transitionDuration: {
-        fast:   "140ms",
-        DEFAULT:"220ms",
-        slow:   "380ms",
+        fast:    "140ms",
+        DEFAULT: "220ms",
+        slow:    "380ms",
+      },
+
+      /* ============================================================
+         ESPACIADO (Base 4px)
+      ============================================================ */
+      spacing: {
+        1:  "4px",
+        2:  "8px",
+        3:  "12px",
+        4:  "16px",
+        5:  "20px",
+        6:  "24px",
+        8:  "32px",
+        10: "40px",
+        12: "48px",
       },
     },
   },

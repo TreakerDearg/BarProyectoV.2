@@ -1,20 +1,17 @@
 /**
- * DashboardPricingPanel
- * Componente simplificado que muestra el estado actual del Dynamic Pricing
+ * DashboardPricingPanel — Estado del Dynamic Pricing.
+ *
+ * REDISEÑO v3.0 — Slate Elegante
  */
-
 import { useState, useEffect } from "react";
 import { Activity, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { pricingService } from "../../discounts/services/pricingService";
-import "../../../styles/dashboard-theme.css";
 
 export default function DashboardPricingPanel() {
   const [multiplier, setMultiplier] = useState(1.0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
 
-  useEffect(() => {
-    loadMultiplier();
-  }, []);
+  useEffect(() => { loadMultiplier(); }, []);
 
   const loadMultiplier = async () => {
     try {
@@ -27,52 +24,66 @@ export default function DashboardPricingPanel() {
     }
   };
 
-  const isHighDemand = multiplier > 1.2;
-  const isLowDemand = multiplier < 0.8;
+  const isHigh = multiplier > 1.2;
+  const isLow  = multiplier < 0.8;
+
+  /* Estilos según demanda */
+  const config = isHigh
+    ? { border: "border-[#F85149]/25", bg: "bg-[#F85149]/6",  color: "#F85149", label: "Alta",   icon: <TrendingUp size={13} /> }
+    : isLow
+    ? { border: "border-[#388BFD]/25", bg: "bg-[#388BFD]/6",  color: "#388BFD", label: "Baja",   icon: <TrendingDown size={13} /> }
+    : { border: "border-[#3FB950]/25", bg: "bg-[#3FB950]/6",  color: "#3FB950", label: "Estable", icon: <Target size={13} /> };
 
   if (loading) {
     return (
-      <div className="glass-royale rounded-[2rem] p-6 border border-white/5 animate-pulse">
-        <div className="h-20 bg-white/5 rounded-xl" />
+      <div className="rounded-2xl border border-[#30363D] bg-[#1C2333]/50 p-6 animate-pulse">
+        <div className="h-20 bg-[#21283A] rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className={`dashboard-glass-card rounded-[2rem] p-6 border transition-all duration-500 ${
-      isHighDemand ? 'border-red/30 bg-red/5 dashboard-neon-glow' : isLowDemand ? 'border-blue-400/30 bg-blue-400/5 dashboard-neon-glow' : 'border-lime/30 bg-lime/5 dashboard-neon-glow'
-    }`}>
+    <div className={`rounded-2xl border ${config.border} ${config.bg} p-6 transition-all duration-500`}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl transition-colors duration-500 ${
-            isHighDemand ? 'bg-red/10 text-red' : isLowDemand ? 'bg-blue-400/10 text-blue-400' : 'bg-lime/10 text-lime'
-          }`}>
-            <Activity size={20} />
+          <div
+            className="p-2.5 rounded-xl"
+            style={{ background: `${config.color}20`, color: config.color }}
+          >
+            <Activity size={18} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold text-muted uppercase tracking-wide">Precios dinámicos</p>
-            <p className="text-xs font-semibold text-ivory">Multiplicador global</p>
+            <p className="text-[10px] font-bold text-[#566270] uppercase tracking-wider">
+              Precios dinámicos
+            </p>
+            <p className="text-sm font-semibold text-[#E6EDF3]">Multiplicador global</p>
           </div>
         </div>
-        <div className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border flex items-center gap-2 ${
-          isHighDemand ? 'bg-red/10 text-red border-red/30' : isLowDemand ? 'bg-blue-400/10 text-blue-400 border-blue-400/30' : 'bg-lime/10 text-lime border-lime/30'
-        }`}>
-          {isHighDemand ? <TrendingUp size={12} /> : isLowDemand ? <TrendingDown size={12} /> : <Target size={12} />}
-          {isHighDemand ? 'Alta' : isLowDemand ? 'Baja' : 'Estable'}
+
+        {/* Badge de estado */}
+        <div
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border"
+          style={{
+            color:       config.color,
+            borderColor: `${config.color}40`,
+            background:  `${config.color}15`,
+          }}
+        >
+          {config.icon}
+          {config.label}
         </div>
       </div>
 
+      {/* Valor */}
       <div className="flex items-baseline gap-2">
-        <span className={`text-3xl font-black leading-none tracking-tighter ${
-          isHighDemand ? 'text-red' : isLowDemand ? 'text-blue-400' : 'text-lime'
-        }`}>
+        <span className="text-4xl font-black leading-none" style={{ color: config.color }}>
           {multiplier.toFixed(2)}
         </span>
-        <span className="text-lg font-black text-muted">x</span>
+        <span className="text-xl font-black text-[#566270]">x</span>
       </div>
 
-      <p className="text-[10px] text-muted font-bold tracking-widest uppercase mt-2">
-        {isHighDemand ? 'Demanda elevada' : isLowDemand ? 'Demanda baja' : 'Demanda normal'}
+      <p className="text-xs text-[#566270] font-medium uppercase tracking-wider mt-2">
+        {isHigh ? "Demanda elevada" : isLow ? "Demanda baja" : "Demanda normal"}
       </p>
     </div>
   );
