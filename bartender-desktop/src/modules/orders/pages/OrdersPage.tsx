@@ -1,574 +1,360 @@
 "use client";
 
-import { useEffect, useState, useMemo, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
-  Plus,
-  RefreshCcw,
-  ChefHat,
-  Zap,
-  Flame,
-  Clock,
-  History,
-  LayoutGrid,
-  X,
-  AlertCircle,
-  Sparkles,
-  HelpCircle,
-  Target
+  Plus, RefreshCcw, ChefHat, Zap, Flame, Clock,
+  History, LayoutGrid, X, AlertCircle, Search,
 } from "lucide-react";
 
-import OrderCard from "../components/OrderCard/Card";
+import OrderCard          from "../components/OrderCard/Card";
 import NewOrderTablePicker from "../components/NewOrderTablePicker";
-import FocusPanel from "../components/FocusPanel";
-import OrderEditModal from "../components/OrderEditModal";
-import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
-import DataExportImport from "../../../components/shared/DataExportImport";
+import FocusPanel          from "../components/FocusPanel";
+import OrderEditModal      from "../components/OrderEditModal";
 
-import {
-  getOrders,
-  deleteOrder,
-  updateOrderStatus,
-  updateOrderItemStatus,
-} from "../services/orderService";
-
-import type { Order } from "../types/order";
-import { connectSalonSockets, onOrderCreated, onOrderUpdated, onOrderDeleted } from "../../../services/socket";
-import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
-import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
-import { useSalonUiStore } from "../../../store/salonUiStore";
+import { useOrders, type FilterStatus } from "../hooks/useOrders";
 import "../../../styles/nebula-theme.css";
 
-function getOrderPriority(order: Order) {
-  if (!order.createdAt) return 0;
-  const minutes = (Date.now() - new Date(order.createdAt).getTime()) / 60000;
-  if (minutes > 20) return 3;
-  if (minutes > 10) return 2;
-  return 1;
+/* ── Configuración de tabs ─────────────────────────────────── */
+interface TabConfig {
+  filter:    FilterStatus;
+  label:     string;
+  icon:      ReactNode;
+  countKey?: "pending" | "inProgress" | "total" | "critical";
+  advanced?: boolean; // solo visible en modo avanzado
 }
 
-type FilterStatus = "all" | "pending" | "in-progress" | "completed" | "cancelled";
+const TABS: TabConfig[] = [
+  { filter: "pending",     label: "Pendientes",  icon: <Clock    size={14} />, countKey: "pending"    },
+  { filter: "in-progress", label: "En curso",    icon: <Zap      size={14} />, countKey: "inProgress" },
+  { filter: "completed",   label: "Historial",   icon: <History  size={14} />,                         advanced: true },
+  { filter: "all",         label: "Todo",        icon: <LayoutGrid size={14} />, countKey: "total",   advanced: true },
+];
 
+/* ── MetricCard interno ────────────────────────────────────── */
+function MetricCard({
+  label, value, icon, color, warn,
+}: {
+  label:  string;
+  value:  number;
+  icon:   ReactNode;
+  color:  "gold" | "orange" | "green" | "red";
+  warn?:  boolean;
+}) {
+  const cfg = {
+    gold:   { text: "#F0B429", border: "rgba(240,180,41,0.25)",  bg: "rgba(240,180,41,0.06)"  },
+    orange: { text: "#FF7B54", border: "rgba(255,123,84,0.25)",  bg: "rgba(255,123,84,0.06)"  },
+    green:  { text: "#3FB950", border: "rgba(63,185,80,0.25)",   bg: "rgba(63,185,80,0.06)"   },
+    red:    { text: "#F85149", border: "rgba(248,81,73,0.25)",   bg: "rgba(248,81,73,0.06)"   },
+  }[color];
+
+  const activeBorder = warn && value > 0 ? "rgba(248,81,73,0.50)" : cfg.border;
+
+  return (
+    <div
+      className="rounded-xl p-4 flex items-center gap-3"
+      style={{ background: cfg.bg, border: `1px solid ${activeBorder}` }}
+    >
+      <div
+        className="p-2.5 rounded-lg flex-shrink-0"
+        style={{ background: `${cfg.text}20`, color: cfg.text }}
+      >
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#566270" }}>
+          {label}
+        </p>
+        <p className="text-2xl font-black" style={{ color: cfg.text }}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ── OrdersPage ────────────────────────────────────────────── */
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filter, setFilter] = useState<FilterStatus>("pending");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
-  const [showExportImport, setShowExportImport] = useState(false);
-  const [tableFilter, setTableFilter] = useState<"all" | "1-5" | "6-10" | "11+">("all");
-
-  // Filter groups for AdvancedSearchFilter
-  const filterGroups = [
-    {
-      id: "status",
-      label: "Estado",
-      type: "checkbox" as const,
-      options: [
-        { value: "pending", label: "Pendiente" },
-        { value: "in-progress", label: "En curso" },
-        { value: "completed", label: "Completada" },
-        { value: "cancelled", label: "Cancelada" },
-      ],
-      selected: activeFilters["status"] || [],
-    },
-    {
-      id: "priority",
-      label: "Prioridad",
-      type: "checkbox" as const,
-      options: [
-        { value: "critical", label: "Crítica" },
-        { value: "high", label: "Alta" },
-        { value: "normal", label: "Normal" },
-      ],
-      selected: activeFilters["priority"] || [],
-    },
-  ];
-  const [selectedItem, setSelectedItem] = useState<{
-    _id?: string;
-    orderId?: string;
-    status?: string;
-    quantity?: number;
-    notes?: string;
-    product?: { name?: string; category?: string; type?: string };
-  } | null>(null);
-  const [itemStatusLoading, setItemStatusLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-  const salonMode = useSalonUiStore((s) => s.mode);
-  const setSalonMode = useSalonUiStore((s) => s.setMode);
   const {
-    isOpen: salonTutorialOpen,
-    openTutorial: openSalonTutorial,
-    closeTutorial: closeSalonTutorial,
-    completeTutorial: completeSalonTutorial,
-  } = useSalonTutorial(false);
+    loading, error, setError,
+    filter, setFilter,
+    searchQuery, setSearchQuery,
+    tableNumberFilter, setTableNumberFilter,
+    selectedItem, setSelectedItem,
+    itemStatusLoading,
+    editingOrder, setEditingOrder,
+    processedOrders, stats, availableTableNumbers,
+    fetchOrders,
+    handleDelete, handleStatusChange,
+    handleItemStatusChange, handleEditOrder,
+    salonMode, setSalonMode,
+  } = useOrders();
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await getOrders();
-      setOrders(Array.isArray(data) ? data : []);
-    } catch {
-      setError("No se pudieron cargar las comandas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-    connectSalonSockets();
-
-    const unwrapOrder = (payload: { order?: Order } | Order): Order =>
-      (payload as { order?: Order }).order ?? payload as Order;
-
-    const upsert = (payload: { order?: Order } | Order) => {
-      const order = unwrapOrder(payload);
-      const orderId = order._id ?? (order as Order & { id?: string }).id;
-      if (!orderId) return;
-      setOrders((prev) => {
-        const idx = prev.findIndex((o) => o._id === orderId);
-        const normalized = { ...order, _id: orderId };
-        if (idx >= 0) {
-          const next = [...prev];
-          next[idx] = normalized;
-          return next;
-        }
-        return [normalized, ...prev];
-      });
-    };
-
-    const handleDeleteOrder = (payload: Order | string | { id: string }) => {
-      const id = typeof payload === "string" ? payload : "id" in payload ? payload.id : payload._id;
-      if (id) setOrders((prev) => prev.filter((o) => o._id !== id));
-    };
-
-    const cleanups = [
-      onOrderCreated((payload) => upsert(payload.order as unknown as Order)),
-      onOrderUpdated((payload) => upsert(payload.order as unknown as Order)),
-      onOrderDeleted((payload) => handleDeleteOrder(payload.order?.id ?? "")),
-    ];
-
-    return () => cleanups.forEach((cleanup) => cleanup());
-  }, []);
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteOrder(id);
-    } catch {
-      setError("No se pudo anular la comanda");
-    }
-  };
-
-  const handleStatusChange = async (id: string, status: Order["status"]) => {
-    try {
-      const updatedOrder = await updateOrderStatus(id, status);
-      setOrders((prev) =>
-        prev.map((o) => (o._id === id ? updatedOrder : o))
-      );
-    } catch {
-      setError("Error al cambiar el estado de la comanda");
-    }
-  };
-
-  const handleItemStatusChange = async (
-    orderId: string,
-    itemId: string,
-    status: "pending" | "preparing" | "ready" | "served"
-  ) => {
-    try {
-      setItemStatusLoading(true);
-      const updated = await updateOrderItemStatus(orderId, itemId, status);
-      setOrders((prev) =>
-        prev.map((o) => (o._id === orderId ? updated : o))
-      );
-      const item = updated.items.find((i) => i._id === itemId);
-      if (item) {
-        setSelectedItem({
-          _id: item._id,
-          orderId,
-          status: item.status,
-          quantity: item.quantity,
-          notes: (item as { notes?: string }).notes,
-          product:
-            typeof item.product === "object" && item.product !== null
-              ? {
-                  name: (item.product as { name?: string }).name,
-                  category: (item.product as { category?: string }).category,
-                  type: (item.product as { type?: string }).type,
-                }
-              : undefined,
-        });
-      }
-    } catch {
-      setError("No se pudo actualizar el ítem");
-    } finally {
-      setItemStatusLoading(false);
-    }
-  };
-
-  const handleEditOrder = (orderId: string) => {
-    const order = orders.find((o) => o._id === orderId);
-    if (order) {
-      setEditingOrder(order);
-    }
-  };
-
-  const processedOrders = useMemo(() => {
-    let list = orders.filter((o) =>
-      filter === "all" ? true : o.status === filter
-    );
-    if (salonMode === "simple") {
-      list = list.filter(
-        (o) => o.status === "pending" || o.status === "in-progress"
-      );
-    }
-    if (searchQuery) {
-      list = list.filter(
-        (o) =>
-          (o.table as { number?: number })?.number?.toString().includes(
-            searchQuery
-          ) ||
-          o.items.some((i) =>
-            (i.product as { name?: string })?.name
-              ?.toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          )
-      );
-    }
-
-    // Apply table filter
-    if (tableFilter !== "all") {
-      list = list.filter(o => {
-        const tableNum = (o.table as { number?: number })?.number || 0;
-        if (tableFilter === "1-5") return tableNum >= 1 && tableNum <= 5;
-        if (tableFilter === "6-10") return tableNum >= 6 && tableNum <= 10;
-        if (tableFilter === "11+") return tableNum >= 11;
-        return true;
-      });
-    }
-
-    // Apply status filter
-    if (activeFilters["status"]?.length > 0) {
-      list = list.filter(o => activeFilters["status"]!.includes(o.status));
-    }
-
-    // Apply priority filter
-    if (activeFilters["priority"]?.length > 0) {
-      list = list.filter(o => {
-        const priority = getOrderPriority(o);
-        const filters = activeFilters["priority"]!;
-        if (filters.includes("critical") && priority !== 3) return false;
-        if (filters.includes("high") && priority !== 2 && priority !== 3) return false;
-        if (filters.includes("normal") && priority !== 1) return false;
-        return true;
-      });
-    }
-
-    return list.sort((a, b) => {
-      const pa = getOrderPriority(a);
-      const pb = getOrderPriority(b);
-      if (pb !== pa) return pb - pa;
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeA - timeB;
-    });
-  }, [orders, filter, searchQuery, salonMode, activeFilters, tableFilter]);
-
-  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
-    try {
-      const data = processedOrders;
-      const filename = `ordenes-export-${new Date().toISOString().split('T')[0]}`;
-
-      if (options.format === "json") {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filename}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (err) {
-      console.error("Error exporting orders:", err);
-      setError("Error al exportar órdenes");
-    }
-  };
-
-  const handleImport = async () => {
-    setError("Importación deshabilitada - solo exportación para auditoría");
-  };
-
-  const stats = useMemo(
-    () => ({
-      total: orders.length,
-      pending: orders.filter((o) => o.status === "pending").length,
-      inProgress: orders.filter((o) => o.status === "in-progress").length,
-      critical: orders.filter(
-        (o) => getOrderPriority(o) === 3 && o.status !== "completed"
-      ).length,
-    }),
-    [orders]
+  const visibleTabs = TABS.filter(
+    (t) => !t.advanced || salonMode === "advanced"
   );
 
   return (
-    <div className="nebula-salon-root nebula-luxury-root flex h-full min-h-0 overflow-hidden bg-bg gap-4 md:gap-6 relative">
-      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10" />
-      <SalonFlowTutorial
-        isOpen={salonTutorialOpen}
-        onClose={closeSalonTutorial}
-        onComplete={completeSalonTutorial}
-      />
+    <div
+      className="flex flex-col h-full min-h-0"
+      style={{ background: "#0D1117", color: "#E6EDF3" }}
+    >
 
-      <div className="w-20 md:w-24 flex flex-col items-center py-6 nebula-rail shrink-0 space-y-6">
-        <div className="p-3 rounded-xl nebula-brand-mark">
-          <Sparkles size={20} />
+      {/* ── HEADER ─────────────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 px-6 pt-5 pb-4 flex items-center justify-between"
+        style={{ borderBottom: "1px solid #30363D" }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="p-2.5 rounded-xl"
+            style={{ background: "rgba(240,180,41,0.12)", border: "1px solid rgba(240,180,41,0.25)" }}
+          >
+            <ChefHat size={20} style={{ color: "#F0B429" }} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "#566270" }}>
+              Bartender · Comandas
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: "#E6EDF3", lineHeight: 1.2 }}>
+              Gestión de Pedidos
+            </h1>
+          </div>
         </div>
 
-        <NavIcon
-          active={filter === "pending"}
-          onClick={() => setFilter("pending")}
-          icon={<Clock size={18} />}
-          label="Pend."
-        />
-        <NavIcon
-          active={filter === "in-progress"}
-          onClick={() => setFilter("in-progress")}
-          icon={<Zap size={18} />}
-          label="Curso"
-        />
-        {salonMode === "advanced" && (
-          <>
-            <NavIcon
-              active={filter === "completed"}
-              onClick={() => setFilter("completed")}
-              icon={<History size={18} />}
-              label="Hist."
-            />
-            <NavIcon
-              active={filter === "all"}
-              onClick={() => setFilter("all")}
-              icon={<LayoutGrid size={18} />}
-              label="Todo"
-            />
-          </>
-        )}
-
-        <div className="flex-1" />
-
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="w-14 h-14 rounded-xl bg-linear-to-br from-gold-light to-gold text-bg flex items-center justify-center shadow-lg shadow-gold/25 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all"
-          title="Nueva orden"
-        >
-          <Plus size={24} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchOrders}
+            className="p-2.5 rounded-xl transition-colors"
+            style={{ border: "1px solid #30363D", color: "#8B949E" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#3D444D";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#8B949E";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363D";
+            }}
+          >
+            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all"
+            style={{
+              background:  "#F0B429",
+              color:       "#0D1117",
+              boxShadow:   "0 0 20px rgba(240,180,41,0.25)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "#F5C842";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = "#F0B429";
+            }}
+          >
+            <Plus size={15} /> Nueva orden
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-0 gap-4">
-        <header className="flex flex-wrap items-end justify-between gap-6 px-1 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl nebula-brand-mark">
-              <ChefHat size={28} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase nebula-kicker">
-                Nebula Royale · Comandas
-              </p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white nebula-luxury-title">
-                Órdenes Activas
-              </h1>
-            </div>
-          </div>
+      {/* ── TABS DE ESTADO ─────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 flex items-center px-6"
+        style={{ borderBottom: "1px solid #30363D" }}
+      >
+        {visibleTabs.map((tab) => {
+          const isActive = filter === tab.filter;
+          const count    = tab.countKey ? stats[tab.countKey] : undefined;
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="nebula-segmented">
-              <button
-                type="button"
-                className={`px-4 py-2 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
-                onClick={() => setSalonMode("simple")}
-              >
-                Simple
-              </button>
-              <button
-                type="button"
-                className={`px-4 py-2 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
-                onClick={() => setSalonMode("advanced")}
-              >
-                Avanzado
-              </button>
-            </div>
-
-            {salonMode === "advanced" && (
-              <div className="nebula-segmented">
-                <button
-                  type="button"
-                  onClick={() => setTableFilter("all")}
-                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "all" ? "active" : "text-white/50 hover:text-white"
-                  }`}
-                >
-                  Todas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTableFilter("1-5")}
-                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "1-5" ? "active" : "text-white/50 hover:text-white"
-                  }`}
-                >
-                  1-5
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTableFilter("6-10")}
-                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "6-10" ? "active" : "text-white/50 hover:text-white"
-                  }`}
-                >
-                  6-10
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTableFilter("11+")}
-                  className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded transition-all ${
-                    tableFilter === "11+" ? "active" : "text-white/50 hover:text-white"
-                  }`}
-                >
-                  11+
-                </button>
-              </div>
-            )}
-
-            <AdvancedSearchFilter
-              filterGroups={filterGroups}
-              onSearch={setSearchQuery}
-              onFilterChange={setActiveFilters}
-              placeholder="Buscar por mesa o producto..."
-              savedFilters={[]}
-              onSaveFilter={() => {}}
-              onLoadFilter={() => {}}
-            />
-
-            {/* Active Filters Display */}
-            {(Object.keys(activeFilters).length > 0 || tableFilter !== "all") && (
-              <div className="flex items-center gap-2 flex-wrap">
-                {tableFilter !== "all" && (
-                  <button
-                    onClick={() => setTableFilter("all")}
-                    className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/30 text-gold-light text-[10px] font-bold uppercase flex items-center gap-1 hover:bg-gold/20 transition-all"
-                  >
-                    <X size={12} />
-                    Mesas {tableFilter}
-                  </button>
-                )}
-                {Object.entries(activeFilters).map(([key, values]) =>
-                  values.map((value) => (
-                    <button
-                      key={`${key}-${value}`}
-                      onClick={() => {
-                        setActiveFilters(prev => ({
-                          ...prev,
-                          [key]: prev[key]?.filter(v => v !== value) || []
-                        }));
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-ivory/70 text-[10px] font-bold uppercase flex items-center gap-1 hover:border-gold/30 hover:text-gold-light transition-all"
-                    >
-                      <X size={12} />
-                      {value}
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-
+          return (
             <button
+              key={tab.filter}
               type="button"
-              onClick={openSalonTutorial}
-              className="btn btn-ghost p-3! rounded-xl border border-white/10 text-xs flex items-center gap-1 hover:border-gold/30"
+              onClick={() => setFilter(tab.filter)}
+              className="flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all relative"
+              style={{
+                color:       isActive ? "#F0B429" : "#566270",
+                borderBottom: isActive ? "3px solid #F0B429" : "3px solid transparent",
+                marginBottom: "-1px",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = "#8B949E";
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = "#566270";
+              }}
             >
-              <HelpCircle size={16} />
-              Tutorial
+              {tab.icon}
+              {tab.label}
+              {count != null && count > 0 && (
+                <span
+                  className="px-1.5 py-0.5 rounded-full text-[10px] font-black"
+                  style={{
+                    background: isActive ? "rgba(240,180,41,0.15)" : "#21283A",
+                    color:      isActive ? "#F0B429"               : "#566270",
+                  }}
+                >
+                  {count}
+                </span>
+              )}
             </button>
+          );
+        })}
 
+        {/* Toggle Simple / Avanzado — a la derecha */}
+        <div className="ml-auto flex items-center gap-1 py-2">
+          {(["simple", "advanced"] as const).map((m) => (
             <button
+              key={m}
               type="button"
-              onClick={() => setShowExportImport(true)}
-              className="btn btn-ghost p-3! rounded-xl border border-white/10 hover:border-gold/30"
-              title="Exportar/Importar"
+              onClick={() => setSalonMode(m)}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+              style={{
+                background:   salonMode === m ? "rgba(240,180,41,0.15)" : "transparent",
+                color:        salonMode === m ? "#F0B429"               : "#566270",
+                border:       salonMode === m ? "1px solid rgba(240,180,41,0.30)" : "1px solid transparent",
+              }}
             >
-              <Target size={16} />
+              {m === "simple" ? "Simple" : "Avanzado"}
             </button>
+          ))}
+        </div>
+      </div>
 
-            <button
-              type="button"
-              onClick={fetchOrders}
-              className="btn btn-ghost p-3! rounded-xl border border-white/10 hover:border-gold/30"
-            >
-              <RefreshCcw
-                size={16}
-                className={loading ? "animate-spin" : "opacity-50"}
-              />
-            </button>
-          </div>
-        </header>
+      {/* ── BARRA DE FILTROS ───────────────────────────────── */}
+      <div
+        className="flex-shrink-0 px-6 py-3 flex flex-wrap items-center gap-3"
+        style={{ borderBottom: "1px solid #30363D" }}
+      >
+        {/* Input de búsqueda */}
+        <div className="relative min-w-[200px] max-w-sm flex-1">
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "#566270" }}
+          />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por mesa o producto..."
+            className="w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none transition-colors"
+            style={{
+              background:  "#1C2333",
+              border:      "1px solid #30363D",
+              color:       "#E6EDF3",
+            }}
+            onFocus={(e) => {
+              (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)";
+            }}
+            onBlur={(e) => {
+              (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D";
+            }}
+          />
+        </div>
 
-        {salonMode === "advanced" && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <MetricCard
-              label="Total"
-              value={stats.total}
-              icon={<ChefHat size={16} />}
-              color="violet"
-            />
-            <MetricCard
-              label="Pendientes"
-              value={stats.pending}
-              icon={<Clock size={16} />}
-              color="cyan"
-            />
-            <MetricCard
-              label="En curso"
-              value={stats.inProgress}
-              icon={<Zap size={16} />}
-              color="orange"
-            />
-            <MetricCard
-              label="Críticos"
-              value={stats.critical}
-              icon={<Flame size={16} />}
-              color="red"
-              warn
-            />
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 text-sm">
-            <span className="flex items-center gap-2">
-              <AlertCircle size={16} />
-              {error}
+        {/* Chips de mesas activas */}
+        {availableTableNumbers.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium" style={{ color: "#566270" }}>
+              Mesa:
             </span>
-            <button type="button" onClick={() => setError(null)}>
-              <X size={16} />
-            </button>
+            {availableTableNumbers.map((num) => {
+              const active = tableNumberFilter === num;
+              return (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setTableNumberFilter(active ? null : num)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                  style={{
+                    background:  active ? "rgba(240,180,41,0.15)" : "#1C2333",
+                    border:      active ? "1px solid rgba(240,180,41,0.40)" : "1px solid #30363D",
+                    color:       active ? "#F0B429"               : "#8B949E",
+                  }}
+                >
+                  {num}
+                </button>
+              );
+            })}
+            {tableNumberFilter !== null && (
+              <button
+                type="button"
+                onClick={() => setTableNumberFilter(null)}
+                className="transition-colors"
+                style={{ color: "#566270" }}
+                title="Limpiar filtro de mesa"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
         )}
+      </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
+      {/* ── STATS (solo avanzado) ──────────────────────────── */}
+      {salonMode === "advanced" && (
+        <div
+          className="flex-shrink-0 grid grid-cols-4 gap-3 px-6 py-3"
+          style={{ borderBottom: "1px solid #30363D" }}
+        >
+          <MetricCard label="Total"      value={stats.total}      icon={<ChefHat  size={15} />} color="gold"   />
+          <MetricCard label="Pendientes" value={stats.pending}    icon={<Clock    size={15} />} color="orange" />
+          <MetricCard label="En curso"   value={stats.inProgress} icon={<Zap      size={15} />} color="green"  />
+          <MetricCard label="Críticos"   value={stats.critical}   icon={<Flame    size={15} />} color="red"    warn />
+        </div>
+      )}
+
+      {/* ── ERROR ──────────────────────────────────────────── */}
+      {error && (
+        <div
+          className="flex-shrink-0 mx-6 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm"
+          style={{ background: "rgba(248,81,73,0.10)", border: "1px solid rgba(248,81,73,0.30)", color: "#FF6B63" }}
+        >
+          <span className="flex items-center gap-2">
+            <AlertCircle size={15} /> {error}
+          </span>
+          <button type="button" onClick={() => setError(null)}>
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* ── CONTENIDO PRINCIPAL ────────────────────────────── */}
+      <div className="flex-1 min-h-0 flex">
+
+        {/* Grid de cards */}
+        <div
+          className="flex-1 min-w-0 overflow-y-auto p-6"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}
+        >
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-2 border-gold/20 animate-spin" />
-                <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-2 border-transparent border-t-gold-light animate-spin" />
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="relative w-12 h-12">
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-t-transparent animate-spin"
+                  style={{ borderColor: "rgba(240,180,41,0.3)", borderTopColor: "#F0B429" }}
+                />
               </div>
-              <p className="text-sm text-white/50 mt-4 animate-pulse">Cargando órdenes...</p>
+              <p className="text-sm animate-pulse" style={{ color: "#566270" }}>
+                Cargando comandas…
+              </p>
             </div>
-          ) : processedOrders.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-8">
+          ) : processedOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 opacity-50">
+              <div
+                className="p-4 rounded-2xl"
+                style={{ background: "rgba(240,180,41,0.08)", border: "1px solid rgba(240,180,41,0.15)" }}
+              >
+                <ChefHat size={40} style={{ color: "#F0B429" }} />
+              </div>
+              <p className="text-sm font-medium" style={{ color: "#566270" }}>
+                No hay comandas en este filtro
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
               {processedOrders.map((order) => (
                 <OrderCard
                   key={order._id}
@@ -581,142 +367,36 @@ export default function OrdersPage() {
                 />
               ))}
             </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center opacity-40 gap-4">
-              <div className="p-4 rounded-xl nebula-brand-mark">
-                <ChefHat size={48} className="text-gold-light/70" />
-              </div>
-              <p className="text-sm text-white/50">
-                No hay comandas en este filtro
-              </p>
-            </div>
           )}
+        </div>
+
+        {/* Focus Panel */}
+        <div
+          className="hidden lg:flex w-[300px] flex-shrink-0 flex-col"
+          style={{ borderLeft: "1px solid #30363D" }}
+        >
+          <FocusPanel
+            selectedItem={selectedItem}
+            onItemStatusChange={handleItemStatusChange}
+            statusLoading={itemStatusLoading}
+          />
         </div>
       </div>
 
-      <div className="w-75 md:w-90 hidden lg:flex flex-col min-h-0 shrink-0">
-        <FocusPanel
-          selectedItem={selectedItem}
-          onItemStatusChange={handleItemStatusChange}
-          statusLoading={itemStatusLoading}
-        />
-      </div>
-
+      {/* ── MODALES ─────────────────────────────────────────── */}
       {isModalOpen && (
         <NewOrderTablePicker
           onClose={() => setIsModalOpen(false)}
-          onSuccess={() => {
-            fetchOrders();
-            setIsModalOpen(false);
-          }}
+          onSuccess={() => { fetchOrders(); setIsModalOpen(false); }}
         />
       )}
-
       {editingOrder && (
         <OrderEditModal
           order={editingOrder}
           onClose={() => setEditingOrder(null)}
-          onSuccess={() => {
-            fetchOrders();
-            setEditingOrder(null);
-          }}
+          onSuccess={() => { fetchOrders(); setEditingOrder(null); }}
         />
       )}
-
-      {/* EXPORT/IMPORT PANEL */}
-      {showExportImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="nebula-luxury-panel p-6 max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-ivory">Exportar/Importar Órdenes</h3>
-              <button
-                onClick={() => setShowExportImport(false)}
-                className="text-muted hover:text-ivory transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <DataExportImport
-              data={processedOrders}
-              filename={`ordenes-${new Date().toISOString().split('T')[0]}`}
-              onExport={handleExport}
-              onImport={handleImport}
-              availableFormats={["json"]}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NavIcon({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: ReactNode;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex flex-col items-center gap-2 ${active ? "text-gold-light" : "text-muted hover:text-ivory"}`}
-    >
-      <div
-        className={`nebula-nav-button ${active ? "is-active" : ""}`}
-      >
-        {icon}
-      </div>
-      <span className="text-xs font-semibold uppercase">{label}</span>
-    </button>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  icon,
-  warn,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: ReactNode;
-  warn?: boolean;
-  color?: string;
-}) {
-  const colorClasses = {
-    violet: "border-gold/25",
-    cyan: "border-cyan-300/20",
-    orange: "border-amber-400/25",
-    red: "border-red-400/30",
-  };
-
-  const iconBg = {
-    violet: "bg-gold/15 text-gold-light",
-    cyan: "bg-cyan-300/10 text-cyan-200",
-    orange: "bg-amber-400/10 text-amber-300",
-    red: "bg-red-400/10 text-red-300",
-  };
-
-  const selectedColor = color || "violet";
-
-  return (
-    <div
-      className={`nebula-luxury-panel p-5! flex items-center gap-4 ${colorClasses[selectedColor as keyof typeof colorClasses]} transition-all hover:-translate-y-0.5 ${warn && value > 0 ? "border-red-500/50" : ""}`}
-    >
-      <div className={`p-2.5 rounded-lg ${iconBg[selectedColor as keyof typeof iconBg]}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-white/55 uppercase tracking-wide">{label}</p>
-        <p className="text-2xl font-bold text-white">{value}</p>
-      </div>
     </div>
   );
 }
