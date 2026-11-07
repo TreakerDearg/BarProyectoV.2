@@ -18,12 +18,12 @@ const fmtCurrency = (v: number) => `$${(v ?? 0).toFixed(2)}`;
 const fmtTime     = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "—";
 
-/* ── Status config ────────────────────────────────────────────── */
-const STATUS: Record<string, { label: string; dot: string; badge: string }> = {
-  available:   { label: "LIBRE",          dot: "bg-gold",        badge: "bg-gold/10    border-gold/25    text-gold"        },
-  occupied:    { label: "OCUPADA",        dot: "bg-amber-400",   badge: "bg-amber-400/10 border-amber-400/25 text-amber-300" },
-  reserved:    { label: "RESERVADA",      dot: "bg-blue-400",    badge: "bg-blue-400/10 border-blue-400/25 text-blue-300"  },
-  maintenance: { label: "MANTENIMIENTO",  dot: "bg-red-400",     badge: "bg-red-500/10 border-red-500/25 text-red-300"    },
+/* ── Status config — Slate Elegante ──────────────────────────── */
+const STATUS: Record<string, { label: string; dotColor: string; badgeBg: string; badgeBorder: string; badgeColor: string }> = {
+  available:   { label: "LIBRE",         dotColor: "#F0B429", badgeBg: "rgba(240,180,41,0.10)", badgeBorder: "rgba(240,180,41,0.25)", badgeColor: "#F0B429"  },
+  occupied:    { label: "OCUPADA",       dotColor: "#FF7B54", badgeBg: "rgba(255,123,84,0.10)", badgeBorder: "rgba(255,123,84,0.25)", badgeColor: "#FF9A7A"  },
+  reserved:    { label: "RESERVADA",     dotColor: "#388BFD", badgeBg: "rgba(56,139,253,0.10)", badgeBorder: "rgba(56,139,253,0.25)", badgeColor: "#79C0FF"  },
+  maintenance: { label: "MANTENIMIENTO", dotColor: "#F85149", badgeBg: "rgba(248,81,73,0.10)",  badgeBorder: "rgba(248,81,73,0.25)",  badgeColor: "#FF6B63"  },
 };
 
 /* ── Código de mesa ───────────────────────────────────────────── */
@@ -36,18 +36,32 @@ function TableCodeBadge({ code }: { code: string }) {
     });
   };
   return (
-    <div className="rounded-2xl border border-gold/25 bg-gold/6 p-4 flex flex-col items-center gap-2">
-      <p className="text-[9px] font-black text-gold/50 uppercase tracking-[0.3em]">Código de mesa</p>
-      <p className="text-5xl font-black text-gold tracking-[0.22em] leading-none">{code}</p>
-      <p className="text-[9px] text-muted/50 text-center leading-relaxed max-w-[160px]">
+    <div
+      className="rounded-xl p-4 flex flex-col items-center gap-2"
+      style={{ background: "rgba(240,180,41,0.06)", border: "1px solid rgba(240,180,41,0.25)" }}
+    >
+      <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: "rgba(240,180,41,0.50)" }}>
+        Código de mesa
+      </p>
+      <p className="text-5xl font-black tracking-[0.22em] leading-none" style={{ color: "#F0B429" }}>
+        {code}
+      </p>
+      <p className="text-[9px] text-center leading-relaxed max-w-[160px]" style={{ color: "#566270" }}>
         El cliente ingresa este código en su dispositivo
       </p>
       <button
         type="button"
         onClick={copy}
-        className="mt-0.5 px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-gold/20 text-gold hover:bg-gold/10 active:scale-95 transition-all"
+        className="mt-0.5 px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+        style={{
+          border:      "1px solid rgba(240,180,41,0.25)",
+          color:       "#F0B429",
+          background:  "transparent",
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(240,180,41,0.10)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
       >
-        {copied ? "Copiado" : "Copiar"}
+        {copied ? "Copiado ✓" : "Copiar"}
       </button>
     </div>
   );
@@ -67,14 +81,20 @@ function Section({
         type="button"
         disabled={!collapsible}
         onClick={() => collapsible && setOpen((p) => !p)}
-        className={`w-full flex items-center gap-2 ${collapsible ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+        className={`w-full flex items-center gap-2 ${collapsible ? "cursor-pointer" : "cursor-default"}`}
+        style={{ opacity: collapsible ? 1 : 1 }}
       >
-        <Icon size={11} className="text-muted/40 flex-shrink-0" />
-        <span className="text-[9px] font-black text-muted/40 uppercase tracking-[0.22em] flex-1 text-left">{title}</span>
+        <Icon size={10} style={{ color: "#566270", flexShrink: 0 }} />
+        <span
+          className="text-[9px] font-black uppercase tracking-[0.22em] flex-1 text-left"
+          style={{ color: "#566270" }}
+        >
+          {title}
+        </span>
         {collapsible && (
           open
-            ? <ChevronDown size={11} className="text-muted/30" />
-            : <ChevronRight size={11} className="text-muted/30" />
+            ? <ChevronDown  size={10} style={{ color: "#3D444D" }} />
+            : <ChevronRight size={10} style={{ color: "#3D444D" }} />
         )}
       </button>
       {open && children}
@@ -83,15 +103,18 @@ function Section({
 }
 
 /* ── Row ──────────────────────────────────────────────────────── */
-function Row({
-  label, value, valueColor = "text-ivory/70",
-}: {
-  label: string; value: React.ReactNode; valueColor?: string;
-}) {
+function Row({ label, value, valueColor = "#8B949E" }: { label: string; value: React.ReactNode; valueColor?: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-      <span className="text-[10px] font-semibold text-muted uppercase tracking-wider whitespace-nowrap">{label}</span>
-      <span className={`text-[11px] font-bold ${valueColor} text-right`}>{value}</span>
+    <div
+      className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl"
+      style={{ background: "rgba(33,40,58,0.8)", border: "1px solid #30363D" }}
+    >
+      <span className="text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "#566270" }}>
+        {label}
+      </span>
+      <span className="text-[11px] font-bold text-right" style={{ color: valueColor }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -115,12 +138,18 @@ interface Props {
 /* ── Empty state ──────────────────────────────────────────────── */
 function EmptyState() {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
-      <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-        <Info size={22} className="text-muted" />
+    <div
+      className="h-full flex flex-col items-center justify-center text-center p-8"
+      style={{ opacity: 0.40 }}
+    >
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: "#21283A", border: "1px solid #30363D" }}
+      >
+        <Info size={22} style={{ color: "#566270" }} />
       </div>
-      <h3 className="text-sm font-bold text-muted">Sin mesa seleccionada</h3>
-      <p className="text-[10px] text-muted/50 mt-1.5">Hacé clic en una mesa del plano</p>
+      <h3 className="text-sm font-bold" style={{ color: "#566270" }}>Sin mesa seleccionada</h3>
+      <p className="text-[10px] mt-1.5" style={{ color: "#3D444D" }}>Hacé clic en una mesa del plano</p>
     </div>
   );
 }
@@ -134,7 +163,10 @@ export default function TableInspector({
   const [editing, setEditing] = useState(false);
 
   if (!table) return (
-    <div className="h-full rounded-3xl glass border border-white/5 overflow-hidden">
+    <div
+      className="h-full overflow-hidden"
+      style={{ background: "#161B22" }}
+    >
       <EmptyState />
     </div>
   );
@@ -173,59 +205,87 @@ export default function TableInspector({
     <motion.div
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
-      className="h-full flex flex-col glass rounded-3xl border border-white/[0.06] overflow-hidden shadow-2xl"
+      className="h-full flex flex-col overflow-hidden"
+      style={{ background: "#161B22" }}
     >
       {/* ── HEADER ────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-5 pt-5 pb-4 border-b border-white/[0.05]">
-        {/* Title row */}
+      <div className="flex-shrink-0 px-5 pt-5 pb-4" style={{ borderBottom: "1px solid #30363D" }}>
+        {/* Título + badge */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
-            <p className="text-[9px] font-black text-muted/40 uppercase tracking-[0.25em] mb-1">Mesa</p>
-            <h2 className="text-4xl font-extrabold text-ivory tracking-tight leading-none">
+            <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: "#566270" }}>Mesa</p>
+            <h2 className="text-4xl font-extrabold tracking-tight leading-none" style={{ color: "#E6EDF3" }}>
               #{table.number}
             </h2>
           </div>
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${cfg.badge}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest"
+            style={{ background: cfg.badgeBg, border: `1px solid ${cfg.badgeBorder}`, color: cfg.badgeColor }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: cfg.dotColor }} />
             {cfg.label}
           </div>
         </div>
 
-        {/* Quick stats grid */}
+        {/* Quick stats */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.05]">
-            <Users size={14} className="text-gold flex-shrink-0" />
+          <div
+            className="flex items-center gap-2 p-2.5 rounded-xl"
+            style={{ background: "#21283A", border: "1px solid #30363D" }}
+          >
+            <Users size={13} style={{ color: "#F0B429", flexShrink: 0 }} />
             <div>
-              <p className="text-[8px] text-muted uppercase tracking-wider leading-none mb-0.5">Capacidad</p>
-              <p className="text-sm font-bold text-ivory">{table.capacity} <span className="text-[9px] text-muted/50">pax</span></p>
+              <p className="text-[8px] uppercase tracking-wider leading-none mb-0.5" style={{ color: "#566270" }}>Capacidad</p>
+              <p className="text-sm font-bold" style={{ color: "#E6EDF3" }}>
+                {table.capacity} <span style={{ fontSize: 9, color: "#566270" }}>pax</span>
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.05]">
-            <DollarSign size={14} className="text-emerald-400 flex-shrink-0" />
+          <div
+            className="flex items-center gap-2 p-2.5 rounded-xl"
+            style={{ background: "#21283A", border: "1px solid #30363D" }}
+          >
+            <DollarSign size={13} style={{ color: "#3FB950", flexShrink: 0 }} />
             <div>
-              <p className="text-[8px] text-muted uppercase tracking-wider leading-none mb-0.5">Cuenta</p>
-              <p className="text-sm font-bold text-emerald-300">{fmtCurrency(totalAmount)}</p>
+              <p className="text-[8px] uppercase tracking-wider leading-none mb-0.5" style={{ color: "#566270" }}>Cuenta</p>
+              <p className="text-sm font-bold" style={{ color: "#3FB950" }}>{fmtCurrency(totalAmount)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+            </div>
+          </div>
+          <div
+            className="flex items-center gap-2 p-2.5 rounded-xl"
+            style={{ background: "#21283A", border: "1px solid #30363D" }}
+          >
+            <DollarSign size={13} style={{ color: "#3FB950", flexShrink: 0 }} />
+            <div>
+              <p className="text-[8px] uppercase tracking-wider leading-none mb-0.5" style={{ color: "#566270" }}>Cuenta</p>
+              <p className="text-sm font-bold" style={{ color: "#3FB950" }}>{fmtCurrency(totalAmount)}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── SCROLLABLE BODY ───────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 custom-scrollbar">
+      <div
+        className="flex-1 overflow-y-auto px-5 py-4 space-y-5"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}
+      >
 
         {/* Código de mesa (occupied) */}
         {table.status === "occupied" && table.tableCode && (
           <TableCodeBadge code={table.tableCode} />
         )}
 
-        {/* Especificaciones */}
-        <Section icon={Info} title="Especificaciones">
+          <Section icon={Info} title="Especificaciones">
           <div className="space-y-1.5">
-            <Row label="Ubicación"     value={<span className="flex items-center gap-1"><MapPin size={10} className="text-gold" />{table.location}</span>} />
+            <Row label="Ubicación"     value={<span className="flex items-center gap-1"><MapPin size={10} style={{ color: "#F0B429" }} />{table.location}</span>} />
             <Row label="Último cierre" value={fmtTime(table.closedAt)} />
             {table.notes && (
-              <div className="px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                <p className="text-[10px] text-muted/60 italic leading-relaxed">"{table.notes}"</p>
+              <div className="px-3 py-2.5 rounded-xl" style={{ background: "rgba(33,40,58,0.6)", border: "1px solid #30363D" }}>
+                <p className="text-[10px] italic leading-relaxed" style={{ color: "#566270" }}>"{table.notes}"</p>
               </div>
             )}
           </div>
@@ -234,8 +294,8 @@ export default function TableInspector({
         {/* Notas de servicio */}
         {!table.notes && (
           <Section icon={Shield} title="Notas de servicio">
-            <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
-              <p className="text-[10px] text-muted/30 italic">Sin notas de servicio</p>
+            <div className="px-3 py-4 rounded-xl text-center" style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}>
+              <p className="text-[10px] italic" style={{ color: "#3D444D" }}>Sin notas de servicio</p>
             </div>
           </Section>
         )}
@@ -255,7 +315,8 @@ export default function TableInspector({
                 )}
                 {onSeatReservation && (
                   <button type="button" onClick={onSeatReservation}
-                    className="w-full py-2.5 rounded-lg nebula-btn-primary text-[10px] font-bold uppercase tracking-wide">
+                    className="w-full py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all"
+                    style={{ background: "#F0B429", color: "#0D1117" }}>
                     Sentar clientes
                   </button>
                 )}
@@ -274,19 +335,25 @@ export default function TableInspector({
                   <Row label="Ítems" value={String(table.totalItems)} valueColor="text-cyan-300" />
                 )}
                 {table.itemCounts && Object.keys(table.itemCounts).length > 0 && (
-                  <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] divide-y divide-white/[0.04]">
+                  <div
+                    className="rounded-xl divide-y"
+                    style={{ border: "1px solid #30363D", background: "rgba(22,27,34,0.6)" }}
+                  >
                     {Object.entries(table.itemCounts).map(([name, count]) => (
-                      <div key={name} className="flex justify-between items-center px-3 py-2 text-[10px]">
-                        <span className="text-muted/70 truncate">{name}</span>
-                        <span className="font-bold text-ivory flex-shrink-0 ml-2">{count as number}</span>
+                      <div key={name}
+                        className="flex justify-between items-center px-3 py-2 text-[10px]"
+                        style={{ borderColor: "#30363D" }}
+                      >
+                        <span className="truncate" style={{ color: "#566270" }}>{name}</span>
+                        <span className="font-bold flex-shrink-0 ml-2" style={{ color: "#E6EDF3" }}>{count as number}</span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
-                <p className="text-[10px] text-muted/30 uppercase tracking-wider">Sin pedidos</p>
+              <div className="px-3 py-4 rounded-xl text-center" style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}>
+                <p className="text-[10px] uppercase tracking-wider" style={{ color: "#3D444D" }}>Sin pedidos</p>
               </div>
             )}
           </Section>
@@ -312,18 +379,18 @@ export default function TableInspector({
                 </div>
                 {/* Detalle */}
                 {ordersWithDiscount.map((o) => (
-                  <div key={o._id} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05] space-y-1">
+                  <div key={o._id} className="p-3 rounded-xl space-y-1" style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5 min-w-0">
                         {o.promotionName
-                          ? <Megaphone size={10} className="text-violet-400 flex-shrink-0" />
-                          : <Percent   size={10} className="text-gold/60  flex-shrink-0" />
+                          ? <Megaphone size={10} style={{ color: "#A371F7", flexShrink: 0 }} />
+                          : <Percent   size={10} style={{ color: "rgba(240,180,41,0.6)", flexShrink: 0 }} />
                         }
-                        <span className="text-[10px] font-semibold text-ivory truncate">
+                        <span className="text-[10px] font-semibold truncate" style={{ color: "#E6EDF3" }}>
                           {o.promotionName ?? (o.discountType === "PERCENT" ? `Descuento ${o.discountAmount ?? 0}%` : "Descuento fijo")}
                         </span>
                       </div>
-                      <span className="text-[10px] font-extrabold text-gold flex-shrink-0">
+                      <span className="text-[10px] font-extrabold flex-shrink-0" style={{ color: "#F0B429" }}>
                         −{fmtCurrency(o.discountAmount ?? 0)}
                       </span>
                     </div>
@@ -340,9 +407,9 @@ export default function TableInspector({
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <Tag size={13} className="text-muted/25" />
-                <p className="text-[10px] text-muted/35 uppercase tracking-wider font-semibold">Sin descuentos aplicados</p>
+              <div className="flex items-center gap-2.5 px-3 py-3 rounded-xl" style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}>
+                <Tag size={13} style={{ color: "#3D444D" }} />
+                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#3D444D" }}>Sin descuentos aplicados</p>
               </div>
             )}
           </Section>
@@ -362,11 +429,11 @@ export default function TableInspector({
               <Row label="Total pagado" value={fmtCurrency(totalPaid)} valueColor="text-blue-300" />
               <div className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border ${
                 balanceDue > 0
-                  ? "bg-amber-500/8 border-amber-500/20"
-                  : "bg-emerald-500/8 border-emerald-500/20"
+                  ? "bg-[rgba(240,180,41,0.06)] border-[rgba(240,180,41,0.20)]"
+                  : "bg-[rgba(63,185,80,0.06)] border-[rgba(63,185,80,0.20)]"
               }`}>
-                <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Saldo pendiente</span>
-                <span className={`text-base font-extrabold ${balanceDue > 0 ? "text-amber-300" : "text-emerald-300"}`}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#566270" }}>Saldo pendiente</span>
+                <span className="text-base font-extrabold" style={{ color: balanceDue > 0 ? "#F0B429" : "#3FB950" }}>
                   {fmtCurrency(balanceDue)}
                 </span>
               </div>
@@ -375,14 +442,18 @@ export default function TableInspector({
               )}
             </div>
           ) : (
-            <div className="px-3 py-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
-              <p className="text-[10px] text-muted/30 uppercase tracking-wider">Sin pagos registrados</p>
+            <div className="px-3 py-4 rounded-xl text-center" style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}>
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: "#3D444D" }}>Sin pagos registrados</p>
             </div>
           )}
 
           {onViewPaymentHistory && (
             <button type="button" onClick={onViewPaymentHistory}
-              className="w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-xl bg-white/[0.04] border border-white/[0.07] text-[10px] font-bold text-muted hover:text-ivory hover:bg-white/[0.07] transition-all uppercase tracking-wider">
+              className="w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; (e.currentTarget as HTMLButtonElement).style.background = "#293042"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; (e.currentTarget as HTMLButtonElement).style.background = "#21283A"; }}
+            >
               <Receipt size={12} />
               Ver historial
             </button>
@@ -393,21 +464,35 @@ export default function TableInspector({
         <Section icon={Maximize} title="Dimensiones" collapsible defaultOpen={false}>
           <div className="grid grid-cols-2 gap-2">
             {(["width", "height"] as const).map((dim) => (
-              <div key={dim} className="flex flex-col gap-1.5 p-2.5 bg-white/[0.03] rounded-xl border border-white/[0.05]">
-                <span className="text-[8px] font-black text-muted uppercase tracking-wider">
+              <div key={dim}
+                className="flex flex-col gap-1.5 p-2.5 rounded-xl"
+                style={{ background: "rgba(22,27,34,0.6)", border: "1px solid #30363D" }}
+              >
+                <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: "#566270" }}>
                   {dim === "width" ? "Ancho" : "Alto"} ({table[dim] ?? 120}px)
                 </span>
                 <div className="flex gap-1">
                   <button type="button"
                     onClick={() => onSave({ ...table, [dim]: Math.max(60, (table[dim] ?? 120) - 10) })}
-                    className="flex-1 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-muted hover:text-ivory border border-white/5 transition-all">
+                    className="flex-1 py-1 rounded-lg text-[10px] font-bold transition-all"
+                    style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+                  >
                     −10
                   </button>
                   <button type="button"
                     onClick={() => onSave({ ...table, [dim]: Math.min(250, (table[dim] ?? 120) + 10) })}
-                    className="flex-1 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-muted hover:text-ivory border border-white/5 transition-all">
+                    className="flex-1 py-1 rounded-lg text-[10px] font-bold transition-all"
+                    style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+                  >
                     +10
                   </button>
+                </div>
+              </div>
+            ))}
                 </div>
               </div>
             ))}
@@ -418,8 +503,12 @@ export default function TableInspector({
         {onViewAnalytics && (
           <Section icon={TrendingUp} title="Analytics">
             <button type="button" onClick={onViewAnalytics}
-              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gold/6 border border-gold/15 text-gold text-[10px] font-bold uppercase tracking-wider hover:bg-gold/12 transition-all">
-              <TrendingUp size={14} />
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+              style={{ background: "rgba(240,180,41,0.06)", border: "1px solid rgba(240,180,41,0.15)", color: "#F0B429" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(240,180,41,0.12)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(240,180,41,0.06)"; }}
+            >
+              <TrendingUp size={13} />
               Ver analytics de mesa
             </button>
           </Section>
@@ -427,13 +516,17 @@ export default function TableInspector({
       </div>
 
       {/* ── FOOTER ACTIONS ────────────────────────────────────── */}
-      <div className="flex-shrink-0 border-t border-white/[0.05] p-4 space-y-2 bg-[#09090E]/60 backdrop-blur-sm">
+      <div
+        className="flex-shrink-0 p-4 space-y-2"
+        style={{ borderTop: "1px solid #30363D", background: "#0D1117" }}
+      >
         {table.status === "available" && (
           <motion.button
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
             type="button"
             onClick={() => onOpen(table._id!)}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-gold text-bg font-bold text-xs uppercase tracking-wider shadow-[0_4px_16px_rgba(212,163,64,0.25)] hover:brightness-110 transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all"
+            style={{ background: "#F0B429", color: "#0D1117", boxShadow: "0 4px 16px rgba(240,180,41,0.25)" }}
           >
             <Play size={15} fill="currentColor" />
             Abrir mesa
@@ -446,7 +539,8 @@ export default function TableInspector({
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               type="button"
               onClick={onOrder}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-ivory font-bold text-xs uppercase tracking-wider hover:bg-white/8 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider transition-all"
+              style={{ background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
             >
               <ClipboardList size={14} />
               Nueva orden
@@ -458,20 +552,31 @@ export default function TableInspector({
               type="button"
               onClick={hasPendingOrInProgress ? undefined : onPaymentSelector}
               disabled={hasPendingOrInProgress}
-              className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
-                hasPendingOrInProgress
-                  ? "bg-white/4 border border-white/5 text-muted cursor-not-allowed"
-                  : "bg-gold text-bg shadow-[0_4px_16px_rgba(212,163,64,0.22)] hover:brightness-110"
-              }`}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all"
+              style={hasPendingOrInProgress ? {
+                background: "#21283A",
+                border:     "1px solid #30363D",
+                color:      "#566270",
+                cursor:     "not-allowed",
+              } : {
+                background: "#F0B429",
+                color:      "#0D1117",
+                boxShadow:  "0 4px 16px rgba(240,180,41,0.22)",
+              }}
             >
               <Wallet size={14} />
               Procesar pago
             </motion.button>
 
             {hasPendingOrInProgress && (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15">
-                <AlertTriangle size={11} className="text-amber-400 flex-shrink-0" />
-                <p className="text-[9px] text-amber-300 font-semibold">Hay pedidos en preparación — esperá para cobrar</p>
+              <div
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl"
+                style={{ background: "rgba(240,180,41,0.06)", border: "1px solid rgba(240,180,41,0.20)" }}
+              >
+                <AlertTriangle size={11} style={{ color: "#F0B429", flexShrink: 0 }} />
+                <p className="text-[9px] font-semibold" style={{ color: "#FF7B54" }}>
+                  Hay pedidos en preparación — esperá para cobrar
+                </p>
               </div>
             )}
 
@@ -479,7 +584,8 @@ export default function TableInspector({
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => onClose(table._id!)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-red-500/8 border border-red-500/15 text-red-300 font-bold text-xs uppercase tracking-wider hover:bg-red-500/14 transition-all"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider transition-all"
+              style={{ background: "rgba(248,81,73,0.08)", border: "1px solid rgba(248,81,73,0.20)", color: "#FF6B63" }}
             >
               <Wrench size={13} />
               Cerrar mesa
@@ -492,7 +598,8 @@ export default function TableInspector({
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
             type="button"
             onClick={onSeatReservation}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl nebula-btn-primary font-bold text-xs uppercase tracking-wider"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm uppercase tracking-wider transition-all"
+            style={{ background: "#F0B429", color: "#0D1117", boxShadow: "0 4px 16px rgba(240,180,41,0.25)" }}
           >
             <Users size={14} />
             Sentar clientes
@@ -501,21 +608,33 @@ export default function TableInspector({
 
         {table.status === "maintenance" && (
           <div className="text-center py-2">
-            <p className="text-[10px] text-muted/40 uppercase tracking-widest font-bold">En mantenimiento</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#566270" }}>
+              En mantenimiento
+            </p>
           </div>
         )}
 
-        {/* Admin actions */}
+        {/* Admin: editar + eliminar */}
         <div className="flex gap-2 pt-1">
-          <button type="button" onClick={() => setEditing(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-white/4 hover:bg-white/7 border border-white/6 text-muted hover:text-ivory text-[10px] font-bold uppercase tracking-wider transition-all">
-            <Pencil size={12} />
-            Editar
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+            style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+          >
+            <Pencil size={11} /> Editar
           </button>
-          <button type="button" onClick={() => onDelete(table._id!)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500/50 hover:text-red-400 text-[10px] font-bold uppercase tracking-wider transition-all">
-            <Trash2 size={12} />
-            Eliminar
+          <button
+            type="button"
+            onClick={() => onDelete(table._id!)}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+            style={{ background: "rgba(248,81,73,0.06)", border: "1px solid rgba(248,81,73,0.15)", color: "rgba(248,81,73,0.50)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F85149"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(248,81,73,0.50)"; }}
+          >
+            <Trash2 size={11} /> Eliminar
           </button>
         </div>
       </div>

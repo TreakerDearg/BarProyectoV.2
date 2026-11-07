@@ -1,94 +1,89 @@
 "use client";
 
+/**
+ * PaymentMethodSelector — Modal de cobro tipo POS.
+ * REDISEÑO v3.0 — Slate Elegante
+ *
+ * Layout 2 columnas:
+ *   Izquierda: balance grande + resumen + vuelto en tiempo real
+ *   Derecha:   grid de métodos + sub-formulario inline por método
+ */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, DollarSign, Smartphone, Wallet, Split, X, Check, Sparkles } from "lucide-react";
+import {
+  CreditCard, DollarSign, Smartphone, Wallet,
+  Split, X, Check, Sparkles,
+} from "lucide-react";
 import {
   getAvailablePaymentMethods,
   type PaymentMethodId,
   PaymentServiceError,
   getPaymentErrorMessage,
-  isNetworkError
+  isNetworkError,
 } from "../services/tableService";
-import DiscountSummary from "../../discounts/components/DiscountSummary";
 import DiscountModal from "./DiscountModal";
 
+/* ── Tipos ─────────────────────────────────────────────────── */
 interface PaymentMethod {
-  _id: string;
-  method: string;
+  _id:         string;
+  method:      string;
   displayName: string;
   description: string;
-  isActive: boolean;
+  isActive:    boolean;
   isAvailable: boolean;
-  priority: number;
-  icon?: string;
+  priority:    number;
+  icon?:       string;
 }
 
 type PaymentDetails = {
-  amountPaid?: number;
+  amountPaid?:  number;
   totalSplits?: number;
-  method?: PaymentMethodId;
+  method?:      PaymentMethodId;
   cardDetails?: { lastFour: string; cardType: "visa" | "mastercard" | "amex" | "other" };
-  notes?: string;
+  notes?:       string;
 };
 
 interface Props {
-  tableId: string;
-  sessionId: string;
-  orderId?: string;
+  tableId:    string;
+  sessionId:  string;
+  orderId?:   string;
   balanceDue: number;
-  onSelect: (method: PaymentMethodId, data?: PaymentDetails) => void;
-  onClose: () => void;
+  tableNumber?: number;
+  onSelect:   (method: PaymentMethodId, data?: PaymentDetails) => void;
+  onClose:    () => void;
   onApplyDiscount?: (discount: { type: "PERCENT" | "FLAT"; value: number; reason: string; note?: string }) => void;
-  discounts?: Array<{
-    amount: number;
-    type: "PERCENT" | "FLAT";
-    reason: string;
-    note?: string;
-  }>;
-  subtotal?: number;
+  discounts?: Array<{ amount: number; type: "PERCENT" | "FLAT"; reason: string; note?: string }>;
+  subtotal?:  number;
 }
 
-// Métodos de pago por defecto en caso de error de API
+/* ── Métodos por defecto ────────────────────────────────────── */
 const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    _id: "cash-default",
-    method: "cash",
-    displayName: "Efectivo",
-    description: "Pago en efectivo",
-    isActive: true,
-    isAvailable: true,
-    priority: 100,
-  },
-  {
-    _id: "card-default",
-    method: "card",
-    displayName: "Tarjeta",
-    description: "Pago con tarjeta de crédito/débito",
-    isActive: true,
-    isAvailable: true,
-    priority: 90,
-  },
-  {
-    _id: "transfer-default",
-    method: "transfer",
-    displayName: "Transferencia",
-    description: "Transferencia bancaria",
-    isActive: true,
-    isAvailable: true,
-    priority: 80,
-  },
-  {
-    _id: "split-default",
-    method: "split",
-    displayName: "Dividir Cuenta",
-    description: "Dividir la cuenta entre varias personas",
-    isActive: true,
-    isAvailable: true,
-    priority: 70,
-  },
+  { _id: "cash-default",     method: "cash",     displayName: "Efectivo",        description: "Pago en efectivo",                   isActive: true, isAvailable: true, priority: 100 },
+  { _id: "card-default",     method: "card",     displayName: "Tarjeta",         description: "Pago con tarjeta",                   isActive: true, isAvailable: true, priority: 90  },
+  { _id: "transfer-default", method: "transfer", displayName: "Transferencia",   description: "Transferencia bancaria",             isActive: true, isAvailable: true, priority: 80  },
+  { _id: "split-default",    method: "split",    displayName: "Dividir Cuenta",  description: "Dividir entre varias personas",      isActive: true, isAvailable: true, priority: 70  },
 ];
 
+/* ── Input reutilizable con estilo dark ─────────────────────── */
+function DarkInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className="w-full rounded-xl py-3 px-4 font-bold outline-none transition-all"
+      style={{ background: "#293042", border: "1px solid #30363D", color: "#E6EDF3" }}
+      onFocus={(e) => {
+        (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)";
+        props.onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D";
+        props.onBlur?.(e);
+      }}
+    />
+  );
+}
+
+/* ── Componente principal ───────────────────────────────────── */
 export default function PaymentMethodSelector({
   tableId,
   sessionId,
@@ -98,85 +93,78 @@ export default function PaymentMethodSelector({
   onApplyDiscount,
   discounts = [],
   subtotal = balanceDue,
+  tableNumber,
 }: Props) {
-  const [methods, setMethods] = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
   void tableId;
   void sessionId;
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [cashAmountPaid, setCashAmountPaid] = useState(balanceDue);
-  const [cardDetails, setCardDetails] = useState({
+
+  const [methods,       setMethods]       = useState<PaymentMethod[]>(DEFAULT_PAYMENT_METHODS);
+  const [selectedMethod,setSelectedMethod]= useState<PaymentMethodId | null>(null);
+  const [loading,       setLoading]       = useState(false);
+  const [cashAmountPaid,setCashAmountPaid]= useState(balanceDue);
+  const [cardDetails,   setCardDetails]   = useState({
     lastFour: "",
     cardType: "other" as "visa" | "mastercard" | "amex" | "other",
   });
-  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
-
-  const [splitDetails, setSplitDetails] = useState({
+  const [splitDetails, setSplitDetails]   = useState({
     totalSplits: 2,
     method: "cash" as PaymentMethodId,
     amounts: [] as number[],
   });
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
 
-  useEffect(() => {
-    setCashAmountPaid(balanceDue);
-  }, [balanceDue]);
+  useEffect(() => { setCashAmountPaid(balanceDue); }, [balanceDue]);
+  useEffect(() => { fetchAvailableMethods(); }, []);
 
-  useEffect(() => {
-    fetchAvailableMethods();
-  }, []);
-
+  /* ── Fetch métodos ──────────────────────────────────────────── */
   const fetchAvailableMethods = async () => {
     try {
       setLoading(true);
-      const response = await getAvailablePaymentMethods();
-      const methodsArray = Array.isArray(response) ? response : [];
-
-      if (methodsArray && methodsArray.length > 0) {
-        const convertedMethods = methodsArray
-          .map((m) => ({
-            _id: m.id,
-            method: m.id as PaymentMethodId,
-            displayName: m.name,
-            description: m.description,
-            isActive: !m.disabled,
-            isAvailable: !m.disabled,
-            priority: 100,
-            icon: m.icon,
-          }));
-        setMethods(convertedMethods.length ? convertedMethods : DEFAULT_PAYMENT_METHODS);
+      const response   = await getAvailablePaymentMethods();
+      const arr        = Array.isArray(response) ? response : [];
+      if (arr.length > 0) {
+        const converted = arr.map((m) => ({
+          _id:         m.id,
+          method:      m.id as PaymentMethodId,
+          displayName: m.name,
+          description: m.description,
+          isActive:    !m.disabled,
+          isAvailable: !m.disabled,
+          priority:    100,
+          icon:        m.icon,
+        }));
+        setMethods(converted.length ? converted : DEFAULT_PAYMENT_METHODS);
       } else {
-        // Usar métodos por defecto si la API retorna vacío
         setMethods(DEFAULT_PAYMENT_METHODS);
       }
     } catch (error) {
-      console.error("Error fetching payment methods, using defaults:", error);
-      if (error instanceof PaymentServiceError) {
-        console.error("Payment Service Error:", {
-          message: getPaymentErrorMessage(error),
-          code: error.errorCode,
-          isNetwork: isNetworkError(error)
-        });
-      }
-      // Usar métodos por defecto en caso de error
+      if (error instanceof PaymentServiceError)
+        console.error("Payment Service Error:", getPaymentErrorMessage(error), isNetworkError(error));
       setMethods(DEFAULT_PAYMENT_METHODS);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ── Ícono por método ───────────────────────────────────────── */
   const getMethodIcon = (method: string) => {
     switch (method) {
-      case "cash": return DollarSign;
+      case "cash":     return DollarSign;
       case "transfer": return CreditCard;
-      case "card": return CreditCard;
-      case "wallet": return Smartphone;
-      case "split": return Split;
-      default: return Wallet;
+      case "card":     return CreditCard;
+      case "wallet":   return Smartphone;
+      case "split":    return Split;
+      default:         return Wallet;
     }
   };
 
-  const handleMethodSelect = (method: PaymentMethodId) => {
-    setSelectedMethod(method);
+  /* ── Handlers de pago ──────────────────────────────────────── */
+  const handleCashPayment = () => {
+    if (cashAmountPaid < balanceDue) {
+      alert(`Monto insuficiente. Total: $${balanceDue.toFixed(2)}`);
+      return;
+    }
+    onSelect("cash", { amountPaid: cashAmountPaid });
   };
 
   const handleCardPayment = () => {
@@ -189,328 +177,380 @@ export default function PaymentMethodSelector({
 
   const handleSplitPayment = () => {
     if (splitDetails.totalSplits < 2) return;
-
-    onSelect("split", {
-      totalSplits: splitDetails.totalSplits,
-      method: splitDetails.method,
-    });
+    onSelect("split", { totalSplits: splitDetails.totalSplits, method: splitDetails.method });
   };
 
-  const handleCashPayment = () => {
-    if (cashAmountPaid < balanceDue) {
-      alert(`Monto insuficiente. Total: $${balanceDue.toFixed(2)}`);
-      return;
-    }
-    onSelect("cash", { amountPaid: cashAmountPaid });
-  };
-
-  const handleStandardPayment = (method: PaymentMethodId) => {
-    if (method === "cash") {
-      handleCashPayment();
-    } else {
-      onSelect(method);
+  const handleProcess = () => {
+    if (!selectedMethod) return;
+    switch (selectedMethod) {
+      case "cash":     return handleCashPayment();
+      case "card":     return handleCardPayment();
+      case "split":    return handleSplitPayment();
+      default:         return onSelect(selectedMethod);
     }
   };
 
   const handleApplyDiscount = (discount: { type: "PERCENT" | "FLAT"; value: number; reason: string; note?: string }) => {
-    if (onApplyDiscount) {
-      onApplyDiscount(discount);
-    }
+    onApplyDiscount?.(discount);
     setIsDiscountModalOpen(false);
   };
 
-  const renderMethodInfo = () => {
-    if (!selectedMethod) return null;
-
-    switch (selectedMethod) {
-      case "card":
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4"
-          >
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Detalles de Tarjeta</h3>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Últimos 4 dígitos
-              </label>
-              <input
-                type="text"
-                maxLength={4}
-                value={cardDetails.lastFour}
-                onChange={(e) => setCardDetails({ ...cardDetails, lastFour: e.target.value })}
-                className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-                placeholder="****"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Tipo de Tarjeta
-              </label>
-              <select
-                value={cardDetails.cardType}
-                onChange={(e) => setCardDetails({ ...cardDetails, cardType: e.target.value as "visa" | "mastercard" | "amex" | "other" })}
-                className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-              >
-                <option value="visa">Visa</option>
-                <option value="mastercard">Mastercard</option>
-                <option value="amex">American Express</option>
-                <option value="other">Otra</option>
-              </select>
-            </div>
-            <button
-              onClick={handleCardPayment}
-              className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
-            >
-              Procesar Pago
-            </button>
-          </motion.div>
-        );
-
-      case "split":
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4"
-          >
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Dividir Cuenta</h3>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Cantidad de Divisiones
-              </label>
-              <input
-                type="number"
-                min={2}
-                max={10}
-                value={splitDetails.totalSplits}
-                onChange={(e) => setSplitDetails({ ...splitDetails, totalSplits: parseInt(e.target.value) || 2 })}
-                className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Monto por División: ${(balanceDue / splitDetails.totalSplits).toFixed(2)}
-              </label>
-            </div>
-            <button
-              onClick={handleSplitPayment}
-              className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
-            >
-              Cerrar cuenta dividida
-            </button>
-          </motion.div>
-        );
-
-      case "cash":
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4"
-          >
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Efectivo</h3>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Total a cobrar: ${balanceDue.toFixed(2)}
-              </label>
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 block">
-                Monto entregado
-              </label>
-              <input
-                type="number"
-                min={balanceDue}
-                step="0.01"
-                value={cashAmountPaid}
-                onChange={(e) => setCashAmountPaid(parseFloat(e.target.value) || 0)}
-                className="w-full bg-surface-2 border border-white/10 rounded-xl py-3 px-4 text-white font-bold outline-none focus:border-gold/50"
-              />
-            </div>
-            {cashAmountPaid >= balanceDue && (
-              <p className="text-sm font-bold text-gold">
-                Vuelto: ${(cashAmountPaid - balanceDue).toFixed(2)}
-              </p>
-            )}
-            <button
-              onClick={handleCashPayment}
-              className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
-            >
-              Procesar Pago
-            </button>
-          </motion.div>
-        );
-
-      default:
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6"
-          >
-            <button
-              onClick={() => handleStandardPayment(selectedMethod)}
-              className="w-full btn btn-gold py-4 rounded-xl font-black uppercase tracking-widest text-sm"
-            >
-              Procesar Pago
-            </button>
-          </motion.div>
-        );
-    }
-  };
-
+  /* ── Render ─────────────────────────────────────────────────── */
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-8"
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }}
       onClick={onClose}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-lg glass rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl"
+        transition={{ type: "spring", stiffness: 300, damping: 28 }}
+        className="w-full max-w-2xl flex overflow-hidden rounded-2xl shadow-2xl"
+        style={{ background: "#1C2333", border: "1px solid #30363D", maxHeight: "90vh" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
-        <div className="p-6 md:p-8 border-b border-white/10 flex justify-between items-start">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Wallet size={16} className="text-gold" />
-              <p className="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Forma de pago</p>
-            </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">${balanceDue.toFixed(2)}</h2>
-            <p className="text-[10px] text-muted mt-1">Faltante</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {onApplyDiscount && (
-              <button
-                onClick={() => setIsDiscountModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-gold/10 text-gold border border-gold/30 hover:bg-gold/20 transition-all flex items-center gap-2"
+
+        {/* ══ IZQUIERDA — balance + resumen ══════════════════ */}
+        <div
+          className="w-64 flex-shrink-0 flex flex-col p-6 gap-4"
+          style={{ background: "#161B22", borderRight: "1px solid #30363D" }}
+        >
+          {/* Identificador de mesa */}
+          {tableNumber != null && (
+            <div className="flex items-center gap-2">
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-xl flex-shrink-0"
+                style={{ background: "#F0B429", color: "#0D1117" }}
               >
-                <Sparkles size={16} />
-                <span className="text-xs font-bold uppercase">Descuento</span>
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            >
-              <X size={18} className="text-muted" />
-            </button>
-          </div>
-        </div>
-
-        {/* DISCOUNT SUMMARY */}
-        {discounts.length > 0 && (
-          <div className="px-6 md:px-8 py-4 border-b border-white/10">
-            <DiscountSummary
-              subtotal={subtotal}
-              discounts={discounts}
-              finalTotal={balanceDue}
-              compact={true}
-            />
-          </div>
-        )}
-
-        {/* CONTENT */}
-        <div className="p-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin w-12 h-12 border-2 border-gold border-t-transparent rounded-full mx-auto mb-4" />
-              <p className="text-sm font-black text-muted uppercase tracking-widest">Cargando métodos...</p>
-            </div>
-          ) : (
-            <>
-              {/* METHODS GRID */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {methods
-                  .filter(m => m.isAvailable)
-                  .sort((a, b) => b.priority - a.priority)
-                  .map((method) => {
-                    const Icon = getMethodIcon(method.method);
-                    return (
-                      <motion.button
-                        key={method._id}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleMethodSelect(method.method as PaymentMethodId)}
-                        className={`
-                          p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-3
-                          ${selectedMethod === method.method
-                            ? "border-gold bg-gold/10 shadow-gold-glow"
-                            : "border-white/10 bg-white/5 hover:bg-white/10"
-                          }
-                        `}
-                      >
-                        <div className={`
-                          w-12 h-12 rounded-xl flex items-center justify-center
-                          ${selectedMethod === method.method ? "bg-gold text-black" : "bg-white/10 text-muted"}
-                        `}>
-                          <Icon size={24} />
-                        </div>
-                        <div className="text-center">
-                          <p className={`text-xs font-black uppercase tracking-wider ${
-                            selectedMethod === method.method ? "text-white" : "text-muted"
-                          }`}>
-                            {method.displayName}
-                          </p>
-                        </div>
-                        {selectedMethod === method.method && (
-                          <div className="absolute top-2 right-2">
-                            <Check size={14} className="text-gold" />
-                          </div>
-                        )}
-                      </motion.button>
-                    );
-                  })}
+                {tableNumber}
               </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#F0B429" }}>
+                  Mesa
+                </p>
+                <p className="text-xs" style={{ color: "#566270" }}>Cobro de sesión</p>
+              </div>
+            </div>
+          )}
 
-              {/* METHOD SPECIFIC INFO */}
-              <AnimatePresence>
-                {renderMethodInfo()}
-              </AnimatePresence>
-            </>
+          {/* Monto a cobrar */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "#566270" }}>
+              Total a cobrar
+            </p>
+            <p className="text-4xl font-black leading-none" style={{ color: "#E6EDF3" }}>
+              ${balanceDue.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
+
+          {/* Descuentos aplicados */}
+          {discounts.length > 0 && (
+            <div
+              className="p-3 rounded-xl space-y-1.5"
+              style={{ background: "rgba(240,180,41,0.06)", border: "1px solid rgba(240,180,41,0.20)" }}
+            >
+              <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: "rgba(240,180,41,0.60)" }}>
+                Descuentos
+              </p>
+              {discounts.map((d, i) => (
+                <div key={i} className="flex justify-between text-[10px]">
+                  <span style={{ color: "#8B949E" }}>{d.reason}</span>
+                  <span style={{ color: "#F0B429", fontWeight: 700 }}>−${d.amount.toFixed(2)}</span>
+                </div>
+              ))}
+              <div
+                className="flex justify-between pt-1.5 text-xs font-bold"
+                style={{ borderTop: "1px solid rgba(240,180,41,0.15)", color: "#E6EDF3" }}
+              >
+                <span>Original</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Vuelto — efectivo */}
+          {selectedMethod === "cash" && cashAmountPaid >= balanceDue && (
+            <div
+              className="p-3 rounded-xl"
+              style={{ background: "rgba(63,185,80,0.08)", border: "1px solid rgba(63,185,80,0.25)" }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "#566270" }}>
+                Vuelto
+              </p>
+              <p className="text-3xl font-black" style={{ color: "#3FB950" }}>
+                ${(cashAmountPaid - balanceDue).toFixed(2)}
+              </p>
+            </div>
+          )}
+
+          {/* Por persona — split */}
+          {selectedMethod === "split" && splitDetails.totalSplits >= 2 && (
+            <div
+              className="p-3 rounded-xl"
+              style={{ background: "rgba(163,113,247,0.08)", border: "1px solid rgba(163,113,247,0.25)" }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "#566270" }}>
+                Por persona
+              </p>
+              <p className="text-3xl font-black" style={{ color: "#A371F7" }}>
+                ${(balanceDue / splitDetails.totalSplits).toFixed(2)}
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: "#566270" }}>
+                {splitDetails.totalSplits} personas
+              </p>
+            </div>
+          )}
+
+          {/* Botón descuento (opcional) */}
+          {onApplyDiscount && (
+            <button
+              type="button"
+              onClick={() => setIsDiscountModalOpen(true)}
+              className="mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase transition-all"
+              style={{ background: "rgba(240,180,41,0.08)", border: "1px solid rgba(240,180,41,0.20)", color: "#F0B429" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(240,180,41,0.15)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(240,180,41,0.08)"; }}
+            >
+              <Sparkles size={13} /> Descuento
+            </button>
           )}
         </div>
 
-        {/* FOOTER ACTIONS */}
-        <div className="p-6 md:p-8 border-t border-white/10 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all"
+        {/* ══ DERECHA — métodos + sub-form ═══════════════════ */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+          {/* Header */}
+          <div
+            className="flex items-center justify-between px-6 py-5 flex-shrink-0"
+            style={{ borderBottom: "1px solid #30363D" }}
           >
-            Cancelar
-          </button>
-          <button
-            onClick={() => selectedMethod && handleStandardPayment(selectedMethod)}
-            disabled={!selectedMethod}
-            className={`flex-1 py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-              selectedMethod
-                ? "bg-gold text-black hover:bg-gold/90"
-                : "bg-white/5 text-muted cursor-not-allowed"
-            }`}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "#566270" }}>
+                Forma de pago
+              </p>
+              <h2 className="text-lg font-bold" style={{ color: "#E6EDF3" }}>
+                Selecciona un método
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+              style={{ background: "#21283A", border: "1px solid #30363D", color: "#566270" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#566270"; }}
+            >
+              <X size={17} />
+            </button>
+          </div>
+
+          {/* Contenido scrollable */}
+          <div
+            className="flex-1 overflow-y-auto p-6 space-y-4"
+            style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}
           >
-            <Check size={16} />
-            Procesar pago
-          </button>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div
+                  className="w-10 h-10 rounded-full border-2 animate-spin"
+                  style={{ borderColor: "rgba(240,180,41,0.30)", borderTopColor: "#F0B429" }}
+                />
+                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#566270" }}>
+                  Cargando métodos…
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Grid de métodos */}
+                <div className="grid grid-cols-2 gap-3">
+                  {methods
+                    .filter((m) => m.isAvailable)
+                    .sort((a, b) => b.priority - a.priority)
+                    .map((method) => {
+                      const Icon     = getMethodIcon(method.method);
+                      const isActive = selectedMethod === method.method;
+                      return (
+                        <motion.button
+                          key={method._id}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedMethod(method.method as PaymentMethodId)}
+                          className="relative p-4 rounded-xl flex flex-col items-center gap-3 transition-all"
+                          style={{
+                            background: isActive ? "rgba(240,180,41,0.15)" : "#21283A",
+                            border:     `2px solid ${isActive ? "rgba(240,180,41,0.50)" : "#30363D"}`,
+                            boxShadow:  isActive ? "0 0 16px rgba(240,180,41,0.12)" : "none",
+                          }}
+                        >
+                          <div
+                            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+                            style={{
+                              background: isActive ? "#F0B429" : "#293042",
+                              color:      isActive ? "#0D1117" : "#8B949E",
+                            }}
+                          >
+                            <Icon size={22} />
+                          </div>
+                          <p
+                            className="text-xs font-black uppercase tracking-wide"
+                            style={{ color: isActive ? "#E6EDF3" : "#8B949E" }}
+                          >
+                            {method.displayName}
+                          </p>
+                          {isActive && (
+                            <div
+                              className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                              style={{ background: "#F0B429" }}
+                            >
+                              <Check size={11} style={{ color: "#0D1117", strokeWidth: 3 }} />
+                            </div>
+                          )}
+                        </motion.button>
+                      );
+                    })}
+                </div>
+
+                {/* Sub-formulario según método */}
+                <AnimatePresence mode="wait">
+                  {selectedMethod && (
+                    <motion.div
+                      key={selectedMethod}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18 }}
+                      className="rounded-xl p-5 space-y-4"
+                      style={{ background: "#21283A", border: "1px solid #30363D" }}
+                    >
+                      {/* ── EFECTIVO ── */}
+                      {selectedMethod === "cash" && (
+                        <>
+                          <p className="text-xs font-black uppercase tracking-wider" style={{ color: "#8B949E" }}>
+                            Monto entregado por el cliente
+                          </p>
+                          <DarkInput
+                            type="number"
+                            min={balanceDue}
+                            step="0.01"
+                            value={cashAmountPaid}
+                            onChange={(e) => setCashAmountPaid(parseFloat(e.target.value) || 0)}
+                          />
+                        </>
+                      )}
+
+                      {/* ── TARJETA ── */}
+                      {selectedMethod === "card" && (
+                        <>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#566270" }}>
+                              Últimos 4 dígitos
+                            </p>
+                            <DarkInput
+                              type="text"
+                              maxLength={4}
+                              value={cardDetails.lastFour}
+                              placeholder="****"
+                              onChange={(e) => setCardDetails({ ...cardDetails, lastFour: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#566270" }}>
+                              Tipo de tarjeta
+                            </p>
+                            <select
+                              value={cardDetails.cardType}
+                              onChange={(e) => setCardDetails({ ...cardDetails, cardType: e.target.value as any })}
+                              className="select-dark w-full"
+                              style={{ colorScheme: "dark" }}
+                            >
+                              <option value="visa">Visa</option>
+                              <option value="mastercard">Mastercard</option>
+                              <option value="amex">American Express</option>
+                              <option value="other">Otra</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* ── DIVIDIR ── */}
+                      {selectedMethod === "split" && (
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "#566270" }}>
+                            Cantidad de personas
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setSplitDetails((p) => ({ ...p, totalSplits: Math.max(2, p.totalSplits - 1) }))}
+                              className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-xl transition-colors flex-shrink-0"
+                              style={{ background: "#293042", border: "1px solid #30363D", color: "#8B949E" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F85149"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+                            >
+                              −
+                            </button>
+                            <span className="text-4xl font-black flex-1 text-center" style={{ color: "#A371F7" }}>
+                              {splitDetails.totalSplits}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setSplitDetails((p) => ({ ...p, totalSplits: Math.min(10, p.totalSplits + 1) }))}
+                              className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-xl transition-colors flex-shrink-0"
+                              style={{ background: "#293042", border: "1px solid #30363D", color: "#8B949E" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3FB950"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── TRANSFERENCIA (sin campos extra) ── */}
+                      {selectedMethod === "transfer" && (
+                        <p className="text-sm text-center" style={{ color: "#8B949E" }}>
+                          Confirma la transferencia recibida y presiona Procesar.
+                        </p>
+                      )}
+
+                      {/* Botón procesar */}
+                      <button
+                        type="button"
+                        onClick={handleProcess}
+                        className="w-full py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
+                        style={{ background: "#F0B429", color: "#0D1117", boxShadow: "0 4px 16px rgba(240,180,41,0.25)" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F5C842"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0B429"; }}
+                      >
+                        <Check size={16} /> Procesar pago
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {!selectedMethod && (
+                  <p className="text-center text-xs" style={{ color: "#566270" }}>
+                    Selecciona un método de pago para continuar
+                  </p>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </motion.div>
 
-      {/* DISCOUNT MODAL */}
-      <AnimatePresence>
-        {isDiscountModalOpen && (
-          <DiscountModal
-            subtotal={subtotal}
-            onApplyDiscount={handleApplyDiscount}
-            onClose={() => setIsDiscountModalOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Modal de descuento */}
+      {isDiscountModalOpen && (
+        <DiscountModal
+          onApply={handleApplyDiscount}
+          onClose={() => setIsDiscountModalOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }

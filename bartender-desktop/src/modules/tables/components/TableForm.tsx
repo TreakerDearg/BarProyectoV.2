@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * TableForm — Formulario de creación / edición de mesa.
+ * REDISEÑO v3.0 — Slate Elegante
+ *
+ * Lógica completamente preservada. Solo cambian colores, bordes y fondos.
+ */
 import { useState, useMemo } from "react";
 import {
   X, Users, MapPin, Save, Hash, MessageSquare,
@@ -9,78 +15,77 @@ import {
 import type { Table } from "../types/table";
 
 interface Props {
-  table?: Table | null;
-  onSave: (table: Table) => void;
-  onClose: () => void;
+  table?:          Table | null;
+  onSave:          (table: Table) => void;
+  onClose:         () => void;
   existingTables?: Table[];
 }
 
 const EMPTY: Table = {
-  number:   0,
-  capacity: 4,
-  status:   "available",
-  location: "indoor",
-  notes:    "",
-  tags:     [],
-  _id:      "",
-  orders:   [],
-  x:        50,
-  y:        50,
-  width:    120,
-  height:   120,
-  shape:    "square",
+  number: 0, capacity: 4, status: "available",
+  location: "indoor", notes: "", tags: [], _id: "",
+  orders: [], x: 50, y: 50, width: 120, height: 120, shape: "square",
 };
 
-// ── Sub-componentes de sección ────────────────────────────────────
-
-function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
+/* ── Sub-componentes ────────────────────────────────────────── */
+function SectionLabel({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <div className="p-1.5 rounded-lg bg-gold/10 border border-gold/20 text-gold">{icon}</div>
-      <h3 className="text-xs font-black text-muted uppercase tracking-[0.2em]">{title}</h3>
+      <div
+        className="p-1.5 rounded-lg"
+        style={{ background: "rgba(240,180,41,0.12)", border: "1px solid rgba(240,180,41,0.25)", color: "#F0B429" }}
+      >
+        {icon}
+      </div>
+      <h3 className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: "#566270" }}>
+        {children}
+      </h3>
     </div>
   );
 }
 
 function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-[11px] font-bold text-muted uppercase tracking-widest mb-1.5">
-      {children}{required && <span className="text-gold ml-1">*</span>}
+    <label className="block text-[11px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#566270" }}>
+      {children}
+      {required && <span style={{ color: "#F0B429" }} className="ml-1">*</span>}
     </label>
   );
 }
 
 function InputField({
-  icon, type = "text", name, value, onChange, placeholder, min, max, required, className = "",
+  icon, type = "text", name, value, onChange, placeholder, min, max, required,
 }: {
   icon?: React.ReactNode; type?: string; name: string; value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string; min?: number; max?: number; required?: boolean; className?: string;
+  placeholder?: string; min?: number; max?: number; required?: boolean;
 }) {
   return (
     <div className="relative">
       {icon && (
-        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold/50 pointer-events-none">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "rgba(240,180,41,0.50)" }}>
           {icon}
         </span>
       )}
       <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        min={min}
-        max={max}
-        required={required}
-        className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 text-ivory text-sm focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all placeholder:text-muted/40 ${icon ? "pl-10 pr-4" : "px-4"} ${className}`}
+        type={type} name={name} value={value} onChange={onChange}
+        placeholder={placeholder} min={min} max={max} required={required}
+        className="w-full rounded-xl py-3 text-sm outline-none transition-all"
+        style={{
+          background:  "#21283A",
+          border:      "1px solid #30363D",
+          color:       "#E6EDF3",
+          paddingLeft: icon ? "2.5rem" : "1rem",
+          paddingRight:"1rem",
+        }}
+        onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)"; }}
+        onBlur={(e)  => { (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D"; }}
       />
     </div>
   );
 }
 
-// ── Componente principal ──────────────────────────────────────────
-
+/* ── Componente principal ───────────────────────────────────── */
 export default function TableForm({ table, onSave, onClose, existingTables = [] }: Props) {
   const nextNumber = useMemo(() => {
     const nums = existingTables.map((t) => t.number || 0);
@@ -89,14 +94,13 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
 
   const initialFormData = useMemo(() => table
     ? { ...EMPTY, ...table, tags: table.tags || [] }
-    : { ...EMPTY, number: nextNumber }, [table, nextNumber]);
+    : { ...EMPTY, number: nextNumber },
+  [table, nextNumber]);
+
   const [formData, setFormData] = useState<Table>(initialFormData);
   const [error,    setError]    = useState<string | null>(null);
 
-  const resetForm = () => {
-    setFormData(initialFormData);
-    setError(null);
-  };
+  const resetForm = () => { setFormData(initialFormData); setError(null); };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -110,12 +114,8 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!formData.number || formData.number <= 0) {
-      setError("El número de mesa es obligatorio"); return;
-    }
-    if (formData.capacity < 1) {
-      setError("La capacidad mínima es 1 persona"); return;
-    }
+    if (!formData.number || formData.number <= 0) { setError("El número de mesa es obligatorio"); return; }
+    if (formData.capacity < 1)                    { setError("La capacidad mínima es 1 persona"); return; }
     if (!table && existingTables.some((t) => t.number === formData.number)) {
       setError(`La Mesa #${formData.number} ya existe`); return;
     }
@@ -123,209 +123,251 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
   };
 
   const LOCATION_OPTIONS = [
-    { value: "indoor",  label: "Salón interior", icon: <Sofa       size={16} />, color: "text-violet-400 border-violet-500/30 bg-violet-500/10"  },
-    { value: "outdoor", label: "Terraza",         icon: <GlassWater size={16} />, color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"},
-    { value: "bar",     label: "Barra",           icon: <Flame      size={16} />, color: "text-amber-400 border-amber-500/30 bg-amber-500/10"     },
+    { value: "indoor",  label: "Salón interior", icon: <Sofa size={15} />,       color: "#A371F7", bg: "rgba(163,113,247,0.10)", border: "rgba(163,113,247,0.30)" },
+    { value: "outdoor", label: "Terraza",         icon: <GlassWater size={15} />, color: "#3FB950", bg: "rgba(63,185,80,0.10)",   border: "rgba(63,185,80,0.30)"   },
+    { value: "bar",     label: "Barra",           icon: <Flame size={15} />,      color: "#F0B429", bg: "rgba(240,180,41,0.10)",  border: "rgba(240,180,41,0.30)"  },
   ];
 
   const SHAPE_OPTIONS = [
-    { value: "rect",   label: "Rectangular", icon: <Square size={20} className="scale-x-125" />    },
-    { value: "square", label: "Cuadrada",    icon: <Square size={20} />                             },
-    { value: "circle", label: "Circular",    icon: <Circle size={20} />                             },
+    { value: "rect",   label: "Rectangular", icon: <Square size={22} className="scale-x-125" /> },
+    { value: "square", label: "Cuadrada",    icon: <Square size={22} /> },
+    { value: "circle", label: "Circular",    icon: <Circle size={22} /> },
   ];
 
   const CAPACITY_PRESETS = [2, 4, 6, 8];
 
   return (
-    <div className="w-full bg-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div
+      className="w-full rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+      style={{ background: "#1C2333", border: "1px solid #30363D" }}
+    >
 
-      {/* HEADER */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/8 bg-surface-2 shrink-0">
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div
+        className="flex items-center justify-between px-6 py-5 flex-shrink-0"
+        style={{ borderBottom: "1px solid #30363D", background: "#161B22" }}
+      >
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gold/15 border border-gold/25 text-gold">
+          <div
+            className="p-2.5 rounded-xl"
+            style={{ background: "rgba(240,180,41,0.15)", border: "1px solid rgba(240,180,41,0.25)", color: "#F0B429" }}
+          >
             <Layout size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-ivory">
+            <h2 className="text-lg font-bold" style={{ color: "#E6EDF3" }}>
               {table ? `Editar Mesa #${table.number}` : "Registrar nueva mesa"}
             </h2>
-            <p className="text-xs text-muted mt-0.5">
-              {table ? "Modificar configuración del activo" : `Se asignará como Mesa #${nextNumber}`}
+            <p className="text-xs mt-0.5" style={{ color: "#566270" }}>
+              {table ? "Modificar configuración" : `Se asignará como Mesa #${nextNumber}`}
             </p>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-muted hover:text-ivory transition-colors"
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+          style={{ background: "#21283A", border: "1px solid #30363D", color: "#566270" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#566270"; }}
         >
-          <X size={18} />
+          <X size={17} />
         </button>
       </div>
 
-      {/* BODY — dos columnas en desktop, una en mobile */}
-      <form
-        onSubmit={handleSubmit}
-        noValidate
-        className="flex-1 overflow-y-auto"
-        style={{ scrollbarWidth: "thin" }}
-      >
-        {/* Error global */}
+      {/* ── Body ───────────────────────────────────────────── */}
+      <form onSubmit={handleSubmit} noValidate className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}>
+
+        {/* Error */}
         {error && (
-          <div className="mx-6 mt-5 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
-            <X size={15} />
-            {error}
+          <div
+            className="mx-6 mt-5 flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm"
+            style={{ background: "rgba(248,81,73,0.10)", border: "1px solid rgba(248,81,73,0.30)", color: "#FF6B63" }}
+          >
+            <X size={14} /> {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-white/6">
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ borderTop: error ? "none" : undefined }}>
 
-          {/* ── COLUMNA IZQUIERDA ──────────────────────────────── */}
-          <div className="p-6 space-y-6">
+          {/* ── Columna izquierda ──────────────────────────── */}
+          <div className="p-6 space-y-6" style={{ borderRight: "1px solid #30363D" }}>
 
             {/* Número y capacidad */}
             <div>
-              <SectionHeader title="Identificación" icon={<Hash size={15} />} />
+              <SectionLabel icon={<Hash size={14} />}>Identificación</SectionLabel>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <FieldLabel required>Número de mesa</FieldLabel>
                   <InputField
-                    icon={<Hash size={15} />}
-                    type="number"
-                    name="number"
-                    value={formData.number}
-                    onChange={handleChange}
-                    placeholder={String(nextNumber)}
-                    min={1}
-                    required
+                    icon={<Hash size={14} />}
+                    type="number" name="number" value={formData.number}
+                    onChange={handleChange} placeholder={String(nextNumber)} min={1} required
                   />
                 </div>
                 <div>
-                  <FieldLabel required>Capacidad (personas)</FieldLabel>
+                  <FieldLabel required>Capacidad</FieldLabel>
                   <InputField
-                    icon={<Users size={15} />}
-                    type="number"
-                    name="capacity"
-                    value={formData.capacity}
-                    onChange={handleChange}
-                    min={1}
-                    max={30}
-                    required
+                    icon={<Users size={14} />}
+                    type="number" name="capacity" value={formData.capacity}
+                    onChange={handleChange} min={1} max={30} required
                   />
                 </div>
               </div>
 
               {/* Presets de capacidad */}
               <div className="flex gap-2 mt-3">
-                {CAPACITY_PRESETS.map((cap) => (
-                  <button
-                    key={cap}
-                    type="button"
-                    onClick={() => setFormData((p) => ({ ...p, capacity: cap }))}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
-                      formData.capacity === cap
-                        ? "bg-gold/20 border-gold/40 text-gold"
-                        : "bg-white/5 border-white/10 text-muted hover:border-white/20 hover:text-ivory"
-                    }`}
-                  >
-                    {cap} <span className="text-[9px] font-normal">pax</span>
-                  </button>
-                ))}
+                {CAPACITY_PRESETS.map((cap) => {
+                  const isActive = formData.capacity === cap;
+                  return (
+                    <button
+                      key={cap} type="button"
+                      onClick={() => setFormData((p) => ({ ...p, capacity: cap }))}
+                      className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                      style={{
+                        background:  isActive ? "rgba(240,180,41,0.20)" : "#21283A",
+                        border:      `1px solid ${isActive ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                        color:       isActive ? "#F0B429" : "#566270",
+                      }}
+                    >
+                      {cap} <span style={{ fontSize: 9, fontWeight: 400 }}>pax</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Ubicación */}
             <div>
-              <SectionHeader title="Ubicación" icon={<MapPin size={15} />} />
+              <SectionLabel icon={<MapPin size={14} />}>Ubicación</SectionLabel>
               <div className="space-y-2">
-                {LOCATION_OPTIONS.map((loc) => (
-                  <button
-                    key={loc.value}
-                    type="button"
-                    onClick={() => setFormData((p) => ({ ...p, location: loc.value as Table["location"] }))}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all text-left ${
-                      formData.location === loc.value
-                        ? loc.color
-                        : "bg-white/3 border-white/8 text-muted hover:bg-white/8 hover:text-ivory"
-                    }`}
-                  >
-                    <span className={formData.location === loc.value ? "" : "text-muted/50"}>
-                      {loc.icon}
-                    </span>
-                    {loc.label}
-                    {formData.location === loc.value && (
-                      <Check size={14} className="ml-auto" />
-                    )}
-                  </button>
-                ))}
+                {LOCATION_OPTIONS.map((loc) => {
+                  const isActive = formData.location === loc.value;
+                  return (
+                    <button
+                      key={loc.value} type="button"
+                      onClick={() => setFormData((p) => ({ ...p, location: loc.value as Table["location"] }))}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left"
+                      style={{
+                        background:  isActive ? loc.bg     : "#21283A",
+                        border:      `1px solid ${isActive ? loc.border : "#30363D"}`,
+                        color:       isActive ? loc.color : "#8B949E",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = loc.border;
+                          (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363D";
+                          (e.currentTarget as HTMLButtonElement).style.color = "#8B949E";
+                        }
+                      }}
+                    >
+                      <span style={{ color: isActive ? loc.color : "#566270" }}>{loc.icon}</span>
+                      {loc.label}
+                      {isActive && <Check size={14} className="ml-auto" style={{ color: loc.color }} />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-
           </div>
 
-          {/* ── COLUMNA DERECHA ────────────────────────────────── */}
+          {/* ── Columna derecha ────────────────────────────── */}
           <div className="p-6 space-y-6">
 
             {/* Forma */}
             <div>
-              <SectionHeader title="Forma de la mesa" icon={<Square size={15} />} />
+              <SectionLabel icon={<Square size={14} />}>Forma de la mesa</SectionLabel>
               <div className="grid grid-cols-3 gap-3">
-                {SHAPE_OPTIONS.map((s) => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => setFormData((p) => ({ ...p, shape: s.value as Table["shape"] }))}
-                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all aspect-square ${
-                      formData.shape === s.value
-                        ? "bg-gold/15 border-gold/40 text-gold"
-                        : "bg-white/4 border-white/8 text-muted/60 hover:border-white/20 hover:text-muted"
-                    }`}
-                  >
-                    <span className={formData.shape === s.value ? "text-gold" : ""}>{s.icon}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider">{s.label}</span>
-                  </button>
-                ))}
+                {SHAPE_OPTIONS.map((s) => {
+                  const isActive = formData.shape === s.value;
+                  return (
+                    <button
+                      key={s.value} type="button"
+                      onClick={() => setFormData((p) => ({ ...p, shape: s.value as Table["shape"] }))}
+                      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all aspect-square"
+                      style={{
+                        background:  isActive ? "rgba(240,180,41,0.15)" : "#21283A",
+                        borderColor: isActive ? "rgba(240,180,41,0.50)" : "#30363D",
+                        color:       isActive ? "#F0B429"               : "rgba(139,148,158,0.60)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) (e.currentTarget as HTMLButtonElement).style.borderColor = "#3D444D";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363D";
+                      }}
+                    >
+                      {s.icon}
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                        {s.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Notas */}
             <div>
-              <SectionHeader title="Notas de servicio" icon={<MessageSquare size={15} />} />
+              <SectionLabel icon={<MessageSquare size={14} />}>Notas de servicio</SectionLabel>
               <textarea
                 name="notes"
                 value={formData.notes || ""}
                 onChange={handleChange}
                 placeholder="Observaciones de la mesa, preferencias de la zona…"
                 rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-ivory text-sm focus:border-gold/50 focus:ring-2 focus:ring-gold/10 outline-none transition-all resize-none placeholder:text-muted/40"
+                className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none"
+                style={{
+                  background: "#21283A",
+                  border:     "1px solid #30363D",
+                  color:      "#E6EDF3",
+                }}
+                onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = "rgba(240,180,41,0.50)"; }}
+                onBlur={(e)  => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = "#30363D"; }}
               />
             </div>
 
-            {/* Vista previa del código actual si la mesa ya está abierta */}
+            {/* Código activo (solo si la mesa está abierta) */}
             {table?.tableCode && table.status === "occupied" && (
-              <div className="p-4 rounded-xl bg-gold/8 border border-gold/25 text-center">
-                <p className="text-[9px] font-black text-gold/60 uppercase tracking-[0.3em] mb-1">Código activo</p>
-                <p className="text-4xl font-black text-gold tracking-[0.25em] font-mono">{table.tableCode}</p>
-                <p className="text-[10px] text-muted/60 mt-1">Se regenera al abrir una nueva sesión</p>
+              <div
+                className="p-4 rounded-xl text-center"
+                style={{ background: "rgba(240,180,41,0.06)", border: "1px solid rgba(240,180,41,0.25)" }}
+              >
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-1" style={{ color: "rgba(240,180,41,0.60)" }}>
+                  Código activo
+                </p>
+                <p className="text-4xl font-black tracking-[0.25em] font-mono" style={{ color: "#F0B429" }}>
+                  {table.tableCode}
+                </p>
+                <p className="text-[10px] mt-1" style={{ color: "#566270" }}>
+                  Se regenera al abrir una nueva sesión
+                </p>
               </div>
             )}
-
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="flex items-center justify-between gap-3 px-6 py-5 border-t border-white/8 bg-surface-2 shrink-0">
-          <div className="text-xs text-muted">
+        {/* ── Footer ─────────────────────────────────────── */}
+        <div
+          className="flex items-center justify-between gap-3 px-6 py-5 flex-shrink-0"
+          style={{ borderTop: "1px solid #30363D", background: "#161B22" }}
+        >
+          <p className="text-xs" style={{ color: "#566270" }}>
             {table ? "Los cambios se aplican al instante" : "Se asigna el próximo número disponible"}
-          </div>
+          </p>
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                resetForm();
-                onClose();
-              }}
-              className="px-5 py-2.5 rounded-xl border border-white/10 text-muted hover:text-ivory text-sm font-semibold transition-colors hover:bg-white/5"
+              onClick={() => { resetForm(); onClose(); }}
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+              style={{ border: "1px solid #30363D", color: "#8B949E", background: "transparent" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
             >
               Cancelar
             </button>
@@ -333,14 +375,16 @@ export default function TableForm({ table, onSave, onClose, existingTables = [] 
               type="submit"
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
               style={{
-                background: "linear-gradient(135deg,#8F7020 0%,#D4AF37 55%,#E6C766 100%)",
-                color: "#09090B",
-                boxShadow: "0 4px 16px rgba(212,163,64,0.25)",
+                background: "#F0B429",
+                color:      "#0D1117",
+                boxShadow:  "0 4px 16px rgba(240,180,41,0.25)",
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F5C842"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0B429"; }}
             >
-              <Save size={15} />
+              <Save size={14} />
               {table ? "Guardar cambios" : "Crear mesa"}
-              <ChevronRight size={14} />
+              <ChevronRight size={13} />
             </button>
           </div>
         </div>
