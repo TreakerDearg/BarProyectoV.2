@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Socket.IO Client Service
  * Maneja la conexión en tiempo real con el backend para eventos de dashboard
  */
@@ -86,6 +86,26 @@ export interface SocketEventMap {
   "table:updated": DesktopTableDTO;
   "table:created": DesktopTableDTO;
   "table:deleted": string | { tableId?: string; _id?: string };
+  "promotion:update": {
+    action: string;
+    id?: string;
+    name?: string;
+    type?: string;
+    value?: number;
+    audience?: string;
+    isActive?: boolean;
+    timestamp?: string;
+  };
+  "promotion:change": {
+    action: string;
+    id?: string;
+    name?: string;
+    type?: string;
+    value?: number;
+    audience?: string;
+    isActive?: boolean;
+    timestamp?: string;
+  };
 }
 
 export interface MenuEventData {

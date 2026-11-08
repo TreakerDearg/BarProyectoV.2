@@ -33,9 +33,9 @@ export default function OrderDetails({ order, items, setItems }: Props) {
   const selectedTotal = items.filter((i) => i.selected).reduce((acc, i) => acc + i.price * i.quantity, 0);
 
   const tableLabel =
-    typeof order.table === "object"
-      ? (order.table as any)?.number ?? "?"
-      : order.table;
+    typeof order?.table === "object"
+      ? (order?.table as any)?.number ?? "?"
+      : order?.table ?? "?";
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -50,7 +50,7 @@ export default function OrderDetails({ order, items, setItems }: Props) {
             Mesa {tableLabel}
           </h3>
           <p className="text-[10px] mt-0.5" style={{ color: "#566270" }}>
-            Orden #{(order._id ?? "").slice(-8).toUpperCase() || "—"}
+            Orden #{(order?._id ?? (order as any)?.id ?? "").toString().slice(-8).toUpperCase() || "—"}
           </p>
         </div>
         <button

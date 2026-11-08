@@ -241,6 +241,9 @@ function normalizeDashboard(data: any): DashboardStats {
     inventory: {
       ...EMPTY_DASHBOARD.inventory,
       ...(data?.inventory || {}),
+      criticalItems: Array.isArray(data?.inventory?.criticalItems)
+        ? data.inventory.criticalItems
+        : [],
     },
 
     rouletteSpins: {

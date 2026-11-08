@@ -81,7 +81,7 @@ export default function DiscountTrendChart({ data, loading }: Props) {
                 style={{ height: `${Math.max(4, heightPercentage)}%` }}
               />
               <span className="text-[8px] text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                {point.date.split('-').slice(1).join('/')}
+                {point?.date ? point.date.split('-').slice(1).join('/') : ''}
               </span>
             </div>
           );

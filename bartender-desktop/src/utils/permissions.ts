@@ -218,22 +218,22 @@ export function filterDashboardData<T extends object>(
 ): Partial<T> {
   const filtered = Object.assign(Object.create(null) as Record<string, unknown>, data) as Record<string, unknown>;
   
-  // Remove sales data if not permitted
+  // Clear sales data if not permitted
   if (!permissions.canViewSalesData) {
-    delete filtered.totalSales;
-    delete filtered.salesData;
-    delete filtered.hourlyData;
-    delete filtered.discountsGiven;
-    delete filtered.avgTicket;
-    delete filtered.trends;
+    filtered.totalSales = 0;
+    filtered.salesData = [];
+    filtered.hourlyData = [];
+    filtered.discountsGiven = 0;
+    filtered.avgTicket = 0;
+    filtered.trends = { salesPct: 0, ordersPct: 0, ticketPct: 0 };
   }
   
-  // Remove inventory data if not permitted
+  // Clear inventory data if not permitted
   if (!permissions.canViewInventoryData) {
-    delete filtered.inventory;
-    delete filtered.topProducts;
-    delete filtered.topDrinks;
-    delete filtered.topFoods;
+    filtered.inventory = { lowStock: 0, outOfStock: 0, stockValue: 0, criticalItems: [] };
+    filtered.topProducts = [];
+    filtered.topDrinks = [];
+    filtered.topFoods = [];
   }
   
   // Remove staff data if not permitted

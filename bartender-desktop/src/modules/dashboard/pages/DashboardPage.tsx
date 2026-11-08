@@ -503,7 +503,7 @@ export default function DashboardPage() {
                     Productos que requieren reposición
                   </h3>
                   <div className={`grid gap-3 ${mode === "simple" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 md:grid-cols-3 xl:grid-cols-4"}`}>
-                    {(data!.inventory!.criticalItems!).slice(0, mode === "simple" ? 4 : mode === "medium" ? 6 : 12).map((item: any) => (
+                    {(data?.inventory?.criticalItems ?? []).slice(0, mode === "simple" ? 4 : mode === "medium" ? 6 : 12).map((item: any) => (
                       <div key={item._id} className="rounded-2xl border border-[#F85149]/25 bg-[#F85149]/8 p-5">
                         <p className="text-[10px] font-black text-[#F85149]/70 uppercase tracking-widest mb-2">
                           Reponer

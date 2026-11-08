@@ -63,3 +63,15 @@ export const togglePromotion = async (
 export const deletePromotion = async (id: string): Promise<void> => {
   await safeRequest<void>(api.delete(`/promotions/${id}`));
 };
+
+/* =========================================================
+   TRIGGER EXPRESS HAPPY HOUR
+========================================================= */
+export const triggerExpressHappyHour = async (params?: {
+  durationMinutes?: number;
+  discountPercent?: number;
+}): Promise<Promotion> => {
+  return safeRequest<Promotion>(
+    api.post("/promotions/express-happy-hour", params || {})
+  );
+};

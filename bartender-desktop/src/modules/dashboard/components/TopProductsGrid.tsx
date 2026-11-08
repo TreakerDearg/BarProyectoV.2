@@ -9,15 +9,15 @@ import type { TopProduct } from "../services/dashboardService";
 
 interface Props {
   topDrinks: TopProduct[];
-  topFoods:  TopProduct[];
-  loading?:  boolean;
+  topFoods: TopProduct[];
+  loading?: boolean;
 }
 
 /* ── Skeleton ──────────────────────────────────────────────── */
 function ListSkeleton() {
   return (
     <div className="space-y-3">
-      {[0,1,2,3,4].map((i) => (
+      {[0, 1, 2, 3, 4].map((i) => (
         <div key={i} className="flex items-center gap-3 animate-pulse">
           <div className="w-5 h-5 rounded-full bg-[#21283A] flex-shrink-0" />
           <div className="flex-1 h-3 rounded-full bg-[#21283A]" />
@@ -30,16 +30,17 @@ function ListSkeleton() {
 
 /* ── Product list ──────────────────────────────────────────── */
 function ProductList({
-  items, accentColor, iconBg, icon, label, loading,
+  items = [], accentColor, iconBg, icon, label, loading,
 }: {
-  items:       TopProduct[];
+  items: TopProduct[];
   accentColor: string;
-  iconBg:      string;
-  icon:        React.ReactNode;
-  label:       string;
-  loading?:    boolean;
+  iconBg: string;
+  icon: React.ReactNode;
+  label: string;
+  loading?: boolean;
 }) {
-  const maxQty = items[0]?.qty ?? 1;
+  const safeItems = Array.isArray(items) ? items : [];
+  const maxQty = safeItems[0]?.qty ?? 1;
 
   return (
     <div className="rounded-2xl border border-[#30363D] bg-[#1C2333]/50 p-6 flex flex-col gap-5 min-w-0">
@@ -52,21 +53,20 @@ function ProductList({
       {/* Contenido */}
       {loading ? (
         <ListSkeleton />
-      ) : items.length === 0 ? (
+      ) : safeItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
           <div className="text-[#30363D]">{icon}</div>
           <p className="text-sm text-[#566270]">Sin ventas en el período</p>
         </div>
       ) : (
         <ol className="space-y-3">
-          {items.slice(0, 5).map((p, i) => {
+          {safeItems.slice(0, 5).map((p, i) => {
             const pct = Math.round((p.qty / maxQty) * 100);
             return (
               <li key={p.name} className="flex items-center gap-3 group">
                 {/* Posición */}
-                <span className={`text-xs font-black w-5 flex-shrink-0 text-center ${
-                  i === 0 ? accentColor : "text-[#566270]"
-                }`}>
+                <span className={`text-xs font-black w-5 flex-shrink-0 text-center ${i === 0 ? accentColor : "text-[#566270]"
+                  }`}>
                   {i + 1}
                 </span>
 
@@ -81,7 +81,7 @@ function ProductList({
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
-                        width:      `${pct}%`,
+                        width: `${pct}%`,
                         background: i === 0
                           ? accentColor.includes("F0B429") ? "#F0B429" : "#3FB950"
                           : "rgba(255,255,255,0.2)",

@@ -1,6 +1,36 @@
 import Promotion from "../models/Promotion.js";
 import PricingEvent from "../models/PricingEvent.js";
 import { ok, badRequest, notFound } from "../utils/response.js";
+import { getIO } from "../socket/index.js";
+import { logger } from "../config/logger.js";
+
+/**
+ * Notifica en tiempo real a clientes web, apps y terminales del salón
+ */
+const broadcastPromotionChange = (action, promotion) => {
+  try {
+    const io = getIO();
+    if (io) {
+      const payload = {
+        action,
+        id: promotion?._id ? promotion._id.toString() : promotion?.id,
+        name: promotion?.name,
+        type: promotion?.type,
+        value: promotion?.value,
+        audience: promotion?.audience || "both",
+        isActive: promotion?.isActive ?? false,
+        schedule: promotion?.schedule,
+        timestamp: new Date().toISOString(),
+      };
+      io.emit("promotion:update", payload);
+      io.emit("promotion:change", payload);
+      io.of("/tracking")?.emit("promotion:update", payload);
+      logger.info(`[Socket] Promoción emitida [${action}]: ${promotion?.name || promotion?._id}`);
+    }
+  } catch (err) {
+    logger.warn("[Socket] Error emitiendo evento de promoción:", err?.message);
+  }
+};
 
 export const getPromotions = async (req, res, next) => {
   try {
@@ -75,6 +105,8 @@ export const createPromotion = async (req, res, next) => {
       createdBy: req.user.id,
     });
 
+    broadcastPromotionChange("created", promotion);
+
     return ok(res, promotion, "Promoción creada correctamente");
   } catch (error) { throw error; }
 };
@@ -113,6 +145,8 @@ export const updatePromotion = async (req, res, next) => {
       createdBy: req.user.id,
     }).catch(() => {}); // No fallar si PricingEvent falla
 
+    broadcastPromotionChange("updated", promotion);
+
     return ok(res, promotion, "Promoción actualizada correctamente");
   } catch (error) { throw error; }
 };
@@ -141,6 +175,8 @@ export const togglePromotion = async (req, res, next) => {
       createdBy: req.user.id,
     }).catch(() => {});
 
+    broadcastPromotionChange(promotion.isActive ? "activated" : "deactivated", promotion);
+
     return ok(res, { isActive: promotion.isActive }, `Promoción ${action} correctamente`);
   } catch (error) { throw error; }
 };
@@ -149,6 +185,65 @@ export const deletePromotion = async (req, res, next) => {
   try {
     const promotion = await Promotion.findByIdAndDelete(req.params.id);
     if (!promotion) return notFound(res, "Promoción no encontrada");
+
+    broadcastPromotionChange("deleted", promotion);
+
     return ok(res, null, "Promoción eliminada");
+  } catch (error) { throw error; }
+};
+
+/* =========================================================
+   EXPRESS HAPPY HOUR — POST /express-happy-hour
+   Dispara o extiende un Happy Hour instantáneo
+========================================================= */
+export const triggerExpressHappyHour = async (req, res, next) => {
+  try {
+    const { durationMinutes = 30, discountPercent = 25, name = "Happy Hour Express" } = req.body;
+
+    const now = new Date();
+    const endTime = new Date(now.getTime() + Number(durationMinutes) * 60 * 1000);
+
+    // Buscar si ya existe una promo Express activa
+    let promo = await Promotion.findOne({ name: "Happy Hour Express", isActive: true });
+
+    if (promo) {
+      // Extender horario
+      promo.schedule = {
+        ...(promo.schedule || {}),
+        startDate: now,
+        endDate: endTime,
+      };
+      promo.value = Number(discountPercent);
+      await promo.save();
+    } else {
+      promo = new Promotion({
+        name,
+        description: `Happy Hour express de ${discountPercent}% de descuento activo por ${durationMinutes} minutos.`,
+        audience: "both",
+        type: "PERCENT",
+        value: Number(discountPercent),
+        isActive: true,
+        applicableCategories: [],
+        applicableProducts: [],
+        schedule: {
+          startDate: now,
+          endDate: endTime,
+        },
+        createdBy: req.user.id,
+      });
+      await promo.save();
+    }
+
+    await PricingEvent.create({
+      type: "HAPPY_HOUR_STARTED",
+      title: "Happy Hour Express Activado",
+      detail: `${durationMinutes} minutos al ${discountPercent}% de descuento.`,
+      level: "info",
+      createdBy: req.user.id,
+    }).catch(() => {});
+
+    broadcastPromotionChange("express_happy_hour", promo);
+
+    return ok(res, promo, "Happy Hour Express activado con éxito");
   } catch (error) { throw error; }
 };

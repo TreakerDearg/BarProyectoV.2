@@ -84,7 +84,7 @@ export const getDashboardStats = async (req, res) => {
 
     const stats = {
       kpis: calculateKPIs(orders, reservationsToday, today, previousOrders),
-      inventory: { lowStock: lowStockCount, outOfStock: outOfStockCount },
+      inventory: { lowStock: lowStockCount, outOfStock: outOfStockCount, criticalItems: [], stockValue: 0 },
       timestamp: new Date().toISOString(),
       // Baseline arrays to prevent frontend crashes
       salesData: [],
@@ -92,6 +92,10 @@ export const getDashboardStats = async (req, res) => {
       topDrinks: [],
       topFoods: [],
       topProducts: [],
+      tables: [],
+      recentReservations: [],
+      revenueByCategory: [],
+      discountsGiven: 0,
       versusStats: { radarData: [], headToHead: [] }
     };
 
@@ -99,7 +103,7 @@ export const getDashboardStats = async (req, res) => {
     const productMetrics = calculateProductMetrics(orders);
     const salesByDay = calculateSalesByDay(orders, days, rangeStart);
 
-    if (view === "all" || view === "service") {
+    if (view === "all" || view === "service" || view === "operation") {
       let recentReservations = [];
       try {
         recentReservations = await Reservation.find({ startTime: { $gte: today } })
@@ -139,7 +143,7 @@ export const getDashboardStats = async (req, res) => {
       Object.assign(stats, stats.analytics);
     }
 
-    if (view === "all" || view === "sales") {
+    if (view === "all" || view === "sales" || view === "analytics") {
       let discounts = [];
       try {
         discounts = await Discount.find({ createdAt: { $gte: rangeStart } }).lean();
@@ -159,7 +163,7 @@ export const getDashboardStats = async (req, res) => {
       Object.assign(stats, stats.sales);
     }
 
-    if (view === "all" || view === "inventory") {
+    if (view === "all" || view === "inventory" || view === "operation") {
       let lowStockItems = [];
       try {
         lowStockItems = await InventoryItem.find({ $expr: { $lte: ["$stock", "$minStock"] } }).limit(10).lean();

@@ -6,6 +6,7 @@ import { Sparkles, ArrowRight, Tag, ChefHat } from "lucide-react";
 import { getPublicPromotions } from "@/lib/api/bartender";
 import { useClienteStore } from "@/stores/useClienteStore";
 import type { PromotionPublicDTO } from "@/lib/types/api";
+import socket from "@/lib/api/socket";
 import styles from "./PromotionCard.module.css";
 
 function fmtPrice(n: number) {
@@ -26,10 +27,26 @@ export function PromotionCard() {
   const addToCart = useClienteStore((s) => s.addToCart);
 
   useEffect(() => {
-    getPublicPromotions()
-      .then((data) => setPromotions(data.filter((p) => p.active).slice(0, 3)))
-      .catch(() => setPromotions([]))
-      .finally(() => setLoading(false));
+    const load = () => {
+      getPublicPromotions()
+        .then((data) => setPromotions(data.filter((p) => p.active).slice(0, 3)))
+        .catch(() => setPromotions([]))
+        .finally(() => setLoading(false));
+    };
+
+    load();
+
+    const onUpdate = () => {
+      load();
+    };
+
+    socket.on("promotion:update", onUpdate);
+    socket.on("promotion:change", onUpdate);
+
+    return () => {
+      socket.off("promotion:update", onUpdate);
+      socket.off("promotion:change", onUpdate);
+    };
   }, []);
 
   // Sin promociones activas → sección oculta

@@ -1,7 +1,8 @@
 import express from "express";
 import {
-  getPromotions, createPromotion, updatePromotion,
-  togglePromotion, deletePromotion, getPublicPromotions,
+   getPromotions, createPromotion, updatePromotion,
+   togglePromotion, deletePromotion, getPublicPromotions,
+   triggerExpressHappyHour,
 } from "../controllers/promotion.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
@@ -17,10 +18,11 @@ router.get("/public", asyncHandler(getPublicPromotions));
 /* =========================================================
    ADMIN / MANAGER — gestión completa desde Desktop
 ========================================================= */
-router.get(  "/",             ...adminOrManager, asyncHandler(getPromotions));
-router.post( "/",             ...adminOrManager, asyncHandler(createPromotion));
-router.put(  "/:id",          ...adminOrManager, asyncHandler(updatePromotion));
-router.patch("/:id/toggle",   ...adminOrManager, asyncHandler(togglePromotion));
-router.delete("/:id",         ...adminOrManager, asyncHandler(deletePromotion));
+router.get("/", ...adminOrManager, asyncHandler(getPromotions));
+router.post("/", ...adminOrManager, asyncHandler(createPromotion));
+router.post("/express-happy-hour", ...adminOrManager, asyncHandler(triggerExpressHappyHour));
+router.put("/:id", ...adminOrManager, asyncHandler(updatePromotion));
+router.patch("/:id/toggle", ...adminOrManager, asyncHandler(togglePromotion));
+router.delete("/:id", ...adminOrManager, asyncHandler(deletePromotion));
 
 export default router;

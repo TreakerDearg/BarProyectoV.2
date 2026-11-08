@@ -15,14 +15,15 @@ interface Props {
 }
 
 export default function ImprovementSuggestions({ 
-  suggestions, 
+  suggestions = [], 
   title = "Mejoras sugeridas",
   maxVisible = 3 
 }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const visibleSuggestions = expanded ? suggestions : suggestions.slice(0, maxVisible);
+  const safeSuggestions = Array.isArray(suggestions) ? suggestions : [];
+  const visibleSuggestions = expanded ? safeSuggestions : safeSuggestions.slice(0, maxVisible);
 
-  if (suggestions.length === 0) {
+  if (safeSuggestions.length === 0) {
     return null;
   }
 

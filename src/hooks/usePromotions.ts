@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { getPublicPromotions } from "@/lib/api/bartender";
 import type { PromotionPublicDTO } from "@/lib/types/api";
+import socket from "@/lib/api/socket";
 
 // ─────────────────────────────────────────────────────────────────
 // Types
@@ -102,8 +103,19 @@ export function usePromotions(audience: "web" | "app" = "web"): UsePromotionsSta
   useEffect(() => {
     aliveRef.current = true;
     fetchPromotions();
+
+    const onPromotionChange = () => {
+      console.log("[usePromotions] Evento en tiempo real recibido, actualizando promociones...");
+      fetchPromotions();
+    };
+
+    socket.on("promotion:update", onPromotionChange);
+    socket.on("promotion:change", onPromotionChange);
+
     return () => {
       aliveRef.current = false;
+      socket.off("promotion:update", onPromotionChange);
+      socket.off("promotion:change", onPromotionChange);
     };
   }, [fetchPromotions]);
 
