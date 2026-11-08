@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Plus, HelpCircle, LayoutGrid, List, Target, Zap, Activity,
   TrendingUp, Package, RefreshCcw, X, SlidersHorizontal,
-  Rows3, Rows4, ChefHat, GlassWater,
+  Rows3, Rows4, ChefHat, GlassWater, Search, Star, Filter,
 } from "lucide-react";
 
 import ProductCard from "../components/ProductCard";
@@ -10,7 +10,6 @@ import ProductForm from "../components/ProductForm";
 import ProductDetailDrawer from "../components/ProductDetailDrawer";
 import ProductTutorial from "../components/tutorial/ProductTutorial";
 import DataExportImport from "../../../components/shared/DataExportImport";
-import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
 
 import {
   getProducts,
@@ -26,7 +25,6 @@ import { useProductTutorial }      from "../hooks/useProductTutorial";
 import { useProductUiStore, type ProductMode } from "../store/productUiStore";
 
 import type { Product } from "../../../types/product";
-import "../../../styles/nebula-theme.css";
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -46,6 +44,7 @@ export default function ProductsPage() {
   const [search, setSearch]               = useState("");
   const [showExportImport, setShowExportImport] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+  const [showFilters, setShowFilters]     = useState(false);
 
   const {
     mode, setMode,
@@ -157,22 +156,38 @@ export default function ProductsPage() {
     return list;
   }, [products, activeCategory, search, activeFilters]);
 
-  // ── Estadísticas ───────────────────────────────────────────────
+  // ── Estadísticas con cálculo de margen protegido ───────────────
   const stats = useMemo(() => {
     const total     = products.length;
     const available = products.filter((p) => p.available).length;
     const featured  = products.filter((p) => p.featured).length;
     const drinks    = products.filter((p) => p.type === "drink").length;
     const food      = products.filter((p) => p.type === "food").length;
-    const avgMargin = total > 0
-      ? products.reduce((acc, p) => {
-          const m = p.price > 0 && (p.cost ?? 0) > 0
-            ? ((p.price - (p.cost ?? 0)) / p.price) * 100
-            : 0;
-          return acc + m;
-        }, 0) / total
-      : 0;
-    return { total, available, featured, drinks, food, avgMargin };
+
+    // Solo calculamos promedio de margen sobre productos con precio > 0 y costo > 0 real
+    const productsWithCost = products.filter(
+      (p) => typeof p.price === "number" && p.price > 0 && typeof p.cost === "number" && p.cost > 0
+    );
+
+    let avgMargin = 0;
+    if (productsWithCost.length > 0) {
+      const sum = productsWithCost.reduce((acc, p) => {
+        const m = ((p.price - (p.cost || 0)) / p.price) * 100;
+        // Clampeamos a [-100, 100] para evitar porcentajes imposibles por datos de test
+        return acc + Math.max(-100, Math.min(100, m));
+      }, 0);
+      avgMargin = Math.round(sum / productsWithCost.length);
+    }
+
+    return {
+      total,
+      available,
+      featured,
+      drinks,
+      food,
+      avgMargin,
+      hasCostData: productsWithCost.length > 0,
+    };
   }, [products]);
 
   // ── Acciones CRUD ──────────────────────────────────────────────
@@ -208,7 +223,7 @@ export default function ProductsPage() {
     }
   };
 
-  const handleExport = async (options: { format: string }) => {
+  const handleExport = async () => {
     const filename = `productos-${new Date().toISOString().split("T")[0]}`;
     const blob = new Blob([JSON.stringify(filteredProducts, null, 2)], { type: "application/json" });
     const url  = URL.createObjectURL(blob);
@@ -233,121 +248,228 @@ export default function ProductsPage() {
   // ── View level para ProductCard ────────────────────────────────
   const viewLevel = view === "list" ? "advanced" : mode;
 
-  // ── FilterGroups ───────────────────────────────────────────────
-  const filterGroups = [
-    {
-      id: "type",
-      label: "Tipo",
-      type: "radio" as const,
-      options: [
-        { value: "drink", label: "Bebida" },
-        { value: "food",  label: "Comida" },
-      ],
-      selected: activeFilters["type"] || [],
-    },
-    {
-      id: "availability",
-      label: "Estado",
-      type: "checkbox" as const,
-      options: [
-        { value: "available", label: "Disponible" },
-        { value: "featured",  label: "Destacado"  },
-      ],
-      selected: activeFilters["availability"] || [],
-    },
-  ];
+  const activeFilterCount = (activeFilters["type"]?.length || 0) + (activeFilters["availability"]?.length || 0);
 
   // ── Render ─────────────────────────────────────────────────────
   return (
-    <div className="nebula-page flex flex-col gap-6 min-h-0 h-full overflow-hidden">
+    <div className="flex flex-col gap-4 min-h-0 h-full overflow-hidden bg-[#0D1117]">
 
-      {/* ── Header ──────────────────────────────────────────────── */}
-      <header className="flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+      {/* ── Header Unificado Slate Elegante ───────────────────────── */}
+      <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-[#161B22] border border-[#30363D] shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-ivory tracking-tight">Productos</h1>
-          <p className="text-xs text-muted mt-0.5">
+          <h1 className="text-xl font-bold text-[#E6EDF3] tracking-tight">Productos</h1>
+          <p className="text-xs text-[#8B949E] mt-0.5">
             {stats.total} productos · {stats.available} disponibles · {stats.drinks} bebidas · {stats.food} comidas
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+          {/* Buscador Único integrado */}
+          <div className="relative w-48 sm:w-60">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E] pointer-events-none" />
             <input
-              type="search"
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar producto…"
-              className="h-9 pl-8 pr-3 rounded-xl bg-white/5 border border-white/10 text-xs text-ivory placeholder:text-muted/50 focus:outline-none focus:border-violet/40 w-44"
+              placeholder="Buscar por nombre o tag…"
+              className="h-9 w-full pl-8 pr-7 rounded-lg bg-[#1C2333] border border-[#30363D] text-xs text-[#E6EDF3] placeholder:text-[#8B949E]/60 focus:outline-none focus:border-[#F0B429] transition-colors"
             />
-            <SlidersHorizontal size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B949E] hover:text-[#E6EDF3]"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
 
-          <AdvancedSearchFilter
-            filterGroups={filterGroups}
-            onFilterChange={setActiveFilters}
-            onSaveFilter={() => {}}
-            onLoadFilter={() => {}}
-          />
+          {/* Botón Filtros desplegables */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            title="Filtros avanzados"
+            className={`flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all ${
+              showFilters || activeFilterCount > 0
+                ? "bg-[#21283A] border-[rgba(240,180,41,0.40)] text-[#F0B429]"
+                : "bg-[#1C2333] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D]"
+            }`}
+          >
+            <SlidersHorizontal size={13} />
+            <span className="hidden md:inline">Filtros</span>
+            {activeFilterCount > 0 && (
+              <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-xs font-extrabold bg-[#F0B429] text-black">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
 
+          {/* Selector de Modos (Simple / Estándar / Completo) */}
           <ModeToggle mode={mode} onChange={setMode} />
 
+          {/* Vista Grid / Lista */}
           <button
             onClick={toggleView}
             title={`Vista: ${view === "grid" ? "cuadrícula" : "lista"}`}
-            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
             {view === "grid" ? <LayoutGrid size={15} /> : <List size={15} />}
           </button>
 
+          {/* Actualizar */}
           <button
             onClick={fetchProducts}
-            title="Actualizar"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            title="Actualizar catálogo"
+            className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
-            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
+            <RefreshCcw size={15} className={loading ? "animate-spin text-[#F0B429]" : ""} />
           </button>
 
+          {/* Exportar */}
           <button
             onClick={() => setShowExportImport(true)}
-            title="Exportar"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            title="Exportar catálogo"
+            className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
             <Target size={15} />
           </button>
 
+          {/* Tutorial */}
           <button
             onClick={() => openTutorial()}
-            title="Tutorial"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-violet-300 hover:border-violet/20 transition-colors"
+            title="Ver tutorial interactivo"
+            className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#F0B429] hover:border-[#F0B429]/40 transition-colors"
           >
             <HelpCircle size={15} />
           </button>
 
+          {/* CTA + NUEVO PRODUCTO */}
           <button
             onClick={() => { setSelectedProduct(null); setPageView("form"); }}
-            className="nebula-btn-primary flex items-center gap-2 px-4 py-2"
+            className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#F0B429] hover:bg-[#F5C842] text-black font-extrabold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95 shrink-0"
           >
             <Plus size={16} />
-            <span className="text-xs font-bold uppercase tracking-wider">Nuevo</span>
+            <span>Nuevo</span>
           </button>
         </div>
       </header>
 
-      {/* ── KPIs ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
-        <KPIBox label="Total"      value={stats.total}     icon={<Package  size={17} />} color="violet" />
-        <KPIBox label="Disponibles" value={stats.available} icon={<Zap      size={17} />} color="cyan"   />
-        <KPIBox label="Destacados" value={stats.featured}  icon={<Activity size={17} />} color="gold"   />
+      {/* ── Popover de Filtros Avanzados (si está abierto) ─────────── */}
+      {showFilters && (
+        <div className="p-3 rounded-xl bg-[#161B22] border border-[#30363D] flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-lg">
+          <div className="flex items-center gap-5 flex-wrap">
+            {/* Tipo */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#8B949E]">Tipo:</span>
+              <div className="flex gap-1">
+                {[
+                  { id: "", label: "Todos" },
+                  { id: "drink", label: "Bebidas" },
+                  { id: "food", label: "Comidas" },
+                ].map((t) => {
+                  const isSelected = (!activeFilters["type"]?.length && t.id === "") || activeFilters["type"]?.includes(t.id);
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setActiveFilters((prev) => ({
+                          ...prev,
+                          type: t.id ? [t.id] : [],
+                        }));
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        isSelected
+                          ? "bg-[#21283A] text-[#F0B429] border-[#F0B429]/40 font-bold"
+                          : "bg-[#1C2333] text-[#8B949E] border-[#30363D] hover:text-[#E6EDF3]"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Disponibilidad */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#8B949E]">Estado:</span>
+              <div className="flex gap-1">
+                {[
+                  { id: "available", label: "Disponibles" },
+                  { id: "featured", label: "Destacados" },
+                ].map((s) => {
+                  const isSelected = activeFilters["availability"]?.includes(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        const current = activeFilters["availability"] || [];
+                        const next = current.includes(s.id)
+                          ? current.filter((x) => x !== s.id)
+                          : [...current, s.id];
+                        setActiveFilters((prev) => ({ ...prev, availability: next }));
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        isSelected
+                          ? "bg-[#21283A] text-[#3FB950] border-[#3FB950]/40 font-bold"
+                          : "bg-[#1C2333] text-[#8B949E] border-[#30363D] hover:text-[#E6EDF3]"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {(activeFilterCount > 0 || search || activeCategory) && (
+            <button
+              onClick={() => {
+                setActiveFilters({});
+                setSearch("");
+                setActiveCategory("");
+              }}
+              className="text-xs text-[#F85149] hover:underline transition-colors flex items-center gap-1 font-semibold"
+            >
+              <X size={13} />
+              Limpiar todos los filtros
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── KPIs Slate Elegante ───────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         <KPIBox
-          label="Margen prom."
-          value={`${Math.round(stats.avgMargin)}%`}
-          icon={<TrendingUp size={17} />}
-          color="emerald"
+          label="Total Productos"
+          value={stats.total}
+          icon={<Package size={18} />}
+          variant="default"
+        />
+        <KPIBox
+          label="Disponibles"
+          value={stats.available}
+          icon={<Zap size={18} />}
+          variant="green"
+          helperText={`${stats.total > 0 ? Math.round((stats.available / stats.total) * 100) : 0}%`}
+        />
+        <KPIBox
+          label="Destacados"
+          value={stats.featured}
+          icon={<Star size={18} className="fill-[#F0B429]" />}
+          variant="gold"
+        />
+        <KPIBox
+          label="Margen Promedio"
+          value={stats.hasCostData ? `${stats.avgMargin}%` : "—"}
+          icon={<TrendingUp size={18} />}
+          variant={stats.avgMargin >= 40 ? "green" : stats.avgMargin >= 20 ? "gold" : "blue"}
+          helperText={stats.hasCostData ? "s/ costos reales" : "Sin costo cargado"}
         />
       </div>
 
       {/* ── Selector de categorías ─────────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto pb-1 shrink-0 scrollbar-none items-center">
         <CategoryPill
           name="Todos"
           count={products.length}
@@ -371,9 +493,9 @@ export default function ProductsPage() {
 
       {/* ── Error ──────────────────────────────────────────────── */}
       {error && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-red/10 border border-red/20 text-red-300 text-xs flex-shrink-0">
-          <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(248,81,73,0.12)] border border-[rgba(248,81,73,0.30)] text-[#F85149] text-xs shrink-0">
+          <span className="flex-1 font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="text-[#F85149] hover:opacity-80">
             <X size={14} />
           </button>
         </div>
@@ -382,37 +504,39 @@ export default function ProductsPage() {
       {/* ── Grid de productos ───────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar pr-0.5">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative w-14 h-14">
-              <div className="absolute inset-0 rounded-full border-2 border-violet/20 animate-spin" />
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border-2 border-[#30363D] animate-spin" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#F0B429] animate-spin" />
             </div>
-            <p className="text-xs text-muted mt-4 animate-pulse">Cargando productos…</p>
+            <p className="text-xs text-[#8B949E] mt-3 font-medium">Cargando catálogo de productos…</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-violet/10 to-cyan/10 border border-violet/20">
-              <Package size={44} className="text-violet-300/50" />
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+            <div className="p-4 rounded-2xl bg-[#161B22] border border-[#30363D]">
+              <Package size={36} className="text-[#8B949E]" />
             </div>
-            <p className="text-sm font-semibold text-ivory/60">
-              {search || activeCategory ? "Sin resultados" : "No hay productos registrados"}
+            <p className="text-sm font-semibold text-[#E6EDF3]">
+              {search || activeCategory ? "Sin resultados para los filtros actuales" : "No hay productos registrados"}
             </p>
-            {(search || activeCategory) && (
+            {(search || activeCategory || activeFilterCount > 0) && (
               <button
-                onClick={() => { setSearch(""); setActiveCategory(""); }}
-                className="text-xs text-violet-400 hover:text-violet-300 underline transition-colors"
+                onClick={() => { setSearch(""); setActiveCategory(""); setActiveFilters({}); }}
+                className="text-xs text-[#F0B429] hover:underline transition-colors font-semibold"
               >
-                Limpiar filtros
+                Limpiar filtros y ver todos
               </button>
             )}
           </div>
         ) : (
           <>
-            <p className="text-[10px] text-muted mb-3 uppercase tracking-widest">
-              {filteredProducts.length} producto{filteredProducts.length !== 1 ? "s" : ""}
-              {activeCategory ? ` en "${activeCategory}"` : ""}
-            </p>
-            <div className={`grid gap-3 ${gridCols}`}>
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider">
+                {filteredProducts.length} producto{filteredProducts.length !== 1 ? "s" : ""}
+                {activeCategory ? ` en "${activeCategory}"` : ""}
+              </p>
+            </div>
+            <div className={`grid gap-3.5 ${gridCols} pb-6`}>
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product._id}
@@ -429,7 +553,7 @@ export default function ProductsPage() {
 
       {/* ── Formulario ─────────────────────────────────────────── */}
       {pageView === "form" && (
-        <div className="absolute inset-0 z-30 bg-surface-2 flex flex-col">
+        <div className="absolute inset-0 z-30 bg-[#0D1117] flex flex-col">
           <ProductForm
             product={selectedProduct}
             onSave={handleSave}
@@ -458,11 +582,11 @@ export default function ProductsPage() {
 
       {/* ── Export/Import ───────────────────────────────────────── */}
       {showExportImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-ivory">Exportar datos</h3>
-              <button onClick={() => setShowExportImport(false)} className="text-muted hover:text-ivory">
+              <h3 className="text-base font-bold text-[#E6EDF3]">Exportar datos</h3>
+              <button onClick={() => setShowExportImport(false)} className="text-[#8B949E] hover:text-[#E6EDF3]">
                 <X size={18} />
               </button>
             </div>
@@ -480,27 +604,35 @@ export default function ProductsPage() {
   );
 }
 
-// ── Subcomponentes ────────────────────────────────────────────────
+// ── Subcomponentes Slate Elegante ──────────────────────────────────
 
 function KPIBox({
-  label, value, icon, color,
+  label, value, icon, variant = "default", helperText,
 }: {
-  label: string; value: number | string; icon: React.ReactNode; color: string;
+  label: string;
+  value: number | string;
+  icon: React.ReactNode;
+  variant?: "default" | "green" | "gold" | "blue";
+  helperText?: string;
 }) {
-  const colors: Record<string, { bg: string; icon: string }> = {
-    violet:  { bg: "from-violet/15 border-violet/25",  icon: "text-violet-400 bg-violet/15"  },
-    cyan:    { bg: "from-cyan/15 border-cyan/25",      icon: "text-cyan-400 bg-cyan/15"       },
-    gold:    { bg: "from-gold/15 border-gold/25",      icon: "text-gold bg-gold/15"           },
-    emerald: { bg: "from-emerald/15 border-emerald/25",icon: "text-emerald-400 bg-emerald/15" },
-  };
-  const c = colors[color] ?? colors.violet;
+  const variantStyles = {
+    default: { text: "text-[#E6EDF3]", iconBg: "bg-[#21283A] text-[#8B949E]", border: "border-[#30363D]" },
+    green:   { text: "text-[#3FB950]", iconBg: "bg-[rgba(63,185,80,0.12)] text-[#3FB950]", border: "border-[rgba(63,185,80,0.30)]" },
+    gold:    { text: "text-[#F0B429]", iconBg: "bg-[rgba(240,180,41,0.12)] text-[#F0B429]", border: "border-[rgba(240,180,41,0.30)]" },
+    blue:    { text: "text-[#388BFD]", iconBg: "bg-[rgba(56,139,253,0.12)] text-[#388BFD]", border: "border-[#30363D]" },
+  }[variant];
 
   return (
-    <div className={`p-4 rounded-xl border bg-gradient-to-br ${c.bg} bg-surface-3/50 flex items-center gap-3`}>
-      <div className={`p-2 rounded-xl ${c.icon}`}>{icon}</div>
-      <div>
-        <p className="text-[10px] text-muted uppercase tracking-widest">{label}</p>
-        <p className="text-xl font-bold text-ivory">{value}</p>
+    <div className={`p-4 rounded-xl border ${variantStyles.border} bg-[#161B22] flex items-center justify-between gap-3 shadow-sm transition-all hover:border-[#3D444D]`}>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <p className={`text-2xl font-black ${variantStyles.text} tracking-tight`}>{value}</p>
+          {helperText && <span className="text-xs text-[#8B949E]">{helperText}</span>}
+        </div>
+      </div>
+      <div className={`p-2.5 rounded-xl ${variantStyles.iconBg} shrink-0`}>
+        {icon}
       </div>
     </div>
   );
@@ -515,25 +647,27 @@ function CategoryPill({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
         active
-          ? "bg-violet/15 border-violet/35 text-violet-300"
-          : "bg-white/3 border-white/8 text-muted hover:border-white/18 hover:text-ivory"
+          ? "bg-[rgba(240,180,41,0.15)] border-[#F0B429] text-[#F0B429] shadow-sm font-bold"
+          : "bg-[#161B22] border-[#30363D] text-[#8B949E] hover:border-[#3D444D] hover:text-[#E6EDF3]"
       }`}
     >
       {name !== "Todos" && drinks !== undefined && food !== undefined && (
-        <span className="opacity-60">
+        <span className="opacity-75">
           {food > 0 && drinks > 0
-            ? <SlidersHorizontal size={11} />
+            ? <SlidersHorizontal size={12} />
             : food > 0
-              ? <ChefHat size={11} />
-              : <GlassWater size={11} />
+              ? <ChefHat size={12} />
+              : <GlassWater size={12} />
           }
         </span>
       )}
       <span>{name}</span>
-      <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${
-        active ? "bg-violet/20 text-violet-300" : "bg-white/5 text-muted/70"
+      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+        active
+          ? "bg-[#F0B429] text-black font-extrabold"
+          : "bg-[#21283A] text-[#8B949E]"
       }`}>
         {count}
       </span>
@@ -543,28 +677,31 @@ function CategoryPill({
 
 function ModeToggle({ mode, onChange }: { mode: ProductMode; onChange: (m: ProductMode) => void }) {
   const options: { value: ProductMode; label: string; icon: React.ReactNode }[] = [
-    { value: "simple",   label: "Simple",   icon: <Rows4 size={13} />     },
-    { value: "standard", label: "Estándar", icon: <Rows3 size={13} />     },
-    { value: "advanced", label: "Completo", icon: <List  size={13} />     },
+    { value: "simple",   label: "Simple",   icon: <Rows4 size={13} /> },
+    { value: "standard", label: "Estándar", icon: <Rows3 size={13} /> },
+    { value: "advanced", label: "Completo", icon: <List  size={13} /> },
   ];
 
   return (
-    <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          title={opt.label}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-            mode === opt.value
-              ? "bg-violet/20 text-violet-300 border border-violet/30"
-              : "text-muted hover:text-ivory"
-          }`}
-        >
-          {opt.icon}
-          <span className="hidden sm:inline">{opt.label}</span>
-        </button>
-      ))}
+    <div className="flex items-center bg-[#161B22] border border-[#30363D] rounded-lg p-0.5">
+      {options.map((opt) => {
+        const isActive = mode === opt.value;
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            title={opt.label}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              isActive
+                ? "bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.30)] shadow-sm font-bold"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+            }`}
+          >
+            {opt.icon}
+            <span className="hidden sm:inline">{opt.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

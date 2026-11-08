@@ -11,19 +11,19 @@ export interface UserPermissions {
   canViewSales?: boolean;
   canViewInventory?: boolean;
   canViewAnalytics?: boolean;
-  
+
   // Operation permissions
   canCreateOrders?: boolean;
   canEditOrders?: boolean;
   canDeleteOrders?: boolean;
   canApplyDiscounts?: boolean;
   canManageReservations?: boolean;
-  
+
   // Inventory permissions
 
   canEditInventory?: boolean;
   canManageStock?: boolean;
-  
+
   // Staff permissions
   canViewStaff?: boolean;
   canManageStaff?: boolean;
@@ -103,7 +103,7 @@ const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canManageReservations: true,
     canEditInventory: false,
     canManageStock: false,
- 
+
     canViewAttendance: false,
   },
   cashier: {
@@ -144,14 +144,14 @@ export function getUserPermissions(): UserPermissions {
   try {
     const userStr = localStorage.getItem('user');
     if (!userStr) return ROLE_PERMISSIONS.bartender; // Default fallback
-    
+
     const user = JSON.parse(userStr);
     const role = user.role as UserRole;
-    
+
     // Merge role permissions with custom permissions if available
     const rolePerms = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.bartender;
     const customPerms = user.permissions || {};
-    
+
     return { ...rolePerms, ...customPerms };
   } catch (error) {
     console.error('Error getting user permissions:', error);
@@ -173,7 +173,7 @@ function isPrivilegedRole(): boolean {
 
 export function getDashboardPermissions(): DashboardPermissions {
   const perms = getUserPermissions();
-  
+
   return {
     canViewSalesData: perms.canViewSales || false,
     canViewInventoryData: perms.canViewInventory || false,
@@ -217,7 +217,7 @@ export function filterDashboardData<T extends object>(
   permissions: DashboardPermissions
 ): Partial<T> {
   const filtered = Object.assign(Object.create(null) as Record<string, unknown>, data) as Record<string, unknown>;
-  
+
   // Clear sales data if not permitted
   if (!permissions.canViewSalesData) {
     filtered.totalSales = 0;
@@ -227,7 +227,7 @@ export function filterDashboardData<T extends object>(
     filtered.avgTicket = 0;
     filtered.trends = { salesPct: 0, ordersPct: 0, ticketPct: 0 };
   }
-  
+
   // Clear inventory data if not permitted
   if (!permissions.canViewInventoryData) {
     filtered.inventory = { lowStock: 0, outOfStock: 0, stockValue: 0, criticalItems: [] };
@@ -235,19 +235,19 @@ export function filterDashboardData<T extends object>(
     filtered.topDrinks = [];
     filtered.topFoods = [];
   }
-  
+
   // Remove staff data if not permitted
   if (!permissions.canViewStaffData) {
     // Staff data is typically loaded separately, but we filter any staff-related fields
     delete filtered.staff;
   }
-  
+
   // Remove cost/financial data if not permitted
   if (!permissions.canViewFinancialData) {
     delete filtered.revenueByCategory;
     delete filtered.payments;
   }
-  
+
   // Remove cost data specifically
   if (!permissions.canViewCostData) {
     // Remove any cost-related fields from products
@@ -279,7 +279,7 @@ export function filterDashboardData<T extends object>(
       }));
     }
   }
-  
+
   return Object.assign({}, filtered) as Partial<T>;
 }
 
@@ -289,20 +289,20 @@ export function filterDashboardData<T extends object>(
 export function getAllowedDashboardTabs(): ('operation' | 'analytics' | 'inventory')[] {
   const perms = getDashboardPermissions();
   const tabs: ('operation' | 'analytics' | 'inventory')[] = [];
-  
+
   // Operation tab is always available for authenticated users
   tabs.push('operation');
-  
+
   // Analytics tab requires sales or analytics permission
   if (perms.canViewSalesData || perms.canViewDetailedAnalytics) {
     tabs.push('analytics');
   }
-  
+
   // Inventory tab requires inventory permission
   if (perms.canViewInventoryData) {
     tabs.push('inventory');
   }
-  
+
   return tabs;
 }
 
@@ -312,16 +312,16 @@ export function getAllowedDashboardTabs(): ('operation' | 'analytics' | 'invento
 export function getAllowedViewModes(): ('simple' | 'medium' | 'advanced')[] {
   const perms = getDashboardPermissions();
   const modes: ('simple' | 'medium' | 'advanced')[] = ['simple'];
-  
+
   // Medium mode requires basic permissions
   if (perms.canViewSalesData || perms.canViewInventoryData) {
     modes.push('medium');
   }
-  
+
   // Advanced mode requires detailed analytics
   if (perms.canViewDetailedAnalytics && perms.canViewFinancialData) {
     modes.push('advanced');
   }
-  
+
   return modes;
 }
