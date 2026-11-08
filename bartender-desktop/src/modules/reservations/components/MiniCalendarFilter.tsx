@@ -1,151 +1,179 @@
 "use client";
 
+/**
+ * MiniCalendarFilter — Dos variantes:
+ *
+ * 1. `ReservationDateChips` (export nombrado):
+ *    Chips horizontales compactos para integrar inline en el header.
+ *    7 días desde hoy, con punto de color según ocupación.
+ *
+ * 2. `MiniCalendarFilter` (export default):
+ *    Bloque completo original (mantenido por compatibilidad).
+ *
+ * REDISEÑO v3.0 — Slate Elegante
+ */
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 import { format, addDays, isSameDay, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import type { Reservation } from "../types/reservation";
 
 interface Props {
-  reservations: Reservation[];
-  selectedDate: Date | null;
-  onSelectDate: (date: Date | null) => void;
+  reservations:   Reservation[];
+  selectedDate:   Date | null;
+  onSelectDate:   (date: Date | null) => void;
 }
 
-export default function MiniCalendarFilter({
-  reservations,
-  selectedDate,
-  onSelectDate,
-}: Props) {
-  // Generate 7 days starting from today
+/* ── Cálculo de ocupación compartido ───────────────────────── */
+function useOccupancy(reservations: Reservation[]) {
   const days = useMemo(() => {
     const today = startOfDay(new Date());
-    return Array.from({ length: 7 }).map((_, i) => addDays(today, i));
+    return Array.from({ length: 7 }, (_, i) => addDays(today, i));
   }, []);
 
-  // Calculate occupancy levels for each of the 7 days based on reservations
   const occupancyMap = useMemo(() => {
-    const map: Record<string, { count: number; percentage: number; color: string; glow: string }> = {};
-
+    const map: Record<string, { count: number; dot: string }> = {};
     days.forEach((day) => {
-      const dayKey = format(day, "yyyy-MM-dd");
-      // Filter reservations active/confirmed on this day
-      const dayReservations = reservations.filter((r) => {
-        const rDate = new Date(r.startTime);
-        return isSameDay(rDate, day) && (r.status === "confirmed" || r.status === "seated" || r.status === "pending");
-      });
-
-      const count = dayReservations.length;
-      // Assume a theoretical salon capacity of 10 reservations max per night for simple percentage calculation
-      const percentage = Math.min((count / 10) * 100, 100);
-
-      let color = "bg-emerald-500";
-      let glow = "shadow-emerald-500/20";
-      if (percentage > 70) {
-        color = "bg-red-500 animate-pulse";
-        glow = "shadow-red-500/30 ring-1 ring-red-500/50";
-      } else if (percentage > 30) {
-        color = "bg-amber-500";
-        glow = "shadow-amber-500/30 ring-1 ring-amber-500/40";
-      }
-
-      map[dayKey] = {
-        count,
-        percentage,
-        color,
-        glow,
-      };
+      const key   = format(day, "yyyy-MM-dd");
+      const count = reservations.filter((r) => {
+        const d = new Date(r.startTime);
+        return isSameDay(d, day) &&
+          (r.status === "confirmed" || r.status === "seated" || r.status === "pending");
+      }).length;
+      const dot = count > 5 ? "#F85149" : count > 2 ? "#FF7B54" : count > 0 ? "#3FB950" : "transparent";
+      map[key] = { count, dot };
     });
-
     return map;
   }, [days, reservations]);
 
-  return (
-    <div className="bg-surface-3/30 border border-white/5 rounded-[2rem] p-6 space-y-4 backdrop-blur-md">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gold/10 rounded-xl border border-gold/20 text-gold shadow-gold-glow/20">
-            <CalendarIcon size={16} />
-          </div>
-          <div>
-            <p className="text-xs font-black text-gold uppercase tracking-[0.3em]">Agenda Semanal</p>
-            <p className="text-[9px] text-muted font-bold uppercase tracking-widest mt-0.5">
-              Ocupación estimada de las próximas noches
-            </p>
-          </div>
-        </div>
+  return { days, occupancyMap };
+}
 
+/* ── ReservationDateChips — chips compactos para el header ─── */
+export function ReservationDateChips({ reservations, selectedDate, onSelectDate }: Props) {
+  const { days, occupancyMap } = useOccupancy(reservations);
+
+  return (
+    <div
+      className="flex items-center gap-1 overflow-x-auto"
+      style={{ scrollbarWidth: "none", maxWidth: 400 }}
+    >
+      {days.map((day) => {
+        const key      = format(day, "yyyy-MM-dd");
+        const occ      = occupancyMap[key] ?? { count: 0, dot: "transparent" };
+        const isActive = selectedDate ? isSameDay(day, selectedDate) : false;
+        const label    = format(day, "EEE d", { locale: es });
+
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onSelectDate(isActive ? null : day)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all flex-shrink-0 whitespace-nowrap capitalize"
+            style={{
+              background:  isActive ? "rgba(240,180,41,0.15)" : "#1C2333",
+              border:      `1px solid ${isActive ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+              color:       isActive ? "#F0B429" : "#8B949E",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(240,180,41,0.25)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363D";
+                (e.currentTarget as HTMLButtonElement).style.color = "#8B949E";
+              }
+            }}
+          >
+            {label}
+            {occ.dot !== "transparent" && (
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: occ.dot }}
+              />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── MiniCalendarFilter — bloque completo (default export) ─── */
+export default function MiniCalendarFilter({ reservations, selectedDate, onSelectDate }: Props) {
+  const { days, occupancyMap } = useOccupancy(reservations);
+
+  return (
+    <div
+      className="rounded-xl p-4 space-y-3"
+      style={{ background: "#161B22", border: "1px solid #30363D" }}
+    >
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "#F0B429" }}>
+          Agenda semanal
+        </p>
         {selectedDate && (
           <button
+            type="button"
             onClick={() => onSelectDate(null)}
-            className="text-[9px] font-black text-muted hover:text-gold uppercase tracking-widest bg-white/5 hover:bg-gold/10 px-3 py-1.5 rounded-lg border border-white/5 hover:border-gold/20 transition-all flex items-center gap-1.5"
+            className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg transition-colors"
+            style={{ background: "#21283A", border: "1px solid #30363D", color: "#566270" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F0B429"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#566270"; }}
           >
-            <Sparkles size={10} />
-            Ver Todas
+            Ver todas
           </button>
         )}
       </div>
 
-      {/* Horizontal Carousel */}
-      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar select-none">
+      <div
+        className="flex gap-2 overflow-x-auto pb-1"
+        style={{ scrollbarWidth: "none" }}
+      >
         {days.map((day) => {
-          const dayKey = format(day, "yyyy-MM-dd");
-          const occupancy = occupancyMap[dayKey] || { count: 0, percentage: 0, color: "bg-emerald-500", glow: "" };
-          const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-
-          const dayOfWeek = format(day, "EEEE", { locale: es });
-          const dayNum = format(day, "dd");
-          const month = format(day, "MMM", { locale: es });
+          const key      = format(day, "yyyy-MM-dd");
+          const occ      = occupancyMap[key] ?? { count: 0, dot: "transparent" };
+          const isActive = selectedDate ? isSameDay(day, selectedDate) : false;
 
           return (
-            <motion.button
-              key={dayKey}
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onSelectDate(isSelected ? null : day)}
-              className={`
-                flex-1 min-w-[95px] max-w-[130px] p-4 rounded-2xl border transition-all text-center flex flex-col items-center justify-between gap-3 relative overflow-hidden group
-                ${isSelected
-                  ? "bg-gradient-to-b from-gold/15 to-gold/5 border-gold shadow-gold-glow scale-105"
-                  : "bg-surface-4/40 border-white/5 hover:border-white/10 hover:bg-surface-4/60"
-                }
-              `}
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelectDate(isActive ? null : day)}
+              className="flex-1 min-w-[80px] max-w-[110px] p-3 rounded-xl flex flex-col items-center gap-2 transition-all"
+              style={{
+                background:  isActive ? "rgba(240,180,41,0.15)" : "#21283A",
+                border:      `1px solid ${isActive ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                color:       isActive ? "#F0B429" : "#8B949E",
+              }}
             >
-              {/* LED Ring Background Effect */}
-              {isSelected && (
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,163,64,0.08)_0%,transparent_70%)] pointer-events-none" />
-              )}
-
-              {/* Day Name */}
-              <span className={`text-[9px] font-black uppercase tracking-widest ${isSelected ? "text-gold" : "text-muted"}`}>
-                {dayOfWeek}
+              <span className="text-[9px] font-black uppercase tracking-wider capitalize">
+                {format(day, "EEEE", { locale: es })}
               </span>
-
-              {/* Day Number & Month */}
-              <div className="flex flex-col items-center leading-none">
-                <span className={`text-2xl font-black ${isSelected ? "text-white" : "text-ivory"}`}>
-                  {dayNum}
-                </span>
-                <span className="text-[8px] font-black uppercase tracking-widest text-muted/60 mt-1">
-                  {month}
-                </span>
-              </div>
-
-              {/* Occupancy Indicator LED bar */}
-              <div className="w-full space-y-1.5 mt-1">
-                <div className="flex items-center justify-between text-[8px] font-bold text-muted/50 uppercase tracking-widest px-0.5">
+              <span className="text-2xl font-black" style={{ color: isActive ? "#E6EDF3" : "#E6EDF3" }}>
+                {format(day, "dd")}
+              </span>
+              <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: "#566270" }}>
+                {format(day, "MMM", { locale: es })}
+              </span>
+              <div className="w-full space-y-1">
+                <div className="flex items-center justify-between text-[8px]" style={{ color: "#566270" }}>
                   <span>Reservas</span>
-                  <span className={occupancy.count > 0 ? "text-ivory/80" : ""}>{occupancy.count}</span>
+                  <span style={{ color: occ.count > 0 ? "#E6EDF3" : "#566270" }}>{occ.count}</span>
                 </div>
-                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden relative border border-white/5">
+                <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: "#30363D" }}>
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${occupancy.color} ${occupancy.glow}`}
-                    style={{ width: `${occupancy.percentage}%` }}
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width:      `${Math.min((occ.count / 10) * 100, 100)}%`,
+                      background: occ.dot !== "transparent" ? occ.dot : "#30363D",
+                    }}
                   />
                 </div>
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>

@@ -120,6 +120,38 @@ src/modules/*/services/
 
 ---
 
+## 🗓️ Sistema de Reservas — Completado
+
+**Archivos entregados:**
+- `ReservationsPage.tsx` — layout con header, tabs + chips de agenda inline, radar, grid + panel lateral
+- `ReservationCard.tsx` — card compacta (nombre, hora, estado, invitados, mesa)
+- `MiniCalendarFilter.tsx` — chips horizontales `ReservationDateChips` + bloque completo default
+- `ReservationDetailPanel.tsx` — NUEVO panel lateral (como TableInspector)
+- `ReservationForm.tsx` — modal lateral slide-in 480px desde la derecha
+- `ReservationActionModal.tsx` — modal para mobile, paleta nueva
+- `WhatsappModal.tsx` — paleta nueva, lógica sin cambios
+
+---
+
+## 💸 Sistema de Descuentos — Completado
+
+**10 archivos entregados, 3 vistas con identidades visuales distintas:**
+
+| Archivo | Cambio | Paleta específica |
+|---|---|---|
+| `DiscountsSuiteHeader.tsx` | Solo tabs, sin título duplicado | Dorado para tab activo |
+| `DiscountsSuite.tsx` | Contenedor limpio, sin header extra | Slate base |
+| `OrderList.tsx` | Paleta nueva, selección dorada | Dorado para orden seleccionada |
+| `OrderDetails.tsx` | Paleta nueva, selección verde | Verde para ítems seleccionados |
+| `DiscountKeypad.tsx` | Teclado preservado, colores nuevos | Dorado=PERCENT, Azul=FLAT |
+| `DiscountReasonForm.tsx` | Motivos con dorado, sin cyan | Dorado para motivo activo |
+| `DiscountStats.tsx` | 3 KPIs con colores semánticos | Verde/Dorado/Azul por métrica |
+| `DiscountPage.tsx` | Vista manual completa rediseñada | Flujo: dorado→verde→verde |
+| `DynamicPricingPage.tsx` | Colores dinámicos por multiplicador | Verde/naranja/rojo/azul según valor |
+| `DiscountEventsPage.tsx` | Estilo terminal de logs | Verde/naranja/rojo/azul por severidad |
+
+---
+
 ## 🔧 Componentes adicionales actualizados (post-Task 8)
 
 Después del rediseño base se actualizaron todos los componentes secundarios del dashboard

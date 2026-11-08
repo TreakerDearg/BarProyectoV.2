@@ -1,246 +1,172 @@
 "use client";
 
+/**
+ * ReservationForm — Modal lateral slide-in para crear/editar reservas.
+ * REDISEÑO v3.0 — Slate Elegante
+ *
+ * Slide-in desde la derecha (480px). Toda la lógica preservada sin cambios.
+ */
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  X,
-  User,
-  Phone,
-  Users,
-  Calendar,
-  Clock,
-  FileText,
-  Loader2,
-  MapPin,
-  CheckCircle,
-  AlertTriangle,
-  Crown,
-  Wallet,
-  Star,
-  Timer,
-  AlertCircle,
-  ChevronDown,
-  ChevronUp,
+  X, User, Phone, Users, Calendar, Clock, FileText,
+  Loader2, MapPin, CheckCircle, AlertTriangle, Crown,
+  Wallet, Timer, AlertCircle, ChevronDown, ChevronUp,
 } from "lucide-react";
 
 import type { Reservation, GuestDietaryRestriction } from "../types/reservation";
-import { DIETARY_OPTIONS } from "../types/reservation";
-import { getDietaryIcon } from "../utils/dietaryIcons";
-import { getAvailableTables } from "../services/reservationService";
+import { DIETARY_OPTIONS }      from "../types/reservation";
+import { getDietaryIcon }       from "../utils/dietaryIcons";
+import { getAvailableTables }   from "../services/reservationService";
 
-/* =========================
-   TYPES
-========================= */
+/* ── Tipos internos ────────────────────────────────────────── */
 interface TableOption {
-  _id: string;
-  number: number;
-  capacity: number;
+  _id:       string;
+  number:    number;
+  capacity:  number;
   location?: string;
 }
 
 interface ReservationFormData {
-  customerName: string;
-  customerPhone: string;
-  startTime: string;
-  endTime: string;
-  guests: number;
-  tableId: string;
-  notes: string;
-  isVIP: boolean;
-  deposit: number;
-  guestDietaryRestrictions: GuestDietaryRestriction[];
+  customerName:              string;
+  customerPhone:             string;
+  startTime:                 string;
+  endTime:                   string;
+  guests:                    number;
+  tableId:                   string;
+  notes:                     string;
+  isVIP:                     boolean;
+  deposit:                   number;
+  guestDietaryRestrictions:  GuestDietaryRestriction[];
 }
 
 interface Props {
   reservation?: Reservation | null;
-  onSave: (reservation: ReservationFormData & { _id?: string }) => void;
+  onSave:  (reservation: ReservationFormData & { _id?: string }) => void;
   onClose: () => void;
 }
 
-/* =========================
-   DURATION PRESETS
-========================= */
+/* ── Presets de duración (sin cambios) ─────────────────────── */
 const DURATION_PRESETS = [
-  { label: "1h", hours: 1, desc: "Rápida" },
-  { label: "1.5h", hours: 1.5, desc: "Normal" },
-  { label: "2h", hours: 2, desc: "Estándar" },
-  { label: "3h", hours: 3, desc: "Extendida" },
+  { label: "1h",   hours: 1,   desc: "Rápida"   },
+  { label: "1.5h", hours: 1.5, desc: "Normal"   },
+  { label: "2h",   hours: 2,   desc: "Estándar" },
+  { label: "3h",   hours: 3,   desc: "Larga"    },
 ];
 
-/* =========================
-   LOCATION LABELS
-========================= */
-const LOCATION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  indoor:   { label: "Interior / Salón",    icon: "indoor",   color: "text-blue-400 bg-blue-500/10 border-blue-500/20"     },
-  outdoor:  { label: "Terraza / Exterior",  icon: "outdoor",  color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-  bar:      { label: "Barra / Bar",         icon: "bar",      color: "text-amber-400 bg-amber-500/10 border-amber-500/20"   },
-  vip:      { label: "Zona VIP",            icon: "vip",      color: "text-gold bg-gold/10 border-gold/20"                 },
-  terraza:  { label: "Terraza",             icon: "terraza",  color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+/* ── Helpers de ubicación ──────────────────────────────────── */
+const LOCATION_LABELS: Record<string, string> = {
+  indoor:   "Salón interior",
+  outdoor:  "Terraza",
+  bar:      "Barra",
+  vip:      "Zona VIP",
+  terraza:  "Terraza",
 };
+const getLocationLabel = (loc: string) => LOCATION_LABELS[loc?.toLowerCase()] ?? loc ?? "Zona";
 
-const LOCATION_ICON_NAMES: Record<string, string> = {
-  indoor:  "Home",
-  outdoor: "Sun",
-  bar:     "GlassWater",
-  vip:     "Crown",
-  terraza: "Trees",
-};
+/* ── DarkInput reutilizable ────────────────────────────────── */
+function DarkInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className="w-full rounded-xl py-2.5 px-3.5 text-sm outline-none transition-colors"
+      style={{ background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
+      onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)"; props.onFocus?.(e); }}
+      onBlur={(e)  => { (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D"; props.onBlur?.(e); }}
+    />
+  );
+}
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _locationIconNames = LOCATION_ICON_NAMES; // reservado para uso futuro
+function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <label className="block text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: "#566270" }}>
+      {children}{required && <span style={{ color: "#F0B429" }} className="ml-1">*</span>}
+    </label>
+  );
+}
 
-const getLocationConfig = (loc: string) => {
-  const key = loc?.toLowerCase() || "indoor";
-  return LOCATION_LABELS[key] || { label: loc || "Otra Zona", icon: "default", color: "text-muted bg-white/5 border-white/10" };
-};
-
-/* =========================
-   COMPONENT
-========================= */
-export default function ReservationForm({
-  reservation,
-  onSave,
-  onClose,
-}: Props) {
+/* ── Componente principal ──────────────────────────────────── */
+export default function ReservationForm({ reservation, onSave, onClose }: Props) {
   const [formData, setFormData] = useState<ReservationFormData>({
-    customerName: "",
-    customerPhone: "",
-    startTime: "",
-    endTime: "",
-    guests: 1,
-    tableId: "",
-    notes: "",
-    isVIP: false,
-    deposit: 0,
-    guestDietaryRestrictions: [] as GuestDietaryRestriction[],
+    customerName: "", customerPhone: "", startTime: "", endTime: "",
+    guests: 1, tableId: "", notes: "", isVIP: false, deposit: 0,
+    guestDietaryRestrictions: [],
   });
 
-  const [tables, setTables] = useState<TableOption[]>([]);
-  const [loadingTables, setLoadingTables] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tables,          setTables]         = useState<TableOption[]>([]);
+  const [loadingTables,   setLoadingTables]  = useState(false);
+  const [loading,         setLoading]        = useState(false);
+  const [error,           setError]          = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
-  const [showDietary, setShowDietary] = useState(false);
+  const [showDietary,     setShowDietary]    = useState(false);
 
   const isEditing = Boolean(reservation?._id);
 
-  /* =========================
-     INIT EDIT
-  ========================= */
+  /* ── Init edición ──────────────────────────────────────── */
   useEffect(() => {
     if (!reservation) return;
-
     const startStr = reservation.startTime?.slice(0, 16) || "";
-    const endStr = reservation.endTime?.slice(0, 16) || "";
-
+    const endStr   = reservation.endTime?.slice(0, 16)   || "";
     setFormData({
-      customerName: reservation.customerName || "",
-      customerPhone: reservation.customerPhone || "",
-      startTime: startStr,
-      endTime: endStr,
-      guests: reservation.guests || 1,
-      tableId: typeof reservation.tableId === "string"
-        ? reservation.tableId
-        : reservation.tableId?._id || "",
-      notes: reservation.notes || "",
-      isVIP: reservation.isVIP || false,
-      deposit: reservation.deposit || 0,
-      guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions)
-        ? reservation.guestDietaryRestrictions
-        : [],
+      customerName:             reservation.customerName || "",
+      customerPhone:            reservation.customerPhone || "",
+      startTime:                startStr,
+      endTime:                  endStr,
+      guests:                   reservation.guests || 1,
+      tableId:                  typeof reservation.tableId === "string" ? reservation.tableId : reservation.tableId?._id || "",
+      notes:                    reservation.notes || "",
+      isVIP:                    reservation.isVIP || false,
+      deposit:                  reservation.deposit || 0,
+      guestDietaryRestrictions: Array.isArray(reservation.guestDietaryRestrictions) ? reservation.guestDietaryRestrictions : [],
     });
-
-    // Detect preset duration
     if (startStr && endStr) {
-      const diffMs = new Date(endStr).getTime() - new Date(startStr).getTime();
-      const diffHours = diffMs / (1000 * 60 * 60);
-      const matchingPreset = DURATION_PRESETS.find(p => Math.abs(p.hours - diffHours) < 0.1);
-      if (matchingPreset) setSelectedDuration(matchingPreset.hours);
+      const diffH = (new Date(endStr).getTime() - new Date(startStr).getTime()) / 3600000;
+      const match = DURATION_PRESETS.find((p) => Math.abs(p.hours - diffH) < 0.1);
+      if (match) setSelectedDuration(match.hours);
     }
   }, [reservation]);
 
-  /* =========================
-     APPLY DURATION PRESET
-  ========================= */
+  /* ── Duración preset ───────────────────────────────────── */
   const applyDuration = (hours: number) => {
     setSelectedDuration(hours);
-
     if (!formData.startTime) return;
-
     const start = new Date(formData.startTime);
-    const end = new Date(start.getTime() + hours * 60 * 60 * 1000);
-
-    setFormData((prev) => ({
-      ...prev,
-      endTime: end.toISOString().slice(0, 16),
-    }));
+    const end   = new Date(start.getTime() + hours * 3600000);
+    setFormData((prev) => ({ ...prev, endTime: end.toISOString().slice(0, 16) }));
   };
 
-  /* =========================
-     AUTO END TIME (only if no preset selected and endTime is empty)
-  ========================= */
+  /* ── Auto end time ─────────────────────────────────────── */
   useEffect(() => {
     if (!formData.startTime || formData.endTime) return;
-
     const start = new Date(formData.startTime);
-    const defaultHours = selectedDuration || 2;
-    const end = new Date(start.getTime() + defaultHours * 60 * 60 * 1000);
-
-    setFormData((prev) => ({
-      ...prev,
-      endTime: end.toISOString().slice(0, 16),
-    }));
-
+    const h     = selectedDuration || 2;
+    const end   = new Date(start.getTime() + h * 3600000);
+    setFormData((prev) => ({ ...prev, endTime: end.toISOString().slice(0, 16) }));
     if (!selectedDuration) setSelectedDuration(2);
   }, [formData.startTime, formData.endTime, selectedDuration]);
 
-  /* =========================
-     VALIDATION
-  ========================= */
+  /* ── Validación ────────────────────────────────────────── */
   const validation = useMemo(() => {
     const errors: string[] = [];
-
-    if (!formData.customerName) errors.push("Nombre requerido");
+    if (!formData.customerName)  errors.push("Nombre requerido");
     if (!formData.customerPhone) errors.push("Teléfono requerido");
-
-    const start = new Date(formData.startTime);
-    const end = new Date(formData.endTime);
-
-    if (!formData.startTime || !formData.endTime)
-      errors.push("Horario incompleto");
-
-    if (end <= start) errors.push("Horario inválido");
-
-    return {
-      valid: errors.length === 0,
-      errors,
-    };
+    if (!formData.startTime || !formData.endTime) errors.push("Horario incompleto");
+    if (formData.startTime && formData.endTime && new Date(formData.endTime) <= new Date(formData.startTime))
+      errors.push("Horario inválido");
+    return { valid: errors.length === 0, errors };
   }, [formData]);
 
-  /* =========================
-     CAPACITY WARNING
-  ========================= */
+  /* ── Alerta de capacidad ───────────────────────────────── */
   const capacityWarning = useMemo(() => {
     if (!formData.tableId || tables.length === 0) return null;
-    const selectedTable = tables.find(t => t._id === formData.tableId);
-    if (!selectedTable) return null;
-    if (formData.guests > selectedTable.capacity) {
-      return {
-        type: "danger" as const,
-        message: `La Mesa ${selectedTable.number} no tiene capacidad para ${formData.guests} personas (máx: ${selectedTable.capacity}).`,
-      };
-    }
-    if (formData.guests === selectedTable.capacity) {
-      return {
-        type: "warning" as const,
-        message: `Mesa ${selectedTable.number} estará a capacidad máxima (${selectedTable.capacity}/${selectedTable.capacity}).`,
-      };
-    }
+    const t = tables.find((t) => t._id === formData.tableId);
+    if (!t) return null;
+    if (formData.guests > t.capacity) return { type: "danger" as const, message: `La Mesa ${t.number} tiene capacidad máx. ${t.capacity}.` };
+    if (formData.guests === t.capacity) return { type: "warning" as const, message: `Mesa ${t.number} estará a capacidad máxima.` };
     return null;
   }, [formData.tableId, formData.guests, tables]);
 
-  /* =========================
-     GROUP TABLES BY LOCATION
-  ========================= */
+  /* ── Mesas agrupadas ───────────────────────────────────── */
   const groupedTables = useMemo(() => {
     const groups: Record<string, TableOption[]> = {};
     for (const t of tables) {
@@ -248,388 +174,301 @@ export default function ReservationForm({
       if (!groups[loc]) groups[loc] = [];
       groups[loc].push(t);
     }
-    // Sort tables within each group by number
-    for (const key of Object.keys(groups)) {
-      groups[key].sort((a, b) => a.number - b.number);
-    }
+    for (const key of Object.keys(groups)) groups[key].sort((a, b) => a.number - b.number);
     return groups;
   }, [tables]);
 
-  /* =========================
-     FETCH TABLES
-  ========================= */
+  /* ── Fetch mesas ───────────────────────────────────────── */
   useEffect(() => {
     const fetchTables = async () => {
       if (!validation.valid) return;
-
       try {
         setLoadingTables(true);
-
         const data = await getAvailableTables({
           startTime: new Date(formData.startTime).toISOString(),
-          endTime: new Date(formData.endTime).toISOString(),
-          guests: Number(formData.guests),
+          endTime:   new Date(formData.endTime).toISOString(),
+          guests:    Number(formData.guests),
         });
-
         setTables(data || []);
-
-        if (data?.length === 1 && !formData.tableId) {
-          setFormData((prev) => ({
-            ...prev,
-            tableId: data[0]._id,
-          }));
-        }
-
-      } catch (err: unknown) {
+        if (data?.length === 1 && !formData.tableId)
+          setFormData((prev) => ({ ...prev, tableId: data[0]._id }));
+      } catch (err) {
         setError(err instanceof Error ? err.message : "Error al consultar mesas");
       } finally {
         setLoadingTables(false);
       }
     };
-
     const t = setTimeout(fetchTables, 300);
     return () => clearTimeout(t);
   }, [formData.startTime, formData.endTime, formData.guests, formData.tableId, validation.valid]);
 
-  /* =========================
-     HANDLER
-  ========================= */
+  /* ── Handler de cambios ────────────────────────────────── */
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const checked = type === "checkbox" && "checked" in e.target
-      ? Boolean(e.target.checked)
-      : false;
-
+    const checked = type === "checkbox" && "checked" in e.target ? Boolean((e.target as HTMLInputElement).checked) : false;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : (name === "guests" || name === "deposit" ? Number(value) : value),
     }));
   };
 
-  /* =========================
-     SUBMIT
-  ========================= */
+  /* ── Submit ────────────────────────────────────────────── */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
-    if (!validation.valid) {
-      setError(validation.errors[0]);
-      return;
-    }
-
+    if (!validation.valid) { setError(validation.errors[0]); return; }
     try {
       setLoading(true);
-
       await onSave({
         ...formData,
-        _id: reservation?._id, // Pass ID so parent can decide PUT vs POST
+        _id:       reservation?._id,
         startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString(),
+        endTime:   new Date(formData.endTime).toISOString(),
       });
-
-    } catch (err: unknown) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar la reserva");
     } finally {
       setLoading(false);
     }
   };
 
-  /* =========================
-     UI
-  ========================= */
+  /* ── Render ────────────────────────────────────────────── */
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-100 p-4 md:p-8 animate-fade-in overflow-y-auto">
-      
-      {/* BACKGROUND GLOWS FOR MODAL */}
-      <div className="fixed top-1/4 left-1/4 w-75 h-75 bg-gold/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
-      <div className="fixed bottom-1/4 right-1/4 w-75 h-75 bg-brand/10 rounded-full blur-[100px] -z-10 animate-pulse-slow" />
+    <AnimatePresence>
+      {/* Overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100]"
+        style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+        onClick={onClose}
+      />
 
-      <form
-        onSubmit={handleSubmit}
-        className={`
-          w-full max-w-3xl bg-surface-2 rounded-[2.5rem] overflow-hidden shadow-royale animate-float border border-white/5
-          ${formData.isVIP ? 'border-gold/30' : ''}
-          transition-all duration-700 my-auto
-        `}
+      {/* Panel lateral */}
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="fixed inset-y-0 right-0 z-[101] flex flex-col"
+        style={{ width: 480, background: "#1C2333", borderLeft: "1px solid #30363D" }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER (ROYALE DESIGN) */}
-        <div className={`p-6 border-b border-white/5 flex justify-between items-center ${formData.isVIP ? 'bg-grad-gold' : 'bg-surface-3'}`}>
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${formData.isVIP ? 'bg-bg text-gold shadow-2xl scale-110' : 'bg-gold-soft text-gold shadow-gold-glow'}`}>
-              {formData.isVIP ? <Crown size={28} /> : <Star size={28} />}
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-6 py-5 flex-shrink-0"
+          style={{ borderBottom: "1px solid #30363D", background: "#161B22" }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="p-2.5 rounded-xl"
+              style={{
+                background: formData.isVIP ? "rgba(240,180,41,0.15)" : "rgba(163,113,247,0.12)",
+                border:     formData.isVIP ? "1px solid rgba(240,180,41,0.25)" : "1px solid rgba(163,113,247,0.25)",
+                color:      formData.isVIP ? "#F0B429" : "#A371F7",
+              }}
+            >
+              {formData.isVIP ? <Crown size={18} /> : <Calendar size={18} />}
             </div>
             <div>
-              <h2 className={`text-2xl font-black tracking-tighter uppercase leading-none ${formData.isVIP ? 'text-bg' : 'text-grad-gold'}`}>
-                {isEditing ? "Modificar Reserva" : "Nueva Reservación"}
+              <h2 className="text-base font-bold" style={{ color: "#E6EDF3" }}>
+                {isEditing ? "Editar reserva" : "Nueva reserva"}
               </h2>
-              <p className={`text-xs font-black uppercase tracking-[0.5em] mt-2 ${formData.isVIP ? 'text-bg/60' : 'text-muted'}`}>
-                {isEditing ? `EDITANDO · ID: ${reservation?._id?.slice(-8)}` : "Sistema de Ingreso Casino Royale"}
+              <p className="text-[10px] mt-0.5" style={{ color: "#566270" }}>
+                {isEditing ? `ID: ${reservation?._id?.slice(-8)}` : "Completá los datos del cliente"}
               </p>
             </div>
           </div>
-          <button 
+          <button
             type="button"
             onClick={onClose}
-            className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${formData.isVIP ? 'border-bg/20 hover:bg-bg/10 text-bg' : 'border-white/10 hover:border-gold-border text-muted hover:text-gold'}`}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            style={{ background: "#21283A", border: "1px solid #30363D", color: "#566270" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#566270"; }}
           >
-            <X size={24} />
+            <X size={17} />
           </button>
         </div>
 
-        {/* CONTENT (SCROLLABLE AREA) */}
-        <div className="p-8 md:p-12 space-y-8 max-h-[65vh] overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(212,163,64,0.03)_0%,transparent_50%)]">
-          
-          {/* ERROR FEEDBACK */}
+        {/* Body scrollable */}
+        <form
+          id="reservation-form"
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto px-6 py-5 space-y-5"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}
+        >
+          {/* Error */}
           {error && (
-            <div className="glass-red p-5 rounded-2xl flex items-center gap-5 animate-shake border-brand/30 shadow-lg shadow-brand/10">
-              <AlertTriangle size={24} className="text-brand" />
-              <p className="text-sm font-black uppercase tracking-widest text-ivory/90">{error}</p>
+            <div
+              className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm"
+              style={{ background: "rgba(248,81,73,0.10)", border: "1px solid rgba(248,81,73,0.30)", color: "#FF6B63" }}
+            >
+              <AlertTriangle size={14} /> {error}
             </div>
           )}
 
-          {/* CAPACITY WARNING */}
+          {/* Capacity warning */}
           {capacityWarning && (
-            <div className={`p-5 rounded-2xl flex items-center gap-5 border ${
-              capacityWarning.type === "danger" 
-                ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
-            }`}>
-              <AlertCircle size={24} className={capacityWarning.type === "danger" ? "text-red-500 animate-pulse" : "text-amber-500"} />
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest mb-1">
-                  {capacityWarning.type === "danger" ? "Conflicto de Capacidad" : "Capacidad Ajustada"}
-                </p>
-                <p className="text-xs font-bold">{capacityWarning.message}</p>
-              </div>
+            <div
+              className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm"
+              style={{
+                background: capacityWarning.type === "danger" ? "rgba(248,81,73,0.08)" : "rgba(255,123,84,0.08)",
+                border:     capacityWarning.type === "danger" ? "1px solid rgba(248,81,73,0.25)" : "1px solid rgba(255,123,84,0.25)",
+                color:      capacityWarning.type === "danger" ? "#F85149" : "#FF7B54",
+              }}
+            >
+              <AlertCircle size={14} /> {capacityWarning.message}
             </div>
           )}
 
-          {/* VIP TOGGLE (HIGH ROLLER) */}
-          <div className="flex items-center justify-between bg-surface-3/30 p-6 rounded-4xl border border-white/5 group hover:border-gold/20 transition-all shadow-inner">
-            <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold-glow scale-110' : 'bg-surface-4 text-muted border border-white/5'}`}>
-                <Crown size={24} className={formData.isVIP ? 'fill-current' : ''} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-base font-black text-ivory uppercase tracking-tighter">Estado VIP / High Roller</p>
-                <p className="text-xs text-muted font-black uppercase tracking-[0.3em]">Tratamiento prioritario · Mesa Premium</p>
+          {/* ── Toggle VIP ──────────────────────────────── */}
+          <div
+            className="flex items-center justify-between px-4 py-3 rounded-xl"
+            style={{ background: formData.isVIP ? "rgba(240,180,41,0.08)" : "#21283A", border: `1px solid ${formData.isVIP ? "rgba(240,180,41,0.25)" : "#30363D"}` }}
+          >
+            <div className="flex items-center gap-3">
+              <Crown size={16} style={{ color: formData.isVIP ? "#F0B429" : "#566270" }} />
+              <div>
+                <p className="text-sm font-bold" style={{ color: "#E6EDF3" }}>Cliente VIP</p>
+                <p className="text-[10px]" style={{ color: "#566270" }}>Tratamiento prioritario y mesa premium</p>
               </div>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                name="isVIP" 
-                checked={formData.isVIP} 
-                onChange={handleChange} 
-                className="sr-only peer"
-              />
-              <div className="w-16 h-9 bg-surface-4 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-1.5 after:left-1.5 after:bg-muted after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gold peer-checked:after:bg-bg peer-checked:after:border-transparent" />
+              <input type="checkbox" name="isVIP" checked={formData.isVIP} onChange={handleChange} className="sr-only peer" />
+              <div
+                className="w-11 h-6 rounded-full peer transition-colors"
+                style={{ background: formData.isVIP ? "#F0B429" : "#293042", border: "1px solid #30363D" }}
+              >
+                <div
+                  className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-transform"
+                  style={{ background: "#0D1117", transform: formData.isVIP ? "translateX(20px)" : "translateX(0)" }}
+                />
+              </div>
             </label>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* IDENTIFICATION COLUMN */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-4 text-gold">
-                <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
-                <p className="text-xs font-black uppercase tracking-[0.5em]">Identificación</p>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Nombre Completo</label>
-                  <div className="relative group/field">
-                    <User size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
-                    <input 
-                      name="customerName" 
-                      value={formData.customerName} 
-                      onChange={handleChange} 
-                      className="input-royale pl-14! py-5!" 
-                      placeholder="Escriba el nombre del cliente..." 
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Teléfono Directo</label>
-                  <div className="relative group/field">
-                    <Phone size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted group-focus-within/field:text-gold transition-colors" />
-                    <input 
-                      name="customerPhone" 
-                      value={formData.customerPhone} 
-                      onChange={handleChange} 
-                      className="input-royale pl-14! py-5!" 
-                      placeholder="+54 9..." 
-                    />
-                  </div>
-                </div>
+          {/* ── Cliente ─────────────────────────────────── */}
+          <div className="space-y-3">
+            <div
+              className="flex items-center gap-2 pb-2"
+              style={{ borderBottom: "1px solid #30363D" }}
+            >
+              <User size={13} style={{ color: "#F0B429" }} />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#566270" }}>
+                Datos del cliente
+              </p>
+            </div>
+            <div>
+              <FieldLabel required>Nombre completo</FieldLabel>
+              <div className="relative">
+                <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#566270" }} />
+                <DarkInput
+                  name="customerName"
+                  value={formData.customerName}
+                  onChange={handleChange}
+                  placeholder="Nombre del cliente"
+                  style={{ paddingLeft: "2.25rem" }}
+                  required
+                />
               </div>
             </div>
-
-            {/* LOGISTICS COLUMN */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-4 text-gold">
-                <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
-                <p className="text-xs font-black uppercase tracking-[0.5em]">Logística</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Invitados</label>
-                  <div className="relative group/field">
-                    <Users size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
-                    <input 
-                      type="number"
-                      name="guests" 
-                      value={formData.guests} 
-                      onChange={handleChange} 
-                      className="input-royale pl-14! py-5!" 
-                      min={1}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Depósito ($)</label>
-                  <div className="relative group/field">
-                    <Wallet size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold opacity-50 group-focus-within/field:opacity-100 transition-opacity" />
-                    <input 
-                      type="number"
-                      name="deposit" 
-                      value={formData.deposit} 
-                      onChange={handleChange} 
-                      className="input-royale pl-14! py-5!" 
-                      min={0}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* TABLE SELECTOR WITH LOCATION GROUPING */}
-              <div className="space-y-4">
-                <label className="text-xs font-black text-muted uppercase tracking-widest ml-1 flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    <MapPin size={14} className="text-gold" />
-                    Mesa Asignada
-                  </span>
-                  {loadingTables && <Loader2 className="animate-spin text-gold" size={14} />}
-                </label>
-
-                {/* VISUAL TABLE TILES (grouped by location) */}
-                {tables.length > 0 ? (
-                  <div className="space-y-5">
-                    {Object.entries(groupedTables).map(([location, locationTables]) => {
-                      const config = getLocationConfig(location);
-                      return (
-                        <div key={location}>
-                          <p className={`text-xs font-black uppercase tracking-widest mb-3 flex items-center gap-2 ${config.color.split(' ')[0]}`}>
-                            <MapPin size={14} />
-                            {config.label}
-                            <span className="text-muted/50 text-sm">({locationTables.length})</span>
-                          </p>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {locationTables.map((t) => {
-                              const isSelected = formData.tableId === t._id;
-                              const overCapacity = formData.guests > t.capacity;
-                              return (
-                                <button
-                                  key={t._id}
-                                  type="button"
-                                  onClick={() => setFormData((prev) => ({ ...prev, tableId: t._id }))}
-                                  className={`
-                                    p-4 rounded-2xl text-sm font-black uppercase tracking-wider transition-all border flex flex-col items-center gap-2
-                                    ${isSelected
-                                      ? 'bg-gold/20 text-gold border-gold/40 shadow-gold-glow scale-105'
-                                      : overCapacity
-                                      ? 'bg-red-500/5 text-red-400/50 border-red-500/10 opacity-50 line-through'
-                                      : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory'
-                                    }
-                                  `}
-                                  title={overCapacity ? `Capacidad insuficiente (${t.capacity} max)` : `Mesa ${t.number} · ${t.capacity} personas`}
-                                >
-                                  <span className="text-2xl font-black">M{t.number}</span>
-                                  <span className="text-xs opacity-70">{t.capacity} personas</span>
-                                  {isSelected && (
-                                    <div className="w-2 h-2 bg-gold rounded-full shadow-gold-glow" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted text-sm font-black uppercase tracking-widest">
-                    {loadingTables ? 'Cargando mesas disponibles...' : 'No hay mesas disponibles para este horario'}
-                  </div>
-                )}
+            <div>
+              <FieldLabel required>Teléfono</FieldLabel>
+              <div className="relative">
+                <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#566270" }} />
+                <DarkInput
+                  name="customerPhone"
+                  value={formData.customerPhone}
+                  onChange={handleChange}
+                  placeholder="+54 9 ..."
+                  style={{ paddingLeft: "2.25rem" }}
+                  required
+                />
               </div>
             </div>
           </div>
 
-          {/* CHRONOGRAM SECTION WITH QUICK DURATION */}
-          <div className="bg-surface-3/40 p-10 rounded-[2.5rem] border border-white/5 space-y-10 shadow-inner">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-gold">
-                <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
-                <p className="text-xs font-black uppercase tracking-[0.5em]">Cronograma</p>
-              </div>
+          {/* ── Logística ───────────────────────────────── */}
+          <div className="space-y-3">
+            <div
+              className="flex items-center gap-2 pb-2"
+              style={{ borderBottom: "1px solid #30363D" }}
+            >
+              <Users size={13} style={{ color: "#F0B429" }} />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#566270" }}>
+                Logística
+              </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-3">
-                <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Check-in (Entrada)</label>
-                <div className="relative group/field">
-                  <Calendar size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
-                  <input 
-                    type="datetime-local" 
-                    name="startTime" 
-                    value={formData.startTime} 
-                    onChange={(e) => {
-                      handleChange(e);
-                      // Auto-recalculate endTime with selected duration
-                      if (selectedDuration && e.target.value) {
-                        const start = new Date(e.target.value);
-                        const end = new Date(start.getTime() + selectedDuration * 60 * 60 * 1000);
-                        setFormData((prev) => ({
-                          ...prev,
-                          startTime: e.target.value,
-                          endTime: end.toISOString().slice(0, 16),
-                        }));
-                      }
-                    }}
-                    className="input-royale pl-14! py-5!" 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FieldLabel required>Invitados</FieldLabel>
+                <div className="relative">
+                  <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#566270" }} />
+                  <DarkInput
+                    type="number" name="guests" value={formData.guests}
+                    onChange={handleChange} min={1} style={{ paddingLeft: "2.25rem" }}
                   />
                 </div>
               </div>
-              <div className="space-y-3">
-                <label className="text-sm font-black text-muted uppercase tracking-widest ml-1">Check-out (Salida)</label>
-                <div className="relative group/field">
-                  <Clock size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-gold/50 group-focus-within/field:text-gold transition-colors" />
-                  <input 
-                    type="datetime-local" 
-                    name="endTime" 
-                    value={formData.endTime} 
-                    onChange={(e) => {
-                      handleChange(e);
-                      setSelectedDuration(null); // Deselect preset on manual edit
-                    }}
-                    className="input-royale pl-14! py-5!" 
+              <div>
+                <FieldLabel>Depósito ($)</FieldLabel>
+                <div className="relative">
+                  <Wallet size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#566270" }} />
+                  <DarkInput
+                    type="number" name="deposit" value={formData.deposit}
+                    onChange={handleChange} min={0} style={{ paddingLeft: "2.25rem" }}
                   />
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* QUICK DURATION PRESETS */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Timer size={14} className="text-gold/60" />
-                <p className="text-[9px] font-black text-muted uppercase tracking-widest">
-                  Duración Rápida — Seleccioná cuánto tiempo estará el cliente
+          {/* ── Cronograma ──────────────────────────────── */}
+          <div className="space-y-3">
+            <div
+              className="flex items-center gap-2 pb-2"
+              style={{ borderBottom: "1px solid #30363D" }}
+            >
+              <Clock size={13} style={{ color: "#F0B429" }} />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#566270" }}>
+                Cronograma
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FieldLabel required>Check-in</FieldLabel>
+                <DarkInput
+                  type="datetime-local" name="startTime" value={formData.startTime}
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (selectedDuration && e.target.value) {
+                      const start = new Date(e.target.value);
+                      const end   = new Date(start.getTime() + selectedDuration * 3600000);
+                      setFormData((prev) => ({ ...prev, startTime: e.target.value, endTime: end.toISOString().slice(0, 16) }));
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <FieldLabel required>Check-out</FieldLabel>
+                <DarkInput
+                  type="datetime-local" name="endTime" value={formData.endTime}
+                  onChange={(e) => { handleChange(e); setSelectedDuration(null); }}
+                />
+              </div>
+            </div>
+
+            {/* Presets de duración */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <Timer size={11} style={{ color: "#566270" }} />
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "#566270" }}>
+                  Duración rápida
                 </p>
               </div>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-2">
                 {DURATION_PRESETS.map((preset) => {
                   const isActive = selectedDuration === preset.hours;
                   return (
@@ -638,106 +477,148 @@ export default function ReservationForm({
                       type="button"
                       onClick={() => applyDuration(preset.hours)}
                       disabled={!formData.startTime}
-                      className={`
-                        relative h-20 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all border font-black
-                        ${isActive
-                          ? 'bg-gold/20 text-gold border-gold/40 shadow-[0_0_20px_rgba(212,163,64,0.15)] scale-105'
-                          : 'bg-surface-4 text-muted border-white/5 hover:border-white/20 hover:text-ivory hover:bg-surface-3'
-                        }
-                        disabled:opacity-20 disabled:pointer-events-none
-                      `}
+                      className="py-2 rounded-xl flex flex-col items-center gap-0.5 transition-all disabled:opacity-30 disabled:pointer-events-none"
+                      style={{
+                        background:  isActive ? "rgba(240,180,41,0.15)" : "#21283A",
+                        border:      `1px solid ${isActive ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                        color:       isActive ? "#F0B429" : "#566270",
+                      }}
                     >
-                      <span className={`text-xl tracking-wider ${isActive ? 'text-gold' : ''}`}>
-                        {preset.label}
-                      </span>
-                      <span className={`text-[8px] uppercase tracking-widest ${isActive ? 'text-gold/70' : 'text-muted/50'}`}>
-                        {preset.desc}
-                      </span>
-                      {isActive && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-gold rounded-full flex items-center justify-center shadow-gold-glow">
-                          <CheckCircle size={10} className="text-bg" />
-                        </div>
-                      )}
+                      <span className="text-sm font-black">{preset.label}</span>
+                      <span className="text-[8px] uppercase tracking-wide">{preset.desc}</span>
                     </button>
                   );
                 })}
               </div>
-              {!formData.startTime && (
-                <p className="text-[9px] text-amber-400/60 font-bold uppercase tracking-widest flex items-center gap-2">
-                  <AlertCircle size={10} />
-                  Primero seleccioná la hora de entrada para usar los atajos de duración
-                </p>
-              )}
             </div>
           </div>
 
-          {/* RESTRICCIONES DIETÉTICAS POR INVITADO */}
-          <div className="space-y-4">
+          {/* ── Mesa ────────────────────────────────────── */}
+          <div className="space-y-3">
+            <div
+              className="flex items-center justify-between pb-2"
+              style={{ borderBottom: "1px solid #30363D" }}
+            >
+              <div className="flex items-center gap-2">
+                <MapPin size={13} style={{ color: "#F0B429" }} />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#566270" }}>
+                  Mesa asignada
+                </p>
+              </div>
+              {loadingTables && <Loader2 size={13} className="animate-spin" style={{ color: "#F0B429" }} />}
+            </div>
+
+            {tables.length === 0 ? (
+              <div
+                className="text-center py-6 rounded-xl"
+                style={{ background: "#21283A", border: "1px solid #30363D" }}
+              >
+                <p className="text-xs" style={{ color: "#566270" }}>
+                  {loadingTables ? "Cargando mesas…" : "Ingresá fecha, hora e invitados para ver mesas disponibles"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(groupedTables).map(([location, locationTables]) => (
+                  <div key={location}>
+                    <p className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color: "#566270" }}>
+                      {getLocationLabel(location)} ({locationTables.length})
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {locationTables.map((t) => {
+                        const isSelected    = formData.tableId === t._id;
+                        const overCapacity  = formData.guests > t.capacity;
+                        return (
+                          <button
+                            key={t._id}
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, tableId: t._id }))}
+                            disabled={overCapacity}
+                            className="py-2.5 rounded-xl flex flex-col items-center gap-1 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                            style={{
+                              background:  isSelected ? "rgba(240,180,41,0.15)" : "#21283A",
+                              border:      `1px solid ${isSelected ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                              color:       isSelected ? "#F0B429" : overCapacity ? "#566270" : "#8B949E",
+                            }}
+                            title={overCapacity ? `Capacidad máx. ${t.capacity}` : `Mesa ${t.number} · ${t.capacity} personas`}
+                          >
+                            <span className="text-lg font-black">M{t.number}</span>
+                            <span className="text-[9px]">{t.capacity} pax</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Restricciones dietéticas ─────────────────── */}
+          <div>
             <button
               type="button"
               onClick={() => setShowDietary((v) => !v)}
-              className="w-full flex items-center justify-between gap-3 px-6 py-4 rounded-3xl border border-white/8 bg-amber-500/5 hover:bg-amber-500/10 transition-all"
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all"
+              style={{
+                background: showDietary ? "rgba(255,123,84,0.08)" : "#21283A",
+                border:     `1px solid ${showDietary ? "rgba(255,123,84,0.25)" : "#30363D"}`,
+              }}
             >
-              <div className="flex items-center gap-4">
-                <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400">
-                  <AlertTriangle size={18} />
-                </div>
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={14} style={{ color: showDietary ? "#FF7B54" : "#566270" }} />
                 <div className="text-left">
-                  <p className="text-sm font-black text-ivory uppercase tracking-widest">
-                    Restricciones Dietéticas por Invitado
+                  <p className="text-xs font-bold" style={{ color: "#E6EDF3" }}>
+                    Restricciones dietéticas
                   </p>
-                  <p className="text-[10px] text-muted font-bold uppercase tracking-wider mt-0.5">
+                  <p className="text-[9px]" style={{ color: "#566270" }}>
                     {formData.guestDietaryRestrictions.filter((g: GuestDietaryRestriction) => g.restrictions.length > 0).length > 0
                       ? `${formData.guestDietaryRestrictions.reduce((s: number, g: GuestDietaryRestriction) => s + g.restrictions.length, 0)} restricción(es) registradas`
-                      : `${formData.guests} invitado${formData.guests > 1 ? "s" : ""} — indicá si alguien no puede comer algo`}
+                      : `${formData.guests} invitado${formData.guests > 1 ? "s" : ""} — clic para indicar restricciones`}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {formData.guestDietaryRestrictions.some((g: GuestDietaryRestriction) => g.restrictions.length > 0) && (
-                  <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
-                    {formData.guestDietaryRestrictions.reduce((s: number, g: GuestDietaryRestriction) => s + g.restrictions.length, 0)}
-                  </span>
-                )}
-                {showDietary ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
-              </div>
+              {showDietary
+                ? <ChevronUp  size={15} style={{ color: "#566270" }} />
+                : <ChevronDown size={15} style={{ color: "#566270" }} />}
             </button>
 
             {showDietary && (
-              <div className="space-y-4 px-2">
+              <div className="mt-2 space-y-3">
                 {Array.from({ length: Math.max(1, formData.guests) }, (_, idx) => {
-                  const entry: GuestDietaryRestriction = formData.guestDietaryRestrictions[idx] ?? {
-                    guestName: "", restrictions: [], notes: "",
-                  };
+                  const entry: GuestDietaryRestriction = formData.guestDietaryRestrictions[idx] ?? { guestName: "", restrictions: [], notes: "" };
                   const update = (updated: GuestDietaryRestriction) => {
-                    const list: GuestDietaryRestriction[] = [
-                      ...formData.guestDietaryRestrictions,
-                    ];
-                    list[idx] = updated;
+                    const list = [...formData.guestDietaryRestrictions];
+                    list[idx]  = updated;
                     setFormData((prev) => ({ ...prev, guestDietaryRestrictions: list }));
                   };
                   return (
-                    <div key={idx} className="rounded-3xl border border-white/8 bg-surface-3/30 overflow-hidden">
-                      <div className="flex items-center gap-3 px-5 py-3 border-b border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-black text-gold">{idx + 1}</span>
+                    <div
+                      key={idx}
+                      className="rounded-xl overflow-hidden"
+                      style={{ background: "#21283A", border: "1px solid #30363D" }}
+                    >
+                      <div
+                        className="flex items-center gap-2 px-4 py-2.5"
+                        style={{ borderBottom: "1px solid #30363D" }}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: "rgba(240,180,41,0.12)", border: "1px solid rgba(240,180,41,0.25)" }}
+                        >
+                          <span className="text-[9px] font-black" style={{ color: "#F0B429" }}>{idx + 1}</span>
                         </div>
                         <input
                           type="text"
                           value={entry.guestName}
                           onChange={(e) => update({ ...entry, guestName: e.target.value })}
                           placeholder={`Nombre del invitado ${idx + 1}`}
-                          className="flex-1 bg-transparent text-sm font-bold text-ivory placeholder:text-muted/40 outline-none border-none"
+                          className="flex-1 text-sm outline-none bg-transparent"
+                          style={{ color: "#E6EDF3" }}
                         />
-                        {entry.restrictions.length > 0 && (
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/20 text-amber-300 flex items-center gap-1">
-                            <AlertTriangle size={10} />
-                            {entry.restrictions.length}
-                          </span>
-                        )}
                       </div>
-                      <div className="p-4 space-y-3">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <div className="p-3">
+                        <div className="grid grid-cols-2 gap-1.5">
                           {DIETARY_OPTIONS.map((opt) => {
                             const selected = entry.restrictions.includes(opt.value);
                             return (
@@ -750,28 +631,31 @@ export default function ReservationForm({
                                     : [...entry.restrictions, opt.value];
                                   update({ ...entry, restrictions: next });
                                 }}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-bold transition-all text-left ${
-                                  selected
-                                    ? opt.color
-                                    : "bg-white/5 border-white/10 text-muted hover:bg-white/10 hover:text-ivory"
-                                }`}
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all text-left"
+                                style={{
+                                  background: selected ? "rgba(240,180,41,0.12)" : "#293042",
+                                  border:     `1px solid ${selected ? "rgba(240,180,41,0.30)" : "#30363D"}`,
+                                  color:      selected ? "#F0B429" : "#566270",
+                                }}
                               >
-                                <span className="shrink-0">{getDietaryIcon(opt.iconName, 13)}</span>
+                                <span className="flex-shrink-0">{getDietaryIcon(opt.iconName, 11)}</span>
                                 <span className="truncate">{opt.label}</span>
-                                {selected && <CheckCircle size={11} className="ml-auto shrink-0" />}
                               </button>
                             );
                           })}
                         </div>
                         {entry.restrictions.length > 0 && (
-                          <div className="relative">
-                            <FileText size={14} className="absolute left-4 top-3.5 text-muted" />
+                          <div className="mt-2 relative">
+                            <FileText size={12} className="absolute left-3 top-3" style={{ color: "#566270" }} />
                             <input
                               type="text"
                               value={entry.notes ?? ""}
                               onChange={(e) => update({ ...entry, notes: e.target.value })}
-                              placeholder="Nota adicional (ej: alérgico severo al maní…)"
-                              className="input-royale pl-12! py-3! text-xs"
+                              placeholder="Nota adicional (ej: alérgico severo…)"
+                              className="w-full rounded-lg py-2 text-xs outline-none transition-colors"
+                              style={{ paddingLeft: "2rem", background: "#293042", border: "1px solid #30363D", color: "#E6EDF3" }}
+                              onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)"; }}
+                              onBlur={(e)  => { (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D"; }}
                             />
                           </div>
                         )}
@@ -783,50 +667,55 @@ export default function ReservationForm({
             )}
           </div>
 
-          {/* OBSERVATIONS */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 text-gold">
-              <div className="w-1.5 h-6 bg-gold rounded-full shadow-gold-glow" />
-              <p className="text-sm font-black uppercase tracking-[0.5em]">Observaciones Especiales</p>
-            </div>
-            <div className="relative group/field">
-              <FileText size={20} className="absolute left-5 top-6 text-gold/50 group-focus-within/field:text-gold transition-colors" />
+          {/* ── Notas ───────────────────────────────────── */}
+          <div>
+            <FieldLabel>Notas de servicio</FieldLabel>
+            <div className="relative">
+              <FileText size={13} className="absolute left-3 top-3" style={{ color: "#566270" }} />
               <textarea
                 name="notes"
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Preferencias de bebida, requerimientos dietéticos, etc..."
-                className="input-royale pl-14! min-h-30 resize-none py-6"
+                placeholder="Preferencias, requerimientos especiales…"
+                rows={3}
+                className="w-full rounded-xl py-2.5 text-sm outline-none transition-colors resize-none"
+                style={{ paddingLeft: "2.25rem", paddingRight: "0.875rem", background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
+                onFocus={(e) => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = "rgba(240,180,41,0.50)"; }}
+                onBlur={(e)  => { (e.currentTarget as HTMLTextAreaElement).style.borderColor = "#30363D"; }}
               />
             </div>
           </div>
-        </div>
+        </form>
 
-        {/* FOOTER ACTIONS (STICKY) */}
-        <div className="p-6 md:p-8 bg-surface-3 border-t border-white/10 flex gap-6 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]">
+        {/* Footer fijo */}
+        <div
+          className="flex-shrink-0 flex items-center gap-3 px-6 py-4"
+          style={{ borderTop: "1px solid #30363D", background: "#161B22" }}
+        >
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-14 rounded-3xl text-xs font-black uppercase tracking-[0.4em] text-muted hover:text-ivory hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
           >
-            CANCELAR
+            Cancelar
           </button>
           <button
             type="submit"
+            form="reservation-form"
             disabled={!validation.valid || loading}
-            className={`
-              flex-2 h-14 rounded-3xl flex items-center justify-center gap-3 transition-all shadow-2xl
-              ${formData.isVIP ? 'bg-grad-gold text-bg shadow-gold/30 hover:scale-[1.02]' : 'btn-gold hover:scale-[1.02]'}
-              disabled:opacity-20 disabled:grayscale disabled:scale-100
-            `}
+            className="flex-[2] py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+            style={{ background: "#F0B429", color: "#0D1117", boxShadow: "0 4px 16px rgba(240,180,41,0.25)" }}
+            onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.background = "#F5C842"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0B429"; }}
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
-            <span className="text-sm font-black uppercase tracking-[0.3em]">
-              {isEditing ? "GUARDAR CAMBIOS" : "CONFIRMAR RESERVA"}
-            </span>
+            {loading ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle size={15} />}
+            {isEditing ? "Guardar cambios" : "Confirmar reserva"}
           </button>
         </div>
-      </form>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

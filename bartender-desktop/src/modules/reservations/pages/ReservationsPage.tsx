@@ -1,74 +1,78 @@
+"use client";
+
+/**
+ * ReservationsPage — Página principal del sistema de reservas.
+ * REDISEÑO v3.0 — Slate Elegante
+ *
+ * Layout:
+ *   Header: título + acciones
+ *   Barra de filtros: tabs + chips de fecha inline + búsqueda + VIP
+ *   Radar de llegadas (solo advanced)
+ *   Zona principal: grid de cards compactas + panel lateral de detalle
+ */
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  RefreshCcw,
-  Plus,
-  LayoutGrid,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Radar,
-  Users,
-  CheckCircle2,
-  XCircle,
-  Sparkles,
-  HelpCircle,
-  MessageCircle,
-  ArrowRight,
+  RefreshCcw, Plus, Search, ChevronLeft, ChevronRight,
+  Clock, Radar, Users, CheckCircle2, XCircle,
+  Sparkles, MessageCircle, X, AlertCircle, ArrowRight,
+  Calendar,
 } from "lucide-react";
 
-import ReservationForm from "../components/ReservationForm";
-import ReservationCard from "../components/ReservationCard";
-import ReservationActionModal from "../components/ReservationActionModal";
-import WhatsappModal from "../components/WhatsappModal";
-import MiniCalendarFilter from "../components/MiniCalendarFilter";
-import { isSameDay } from "date-fns";
+import ReservationForm          from "../components/ReservationForm";
+import ReservationCard          from "../components/ReservationCard";
+import ReservationDetailPanel   from "../components/ReservationDetailPanel";
+import ReservationActionModal   from "../components/ReservationActionModal";
+import WhatsappModal            from "../components/WhatsappModal";
+import { ReservationDateChips } from "../components/MiniCalendarFilter";
+import { isSameDay, format }    from "date-fns";
+import { es }                   from "date-fns/locale";
 
 import {
-  getReservations,
-  createReservation,
-  updateReservation,
-  updateReservationStatus,
-  deleteReservation,
+  getReservations, createReservation, updateReservation,
+  updateReservationStatus, deleteReservation,
 } from "../services/reservationService";
 
-import type { Reservation } from "../types/reservation";
+import type { Reservation }   from "../types/reservation";
 import {
-  connectSalonSockets,
-  onReservationCreated,
-  onReservationUpdated,
-  onReservationDeleted,
+  connectSalonSockets, onReservationCreated,
+  onReservationUpdated, onReservationDeleted,
 } from "../../../services/socket";
-import SalonFlowTutorial from "../../salon/components/SalonFlowTutorial";
+import SalonFlowTutorial  from "../../salon/components/SalonFlowTutorial";
 import { useSalonTutorial } from "../../salon/hooks/useSalonTutorial";
-import { useSalonUiStore } from "../../../store/salonUiStore";
+import { useSalonUiStore }  from "../../../store/salonUiStore";
 import "../../../styles/nebula-theme.css";
 
 type ReservationResponse = Reservation[] | { reservations?: Reservation[]; data?: Reservation[] };
 
 const normalizeReservations = (data: ReservationResponse): Reservation[] => {
   if (Array.isArray(data)) return data;
-  if (Array.isArray(data.reservations)) return data.reservations;
-  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray((data as any).reservations)) return (data as any).reservations;
+  if (Array.isArray((data as any).data)) return (data as any).data;
   return [];
 };
 
 type ViewMode = "pending" | "confirmed" | "history";
 
-function resolveTableId(
-  tableId: Reservation["tableId"]
-): string | null {
+function resolveTableId(tableId: Reservation["tableId"]): string | null {
   if (!tableId) return null;
   if (typeof tableId === "string") return tableId;
   return tableId._id ?? null;
 }
 
+/* ── Color por estado para el tab ──────────────────────────── */
+const TAB_COLORS: Record<string, string> = {
+  pending:   "#FF7B54",
+  confirmed: "#F0B429",
+  history:   "#566270",
+};
+
 export default function ReservationsPage() {
-  const navigate = useNavigate();
+  const navigate       = useNavigate();
   const [searchParams] = useSearchParams();
-  const salonMode = useSalonUiStore((s) => s.mode);
-  const setSalonMode = useSalonUiStore((s) => s.setMode);
+  const salonMode      = useSalonUiStore((s) => s.mode);
+  const setSalonMode   = useSalonUiStore((s) => s.setMode);
   const {
     isOpen: salonTutorialOpen,
     openTutorial: openSalonTutorial,
@@ -76,46 +80,45 @@ export default function ReservationsPage() {
     completeTutorial: completeSalonTutorial,
   } = useSalonTutorial(false);
 
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [postSeatTableId, setPostSeatTableId] = useState<string | null>(null);
-  const [highlightId, setHighlightId] = useState<string | null>(null);
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [whatsappReservation, setWhatsappReservation] = useState<Reservation | null>(null);
-  const [isWhatsappOpen, setIsWhatsappOpen] = useState(false);
+  const [reservations,         setReservations]         = useState<Reservation[]>([]);
+  const [postSeatTableId,      setPostSeatTableId]      = useState<string | null>(null);
+  const [highlightId,          setHighlightId]          = useState<string | null>(null);
+  const [selectedReservation,  setSelectedReservation]  = useState<Reservation | null>(null);
+  const [isFormOpen,           setIsFormOpen]           = useState(false);
+  const [isActionModalOpen,    setIsActionModalOpen]    = useState(false);
+  const [loading,              setLoading]              = useState(false);
+  const [error,                setError]                = useState<string | null>(null);
+  const [whatsappReservation,  setWhatsappReservation]  = useState<Reservation | null>(null);
+  const [isWhatsappOpen,       setIsWhatsappOpen]       = useState(false);
+  const [isMobile,             setIsMobile]             = useState(false);
 
-  /* VIEW SYSTEM */
-  const [activeView, setActiveView] = useState<ViewMode>("confirmed");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilterDate, setSelectedFilterDate] = useState<Date | null>(null);
-  const [showVIPOnly, setShowVIPOnly] = useState(false);
-
-  /* PAGINATION SYSTEM */
-  const [currentPage, setCurrentPage] = useState(1);
+  const [activeView,           setActiveView]           = useState<ViewMode>("confirmed");
+  const [searchQuery,          setSearchQuery]          = useState("");
+  const [selectedFilterDate,   setSelectedFilterDate]   = useState<Date | null>(null);
+  const [showVIPOnly,          setShowVIPOnly]          = useState(false);
+  const [currentPage,          setCurrentPage]          = useState(1);
   const itemsPerPage = 12;
 
-  /* LIVE CLOCK for radar countdowns */
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 15_000); // Update every 15s
+    const interval = setInterval(() => setNow(new Date()), 15_000);
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const handle = () => setIsMobile(window.innerWidth < 1024);
+    handle();
+    window.addEventListener("resize", handle);
+    return () => window.removeEventListener("resize", handle);
+  }, []);
+
+  /* ── Fetch ────────────────────────────────────────────────── */
   const fetchReservations = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getReservations({ 
-        page: 1,
-        limit: 100,
-        search: searchQuery 
-      });
-      
-      const data = normalizeReservations(response);
-      setReservations(data);
+      const response = await getReservations({ page: 1, limit: 100, search: searchQuery });
+      setReservations(normalizeReservations(response));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar reservaciones");
     } finally {
@@ -123,96 +126,83 @@ export default function ReservationsPage() {
     }
   }, [searchQuery]);
 
-  useEffect(() => {
-    fetchReservations();
-  }, [fetchReservations]);
+  useEffect(() => { fetchReservations(); }, [fetchReservations]);
 
+  /* ── Sockets ──────────────────────────────────────────────── */
   useEffect(() => {
     const token = localStorage.getItem("token") || undefined;
     connectSalonSockets(token);
-    const getReservationId = (reservation: Reservation & { id?: string }) =>
-      reservation._id ?? reservation.id;
+
+    const getId = (r: Reservation & { id?: string }) => r._id ?? r.id;
 
     const handleUpdate = (updated: Reservation) => {
-      const id = getReservationId(updated);
+      const id = getId(updated);
       if (!id) return;
       setReservations((prev) => {
-        const list = [...prev];
-        const index = list.findIndex((r) => getReservationId(r) === id);
-        const normalized = { ...updated, _id: id };
-        if (index >= 0) list[index] = normalized;
-        else list.unshift(normalized);
+        const list  = [...prev];
+        const index = list.findIndex((r) => getId(r) === id);
+        const norm  = { ...updated, _id: id };
+        if (index >= 0) list[index] = norm;
+        else list.unshift(norm);
         return list;
       });
+      setSelectedReservation((prev) => prev && getId(prev) === id ? { ...updated, _id: id } : prev);
     };
 
     const handleCreated = (created: Reservation) => {
-      const id = getReservationId(created);
+      const id = getId(created);
       if (!id) return;
       setReservations((prev) => {
-        if (prev.some((r) => getReservationId(r) === id)) return prev;
+        if (prev.some((r) => getId(r) === id)) return prev;
         return [{ ...created, _id: id }, ...prev];
       });
     };
 
     const handleDelete = (payload: string | { id: string }) => {
       const id = typeof payload === "string" ? payload : payload.id;
-      setReservations((prev) => prev.filter((r) => getReservationId(r) !== id));
+      setReservations((prev) => prev.filter((r) => getId(r) !== id));
+      setSelectedReservation((prev) => prev && getId(prev) === id ? null : prev);
     };
 
     const cleanups = [
-      onReservationCreated((payload) => handleCreated(payload as unknown as Reservation)),
-      onReservationUpdated((payload) => handleUpdate(payload as unknown as Reservation)),
-      onReservationDeleted((payload) => handleDelete(payload)),
+      onReservationCreated((p) => handleCreated(p as unknown as Reservation)),
+      onReservationUpdated((p) => handleUpdate(p as unknown as Reservation)),
+      onReservationDeleted((p) => handleDelete(p)),
     ];
-
-    return () => cleanups.forEach((cleanup) => cleanup());
+    return () => cleanups.forEach((fn) => fn());
   }, []);
 
-  /* =========================
-     SAVE HANDLER (CREATE or EDIT)
-  ========================= */
+  /* ── Handlers ─────────────────────────────────────────────── */
   const handleSave = async (data: Partial<Reservation> & { _id?: string }) => {
     try {
-      if (data._id) {
-        // EDIT MODE: Use PUT
-        await updateReservation(data._id, data);
-      } else {
-        // CREATE MODE: Use POST
-        await createReservation(data);
-      }
+      if (data._id) await updateReservation(data._id, data);
+      else          await createReservation(data);
       setIsFormOpen(false);
       setSelectedReservation(null);
       fetchReservations();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Error al procesar reserva");
-      throw error; // Re-throw so the form can display the error
+      throw error;
     }
   };
 
-  /* =========================
-     ACTION MODAL HANDLERS
-  ========================= */
   const handleStatusChange = async (id: string, status: Reservation["status"]) => {
     try {
       const before = reservations.find((r) => r._id === id);
       await updateReservationStatus(id, status);
       setIsActionModalOpen(false);
-      setSelectedReservation(null);
       await fetchReservations();
       if (status === "seated") {
         const tid = resolveTableId(before?.tableId);
         if (tid) setPostSeatTableId(tid);
       }
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Error al cambiar estado";
-      setError(msg);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al cambiar estado");
     }
   };
 
   const handleDeleteReservation = async (id: string) => {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar esta reservación permanentemente?")) return;
+    if (!window.confirm("¿Eliminar esta reserva permanentemente?")) return;
     try {
       await deleteReservation(id);
       setIsActionModalOpen(false);
@@ -224,24 +214,21 @@ export default function ReservationsPage() {
   };
 
   const handleEditFromModal = () => {
-    // Close action modal, open form in edit mode
     setIsActionModalOpen(false);
     setIsFormOpen(true);
   };
 
-  const handleOpenWhatsapp = (reservation: Reservation) => {
-    setWhatsappReservation(reservation);
+  const handleCardClick = (r: Reservation) => {
+    setSelectedReservation(r);
+    if (isMobile) setIsActionModalOpen(true);
+  };
+
+  const handleOpenWhatsapp = (r: Reservation) => {
+    setWhatsappReservation(r);
     setIsWhatsappOpen(true);
   };
 
-  const handleCardClick = (r: Reservation) => {
-    setSelectedReservation(r);
-    setIsActionModalOpen(true);
-  };
-
-  /* =========================
-     TIMELINE RADAR DATA
-  ========================= */
+  /* ── Deep-link highlight ──────────────────────────────────── */
   useEffect(() => {
     const h = searchParams.get("highlight");
     if (h) {
@@ -251,343 +238,298 @@ export default function ReservationsPage() {
     }
   }, [searchParams]);
 
+  /* ── Radar ────────────────────────────────────────────────── */
   const radarReservations = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
+    const today    = new Date(); today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
     return reservations
-      .filter(r => {
+      .filter((r) => {
         if (r.status !== "pending" && r.status !== "confirmed") return false;
-        const start = new Date(r.startTime);
-        return start >= today && start < tomorrow;
+        const s = new Date(r.startTime);
+        return s >= today && s < tomorrow;
       })
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-      .slice(0, 8); // Show max 8 entries
+      .slice(0, 8);
   }, [reservations]);
 
-  /* =========================
-     FILTERING LOGIC
-  ========================= */
+  /* ── Filtrado ─────────────────────────────────────────────── */
   const filteredReservations = useMemo(() => {
     let list = [...reservations];
-
-    // Status Filter
-    if (activeView === "pending") {
-      list = list.filter(r => r.status === "pending");
-    } else if (activeView === "confirmed") {
-      list = list.filter(r => r.status === "confirmed" || r.status === "seated");
-    } else if (activeView === "history") {
-      list = list.filter(r => r.status === "completed" || r.status === "cancelled" || r.status === "no-show");
-    }
-
-    // VIP Filter
-    if (showVIPOnly) {
-      list = list.filter(r => r.isVIP);
-    }
-
-    // Search Filter
+    if      (activeView === "pending")   list = list.filter((r) => r.status === "pending");
+    else if (activeView === "confirmed") list = list.filter((r) => r.status === "confirmed" || r.status === "seated");
+    else if (activeView === "history")   list = list.filter((r) => r.status === "completed" || r.status === "cancelled" || r.status === "no-show");
+    if (showVIPOnly) list = list.filter((r) => r.isVIP);
     if (searchQuery) {
-      list = list.filter(r =>
-        r.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.customerPhone.includes(searchQuery)
-      );
+      const q = searchQuery.toLowerCase();
+      list = list.filter((r) => r.customerName.toLowerCase().includes(q) || r.customerPhone.includes(q));
     }
-
-    // MiniCalendar Date Filter
     if (selectedFilterDate) {
-      list = list.filter(r => isSameDay(new Date(r.startTime), selectedFilterDate));
+      list = list.filter((r) => isSameDay(new Date(r.startTime), selectedFilterDate));
     }
-
-    // Sort by Date
     return list.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [reservations, activeView, searchQuery, selectedFilterDate, showVIPOnly]);
 
-  /* PAGINATION LOGIC */
-  const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
+  const totalPages    = Math.ceil(filteredReservations.length / itemsPerPage);
   const paginatedItems = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredReservations.slice(start, start + itemsPerPage);
   }, [filteredReservations, currentPage]);
 
-  useEffect(() => {
-    setCurrentPage(1); // Reset page on view/search/date change
-  }, [activeView, searchQuery, selectedFilterDate]);
+  useEffect(() => { setCurrentPage(1); }, [activeView, searchQuery, selectedFilterDate]);
 
-  /* KPI STATS */
+  /* ── Stats ────────────────────────────────────────────────── */
   const stats = useMemo(() => ({
-    total: reservations.length,
-    pending: reservations.filter(r => r.status === "pending").length,
-    active: reservations.filter(r => r.status === "confirmed" || r.status === "seated").length,
-    history: reservations.filter(r => r.status === "completed" || r.status === "cancelled" || r.status === "no-show").length
+    total:     reservations.length,
+    pending:   reservations.filter((r) => r.status === "pending").length,
+    active:    reservations.filter((r) => r.status === "confirmed" || r.status === "seated").length,
+    history:   reservations.filter((r) => r.status === "completed" || r.status === "cancelled" || r.status === "no-show").length,
   }), [reservations]);
 
+  const TABS: { view: ViewMode; label: string; count: number }[] = [
+    { view: "pending",   label: "Por Confirmar",        count: stats.pending },
+    { view: "confirmed", label: "Confirmadas / En Mesa", count: stats.active  },
+    ...(salonMode === "advanced" ? [{ view: "history" as ViewMode, label: "Historial", count: stats.history }] : []),
+  ];
+
+  /* ── Render ───────────────────────────────────────────────── */
   return (
-    <div className="nebula-salon-root flex flex-col h-full min-h-0 gap-4 md:gap-6 p-4 md:p-6 relative overflow-hidden">
-      <div className="absolute inset-0 nebula-aurora pointer-events-none -z-10 opacity-40" />
-      <SalonFlowTutorial
-        isOpen={salonTutorialOpen}
-        onClose={closeSalonTutorial}
-        onComplete={completeSalonTutorial}
-      />
+    <div className="flex flex-col h-full min-h-0 overflow-hidden" style={{ background: "#0D1117", color: "#E6EDF3" }}>
 
-      {error && (
-        <div className="rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200" role="alert">{error}</div>
-      )}
+      <SalonFlowTutorial isOpen={salonTutorialOpen} onClose={closeSalonTutorial} onComplete={completeSalonTutorial} />
 
-      {postSeatTableId && (
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-100 shrink-0">
-          <p className="text-sm font-medium">
-            Clientes sentados. La mesa ya tiene sesión activa para tomar pedidos.
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                navigate(`/tables?table=${postSeatTableId}&order=1`);
-                setPostSeatTableId(null);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-semibold"
-            >
-              Ir a mesa
-              <ArrowRight size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setPostSeatTableId(null)}
-              className="px-3 py-1.5 text-xs text-muted hover:text-ivory"
-            >
-              Cerrar
-            </button>
+      {/* ── HEADER ────────────────────────────────────────── */}
+      <div
+        className="flex-shrink-0 px-6 pt-5 pb-4 flex items-center justify-between gap-4"
+        style={{ borderBottom: "1px solid #30363D" }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className="p-2.5 rounded-xl"
+            style={{ background: "rgba(163,113,247,0.12)", border: "1px solid rgba(163,113,247,0.25)", color: "#A371F7" }}
+          >
+            <Calendar size={20} />
           </div>
-        </div>
-      )}
-
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-xl bg-violet-500/20 text-violet-200">
-              <Sparkles size={16} />
-            </div>
-            <p className="text-[10px] text-muted font-semibold uppercase tracking-wide">
-              Nebula · Reservas
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "#566270" }}>
+              Bartender · Reservas
             </p>
+            <h1 className="text-2xl font-bold leading-tight" style={{ color: "#E6EDF3" }}>
+              Gestión de Reservas
+            </h1>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-ivory tracking-tight">
-            Gestión de Reservas
-          </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="nebula-mode-toggle">
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "simple" ? "active" : "text-muted"}`}
-              onClick={() => setSalonMode("simple")}
-            >
-              Simple
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 text-xs rounded-lg ${salonMode === "advanced" ? "active" : "text-muted"}`}
-              onClick={() => setSalonMode("advanced")}
-            >
-              Avanzado
-            </button>
+        <div className="flex items-center gap-2">
+          {/* Toggle modo */}
+          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+            {(["simple", "advanced"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setSalonMode(m)}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all capitalize"
+                style={{
+                  background:  salonMode === m ? "rgba(240,180,41,0.15)" : "transparent",
+                  color:       salonMode === m ? "#F0B429"               : "#566270",
+                  border:      salonMode === m ? "1px solid rgba(240,180,41,0.30)" : "1px solid transparent",
+                }}
+              >
+                {m === "simple" ? "Simple" : "Avanzado"}
+              </button>
+            ))}
           </div>
 
           <button
             type="button"
-            onClick={openSalonTutorial}
-            className="btn btn-ghost px-3! py-2! rounded-xl border border-white/10 text-xs flex items-center gap-1"
+            onClick={fetchReservations}
+            className="p-2.5 rounded-xl transition-colors"
+            style={{ border: "1px solid #30363D", color: "#8B949E" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#E6EDF3"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+            title="Sincronizar"
           >
-            <HelpCircle size={16} />
-            Tutorial
+            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
           </button>
-          {/* SEARCH BAR */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search size={18} className="text-muted group-focus-within:text-gold transition-colors" />
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar por nombre o teléfono..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-surface-3 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-ivory focus:border-gold/40 focus:ring-4 focus:ring-gold/5 outline-none transition-all w-64 md:w-80 group-hover:border-white/10"
-            />
-          </div>
 
-          {/* VIP FILTER */}
           <button
             type="button"
-            onClick={() => setShowVIPOnly(!showVIPOnly)}
-            className={`px-4 py-4 rounded-2xl border text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
-              showVIPOnly
-                ? 'bg-violet-500/20 text-violet-300 border-violet-500/30 shadow-violet-500/20'
-                : 'bg-white/5 text-muted border-white/5 hover:border-white/10'
-            }`}
-          >
-            <Sparkles size={16} className={showVIPOnly ? 'text-violet-300' : 'text-muted'} />
-            VIP
-          </button>
-
-          <button
             onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}
-            className="btn btn-gold px-10! h-14! rounded-4xl! shadow-[0_15px_40px_rgba(212,163,64,0.25)] flex items-center gap-3 group relative overflow-hidden"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all"
+            style={{ background: "#F0B429", color: "#0D1117", boxShadow: "0 0 20px rgba(240,180,41,0.25)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F5C842"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F0B429"; }}
           >
-            <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            <Plus size={22} className="stroke-[4px] relative z-10" />
-            <span className="font-black tracking-[0.2em] text-xs uppercase relative z-10">Nueva Reserva</span>
+            <Plus size={15} /> Nueva reserva
           </button>
         </div>
       </div>
 
-      {/* ===========================
-         AGENDA SEMANAL HORIZONTAL (MINI-CALENDAR)
-      =========================== */}
-      <MiniCalendarFilter
-        reservations={reservations}
-        selectedDate={selectedFilterDate}
-        onSelectDate={setSelectedFilterDate}
-      />
+      {/* ── BARRA DE FILTROS ──────────────────────────────── */}
+      <div
+        className="flex-shrink-0 flex flex-wrap items-center gap-0 px-6"
+        style={{ borderBottom: "1px solid #30363D" }}
+      >
+        {/* Tabs de estado */}
+        {TABS.map((tab) => {
+          const isActive = activeView === tab.view;
+          const color    = TAB_COLORS[tab.view] ?? "#566270";
+          return (
+            <button
+              key={tab.view}
+              type="button"
+              onClick={() => setActiveView(tab.view)}
+              className="flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all relative"
+              style={{
+                color:        isActive ? color : "#566270",
+                borderBottom: isActive ? `3px solid ${color}` : "3px solid transparent",
+                marginBottom: "-1px",
+              }}
+              onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = "#8B949E"; }}
+              onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.color = "#566270"; }}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span
+                  className="px-1.5 py-0.5 rounded-full text-[10px] font-black"
+                  style={{
+                    background: isActive ? `${color}20` : "#21283A",
+                    color:      isActive ? color         : "#566270",
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
 
-      {/* ===========================
-         TIMELINE RADAR — "Radar de Llegadas"
-      =========================== */}
-      {salonMode === "advanced" && radarReservations.length > 0 && (
-        <div className="bg-surface-3/50 border border-white/5 rounded-4xl p-6 space-y-4 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gold/10 rounded-xl border border-gold/20">
-                <Radar size={18} className="text-gold" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-gold uppercase tracking-[0.3em]">Radar de Llegadas · Hoy</p>
-                <p className="text-[9px] text-muted font-bold uppercase tracking-widest mt-0.5">
-                  Próximas {radarReservations.length} reservas en camino
-                </p>
-              </div>
-            </div>
-            <div className="text-[9px] text-muted font-black uppercase tracking-widest flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              En vivo
-            </div>
+        {/* Separador */}
+        <div className="w-px h-5 mx-3 flex-shrink-0" style={{ background: "#30363D" }} />
+
+        {/* Chips de fecha inline */}
+        <ReservationDateChips
+          reservations={reservations}
+          selectedDate={selectedFilterDate}
+          onSelectDate={setSelectedFilterDate}
+        />
+
+        {/* Controles a la derecha */}
+        <div className="ml-auto flex items-center gap-2 py-2">
+          {/* Búsqueda */}
+          <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "#566270" }} />
+            <input
+              type="text"
+              placeholder="Buscar nombre o teléfono…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 rounded-lg text-xs outline-none transition-colors"
+              style={{ background: "#1C2333", border: "1px solid #30363D", color: "#E6EDF3", width: 200 }}
+              onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)"; }}
+              onBlur={(e)  => { (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D"; }}
+            />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {radarReservations.slice(0, 6).map((r) => {
+          {/* VIP toggle */}
+          <button
+            type="button"
+            onClick={() => setShowVIPOnly(!showVIPOnly)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+            style={{
+              background:  showVIPOnly ? "rgba(163,113,247,0.15)" : "#1C2333",
+              border:      `1px solid ${showVIPOnly ? "rgba(163,113,247,0.35)" : "#30363D"}`,
+              color:       showVIPOnly ? "#A371F7" : "#566270",
+            }}
+          >
+            <Sparkles size={12} />
+            VIP
+          </button>
+        </div>
+      </div>
+
+      {/* ── BANNERS ───────────────────────────────────────── */}
+      {error && (
+        <div
+          className="flex-shrink-0 mx-6 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs"
+          style={{ background: "rgba(248,81,73,0.10)", border: "1px solid rgba(248,81,73,0.30)", color: "#FF6B63" }}
+        >
+          <span className="flex items-center gap-2"><AlertCircle size={14} /> {error}</span>
+          <button type="button" onClick={() => setError(null)}><X size={13} /></button>
+        </div>
+      )}
+
+      {postSeatTableId && (
+        <div
+          className="flex-shrink-0 mx-6 mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm"
+          style={{ background: "rgba(63,185,80,0.08)", border: "1px solid rgba(63,185,80,0.25)", color: "#3FB950" }}
+        >
+          <p className="text-xs font-medium">Clientes sentados. Mesa con sesión activa para pedidos.</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => { navigate(`/tables?table=${postSeatTableId}&order=1`); setPostSeatTableId(null); }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
+              style={{ background: "rgba(63,185,80,0.15)", color: "#3FB950" }}
+            >
+              Ir a mesa <ArrowRight size={12} />
+            </button>
+            <button type="button" onClick={() => setPostSeatTableId(null)} style={{ color: "#566270" }}>
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── RADAR DE LLEGADAS (solo advanced) ─────────────── */}
+      {salonMode === "advanced" && radarReservations.length > 0 && (
+        <div
+          className="flex-shrink-0 mx-6 mt-3 rounded-xl p-4"
+          style={{ background: "#161B22", border: "1px solid #30363D" }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 rounded-lg" style={{ background: "rgba(240,180,41,0.12)", color: "#F0B429" }}>
+              <Radar size={13} />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: "#F0B429" }}>
+              Radar de llegadas · Hoy
+            </p>
+            <div className="ml-auto flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#3FB950] animate-pulse" />
+              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "#566270" }}>En vivo</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {radarReservations.slice(0, 4).map((r) => {
               const startTime = new Date(r.startTime);
-              const diffMs = startTime.getTime() - now.getTime();
-              const diffMin = Math.floor(diffMs / (60 * 1000));
-              const isLate = diffMin < -15;
-              const isOverdue = diffMin < 0 && diffMin >= -15;
+              const diffMs    = startTime.getTime() - now.getTime();
+              const diffMin   = Math.floor(diffMs / 60000);
+              const isLate     = diffMin < -15;
+              const isOverdue  = diffMin < 0 && diffMin >= -15;
               const isImminent = diffMin >= 0 && diffMin <= 15;
-
-              const timeLabel = diffMin > 60
-                ? `Llega en ${Math.floor(diffMin / 60)}h ${diffMin % 60}m`
-                : diffMin > 0
-                ? `Llega en ${diffMin} min`
-                : diffMin === 0
-                ? "¡LLEGANDO AHORA!"
-                : diffMin >= -15
-                ? `Esperando ${Math.abs(diffMin)} min`
-                : `${Math.abs(diffMin)} MIN ATRASADO`;
-
-              const timeFormatted = startTime.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+              const timeLabel  = diffMin > 60 ? `En ${Math.floor(diffMin / 60)}h ${diffMin % 60}m` : diffMin > 0 ? `En ${diffMin} min` : diffMin === 0 ? "¡Ahora!" : diffMin >= -15 ? `Esp. ${Math.abs(diffMin)} min` : `${Math.abs(diffMin)} min atrasado`;
 
               return (
                 <button
                   key={r._id}
                   type="button"
                   onClick={() => handleCardClick(r)}
-                  className={`
-                    p-5 rounded-2xl border transition-all text-left group/radar cursor-pointer
-                    ${isLate
-                      ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40 animate-pulse'
-                      : isOverdue
-                      ? 'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/40'
-                      : isImminent
-                      ? 'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40'
-                      : 'bg-surface-4/50 border-white/5 hover:border-white/15'
-                    }
-                  `}
+                  className="text-left p-3 rounded-xl transition-all"
+                  style={{
+                    background:  isLate ? "rgba(248,81,73,0.10)" : isOverdue ? "rgba(255,123,84,0.10)" : isImminent ? "rgba(63,185,80,0.10)" : "#21283A",
+                    border:      `1px solid ${isLate ? "rgba(248,81,73,0.25)" : isOverdue ? "rgba(255,123,84,0.25)" : isImminent ? "rgba(63,185,80,0.25)" : "#30363D"}`,
+                  }}
                 >
-                  {/* Name & Time */}
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-black text-ivory uppercase tracking-wider truncate max-w-35">
-                      {r.customerName}
-                    </p>
-                    {r.isVIP && (
-                      <Sparkles size={14} className="text-violet-300 shrink-0" />
-                    )}
-                  </div>
-
-                  {/* Arrival Badge */}
-                  <div className={`
-                    text-xs font-black uppercase tracking-wider mb-3
-                    ${isLate ? 'text-red-400' : isOverdue ? 'text-amber-400' : isImminent ? 'text-emerald-400' : 'text-muted'}
-                  `}>
+                  <p className="text-xs font-bold truncate" style={{ color: "#E6EDF3" }}>{r.customerName}</p>
+                  <p className="text-[10px] font-bold mt-0.5" style={{ color: isLate ? "#F85149" : isOverdue ? "#FF7B54" : isImminent ? "#3FB950" : "#8B949E" }}>
                     {timeLabel}
-                  </div>
-
-                  {/* Details */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted font-bold uppercase tracking-widest">
-                      <Clock size={12} className="text-gold/50" />
-                      {timeFormatted}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-muted font-bold">
-                      <Users size={12} className="text-gold/50" />
-                      {r.guests}
-                    </div>
-                  </div>
-
-                  {/* Quick Action Strip */}
-                  <div className="flex gap-2 mt-4 opacity-0 group-hover/radar:opacity-100 transition-opacity">
-                    {(r.status === "pending" || r.status === "confirmed") && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStatusChange(r._id!, "seated");
-                          }}
-                          className="flex-1 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/30 transition-colors"
-                          title="Sentar al cliente"
-                        >
-                          <CheckCircle2 size={12} className="inline mr-1" />
-                          Sentar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStatusChange(r._id!, "no-show");
-                          }}
-                          className="flex-1 py-2 bg-red-500/10 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-wider hover:bg-red-500/20 transition-colors"
-                          title="Marcar como no asistió"
-                        >
-                          <XCircle size={12} className="inline mr-1" />
-                          No-Show
-                        </button>
-                      </>
-                    )}
-                    {/* WhatsApp button */}
-                    {(r.status === "pending" || r.status === "confirmed") && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenWhatsapp(r);
-                        }}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-500/20 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all border border-transparent hover:border-emerald-500/20 active:scale-90 shadow-md"
-                        title="Enviar confirmación por WhatsApp"
-                      >
-                        <MessageCircle size={18} className="fill-current text-emerald-500 hover:text-emerald-400" />
-                      </button>
-                    )}
+                  </p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-[10px]" style={{ color: "#566270" }}>
+                      {format(startTime, "HH:mm", { locale: es })} hs
+                    </span>
+                    <span className="text-[10px]" style={{ color: "#566270" }}>
+                      {r.guests} inv.
+                    </span>
                   </div>
                 </button>
               );
@@ -596,116 +538,107 @@ export default function ReservationsPage() {
         </div>
       )}
 
-      {/* VIEW SYSTEM TABS */}
-      <div className="flex items-center justify-between border-b border-white/5 pb-2">
-        <div className="flex items-center gap-4">
-          <ViewTab
-            active={activeView === "pending"}
-            onClick={() => setActiveView("pending")}
-            label="Por Confirmar"
-            count={stats.pending}
-            color="ember"
-          />
-          <ViewTab
-            active={activeView === "confirmed"}
-            onClick={() => setActiveView("confirmed")}
-            label="Confirmadas / En Mesa"
-            count={stats.active}
-            color="gold"
-          />
-          {salonMode === "advanced" && (
-            <ViewTab
-              active={activeView === "history"}
-              onClick={() => setActiveView("history")}
-              label="Historial"
-              count={stats.history}
-              color="neutral"
-            />
-          )}
-        </div>
+      {/* ── ZONA PRINCIPAL ────────────────────────────────── */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
 
-        <button onClick={fetchReservations} className="p-3 hover:bg-white/5 rounded-xl transition-all group">
-          <RefreshCcw size={20} className={`text-muted group-hover:text-gold ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
-
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 min-h-0 flex flex-col gap-6 overflow-y-auto">
-
-        {loading && reservations.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-20 py-20">
-            <div className="spinner mb-8 w-16 h-16" />
-            <p className="text-sm font-semibold text-muted">Cargando reservas…</p>
-          </div>
-        ) : (
-          <>
-            {paginatedItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
-                {paginatedItems.map(r => (
+        {/* Grid de cards */}
+        <div
+          className="flex-1 min-w-0 overflow-y-auto p-6"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(240,180,41,0.3) transparent" }}
+        >
+          {loading && reservations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ opacity: 0.4 }}>
+              <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: "rgba(240,180,41,0.30)", borderTopColor: "#F0B429" }} />
+              <p className="text-sm font-medium" style={{ color: "#566270" }}>Cargando reservas…</p>
+            </div>
+          ) : paginatedItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ opacity: 0.35 }}>
+              <Calendar size={40} style={{ color: "#566270" }} />
+              <p className="text-sm font-bold uppercase tracking-wider" style={{ color: "#566270" }}>
+                Sin reservas en este filtro
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 pb-4">
+                {paginatedItems.map((r) => (
                   <ReservationCard
                     key={r._id}
                     r={r}
+                    selected={selectedReservation?._id === r._id}
                     highlighted={highlightId === r._id}
-                    onSeat={(id) => handleStatusChange(id, "seated")}
-                    onDelete={handleDeleteReservation}
-                    onWhatsapp={handleOpenWhatsapp}
                     onClick={() => handleCardClick(r)}
                   />
                 ))}
               </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center opacity-20 py-32 border-2 border-dashed border-white/5 rounded-[4rem]">
-                <LayoutGrid size={64} className="mb-6 text-muted" />
-                <p className="text-xl font-black uppercase tracking-[0.3em]">Mesa Limpia</p>
-                <p className="text-sm mt-2 uppercase tracking-widest">No se encontraron registros para esta vista</p>
-              </div>
-            )}
 
-            {/* PAGINATION SYSTEM UI */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-6 pt-6 border-t border-white/5 mt-auto">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="w-12 h-12 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                <div className="flex items-center gap-3">
-                  {[...Array(totalPages)].map((_, i) => (
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4" style={{ borderTop: "1px solid #30363D" }}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                    style={{ background: "#1C2333", border: "1px solid #30363D", color: "#8B949E" }}
+                  >
+                    <ChevronLeft size={15} />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`
-                        w-10 h-10 rounded-xl font-black text-xs transition-all border
-                        ${currentPage === i + 1
-                          ? 'bg-grad-gold text-bg border-transparent shadow-gold-glow scale-105'
-                          : 'bg-surface-3 text-muted border-white/5 hover:border-gold/20'
-                        }
-                      `}
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className="w-9 h-9 rounded-lg text-xs font-bold transition-all"
+                      style={{
+                        background:  currentPage === page ? "#F0B429" : "#1C2333",
+                        border:      `1px solid ${currentPage === page ? "transparent" : "#30363D"}`,
+                        color:       currentPage === page ? "#0D1117"  : "#8B949E",
+                      }}
                     >
-                      {i + 1}
+                      {page}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                    style={{ background: "#1C2333", border: "1px solid #30363D", color: "#8B949E" }}
+                  >
+                    <ChevronRight size={15} />
+                  </button>
                 </div>
+              )}
+            </>
+          )}
+        </div>
 
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="w-12 h-12 rounded-full border border-white/5 flex items-center justify-center hover:border-gold/40 hover:text-gold transition-all disabled:opacity-20 disabled:pointer-events-none"
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            )}
-          </>
-        )}
+        {/* Panel lateral de detalle (desktop) */}
+        <AnimatePresence>
+          {!isMobile && (
+            <motion.div
+              key="detail-panel"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="hidden lg:flex flex-col flex-shrink-0"
+              style={{ width: 340, borderLeft: "1px solid #30363D" }}
+            >
+              <ReservationDetailPanel
+                reservation={selectedReservation}
+                onClose={() => setSelectedReservation(null)}
+                onStatusChange={handleStatusChange}
+                onEdit={() => { setIsFormOpen(true); }}
+                onDelete={handleDeleteReservation}
+                onWhatsapp={handleOpenWhatsapp}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ===========================
-         MODAL: RESERVATION ACTION MODAL (click on card)
-      =========================== */}
+      {/* ── MODALES ───────────────────────────────────────── */}
+      {/* Modal de acción (mobile) */}
       {isActionModalOpen && selectedReservation && (
         <ReservationActionModal
           reservation={selectedReservation}
@@ -713,65 +646,26 @@ export default function ReservationsPage() {
           onStatusChange={(status) => handleStatusChange(selectedReservation._id!, status)}
           onEdit={handleEditFromModal}
           onDelete={() => handleDeleteReservation(selectedReservation._id!)}
+          onWhatsapp={handleOpenWhatsapp}
         />
       )}
 
-      {/* ===========================
-         MODAL: RESERVATION FORM (new or edit)
-      =========================== */}
-        {isFormOpen && (
-          <ReservationForm
-            reservation={selectedReservation}
-            onSave={async (data) => { await handleSave(data); }}
-            onClose={() => { setIsFormOpen(false); setSelectedReservation(null); }}
-          />
-        )}
-        {isWhatsappOpen && whatsappReservation && (
-          <WhatsappModal
-            reservation={whatsappReservation}
-            onClose={() => {
-              setIsWhatsappOpen(false);
-              setWhatsappReservation(null);
-            }}
-          />
-        )}
-    </div>
-  );
-}
-
-type ViewTabProps = {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-  color: string;
-};
-
-function ViewTab({ active, onClick, label, count, color }: ViewTabProps) {
-  const accentColor = color === 'neutral' ? 'bg-white/10' : `bg-${color}`;
-
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        relative px-6 py-4 rounded-2xl transition-all duration-300 group flex items-center gap-3
-        ${active ? 'bg-surface-glow border-white/10 shadow-xl' : 'hover:bg-white/5 border-transparent opacity-60 hover:opacity-100'}
-        border
-      `}
-    >
-      <div className={`w-2 h-2 rounded-full ${accentColor} ${active ? 'shadow-glow' : 'opacity-20'}`} />
-      <span className={`text-xs font-black uppercase tracking-[0.2em] ${active ? 'text-ivory' : 'text-muted'}`}>
-        {label}
-      </span>
-      <span className={`
-        px-2.5 py-1 rounded-lg text-[10px] font-black border border-white/5
-        ${active ? 'bg-gold/10 text-gold' : 'bg-black/20 text-muted'}
-      `}>
-        {count}
-      </span>
-      {active && (
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-grad-gold rounded-full shadow-gold-glow" />
+      {/* Formulario lateral */}
+      {isFormOpen && (
+        <ReservationForm
+          reservation={selectedReservation}
+          onSave={async (data) => { await handleSave(data); }}
+          onClose={() => { setIsFormOpen(false); setSelectedReservation(null); }}
+        />
       )}
-    </button>
+
+      {/* WhatsApp */}
+      {isWhatsappOpen && whatsappReservation && (
+        <WhatsappModal
+          reservation={whatsappReservation}
+          onClose={() => { setIsWhatsappOpen(false); setWhatsappReservation(null); }}
+        />
+      )}
+    </div>
   );
 }

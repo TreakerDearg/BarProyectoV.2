@@ -1,207 +1,173 @@
 "use client";
 
+/**
+ * DiscountKeypad — Teclado numérico para ingresar el valor del descuento.
+ * REDISEÑO v3.0 — Slate Elegante
+ *
+ * PERCENT = Dorado, FLAT = Azul.
+ * Teclado táctil preservado, colores actualizados.
+ */
 import type { DiscountType } from "../types/discounts";
-import { Percent, DollarSign, Delete, HelpCircle, Zap, RotateCcw, History } from "lucide-react";
+import { Percent, DollarSign, Delete, Zap } from "lucide-react";
 
 interface Props {
-  type: DiscountType;
-  setType: (t: DiscountType) => void;
-  value: number;
-  valueInput: string;
+  type:         DiscountType;
+  setType:      (t: DiscountType) => void;
+  value:        number;
+  valueInput:   string;
   appendNumber: (v: string) => void;
-  removeLast: () => void;
+  removeLast:   () => void;
   presets?: {
     PERCENT?: number[];
-    FLAT?: number[];
+    FLAT?:    number[];
   };
 }
 
-export default function NebulaDiscountKeypad({
-  type,
-  setType,
-  value,
-  valueInput,
-  appendNumber,
-  removeLast,
-  presets,
+export default function DiscountKeypad({
+  type, setType, value, valueInput, appendNumber, removeLast, presets,
 }: Props) {
-  const numerosTeclado = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-  
-  const descuentosRapidos = type === "PERCENT"
+  const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+  const quickValues = type === "PERCENT"
     ? presets?.PERCENT || [10, 15, 20, 25, 50]
-    : presets?.FLAT || [5, 10, 15, 20, 50];
-  
-  const valoresRecientes = [10, 15, 20];
+    : presets?.FLAT    || [5, 10, 15, 20, 50];
+
+  const accentColor = type === "PERCENT" ? "#F0B429" : "#388BFD";
 
   return (
-    <div className="flex flex-col space-y-3 md:space-y-4">
-      
-      <div>
-        <h3 className="text-sm font-bold text-white mb-1">
-          Calcular Descuento
-        </h3>
-        <p className="text-xs text-white/50">
-          Selecciona el tipo y valor
-        </p>
+    <div className="flex flex-col gap-3">
+
+      {/* Toggle PERCENT / FLAT */}
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          { t: "PERCENT" as DiscountType, label: "Porcentaje", sub: "Ej: 20%",  icon: <Percent     size={16} />, active: "#F0B429" },
+          { t: "FLAT"    as DiscountType, label: "Monto fijo", sub: "Ej: $15", icon: <DollarSign  size={16} />, active: "#388BFD" },
+        ]).map(({ t, label, sub, icon, active }) => {
+          const isActive = type === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setType(t)}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+              style={{
+                background:  isActive ? `${active}20` : "#21283A",
+                border:      `1.5px solid ${isActive ? `${active}50` : "#30363D"}`,
+                color:       isActive ? active : "#566270",
+              }}
+            >
+              {icon}
+              <span className="text-xs font-bold">{label}</span>
+              <span className="text-[9px]" style={{ color: isActive ? `${active}80` : "#3D444D" }}>{sub}</span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 md:gap-3">
-        <button
-          onClick={() => setType("PERCENT")}
-          className={`
-            p-3 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-2 border
-            ${type === "PERCENT"
-              ? "bg-cyan text-black border-cyan shadow-lg"
-              : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10"}
-          `}
-        >
-          <Percent size={18} className="md:size-20" />
-          <span className="font-medium text-xs">Porcentaje</span>
-          <span className="text-[10px] opacity-70">Ej: 20%</span>
-        </button>
-        <button
-          onClick={() => setType("FLAT")}
-          className={`
-            p-3 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-2 border
-            ${type === "FLAT"
-              ? "bg-violet text-black border-violet shadow-lg"
-              : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10"}
-          `}
-        >
-          <DollarSign size={18} className="md:size-20" />
-          <span className="font-medium text-xs">Monto Fijo</span>
-          <span className="text-[10px] opacity-70">Ej: $15</span>
-        </button>
-      </div>
-
+      {/* Presets rápidos */}
       <div>
-        <div className="flex items-center justify-between mb-2 md:mb-3">
-          <p className="text-[10px] md:text-xs font-semibold text-white/40 uppercase tracking-wider">
-            <Zap size={10} className="md:size-12 inline mr-1 text-emerald" />
+        <div className="flex items-center gap-1.5 mb-2">
+          <Zap size={11} style={{ color: "#566270" }} />
+          <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "#566270" }}>
             Rápidos
           </p>
-          <button 
-            onClick={() => appendNumber("0")}
-            className="text-[10px] md:text-xs text-cyan hover:text-cyan/80 font-medium flex items-center gap-1 transition-colors"
-          >
-            <RotateCcw size={10} className="md:size-12" />
-            Reiniciar
-          </button>
         </div>
-        <div className="grid grid-cols-5 gap-1.5 md:gap-2">
-          {descuentosRapidos.map((valorRapido) => (
+        <div className="grid grid-cols-5 gap-1.5">
+          {quickValues.map((v) => (
             <button
-              key={valorRapido}
-              onClick={() => appendNumber(valorRapido.toString())}
-              className="
-                h-10 md:h-12 rounded-lg font-bold text-xs md:text-sm transition-all border flex items-center justify-center
-                bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-cyan/30 active:scale-95
-              "
+              key={v}
+              type="button"
+              onClick={() => appendNumber(v.toString())}
+              className="h-10 rounded-lg text-xs font-bold transition-all"
+              style={{ background: "#21283A", border: "1px solid #30363D", color: "#8B949E" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = `${accentColor}40`;
+                (e.currentTarget as HTMLButtonElement).style.color = accentColor;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363D";
+                (e.currentTarget as HTMLButtonElement).style.color = "#8B949E";
+              }}
             >
-              {valorRapido}
-              {type === "PERCENT" && <span className="text-[10px] md:text-xs ml-0.5">%</span>}
+              {v}{type === "PERCENT" ? "%" : ""}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-3 md:p-4 rounded-xl border" style={{
-        background: 'rgba(255, 255, 255, 0.04)',
-        borderColor: 'rgba(255, 255, 255, 0.08)'
-      }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-            Valor
-          </span>
-          {type === "PERCENT" && (
-            <span className="text-[10px] text-white/30">
-              <HelpCircle size={10} className="md:size-12 inline mr-1" />
-              del subtotal
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-center gap-1">
-          <span className="text-3xl md:text-4xl font-bold text-cyan">
-            {valueInput || "0"}
-          </span>
-          <span className="text-xl md:text-2xl font-bold text-cyan">
-            {type === "PERCENT" ? "%" : "$"}
-          </span>
-        </div>
-        
-        {value > 0 && (
-          <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-white/10">
-            <p className="text-[10px] text-white/40">
-              Descuento de: <span className="font-semibold text-white/70">
-                {type === "PERCENT" ? `${value}%` : `$${value}`}
-              </span>
-            </p>
-          </div>
-        )}
+      {/* Display del valor */}
+      <div
+        className="flex items-center justify-center gap-1 py-4 rounded-xl"
+        style={{ background: "#161B22", border: `1px solid ${accentColor}30` }}
+      >
+        <span className="text-4xl font-black" style={{ color: accentColor }}>
+          {valueInput || "0"}
+        </span>
+        <span className="text-2xl font-black" style={{ color: accentColor }}>
+          {type === "PERCENT" ? "%" : "$"}
+        </span>
       </div>
 
-      <div className="p-2 md:p-3 rounded-lg border" style={{
-        background: 'rgba(255, 209, 102, 0.1)',
-        borderColor: 'rgba(255, 209, 102, 0.2)'
-      }}>
-        <p className="text-[10px] text-gold font-medium leading-relaxed">
-          💡 {type === "PERCENT" 
-            ? "El porcentaje se aplicará sobre el total de los items seleccionados" 
-            : "Este monto se restará directamente del total"}
-        </p>
-      </div>
+      {/* Hint */}
+      {value > 0 && (
+        <div
+          className="px-3 py-2 rounded-lg text-[10px] font-medium"
+          style={{ background: `${accentColor}08`, border: `1px solid ${accentColor}20`, color: `${accentColor}CC` }}
+        >
+          💡 {type === "PERCENT"
+            ? "El % se aplica sobre el subtotal de los ítems seleccionados"
+            : "Este monto se resta directamente del total"}
+        </div>
+      )}
 
-      <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-        {numerosTeclado.map((numero) => (
+      {/* Teclado numérico 3×4 */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {KEYS.map((num) => (
           <button
-            key={numero}
-            onClick={() => appendNumber(numero)}
-            className="h-14 md:h-16 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center text-xl md:text-2xl font-bold text-white transition-all active:scale-95 border border-white/10 touch-manipulation"
+            key={num}
+            type="button"
+            onClick={() => appendNumber(num)}
+            className="h-14 rounded-xl text-xl font-bold transition-all active:scale-95 touch-manipulation"
+            style={{ background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#293042"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#21283A"; }}
           >
-            {numero}
+            {num}
           </button>
         ))}
+
+        {/* Fila final: ⌫ / 0 / . */}
         <button
+          type="button"
           onClick={removeLast}
-          className="h-14 md:h-16 bg-rose/20 hover:bg-rose/30 text-rose rounded-xl flex items-center justify-center transition-all active:scale-95 border border-rose/30 touch-manipulation"
+          className="h-14 rounded-xl flex items-center justify-center transition-all active:scale-95 touch-manipulation"
+          style={{ background: "rgba(248,81,73,0.10)", border: "1px solid rgba(248,81,73,0.25)", color: "#F85149" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,81,73,0.18)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(248,81,73,0.10)"; }}
         >
-          <Delete size={16} className="md:size-20" />
+          <Delete size={17} />
         </button>
         <button
+          type="button"
           onClick={() => appendNumber("0")}
-          className="h-14 md:h-16 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center text-xl md:text-2xl font-bold text-white transition-all active:scale-95 border border-white/10 touch-manipulation"
+          className="h-14 rounded-xl text-xl font-bold transition-all active:scale-95 touch-manipulation"
+          style={{ background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#293042"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#21283A"; }}
         >
           0
         </button>
         <button
+          type="button"
           onClick={() => appendNumber(".")}
-          className="h-14 md:h-16 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center text-2xl md:text-3xl font-bold text-white transition-all active:scale-95 border border-white/10 touch-manipulation pb-1 md:pb-2"
+          className="h-14 rounded-xl text-2xl font-bold transition-all active:scale-95 touch-manipulation pb-1"
+          style={{ background: "#21283A", border: "1px solid #30363D", color: "#E6EDF3" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#293042"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#21283A"; }}
         >
           .
         </button>
       </div>
-
-      {valoresRecientes.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <History size={12} className="md:size-14 text-white/30" />
-            <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">
-              Recientes
-            </p>
-          </div>
-          <div className="flex gap-1.5 md:gap-2 flex-wrap">
-            {valoresRecientes.map((valorReciente) => (
-              <button
-                key={valorReciente}
-                onClick={() => appendNumber(valorReciente.toString())}
-                className="px-2 md:px-3 py-1 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg text-[10px] md:text-xs font-medium transition-all border border-white/10"
-              >
-                {valorReciente}%
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
