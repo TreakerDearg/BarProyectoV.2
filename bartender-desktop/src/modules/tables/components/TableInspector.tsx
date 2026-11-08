@@ -303,7 +303,7 @@ export default function TableInspector({
               style={{ background: "rgba(56,139,253,0.06)", border: "1px solid rgba(56,139,253,0.20)" }}
             >
               <Row label="Estado" value="Confirmada" valueColor="#79C0FF" />
-              <Row label="ID" value={table.currentReservation.toString().slice(-8).toUpperCase()} />
+              <Row label="ID" value={(table.currentReservation?.toString() ?? "").slice(-8).toUpperCase() || "—"} />
               <div className="flex flex-col gap-1.5 pt-1">
                 {onViewReservation && (
                   <button

@@ -50,7 +50,7 @@ export default function OrderDetails({ order, items, setItems }: Props) {
             Mesa {tableLabel}
           </h3>
           <p className="text-[10px] mt-0.5" style={{ color: "#566270" }}>
-            Orden #{order._id.slice(-8).toUpperCase()}
+            Orden #{(order._id ?? "").slice(-8).toUpperCase() || "—"}
           </p>
         </div>
         <button
