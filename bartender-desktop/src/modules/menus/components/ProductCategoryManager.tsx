@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Filter, Martini, Utensils, Plus, Trash2, Layers, ChevronRight, ChevronDown, CheckCircle, X } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Martini,
+  Utensils,
+  Plus,
+  Trash2,
+  Layers,
+  CheckCircle,
+  X,
+  Box,
+  FileText,
+  DollarSign,
+  AlertTriangle,
+} from "lucide-react";
 import type { Product } from "../../../types/product";
 import type { MenuCategory } from "../../../types/menu";
 import ProductMiniCard from "./ProductMiniCard";
@@ -22,50 +36,62 @@ export default function ProductCategoryManager({
   onDeleteCategory,
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categories[0]?.name || null);
+  const [activeTab, setActiveTab] = useState<"assigned" | "available">("assigned");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "drink" | "food">("all");
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(categories.map(c => c.name)));
 
-  // Get all product IDs that are already added to any category
-  const addedProductIds = useMemo(() => {
-    const ids = new Set<string>();
-    categories.forEach(cat => {
-      cat.products.forEach(p => {
-        const productId = typeof p.product === 'string' ? p.product : (p.product as any)?._id;
-        if (productId) ids.add(productId);
-      });
-    });
-    return ids;
-  }, [categories]);
+  // Categoría activa actualmente
+  const currentCategory = useMemo(() => {
+    return categories.find((c) => c.name === selectedCategory) || categories[0] || null;
+  }, [categories, selectedCategory]);
 
-  // Filter available products
-  const filteredProducts = useMemo(() => {
+  // IDs de productos agregados a ESTA categoría específica
+  const categoryProductIds = useMemo(() => {
+    if (!currentCategory) return new Set<string>();
+    return new Set(
+      currentCategory.products.map((p) =>
+        typeof p.product === "string" ? p.product : (p.product as any)?._id
+      ).filter(Boolean)
+    );
+  }, [currentCategory]);
+
+  // Productos disponibles para agregar (los que no están en esta categoría aún)
+  const availableProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesSearch = (product as any).name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = filterType === "all" || (product as any).type === filterType;
-      const notAdded = !addedProductIds.has((product as any)._id);
-      return matchesSearch && matchesType && notAdded;
+      const pId = (product as any)._id;
+      const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = filterType === "all" || product.type === filterType;
+      const notInThisCategory = !categoryProductIds.has(pId);
+      return matchesSearch && matchesType && notInThisCategory;
     });
-  }, [products, searchQuery, filterType, addedProductIds]);
+  }, [products, searchQuery, filterType, categoryProductIds]);
 
-  const toggleCategoryExpansion = (categoryName: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryName)) {
-        newSet.delete(categoryName);
-      } else {
-        newSet.add(categoryName);
-      }
-      return newSet;
-    });
+  const handleCreateCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+
+    const newCategory: MenuCategory = {
+      name: trimmed,
+      description: "",
+      image: "",
+      products: [],
+      order: categories.length,
+    };
+
+    onUpdateCategories([...categories, newCategory]);
+    setNewCategoryName("");
+    onCreateCategory(trimmed);
+    setSelectedCategory(trimmed);
+    setActiveTab("available");
   };
 
   const handleAddProduct = (product: Product) => {
-    if (!selectedCategory) return;
-    
-    const updatedCategories = categories.map(cat => {
-      if (cat.name === selectedCategory) {
+    if (!currentCategory) return;
+
+    const updatedCategories = categories.map((cat) => {
+      if (cat.name === currentCategory.name) {
         return {
           ...cat,
           products: [
@@ -76,177 +102,106 @@ export default function ProductCategoryManager({
               available: true,
               featured: false,
               order: cat.products.length,
-            }
-          ]
+            },
+          ],
         };
       }
       return cat;
     });
-    
+
     onUpdateCategories(updatedCategories);
   };
 
-  const handleRemoveProduct = (categoryName: string, productId: string) => {
-    const updatedCategories = categories.map(cat => {
-      if (cat.name === categoryName) {
+  const handleRemoveProduct = (productId: string) => {
+    if (!currentCategory) return;
+
+    const updatedCategories = categories.map((cat) => {
+      if (cat.name === currentCategory.name) {
         return {
           ...cat,
-          products: cat.products.filter(p => {
-            const pId = typeof p.product === 'string' ? p.product : (p.product as any)?._id;
+          products: cat.products.filter((p) => {
+            const pId = typeof p.product === "string" ? p.product : (p.product as any)?._id;
             return pId !== productId;
-          })
+          }),
         };
       }
       return cat;
     });
-    
+
     onUpdateCategories(updatedCategories);
   };
 
-  const handleCreateCategory = () => {
-    if (!newCategoryName.trim()) return;
-    
-    const newCategory: MenuCategory = {
-      name: newCategoryName.trim(),
-      description: "",
-      image: "",
-      products: [],
-      order: categories.length,
-    };
-
-    onUpdateCategories([...categories, newCategory]);
-    setNewCategoryName("");
-    onCreateCategory(newCategoryName.trim());
-    setSelectedCategory(newCategoryName.trim());
-    setExpandedCategories(prev => new Set([...prev, newCategoryName.trim()]));
-  };
-
-  const availableCount = products.filter(p => p.available).length;
-  const totalCount = products.length;
-
   return (
-    <div className="flex gap-4 h-full">
-      {/* LEFT PANEL - CATEGORIES */}
-      <div className="w-1/3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-ivory uppercase tracking-widest">Categorías</h3>
-          <span className="text-xs font-semibold text-rose bg-rose/10 px-2 py-1 rounded-full">
+    <div className="flex flex-col md:flex-row gap-4 h-full min-h-[500px]">
+      {/* ── COLUMNA IZQUIERDA: Árbol de Categorías (w-full md:w-64) ─── */}
+      <div className="w-full md:w-64 shrink-0 flex flex-col gap-3 bg-[#161B22] border border-[#30363D] rounded-xl p-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-[#30363D]">
+          <h3 className="text-xs font-bold text-[#E6EDF3] uppercase tracking-wider">Categorías</h3>
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-[#21283A] text-[#F0B429]">
             {categories.length}
           </span>
         </div>
 
-        {/* Add New Category */}
-        <div className="flex gap-2">
+        {/* Creador de categoría al vuelo */}
+        <div className="flex gap-1.5">
           <input
             type="text"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleCreateCategory()}
-            className="flex-1 bg-surface-3 border-white/10 rounded-lg px-3 py-2 text-ivory text-xs focus:ring-2 focus:ring-rose/40 focus:border-transparent transition-all outline-none"
-            placeholder="Nueva categoría..."
+            onKeyDown={(e) => e.key === "Enter" && handleCreateCategory()}
+            className="flex-1 h-8 bg-[#1C2333] border border-[#30363D] rounded-lg px-2.5 text-xs text-[#E6EDF3] placeholder:text-[#8B949E]/50 focus:outline-none focus:border-[#F0B429] transition-colors"
+            placeholder="Nueva categoría…"
           />
           <button
             onClick={handleCreateCategory}
-            className="px-3 py-2 rounded-lg bg-rose/10 border border-rose/30 text-rose-300 hover:bg-rose/20 transition-all"
+            className="h-8 px-2.5 rounded-lg bg-[rgba(240,180,41,0.12)] border border-[rgba(240,180,41,0.30)] text-[#F0B429] hover:bg-[rgba(240,180,41,0.22)] transition-colors font-bold text-xs"
+            title="Crear categoría"
           >
-            <Plus size={16} />
+            <Plus size={14} />
           </button>
         </div>
 
-        {/* Categories List */}
-        <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+        {/* Lista de categorías */}
+        <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar pr-0.5">
           {categories.length === 0 ? (
-            <div className="text-center py-8 text-muted text-xs">
-              No hay categorías creadas
+            <div className="text-center py-8 text-[#8B949E] text-xs">
+              No hay categorías. Crea una arriba.
             </div>
           ) : (
             categories.map((category) => {
-              const isSelected = selectedCategory === category.name;
-              const isExpanded = expandedCategories.has(category.name);
+              const isSelected = (currentCategory?.name || "") === category.name;
               const productCount = category.products?.length || 0;
 
               return (
-                <div key={category.name}>
-                  <div
-                    onClick={() => setSelectedCategory(category.name)}
-                    className={`flex items-center gap-2 p-3 rounded-lg border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-rose/10 border-rose/30 text-rose-300'
-                        : 'bg-surface-3 border-white/5 hover:border-white/10 text-muted hover:text-ivory'
-                    }`}
-                  >
+                <div
+                  key={category.name}
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`group flex items-center justify-between p-2.5 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
+                    isSelected
+                      ? "bg-[#21283A] border-[rgba(240,180,41,0.40)] text-[#F0B429] shadow-sm font-bold"
+                      : "bg-[#1C2333] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D]"
+                  }`}
+                >
+                  <span className="truncate flex-1" title={category.name}>{category.name}</span>
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <span className={`px-1.5 py-0.2 rounded-full text-xs ${
+                      isSelected ? "bg-[#F0B429] text-black font-black" : "bg-[#161B22] text-[#8B949E]"
+                    }`}>
+                      {productCount}
+                    </span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleCategoryExpansion(category.name);
-                      }}
-                      className="p-1 rounded hover:bg-white/10 transition-colors"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown size={14} />
-                      ) : (
-                        <ChevronRight size={14} />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold truncate">{category.name}</span>
-                        <span className="text-[10px] bg-surface-2 px-1.5 py-0.5 rounded">
-                          {productCount}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`¿Eliminar categoría "${category.name}"?`)) {
+                        if (confirm(`¿Eliminar categoría "${category.name}" del menú?`)) {
                           onDeleteCategory(category.name);
-                          if (selectedCategory === category.name) {
-                            setSelectedCategory(categories[0]?.name || null);
-                          }
                         }
                       }}
-                      className="p-1 rounded hover:bg-red/10 text-red/40 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1 text-[#8B949E] hover:text-[#F85149] rounded transition-colors opacity-0 group-hover:opacity-100"
+                      title="Eliminar categoría"
                     >
                       <Trash2 size={12} />
                     </button>
                   </div>
-
-                  {/* Category Products (when expanded) */}
-                  {isExpanded && isSelected && (
-                    <div className="ml-6 mt-2 space-y-1">
-                      {productCount === 0 ? (
-                        <div className="text-xs text-muted/50 py-2">
-                          Sin productos
-                        </div>
-                      ) : (
-                        category.products.map((p, idx) => {
-                          const productId = typeof p.product === 'string' ? p.product : (p.product as any)?._id;
-                          return (
-                            <div
-                              key={productId || idx}
-                              className="flex items-center gap-2 p-2 bg-surface-2 rounded border border-white/5 text-xs"
-                            >
-                              <span className="flex-1 truncate text-ivory">
-                                {typeof p.product === 'string' ? p.product : (p.product as any)?.name || 'Producto'}
-                              </span>
-                              {p.price && (
-                                <span className="text-emerald-400 font-semibold">
-                                  ${p.price}
-                                </span>
-                              )}
-                              <button
-                                onClick={() => handleRemoveProduct(category.name, productId!)}
-                                className="p-1 rounded hover:bg-red/10 text-red/40 hover:text-red-300 transition-colors"
-                              >
-                                <X size={10} />
-                              </button>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
                 </div>
               );
             })
@@ -254,109 +209,178 @@ export default function ProductCategoryManager({
         </div>
       </div>
 
-      {/* RIGHT PANEL - PRODUCTS */}
-      <div className="flex-1 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-ivory uppercase tracking-widest">
-            {selectedCategory ? `Productos para "${selectedCategory}"` : "Selecciona una categoría"}
-          </h3>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald/10">
-              <CheckCircle size={10} className="text-emerald-400" />
-              <span className="text-[10px] font-semibold text-emerald-400">
-                {availableCount}/{totalCount} disponibles
-              </span>
-            </div>
-          </div>
-        </div>
+      {/* ── COLUMNA DERECHA: Detalle de Productos (flex-1) ─────────── */}
+      <div className="flex-1 flex flex-col gap-3 bg-[#161B22] border border-[#30363D] rounded-xl p-4 min-w-0">
+        {currentCategory ? (
+          <>
+            {/* Cabecera de Categoría + Switch de Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#30363D]">
+              <div>
+                <span className="text-xs text-[#8B949E] font-semibold uppercase tracking-wider block">Categoría activa</span>
+                <h3 className="text-base font-bold text-[#E6EDF3] tracking-tight">{currentCategory.name}</h3>
+              </div>
 
-        {/* Search & Filter */}
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted/50" />
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-ivory placeholder:text-muted/50 text-xs focus:outline-none focus:border-rose/40 transition-all"
-            />
-          </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setFilterType("all")}
-              className={`px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                filterType === "all"
-                  ? "bg-rose/10 border border-rose/30 text-rose-300"
-                  : "bg-white/5 border border-white/10 text-muted hover:border-white/20"
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFilterType("drink")}
-              className={`px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                filterType === "drink"
-                  ? "bg-rose/10 border border-rose/30 text-rose-300"
-                  : "bg-white/5 border border-white/10 text-muted hover:border-white/20"
-              }`}
-            >
-              <Martini size={12} className="inline mr-1" />
-              Bebidas
-            </button>
-            <button
-              onClick={() => setFilterType("food")}
-              className={`px-3 py-2 rounded-lg text-[10px] font-semibold uppercase tracking-wider transition-all ${
-                filterType === "food"
-                  ? "bg-rose/10 border border-rose/30 text-rose-300"
-                  : "bg-white/5 border border-white/10 text-muted hover:border-white/20"
-              }`}
-            >
-              <Utensils size={12} className="inline mr-1" />
-              Comidas
-            </button>
-          </div>
-        </div>
-
-        {/* Product List */}
-        <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
-          {!selectedCategory ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-8 bg-white/[0.02] rounded-xl border border-dashed border-white/10">
-              <Layers size={24} className="text-muted/30" />
-              <p className="text-xs text-muted/50 font-semibold">
-                Selecciona una categoría para agregar productos
-              </p>
+              {/* Tabs: Asignados vs Catálogo Disponible */}
+              <div className="flex items-center bg-[#1C2333] border border-[#30363D] rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("assigned")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    activeTab === "assigned"
+                      ? "bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.30)] font-bold shadow-sm"
+                      : "text-[#8B949E] hover:text-[#E6EDF3]"
+                  }`}
+                >
+                  <Box size={13} />
+                  <span>En esta categoría ({currentCategory.products.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("available")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                    activeTab === "available"
+                      ? "bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.30)] font-bold shadow-sm"
+                      : "text-[#8B949E] hover:text-[#E6EDF3]"
+                  }`}
+                >
+                  <Plus size={13} />
+                  <span>Catálogo para agregar ({availableProducts.length})</span>
+                </button>
+              </div>
             </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 py-8 bg-white/[0.02] rounded-xl border border-dashed border-white/10">
-              <Filter size={24} className="text-muted/30" />
-              <p className="text-xs text-muted/50 font-semibold">
-                {searchQuery || filterType !== "all"
-                  ? "No se encontraron productos"
-                  : "Todos los productos han sido agregados"}
-              </p>
-            </div>
-          ) : (
-            filteredProducts.map((product) => (
-              <ProductMiniCard
-                key={product._id}
-                product={product}
-                onAdd={handleAddProduct}
-                isAdded={false}
-              />
-            ))
-          )}
-        </div>
 
-        {/* Footer Stats */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/5">
-          <span className="text-[10px] text-muted font-semibold">
-            {filteredProducts.length} productos disponibles
-          </span>
-          <span className="text-[10px] text-muted/50 font-semibold">
-            {addedProductIds.size} agregados
-          </span>
-        </div>
+            {/* CONTENIDO TAB 1: PRODUCTOS ASIGNADOS */}
+            {activeTab === "assigned" && (
+              <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-0.5">
+                {currentCategory.products.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+                    <div className="p-3 rounded-xl bg-[#1C2333] text-[#8B949E]">
+                      <Box size={28} />
+                    </div>
+                    <p className="text-xs font-semibold text-[#E6EDF3]">No hay productos asignados a "{currentCategory.name}"</p>
+                    <button
+                      onClick={() => setActiveTab("available")}
+                      className="text-xs text-[#F0B429] hover:underline font-bold mt-1"
+                    >
+                      + Abrir catálogo para sumar productos
+                    </button>
+                  </div>
+                ) : (
+                  currentCategory.products.map((p, idx) => {
+                    const productId = typeof p.product === "string" ? p.product : (p.product as any)?._id;
+                    const fullProduct = products.find((prod) => prod._id === productId) || (typeof p.product === "object" ? p.product : null);
+                    const isDrink = fullProduct?.type === "drink";
+
+                    return (
+                      <div
+                        key={productId || idx}
+                        className="flex items-center justify-between p-3 rounded-lg bg-[#1C2333] border border-[#30363D] hover:border-[#3D444D] transition-all gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#090E14] border border-[#30363D] shrink-0 flex items-center justify-center">
+                            {fullProduct?.image ? (
+                              <img src={fullProduct.image} alt={fullProduct.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className={isDrink ? "text-[#F0B429]" : "text-[#3FB950]"}>
+                                {isDrink ? <Martini size={16} /> : <Utensils size={16} />}
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-[#E6EDF3] truncate">
+                              {fullProduct?.name || "Producto desconocido"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5 text-xs text-[#8B949E]">
+                              <span className="font-bold text-[#F0B429]">
+                                ${(p.price || fullProduct?.price || 0).toLocaleString("es-AR")}
+                              </span>
+                              <span>·</span>
+                              <span>{fullProduct?.available ? "Disponible" : "Agotado"}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleRemoveProduct(productId!)}
+                          className="p-1.5 rounded-lg text-[#8B949E] hover:text-[#F85149] hover:bg-[rgba(248,81,73,0.12)] border border-transparent hover:border-[rgba(248,81,73,0.30)] transition-colors"
+                          title="Quitar de esta categoría"
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* CONTENIDO TAB 2: CATÁLOGO DISPONIBLE */}
+            {activeTab === "available" && (
+              <div className="flex-1 flex flex-col gap-3 min-h-0">
+                {/* Buscador y filtro de tipo */}
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" />
+                    <input
+                      type="text"
+                      placeholder="Buscar en el catálogo general…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-9 pl-8 pr-3 rounded-lg bg-[#1C2333] border border-[#30363D] text-xs text-[#E6EDF3] placeholder:text-[#8B949E]/50 focus:outline-none focus:border-[#F0B429] transition-colors"
+                    />
+                  </div>
+                  <div className="flex gap-1 bg-[#1C2333] border border-[#30363D] rounded-lg p-0.5">
+                    {[
+                      { id: "all", label: "Todos" },
+                      { id: "drink", label: "Bebidas" },
+                      { id: "food", label: "Comidas" },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setFilterType(f.id as any)}
+                        className={`px-2.5 py-1 rounded text-xs font-semibold transition-all ${
+                          filterType === f.id
+                            ? "bg-[#21283A] text-[#F0B429] font-bold"
+                            : "text-[#8B949E] hover:text-[#E6EDF3]"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Lista de productos disponibles para sumar */}
+                <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-0.5">
+                  {availableProducts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-14 text-center gap-2">
+                      <CheckCircle size={28} className="text-[#3FB950]" />
+                      <p className="text-xs font-semibold text-[#E6EDF3]">
+                        {searchQuery ? "Sin resultados para la búsqueda" : "Todos los productos del catálogo han sido agregados a esta categoría"}
+                      </p>
+                    </div>
+                  ) : (
+                    availableProducts.map((prod) => (
+                      <ProductMiniCard
+                        key={prod._id}
+                        product={prod}
+                        onAdd={handleAddProduct}
+                        isAdded={false}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-2 text-[#8B949E]">
+            <Layers size={36} />
+            <p className="text-sm font-semibold text-[#E6EDF3]">Selecciona una categoría a la izquierda</p>
+            <p className="text-xs">Para ver y agregar productos a la carta digital.</p>
+          </div>
+        )}
       </div>
     </div>
   );

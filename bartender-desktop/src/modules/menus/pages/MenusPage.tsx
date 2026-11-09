@@ -11,7 +11,9 @@ import {
   Eye,
   Settings,
   Save,
-  HelpCircle
+  HelpCircle,
+  Box,
+  FileText,
 } from "lucide-react";
 
 import MenuTutorial from "../components/tutorial/MenuTutorial";
@@ -186,10 +188,18 @@ export default function MenusPage() {
   const stats = useMemo(() => {
     const total = menus.length;
     const active = menus.filter((m) => m.active).length;
-    const products = menus.reduce((acc, m) => acc + (m.categories?.reduce((a, c) => a + (c.products?.length || 0), 0) || 0), 0);
-    const avgProducts = total > 0 ? (products / total).toFixed(1) : "0";
+    const activeMenu = menus.find((m) => m.active);
+    const totalProducts = menus.reduce((acc, m) => acc + (m.categories?.reduce((a, c) => a + (c.products?.length || 0), 0) || 0), 0);
+    const productsWithRecipes = menus.reduce((acc, m) => acc + (m.categories?.reduce((a, c) => a + (c.products?.filter(p => p.hasRecipe)?.length || 0), 0) || 0), 0);
+    const recipeCoverage = totalProducts > 0 ? Math.round((productsWithRecipes / totalProducts) * 100) : 0;
 
-    return { total, active, products, avgProducts };
+    return {
+      total,
+      active,
+      activeMenuName: activeMenu?.name || "Sin activa",
+      totalProducts,
+      recipeCoverage,
+    };
   }, [menus]);
 
   const handleCreateNewMenu = async () => {
@@ -351,7 +361,7 @@ export default function MenusPage() {
   };
 
   return (
-    <div className="nebula-dashboard-root flex flex-col h-full gap-6 animate-fade-in-up-fusion relative">
+    <div className="flex flex-col gap-4 min-h-0 h-full overflow-hidden bg-[#0D1117]">
       <MenuTutorial
         isOpen={tutorialOpen}
         onClose={() => closeTutorial()}
@@ -364,10 +374,6 @@ export default function MenusPage() {
         mode="builder"
         initialStep={builderTutorialStep}
       />
-
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="nebula-aurora" />
-      </div>
 
       {/* HEADER SECTION */}
       <MenusHeader
@@ -413,16 +419,35 @@ export default function MenusPage() {
         />
       )}
 
-      {/* KPI DASHBOARD */}
-      <div className={`grid gap-4 ${mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-4'}`}>
-        <KPIBox label="Cartas Totales" value={stats.total} icon={<Layers size={18} />} color="violet" />
-        <KPIBox label="Activas" value={stats.active} icon={<CheckCircle size={18} />} color="cyan" />
-        {mode === 'advanced' && (
-          <>
-            <KPIBox label="Productos" value={stats.products} icon={<Zap size={18} />} color="orange" />
-            <KPIBox label="Promedio/Carta" value={stats.avgProducts} icon={<Activity size={18} />} color="violet" />
-          </>
-        )}
+      {/* KPI DASHBOARD SLATE ELEGANTE v3.0 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+        <KPIBox
+          label="Cartas Totales"
+          value={stats.total}
+          icon={<Layers size={18} />}
+          variant="default"
+        />
+        <KPIBox
+          label="Carta Activa en Salón"
+          value={stats.activeMenuName}
+          icon={<CheckCircle size={18} />}
+          variant="green"
+          helperText={`${stats.active} activa${stats.active !== 1 ? 's' : ''}`}
+        />
+        <KPIBox
+          label="Total Ítems en Carta"
+          value={stats.totalProducts}
+          icon={<Box size={18} />}
+          variant="gold"
+          helperText="productos listados"
+        />
+        <KPIBox
+          label="Salud de Recetas"
+          value={`${stats.recipeCoverage}%`}
+          icon={<FileText size={18} />}
+          variant={stats.recipeCoverage >= 70 ? "green" : stats.recipeCoverage >= 30 ? "gold" : "blue"}
+          helperText="conectadas a stock"
+        />
       </div>
 
       {/* ADVANCED PANEL (mode only) */}
@@ -451,28 +476,28 @@ export default function MenusPage() {
 
       {/* MAIN GRID - BUILDER MODE */}
       {builderMode ? (
-        <div className="flex-1 overflow-hidden min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+        <div className="flex-1 overflow-hidden min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* LEFT PANEL - MENU LIST (3 columnas) */}
-          <div className="lg:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
-            <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
-              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
-                <div className="p-2 bg-rose/10 rounded-xl">
-                  <Layers size={18} className="text-rose-400" />
+          <div className="lg:col-span-3 overflow-y-auto pr-1 custom-scrollbar">
+            <div className="p-4 rounded-2xl bg-[#161B22] border border-[#30363D] h-full flex flex-col">
+              <div className="flex items-center gap-2 mb-3 pb-3 border-b border-[#30363D]">
+                <div className="p-2 bg-[rgba(240,180,41,0.12)] text-[#F0B429] rounded-xl">
+                  <Layers size={16} />
                 </div>
-                <h3 className="text-sm font-bold text-white">Cartas</h3>
-                <span className="text-xs font-semibold text-rose bg-rose/10 px-2 py-1 rounded-full ml-auto">
+                <h3 className="text-xs font-bold text-[#E6EDF3] uppercase tracking-wider">Cartas Registradas</h3>
+                <span className="text-xs font-bold text-[#F0B429] bg-[#21283A] border border-[#30363D] px-2 py-0.5 rounded-full ml-auto">
                   {filteredMenus.length}
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 {loading ? (
                   <div className="flex items-center justify-center py-10">
-                    <div className="w-8 h-8 rounded-xl border-2 border-rose-400/30 border-t-rose-300 animate-spin" />
+                    <div className="w-7 h-7 rounded-full border-2 border-[#F0B429]/30 border-t-[#F0B429] animate-spin" />
                   </div>
                 ) : filteredMenus.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center">
-                    <LayoutDashboard size={32} className="text-rose-300/40 mb-2" />
-                    <p className="text-muted text-xs">No se encontraron cartas</p>
+                    <LayoutDashboard size={28} className="text-[#8B949E] mb-2" />
+                    <p className="text-[#8B949E] text-xs">No se encontraron cartas</p>
                   </div>
                 ) : (
                   filteredMenus.map((menu) => (
@@ -495,36 +520,35 @@ export default function MenusPage() {
           </div>
 
           {/* MIDDLE PANEL - MENU BUILDER (6 columnas) */}
-          <div className="lg:col-span-6 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="lg:col-span-6 overflow-y-auto pr-1 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
-              <div className="nebula-discounts-panel p-4 rounded-3xl h-full">
+              <div className="space-y-4">
                 {/* Panel Selector Tabs */}
-                <div className="flex items-center gap-2 p-1.5 bg-surface-3 rounded-2xl mb-6 border border-white/5">
+                <div className="flex items-center gap-1.5 p-1.5 bg-[#161B22] rounded-2xl border border-[#30363D]">
                   {[
-                    { id: "identity" as const, label: "Identidad", icon: <Target size={14} />, color: "violet" },
-                    { id: "config" as const, label: "Configuración", icon: <Settings size={14} />, color: "cyan" },
-                    { id: "categories" as const, label: "Categorías", icon: <Layers size={14} />, color: "gold" },
-                    { id: "preview" as const, label: "Vista Previa", icon: <Eye size={14} />, color: "emerald" },
+                    { id: "categories" as const, label: "Categorías", icon: <Layers size={15} /> },
+                    { id: "identity" as const, label: "Identidad", icon: <Target size={15} /> },
+                    { id: "config" as const, label: "Configuración", icon: <Settings size={15} /> },
+                    { id: "preview" as const, label: "Vista Previa", icon: <Eye size={15} /> },
                   ].map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => {
                         setBuilderPanel(tab.id);
-                        // Auto-navigate tutorial when switching panels
                         const panelStepMap: Record<string, number> = {
+                          categories: 10,
                           identity: 2,
                           config: 6,
-                          categories: 10,
                           preview: 12,
                         };
                         if (builderTutorialOpen) {
                           setBuilderTutorialStep(panelStepMap[tab.id] || 0);
                         }
                       }}
-                      className={`flex-1 flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                         builderPanel === tab.id
-                          ? `bg-${tab.color}/20 text-${tab.color}-300 border border-${tab.color}/30 shadow-lg shadow-${tab.color}/10`
-                          : "text-muted hover:text-ivory hover:bg-white/5"
+                          ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40 shadow-sm"
+                          : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A]/40"
                       }`}
                     >
                       {tab.icon}
@@ -533,10 +557,10 @@ export default function MenusPage() {
                   ))}
                   <button
                     onClick={() => openBuilderTutorial(0)}
-                    className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-muted hover:text-ivory hover:bg-white/5"
+                    className="p-2.5 rounded-xl text-xs font-bold text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A]/40 transition-all border border-transparent hover:border-[#30363D]"
                     title="Tutorial del constructor"
                   >
-                    <HelpCircle size={14} />
+                    <HelpCircle size={15} />
                   </button>
                 </div>
 
@@ -583,47 +607,52 @@ export default function MenusPage() {
                 )}
               </div>
             ) : (
-              <div className="nebula-discounts-panel p-4 rounded-3xl h-full flex flex-col items-center justify-center text-center">
-                <LayoutDashboard size={48} className="text-rose-300/40 mb-4" />
-                <p className="text-muted text-sm">Selecciona una carta para editar</p>
+              <div className="p-8 rounded-2xl bg-[#161B22] border border-[#30363D] h-full flex flex-col items-center justify-center text-center">
+                <LayoutDashboard size={40} className="text-[#8B949E]/50 mb-3" />
+                <p className="text-xs font-semibold text-[#E6EDF3]">Selecciona una carta para comenzar a editar</p>
+                <p className="text-xs text-[#8B949E] mt-1">Elige del listado de la izquierda o crea una nueva</p>
               </div>
             )}
           </div>
 
           {/* RIGHT PANEL - PREVIEW & SUMMARY (3 columnas) */}
-          <div className="lg:col-span-3 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="lg:col-span-3 overflow-y-auto pr-1 custom-scrollbar">
             {menuBuilder.selectedMenu ? (
               <div className="space-y-4">
-                {saveSuccess && (
-                  <div className="p-3 bg-emerald/10 border border-emerald/30 rounded-xl flex items-center gap-2">
-                    <CheckCircle size={16} className="text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-300">Menú guardado exitosamente</span>
-                  </div>
-                )}
-                <MenuAvailabilitySummary menu={menuBuilder.selectedMenu} />
-                <MenuPreview menu={menuBuilder.selectedMenu} />
+                {/* Primary Sticky Save Button */}
                 <button
                   onClick={handleSaveMenu}
                   disabled={saving}
-                  className="w-full py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 bg-[#F0B429] hover:bg-[#D99B16] text-[#0D1117] rounded-xl font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm shadow-[#F0B429]/20"
                 >
                   {saving ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Guardando...
+                      <div className="w-4 h-4 border-2 border-[#0D1117]/30 border-t-[#0D1117] rounded-full animate-spin" />
+                      Guardando Cambios...
                     </>
                   ) : (
                     <>
-                      <Save size={16} />
-                      Guardar Menú
+                      <Save size={15} />
+                      Guardar Carta Digital
                     </>
                   )}
                 </button>
+
+                {saveSuccess && (
+                  <div className="p-3 bg-[rgba(63,185,80,0.12)] border border-[rgba(63,185,80,0.30)] rounded-xl flex items-center gap-2 animate-in fade-in">
+                    <CheckCircle size={15} className="text-[#3FB950]" />
+                    <span className="text-xs font-semibold text-[#3FB950]">Menú guardado exitosamente</span>
+                  </div>
+                )}
+
+                <MenuAvailabilitySummary menu={menuBuilder.selectedMenu} />
+                <MenuPreview menu={menuBuilder.selectedMenu} />
               </div>
             ) : (
-              <div className="nebula-discounts-panel p-4 rounded-3xl h-full flex flex-col items-center justify-center text-center">
-                <Eye size={48} className="text-rose-300/40 mb-4" />
-                <p className="text-muted text-sm">Selecciona una carta para ver el resumen</p>
+              <div className="p-8 rounded-2xl bg-[#161B22] border border-[#30363D] h-full flex flex-col items-center justify-center text-center">
+                <Eye size={40} className="text-[#8B949E]/50 mb-3" />
+                <p className="text-xs font-semibold text-[#E6EDF3]">Resumen y Vista Previa</p>
+                <p className="text-xs text-[#8B949E] mt-1">Selecciona una carta para ver sus métricas operativas</p>
               </div>
             )}
           </div>
@@ -658,21 +687,33 @@ export default function MenusPage() {
 /* =========================
    COMPONENTS
 ========================= */
-function KPIBox({ label, value, icon, color }: { label: string; value: number | string; icon: React.ReactNode; color: string }) {
-  const colorClasses = {
-    violet: "from-violet-500/20 to-violet-600/10 border-violet-400/20",
-    cyan: "from-cyan-500/20 to-cyan-600/10 border-cyan-400/20",
-    orange: "from-orange-500/20 to-orange-600/10 border-orange-400/20",
-  };
+function KPIBox({
+  label, value, icon, variant = "default", helperText,
+}: {
+  label: string;
+  value: number | string;
+  icon: React.ReactNode;
+  variant?: "default" | "green" | "gold" | "blue";
+  helperText?: string;
+}) {
+  const variantStyles = {
+    default: { text: "text-[#E6EDF3]", iconBg: "bg-[#21283A] text-[#8B949E]", border: "border-[#30363D]" },
+    green:   { text: "text-[#3FB950]", iconBg: "bg-[rgba(63,185,80,0.12)] text-[#3FB950]", border: "border-[rgba(63,185,80,0.30)]" },
+    gold:    { text: "text-[#F0B429]", iconBg: "bg-[rgba(240,180,41,0.12)] text-[#F0B429]", border: "border-[rgba(240,180,41,0.30)]" },
+    blue:    { text: "text-[#388BFD]", iconBg: "bg-[rgba(56,139,253,0.12)] text-[#388BFD]", border: "border-[#30363D]" },
+  }[variant];
 
   return (
-    <div className={`nebula-panel p-4 flex items-center gap-4 ${colorClasses[color as keyof typeof colorClasses]}`}>
-      <div className="p-2.5 rounded-lg bg-white/5">
-        {icon}
+    <div className={`p-4 rounded-xl border ${variantStyles.border} bg-[#161B22] flex items-center justify-between gap-3 shadow-sm transition-all hover:border-[#3D444D]`}>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <p className={`text-2xl font-black ${variantStyles.text} tracking-tight truncate`}>{value}</p>
+          {helperText && <span className="text-xs text-[#8B949E] shrink-0">{helperText}</span>}
+        </div>
       </div>
-      <div className="flex-1">
-        <p className="text-xs text-muted mb-1">{label}</p>
-        <p className="text-2xl font-bold text-ivory">{value}</p>
+      <div className={`p-2.5 rounded-xl ${variantStyles.iconBg} shrink-0`}>
+        {icon}
       </div>
     </div>
   );

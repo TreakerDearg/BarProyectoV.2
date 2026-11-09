@@ -1,7 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Martini, Utensils, Layers, Copy, Check, Plus, Coffee, Sun, Clock, Star, Edit2, Eye } from "lucide-react";
+import {
+  Martini,
+  Utensils,
+  Layers,
+  Copy,
+  Check,
+  Plus,
+  Coffee,
+  Sun,
+  Clock,
+  Star,
+  X,
+  Sparkles,
+  ArrowRight,
+  Loader2,
+} from "lucide-react";
 import type { Menu } from "../../../types/menu";
 import { createMenu } from "../../../services/menuService";
 
@@ -11,392 +26,370 @@ interface Props {
   onCreateEmpty?: () => void;
 }
 
-const TEMPLATES = [
+interface TemplateDef {
+  id: string;
+  name: string;
+  badge: string;
+  icon: React.ReactNode;
+  description: string;
+  type: "drink" | "food" | "mixed";
+  categories: { name: string; products: any[] }[];
+}
+
+const TEMPLATES: TemplateDef[] = [
   {
     id: "drinks",
-    name: "Carta de Bebidas",
-    icon: <Martini size={20} />,
-    description: "Plantilla para bares y coctelería",
-    type: "drink" as const,
+    name: "Coctelería & Bar",
+    badge: "Mixología",
+    icon: <Martini size={18} className="text-[#F0B429]" />,
+    description: "Diseñada para bares, coctelerías y lounges de autor",
+    type: "drink",
     categories: [
       { name: "Cócteles Clásicos", products: [] },
       { name: "Cócteles de Autor", products: [] },
-      { name: "Vinos", products: [] },
-      { name: "Cervezas", products: [] },
-      { name: "Sin Alcohol", products: [] },
-    ]
+      { name: "Gin & Tonics", products: [] },
+      { name: "Cervezas & Vinos", products: [] },
+      { name: "Sin Alcohol & Mocktails", products: [] },
+    ],
   },
   {
     id: "food",
-    name: "Carta de Comida",
-    icon: <Utensils size={20} />,
-    description: "Plantilla para restaurantes",
-    type: "food" as const,
+    name: "Restó & Gastronomía",
+    badge: "Cocina",
+    icon: <Utensils size={18} className="text-[#3FB950]" />,
+    description: "Estructura completa para restaurantes y gastronomía",
+    type: "food",
     categories: [
-      { name: "Entradas", products: [] },
-      { name: "Platos Fuertes", products: [] },
+      { name: "Entradas & Tapas", products: [] },
+      { name: "Platos Principales", products: [] },
+      { name: "Guarniciones", products: [] },
       { name: "Postres", products: [] },
-      { name: "Bebidas", products: [] },
-    ]
+    ],
   },
   {
     id: "mixed",
-    name: "Carta Mixta",
-    icon: <Layers size={20} />,
-    description: "Plantilla para bares con comida",
-    type: "mixed" as const,
+    name: "Bar & Tapas (Mixta)",
+    badge: "Integral",
+    icon: <Layers size={18} className="text-[#388BFD]" />,
+    description: "El formato más versátil: tragos de barra y cocina para picar",
+    type: "mixed",
     categories: [
-      { name: "Cócteles", products: [] },
-      { name: "Tapas", products: [] },
-      { name: "Platos Fuertes", products: [] },
-      { name: "Postres", products: [] },
-    ]
-  },
-  {
-    id: "brunch",
-    name: "Brunch",
-    icon: <Coffee size={20} />,
-    description: "Plantilla para cafeterías y brunch",
-    type: "food" as const,
-    categories: [
-      { name: "Cafés y Tés", products: [] },
-      { name: "Desayunos", products: [] },
-      { name: "Brunch", products: [] },
-      { name: "Postres", products: [] },
-    ]
+      { name: "Tragos de Autor", products: [] },
+      { name: "Para Picar & Tablas", products: [] },
+      { name: "Platos al Paso", products: [] },
+      { name: "Cervezas Tiradas", products: [] },
+    ],
   },
   {
     id: "happy-hour",
-    name: "Happy Hour",
-    icon: <Sun size={20} />,
-    description: "Plantilla para happy hour y promociones",
-    type: "drink" as const,
+    name: "Happy Hour Express",
+    badge: "Promos",
+    icon: <Sun size={18} className="text-[#F0B429]" />,
+    description: "Carta promocional para franja horaria especial",
+    type: "drink",
     categories: [
-      { name: "2x1 Cócteles", products: [] },
-      { name: "Promociones", products: [] },
-      { name: "Snacks", products: [] },
-      { name: "Cervezas", products: [] },
-    ]
+      { name: "Tragos 2x1", products: [] },
+      { name: "Pintas Promocionales", products: [] },
+      { name: "Snacks Rápidos", products: [] },
+    ],
+  },
+  {
+    id: "brunch",
+    name: "Brunch & Cafetería",
+    badge: "Día",
+    icon: <Coffee size={18} className="text-[#FF7B54]" />,
+    description: "Cafetería de especialidad, pastelería y tostadas",
+    type: "food",
+    categories: [
+      { name: "Cafetería de Especialidad", products: [] },
+      { name: "Tostadas & Huevos", products: [] },
+      { name: "Pastelería Artesanal", products: [] },
+      { name: "Jugos Naturales", products: [] },
+    ],
   },
   {
     id: "late-night",
-    name: "Late Night",
-    icon: <Clock size={20} />,
-    description: "Plantilla para servicio nocturno",
-    type: "mixed" as const,
+    name: "Late Night & Boliche",
+    badge: "Noche",
+    icon: <Clock size={18} className="text-[#E6EDF3]" />,
+    description: "Carta nocturna ágil para alta rotación y eventos",
+    type: "mixed",
     categories: [
-      { name: "Cócteles Nocturnos", products: [] },
-      { name: "Comida Tardía", products: [] },
-      { name: "Shots", products: [] },
-    ]
+      { name: "Shots & Chupitos", products: [] },
+      { name: "Jarras & Baldes", products: [] },
+      { name: "Comida Nocturna", products: [] },
+    ],
   },
 ];
 
 export default function MenuTemplates({ onMenuCreated, onCancel, onCreateEmpty }: Props) {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [creationMode, setCreationMode] = useState<"template" | "blank">("template");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("drinks");
+  const [menuName, setMenuName] = useState<string>("");
+  const [menuType, setMenuType] = useState<"drink" | "food" | "mixed">("mixed");
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
-  const [favorites, setFavorites] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('favorite_templates');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
 
-  const toggleFavorite = (templateId: string) => {
-    const newFavorites = new Set(favorites);
-    if (newFavorites.has(templateId)) {
-      newFavorites.delete(templateId);
-    } else {
-      newFavorites.add(templateId);
-    }
-    setFavorites(newFavorites);
-    localStorage.setItem('favorite_templates', JSON.stringify([...newFavorites]));
-  };
+  const selectedTemplate = TEMPLATES.find((t) => t.id === selectedTemplateId) || TEMPLATES[0];
 
-  const handleUseTemplate = async (templateId: string) => {
-    const template = TEMPLATES.find(t => t.id === templateId);
-    if (!template) return;
-
+  const handleCreate = async () => {
     try {
       setCreating(true);
-      const newMenu = await createMenu({
-        name: customName || template.name,
-        description: template.description,
-        type: template.type,
-        active: true,
-        categories: template.categories,
-      }, { allowEmptyCategories: true });
+
+      const isBlank = creationMode === "blank";
+      const finalName = menuName.trim() || (isBlank ? "Nueva Carta Digital" : selectedTemplate.name);
+      const finalType = isBlank ? menuType : selectedTemplate.type;
+      const finalCategories = isBlank ? [] : selectedTemplate.categories;
+      const finalDescription = isBlank
+        ? "Carta digital personalizada para el salón."
+        : selectedTemplate.description;
+
+      const newMenu = await createMenu(
+        {
+          name: finalName,
+          description: finalDescription,
+          type: finalType,
+          active: true,
+          categories: finalCategories,
+        },
+        { allowEmptyCategories: true }
+      );
+
       setCreated(true);
       setTimeout(() => {
         onMenuCreated(newMenu);
-      }, 500);
-    } catch (err) {
-      console.error("Error creating menu from template", err);
-      alert("Error al crear la carta: " + (err as Error).message);
+      }, 400);
+    } catch (err: any) {
+      console.error("Error creating menu", err);
+      alert("Error al crear la carta: " + (err?.message || "Ocurrió un error inesperado"));
     } finally {
       setCreating(false);
     }
   };
 
-  const selectedTemplateData = TEMPLATES.find(t => t.id === selectedTemplate);
-
   if (created) {
     return (
-      <div className="nebula-discounts-panel p-6 rounded-3xl text-center">
-        <div className="p-4 bg-emerald/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-          <Check size={32} className="text-emerald-400" />
+      <div className="bg-[#161B22] border border-[#30363D] p-8 rounded-2xl text-center max-w-md w-full shadow-2xl">
+        <div className="p-3.5 bg-[rgba(63,185,80,0.15)] rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3 text-[#3FB950] border border-[rgba(63,185,80,0.30)]">
+          <Check size={28} />
         </div>
-        <h3 className="text-lg font-bold text-ivory mb-2">¡Carta Creada!</h3>
-        <p className="text-sm text-muted">Tu nueva carta está lista para personalizar</p>
+        <h3 className="text-base font-bold text-[#E6EDF3] mb-1">¡Carta Creada con Éxito!</h3>
+        <p className="text-xs text-[#8B949E]">Abriendo el Studio de diseño para configurar productos…</p>
       </div>
     );
   }
 
   return (
-    <div className="nebula-discounts-panel p-6 rounded-3xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-[#161B22] border border-[#30363D] p-6 rounded-2xl max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-5">
+      {/* ── Header del Asistente ──────────────────────────────────── */}
+      <div className="flex items-center justify-between pb-4 border-b border-[#30363D] shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-violet/10 rounded-xl">
-            <Layers size={20} className="text-violet-400" />
+          <div className="p-2.5 bg-[rgba(240,180,41,0.12)] text-[#F0B429] rounded-xl border border-[rgba(240,180,41,0.25)]">
+            <Layers size={20} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Crear Nueva Carta</h3>
-            <p className="text-xs text-muted">Elige cómo comenzar</p>
+            <h3 className="text-base font-bold text-[#E6EDF3] tracking-tight">Crear Nueva Carta Digital</h3>
+            <p className="text-xs text-[#8B949E]">Selecciona cómo deseas estructurar tu menú</p>
           </div>
         </div>
         <button
           onClick={onCancel}
-          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-white transition-colors"
+          className="p-2 text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2333] rounded-lg transition-colors"
+          title="Cerrar"
         >
-          ✕
+          <X size={18} />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <button
-          onClick={onCreateEmpty}
-          className="p-6 rounded-2xl border border-dashed border-violet/40 bg-violet/5 hover:bg-violet/10 transition-all text-left"
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 rounded-xl bg-violet/20">
-              <Plus size={20} className="text-violet-300" />
+      {/* ── Paso 1: Elegir punto de partida ────────────────────────── */}
+      <div>
+        <p className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2.5">
+          1. Punto de partida
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Opción Plantilla */}
+          <button
+            type="button"
+            onClick={() => setCreationMode("template")}
+            className={`p-4 rounded-xl border text-left transition-all flex items-start gap-3 ${
+              creationMode === "template"
+                ? "bg-[#1C2333] border-[#F0B429] shadow-sm ring-1 ring-[#F0B429]/30"
+                : "bg-[#161B22] border-[#30363D] hover:border-[#3D444D]"
+            }`}
+          >
+            <div className={`p-2 rounded-lg shrink-0 ${
+              creationMode === "template"
+                ? "bg-[rgba(240,180,41,0.15)] text-[#F0B429]"
+                : "bg-[#21283A] text-[#8B949E]"
+            }`}>
+              <Copy size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-ivory">Crear desde Cero</h4>
-              <p className="text-[10px] text-muted">Menú vacío para personalizar</p>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-[#E6EDF3]">Usar Plantilla Curada</h4>
+                <span className="text-xs font-bold px-1.5 py-0.2 rounded bg-[rgba(240,180,41,0.15)] text-[#F0B429]">
+                  Recomendado
+                </span>
+              </div>
+              <p className="text-xs text-[#8B949E] mt-1 leading-relaxed">
+                Categorías prediseñadas según tu modelo de bar o restaurante.
+              </p>
             </div>
-          </div>
-          <p className="text-[10px] text-muted/70">Empieza con una carta en blanco y añade tus categorías y productos</p>
-        </button>
+          </button>
 
-        <button
-          onClick={() => setSelectedTemplate("custom")}
-          className={`p-6 rounded-2xl border transition-all text-left ${
-            selectedTemplate === "custom" 
-              ? 'bg-violet/10 border-violet/40' 
-              : 'bg-white/5 border-white/10 hover:border-violet/30 hover:bg-white/10'
-          }`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-3 rounded-xl ${selectedTemplate === "custom" ? 'bg-violet/20' : 'bg-white/10'}`}>
-              <Copy size={20} className="text-violet-300" />
+          {/* Opción En Blanco */}
+          <button
+            type="button"
+            onClick={() => setCreationMode("blank")}
+            className={`p-4 rounded-xl border text-left transition-all flex items-start gap-3 ${
+              creationMode === "blank"
+                ? "bg-[#1C2333] border-[#F0B429] shadow-sm ring-1 ring-[#F0B429]/30"
+                : "bg-[#161B22] border-[#30363D] hover:border-[#3D444D]"
+            }`}
+          >
+            <div className={`p-2 rounded-lg shrink-0 ${
+              creationMode === "blank"
+                ? "bg-[rgba(240,180,41,0.15)] text-[#F0B429]"
+                : "bg-[#21283A] text-[#8B949E]"
+            }`}>
+              <Plus size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-ivory">Usar Plantilla</h4>
-              <p className="text-[10px] text-muted">Estructura predefinida</p>
+              <h4 className="text-xs font-bold text-[#E6EDF3]">Carta en Blanco (Desde Cero)</h4>
+              <p className="text-xs text-[#8B949E] mt-1 leading-relaxed">
+                Empieza con una carta limpia y define cada categoría a medida.
+              </p>
             </div>
-          </div>
-          <p className="text-[10px] text-muted/70">Elige una plantilla con categorías ya configuradas</p>
-        </button>
+          </button>
+        </div>
       </div>
 
-      {/* Favorites Section */}
-      {favorites.size > 0 && (
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 flex items-center gap-2">
-            <Star size={12} className="text-gold" />
-            Favoritos
+      {/* ── Catálogo de Plantillas (si está en modo plantilla) ──────── */}
+      {creationMode === "template" && (
+        <div>
+          <p className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2.5">
+            2. Selecciona la especialidad
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {TEMPLATES.filter(t => favorites.has(t.id)).map((template) => (
-              <button
-                key={template.id}
-                onClick={() => setSelectedTemplate(template.id)}
-                className={`p-3 rounded-xl border transition-all text-left ${
-                  selectedTemplate === template.id
-                    ? 'bg-gold/10 border-gold/40'
-                    : 'bg-white/5 border-white/10 hover:border-gold/30 hover:bg-white/10'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg ${selectedTemplate === template.id ? 'bg-gold/20' : 'bg-white/10'}`}>
-                    {template.icon}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {TEMPLATES.map((tmpl) => {
+              const isSelected = selectedTemplateId === tmpl.id;
+              return (
+                <div
+                  key={tmpl.id}
+                  onClick={() => {
+                    setSelectedTemplateId(tmpl.id);
+                    if (!menuName || TEMPLATES.some(t => t.name === menuName)) {
+                      setMenuName(tmpl.name);
+                    }
+                  }}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                    isSelected
+                      ? "bg-[#1C2333] border-[#F0B429] shadow-sm ring-1 ring-[#F0B429]/30"
+                      : "bg-[#161B22] border-[#30363D] hover:border-[#3D444D] hover:bg-[#1C2333]/60"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-1.5 rounded-lg bg-[#21283A]">
+                        {tmpl.icon}
+                      </div>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#21283A] text-[#8B949E]">
+                        {tmpl.badge}
+                      </span>
+                    </div>
+                    <h5 className="text-xs font-bold text-[#E6EDF3] leading-tight">{tmpl.name}</h5>
+                    <p className="text-xs text-[#8B949E] mt-1 line-clamp-2 leading-relaxed">
+                      {tmpl.description}
+                    </p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold text-ivory truncate">{template.name}</h4>
+
+                  <div className="pt-2 border-t border-[#30363D]/60 flex flex-wrap gap-1">
+                    {tmpl.categories.slice(0, 3).map((cat, idx) => (
+                      <span key={idx} className="text-xs px-1.5 py-0.2 rounded bg-[#21283A] text-[#8B949E]">
+                        {cat.name}
+                      </span>
+                    ))}
+                    {tmpl.categories.length > 3 && (
+                      <span className="text-xs text-[#8B949E]/70 self-center">
+                        +{tmpl.categories.length - 3}
+                      </span>
+                    )}
                   </div>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {selectedTemplate === "custom" && (
-        <>
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">Selecciona una plantilla</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {TEMPLATES.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => setSelectedTemplate(template.id)}
-                  className={`
-                    relative p-4 rounded-2xl border transition-all text-left
-                    ${selectedTemplate === template.id
-                      ? 'bg-violet/10 border-violet/40'
-                      : 'bg-white/5 border-white/10 hover:border-violet/30 hover:bg-white/10'
-                    }
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${selectedTemplate === template.id ? 'bg-violet/20' : 'bg-white/10'}`}>
-                        {template.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-ivory">{template.name}</h4>
-                        <p className="text-[10px] text-muted">{template.description}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(template.id);
-                      }}
-                      className={`p-1.5 rounded-lg transition-colors ${
-                        favorites.has(template.id) 
-                          ? 'text-gold hover:text-gold/80' 
-                          : 'text-muted/50 hover:text-muted'
-                      }`}
-                    >
-                      <Star size={14} fill={favorites.has(template.id) ? 'currentColor' : 'none'} />
-                    </button>
-                  </div>
-                  <div className="space-y-1">
-                    {template.categories.slice(0, 4).map((cat) => (
-                      <div key={cat.name} className="text-[10px] text-muted/70 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-violet/40" />
-                        {cat.name}
-                      </div>
-                    ))}
-                    {template.categories.length > 4 && (
-                      <div className="text-[10px] text-muted/50 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-violet/40" />
-                        +{template.categories.length - 4} más
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
+      {/* ── Personalización del Nombre y Tipo ──────────────────────── */}
+      <div className="p-4 bg-[#1C2333] border border-[#30363D] rounded-xl space-y-3">
+        <p className="text-xs font-bold text-[#E6EDF3] uppercase tracking-wider flex items-center gap-1.5">
+          <Sparkles size={14} className="text-[#F0B429]" />
+          <span>Configuración Inicial</span>
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div className="sm:col-span-8">
+            <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block mb-1">
+              Nombre de la Carta *
+            </label>
+            <input
+              type="text"
+              value={menuName}
+              onChange={(e) => setMenuName(e.target.value)}
+              placeholder={creationMode === "blank" ? "Ej: Carta Temporada Verano" : selectedTemplate.name}
+              className="w-full h-9 px-3 bg-[#161B22] border border-[#30363D] rounded-lg text-xs text-[#E6EDF3] placeholder:text-[#8B949E]/50 focus:outline-none focus:border-[#F0B429] transition-colors"
+            />
           </div>
 
-          {selectedTemplate && selectedTemplate !== "custom" && (
+          <div className="sm:col-span-4">
+            <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block mb-1">
+              Tipo de Servicio
+            </label>
+            <select
+              value={creationMode === "template" ? selectedTemplate.type : menuType}
+              onChange={(e) => setMenuType(e.target.value as any)}
+              disabled={creationMode === "template"}
+              className="w-full h-9 px-3 bg-[#161B22] border border-[#30363D] rounded-lg text-xs text-[#E6EDF3] focus:outline-none focus:border-[#F0B429] transition-colors disabled:opacity-60"
+            >
+              <option value="drink">Mixología / Bebidas</option>
+              <option value="food">Gastronomía / Platos</option>
+              <option value="mixed">Mixta (Tragos + Comida)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer de Acciones ─────────────────────────────────────── */}
+      <div className="pt-3 border-t border-[#30363D] flex items-center justify-between shrink-0">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-xs font-semibold text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2333] rounded-lg transition-colors"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          disabled={creating}
+          onClick={handleCreate}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#F0B429] hover:bg-[#F5C842] text-black font-extrabold text-xs uppercase tracking-wider rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {creating ? (
             <>
-              {/* Customization Section */}
-              <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                <div className="flex items-center gap-2 mb-3">
-                  <Edit2 size={14} className="text-violet-400" />
-                  <p className="text-xs font-semibold text-ivory uppercase tracking-wider">Personalizar</p>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-[10px] text-muted font-semibold uppercase tracking-wider mb-1.5 block">Nombre de la carta</label>
-                    <input
-                      type="text"
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value)}
-                      placeholder={selectedTemplateData?.name || "Nombre personalizado"}
-                      className="w-full px-3 py-2 bg-surface-3 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-violet/40 transition-all"
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="flex items-center gap-2 text-[10px] text-violet-400 hover:text-violet-300 font-semibold uppercase tracking-wider transition-colors"
-                  >
-                    <Eye size={12} />
-                    {showPreview ? 'Ocultar' : 'Ver'} Preview
-                  </button>
-                </div>
-              </div>
-
-              {/* Preview Section */}
-              {showPreview && selectedTemplateData && (
-                <div className="mb-4 p-4 bg-surface-3 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Eye size={14} className="text-cyan-400" />
-                    <p className="text-xs font-semibold text-ivory uppercase tracking-wider">Preview</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-violet/20">
-                        {selectedTemplateData.icon}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-ivory">{customName || selectedTemplateData.name}</h4>
-                        <p className="text-[10px] text-muted">{selectedTemplateData.description}</p>
-                      </div>
-                    </div>
-                    <div className="pt-2 border-t border-white/10">
-                      <p className="text-[10px] text-muted font-semibold uppercase tracking-wider mb-2">Categorías ({selectedTemplateData.categories.length})</p>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedTemplateData.categories.map((cat) => (
-                          <span key={cat.name} className="text-[10px] px-2 py-1 bg-violet/10 text-violet-300 rounded font-semibold">
-                            {cat.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleUseTemplate(selectedTemplate)}
-                  disabled={creating}
-                  className="flex-1 py-3 bg-violet-500 hover:bg-violet-600 text-white rounded-xl font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {creating ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creando...
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} />
-                      Crear Carta
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedTemplate("custom");
-                    setCustomName("");
-                    setShowPreview(false);
-                  }}
-                  disabled={creating}
-                  className="px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-              </div>
+              <Loader2 size={15} className="animate-spin" />
+              <span>Creando carta…</span>
+            </>
+          ) : (
+            <>
+              <span>Crear y Abrir en Menu Studio</span>
+              <ArrowRight size={15} />
             </>
           )}
-        </>
-      )}
+        </button>
+      </div>
     </div>
   );
 }

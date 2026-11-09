@@ -1,6 +1,6 @@
 "use client";
 
-import { Martini, CheckCircle, AlertTriangle, Plus } from "lucide-react";
+import { Martini, Utensils, CheckCircle, AlertTriangle, Plus, Check } from "lucide-react";
 import type { Product } from "../../../types/product";
 
 interface Props {
@@ -10,51 +10,69 @@ interface Props {
 }
 
 export default function ProductMiniCard({ product, onAdd, isAdded = false }: Props) {
+  const isDrink = product.type === "drink";
+
   return (
     <div
-      className={`
-        relative group p-3 rounded-xl border transition-all
-        ${isAdded
-          ? 'bg-emerald/10 border-emerald/30 opacity-50 cursor-not-allowed'
-          : 'bg-white/[0.02] border-white/5 hover:border-rose/30 hover:bg-white/5 cursor-pointer'
-        }
-      `}
       onClick={() => !isAdded && onAdd(product)}
+      className={`relative group p-2.5 rounded-lg border transition-all flex items-center justify-between gap-3 ${
+        isAdded
+          ? "bg-[#1C2333]/50 border-[#30363D] opacity-60 cursor-default"
+          : "bg-[#161B22] border-[#30363D] hover:border-[rgba(240,180,41,0.40)] hover:bg-[#1C2333] cursor-pointer"
+      }`}
     >
-      <div className="flex items-center gap-3">
-        {product.image ? (
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-3 flex-shrink-0">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Miniatura */}
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#090E14] border border-[#30363D] shrink-0 flex items-center justify-center">
+          {product.image ? (
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-surface-3 flex items-center justify-center flex-shrink-0">
-            <Martini size={14} className="text-muted/50" />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-ivory/90 truncate">{product.name}</p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] font-semibold text-gold">
-              $${(product.price ?? 0).toFixed(2)}
+          ) : (
+            <span className={isDrink ? "text-[#F0B429]/60" : "text-[#3FB950]/60"}>
+              {isDrink ? <Martini size={16} /> : <Utensils size={16} />}
+            </span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-[#E6EDF3] truncate" title={product.name}>
+            {product.name}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5 text-xs">
+            <span className="font-extrabold text-[#F0B429]">
+              ${(product.price ?? 0).toLocaleString("es-AR")}
+            </span>
+            <span className="text-[#8B949E]">·</span>
+            <span className="text-[#8B949E] capitalize truncate">
+              {product.category || "General"}
             </span>
             {product.available ? (
-              <CheckCircle size={10} className="text-emerald-400" />
+              <CheckCircle size={12} className="text-[#3FB950] shrink-0" title="Disponible" />
             ) : (
-              <AlertTriangle size={10} className="text-red-400" />
-            )}
-            {product.hasRecipe && (
-              <span className="text-[8px] px-1.5 py-0.5 rounded bg-violet/10 text-violet-300 font-semibold">
-                Receta
-              </span>
+              <AlertTriangle size={12} className="text-[#F85149] shrink-0" title="Agotado" />
             )}
           </div>
         </div>
-        {!isAdded && (
+      </div>
+
+      {/* Botón de acción */}
+      <div>
+        {isAdded ? (
+          <span className="flex items-center gap-1 text-xs font-semibold text-[#3FB950] px-2 py-1 rounded bg-[rgba(63,185,80,0.12)] border border-[rgba(63,185,80,0.25)]">
+            <Check size={12} />
+            Agregado
+          </span>
+        ) : (
           <button
-            onClick={(e) => { e.stopPropagation(); onAdd(product); }}
-            className="p-1.5 rounded-lg bg-rose/10 border border-rose/20 text-rose-400 hover:bg-rose/20 hover:border-rose/40 transition-all"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd(product);
+            }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[rgba(240,180,41,0.12)] hover:bg-[rgba(240,180,41,0.22)] border border-[rgba(240,180,41,0.30)] text-[#F0B429] text-xs font-bold transition-colors"
           >
-            <Plus size={12} />
+            <Plus size={13} />
+            <span>Agregar</span>
           </button>
         )}
       </div>

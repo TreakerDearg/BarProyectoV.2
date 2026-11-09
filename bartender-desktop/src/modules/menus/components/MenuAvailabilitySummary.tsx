@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, AlertTriangle, Layers, FileText, TrendingUp } from "lucide-react";
+import { CheckCircle, AlertTriangle, Layers, FileText, TrendingUp, Box } from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -17,121 +17,77 @@ export default function MenuAvailabilitySummary({ menu }: Props) {
     (sum, cat) => sum + cat.products.filter(p => p.hasRecipe).length,
     0
   ) || 0;
-  const productsWithMissingIngredients = menu.categories?.reduce(
-    (sum, cat) => sum + cat.products.filter(p => p.missingIngredients && p.missingIngredients.length > 0).length,
-    0
-  ) || 0;
 
   const availabilityPercentage = totalProducts > 0 ? (availableProducts / totalProducts) * 100 : 0;
   const recipePercentage = totalProducts > 0 ? (productsWithRecipe / totalProducts) * 100 : 0;
 
-  const statusColor = availabilityPercentage === 100 ? "emerald" : availabilityPercentage >= 50 ? "gold" : "red";
-
   return (
-    <div className="space-y-4">
+    <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 space-y-3.5 shadow-sm">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <TrendingUp size={14} className="text-rose-400" />
-        <h3 className="text-sm font-black text-ivory uppercase tracking-widest">Resumen de Disponibilidad</h3>
+      <div className="flex items-center gap-2 pb-2.5 border-b border-[#30363D]">
+        <div className="p-1.5 bg-[rgba(240,180,41,0.12)] text-[#F0B429] rounded-lg">
+          <TrendingUp size={15} />
+        </div>
+        <h3 className="text-xs font-bold text-[#E6EDF3] uppercase tracking-wider">
+          Salud Operativa de la Carta
+        </h3>
       </div>
 
-      {/* Main Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className={`p-4 rounded-xl border bg-${statusColor}/10 border-${statusColor}/30`}>
-          <div className="flex items-center gap-2 mb-2">
-            {availabilityPercentage === 100 ? (
-              <CheckCircle size={14} className={`text-${statusColor}-400`} />
-            ) : (
-              <AlertTriangle size={14} className={`text-${statusColor}-400`} />
-            )}
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted">
-              Disponibilidad
-            </span>
+      {/* Tarjetas Principales */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="p-3 rounded-lg border border-[rgba(63,185,80,0.30)] bg-[rgba(63,185,80,0.10)]">
+          <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-[#3FB950]">
+            <CheckCircle size={13} />
+            <span>Disponibilidad</span>
           </div>
-          <p className={`text-2xl font-black text-${statusColor}-400`}>
+          <p className="text-xl font-black text-[#3FB950]">
             {(availabilityPercentage ?? 0).toFixed(0)}%
           </p>
-          <p className="text-[10px] text-muted mt-1">
-            {availableProducts} de {totalProducts} productos
+          <p className="text-xs text-[#8B949E] mt-0.5">
+            {availableProducts} de {totalProducts} activos
           </p>
         </div>
 
-        <div className="p-4 rounded-xl border bg-violet/10 border-violet/30">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText size={14} className="text-violet-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted">
-              Con Receta
-            </span>
+        <div className="p-3 rounded-lg border border-[rgba(56,139,253,0.30)] bg-[rgba(56,139,253,0.10)]">
+          <div className="flex items-center gap-1.5 mb-1 text-xs font-semibold text-[#388BFD]">
+            <FileText size={13} />
+            <span>Con Receta</span>
           </div>
-          <p className="text-2xl font-black text-violet-400">
+          <p className="text-xl font-black text-[#388BFD]">
             {(recipePercentage ?? 0).toFixed(0)}%
           </p>
-          <p className="text-[10px] text-muted mt-1">
-            {productsWithRecipe} de {totalProducts} productos
+          <p className="text-xs text-[#8B949E] mt-0.5">
+            {productsWithRecipe} de {totalProducts} con stock
           </p>
         </div>
       </div>
 
-      {/* Detailed Breakdown */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-          <div className="flex items-center gap-2">
-            <Layers size={12} className="text-rose-400" />
-            <span className="text-[10px] font-semibold text-muted">Categorías</span>
+      {/* Desglose Rápido */}
+      <div className="space-y-1.5 text-xs">
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#1C2333] border border-[#30363D]">
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <Layers size={13} className="text-[#F0B429]" />
+            <span>Categorías activas</span>
           </div>
-          <span className="text-[10px] font-black text-ivory">{menu.categories?.length || 0}</span>
+          <span className="font-bold text-[#E6EDF3]">{menu.categories?.length || 0}</span>
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-          <div className="flex items-center gap-2">
-            <FileText size={12} className="text-gold" />
-            <span className="text-[10px] font-semibold text-muted">Total Productos</span>
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#1C2333] border border-[#30363D]">
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <Box size={13} className="text-[#3FB950]" />
+            <span>Total productos listados</span>
           </div>
-          <span className="text-[10px] font-black text-ivory">{totalProducts}</span>
+          <span className="font-bold text-[#E6EDF3]">{totalProducts}</span>
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5">
-          <div className="flex items-center gap-2">
-            <CheckCircle size={12} className="text-emerald-400" />
-            <span className="text-[10px] font-semibold text-muted">Disponibles</span>
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#1C2333] border border-[#30363D]">
+          <div className="flex items-center gap-2 text-[#8B949E]">
+            <CheckCircle size={13} className="text-[#3FB950]" />
+            <span>Disponibles en barra/cocina</span>
           </div>
-          <span className="text-[10px] font-black text-emerald-400">{availableProducts}</span>
+          <span className="font-bold text-[#3FB950]">{availableProducts}</span>
         </div>
-
-        {productsWithMissingIngredients > 0 && (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-red/5 border border-red/10">
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={12} className="text-red-400" />
-              <span className="text-[10px] font-semibold text-red-300">Faltan Ingredientes</span>
-            </div>
-            <span className="text-[10px] font-black text-red-400">{productsWithMissingIngredients}</span>
-          </div>
-        )}
       </div>
-
-      {/* Status Message */}
-      {availabilityPercentage === 100 ? (
-        <div className="p-3 rounded-xl bg-emerald/10 border border-emerald/30 flex items-center gap-2">
-          <CheckCircle size={14} className="text-emerald-400" />
-          <span className="text-[10px] font-semibold text-emerald-300">
-            Todos los productos están disponibles
-          </span>
-        </div>
-      ) : availabilityPercentage >= 50 ? (
-        <div className="p-3 rounded-xl bg-gold/10 border border-gold/30 flex items-center gap-2">
-          <AlertTriangle size={14} className="text-gold-400" />
-          <span className="text-[10px] font-semibold text-gold-300">
-            Algunos productos no están disponibles
-          </span>
-        </div>
-      ) : (
-        <div className="p-3 rounded-xl bg-red/10 border border-red/30 flex items-center gap-2">
-          <AlertTriangle size={14} className="text-red-400" />
-          <span className="text-[10px] font-semibold text-red-300">
-            La mayoría de productos no están disponibles
-          </span>
-        </div>
-      )}
     </div>
   );
 }

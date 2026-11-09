@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Layers, CheckCircle, Edit2, Trash2, Copy, FileText, Martini, Utensils, Star, Eye, Image as ImageIcon, Loader2, AlertTriangle, Clock, TrendingUp } from "lucide-react";
+import {
+  Layers,
+  CheckCircle,
+  XCircle,
+  Edit2,
+  Trash2,
+  Copy,
+  FileText,
+  Martini,
+  Utensils,
+  Star,
+  Image as ImageIcon,
+  Loader2,
+  Box,
+} from "lucide-react";
 import type { Menu } from "../../../types/menu";
 
 interface Props {
@@ -28,234 +42,128 @@ export default function MenuBuilderCard({
   const isPublic = menu.isPublic;
   const featured = menu.featured;
 
-  // Calculate completion progress
-  const hasName = !!menu.name;
-  const hasImage = !!menu.image;
-  const hasCategories = totalCategories > 0;
-  const hasProducts = totalProducts > 0;
-  const completionScore = [hasName, hasImage, hasCategories, hasProducts].filter(Boolean).length;
-  const completionPercent = (completionScore / 4) * 100;
-
-  // Calculate products with recipes
-  const productsWithRecipes = menu.categories?.reduce((acc, cat) => {
-    return acc + (cat.products?.filter(p => p.hasRecipe).length || 0);
-  }, 0) || 0;
-  const recipeCompletion = totalProducts > 0 ? (productsWithRecipes / totalProducts) * 100 : 0;
-
-  // Image loading states
   const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError]     = useState(false);
 
-  // Get type icon
   const getTypeIcon = () => {
     switch (menu.type) {
       case 'drink':
-        return <Martini size={10} className="text-cyan-400" />;
+        return <Martini size={11} className="text-[#F0B429]" />;
       case 'food':
-        return <Utensils size={10} className="text-gold" />;
+        return <Utensils size={11} className="text-[#3FB950]" />;
       case 'mixed':
       default:
-        return <Layers size={10} className="text-violet-400" />;
+        return <Layers size={11} className="text-[#388BFD]" />;
     }
   };
 
   return (
     <div
       onClick={() => onSelect(menu)}
-      className={`
-        relative group cursor-pointer
-        rounded-2xl p-4 space-y-3
-        border transition-all duration-300
-        ${selected
-          ? 'bg-rose/10 border-rose/40 shadow-rose/20'
-          : 'bg-surface-2 border-white/5 hover:border-rose/30 hover:translate-x-1'
-        }
-      `}
+      className={`relative group cursor-pointer rounded-xl p-3 space-y-2.5 border transition-all duration-200 ${
+        selected
+          ? "bg-[#21283A] border-[#F0B429] shadow-sm ring-1 ring-[#F0B429]/30"
+          : "bg-[#1C2333] border-[#30363D] hover:border-[#3D444D]"
+      }`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            {menu.image && !imageError ? (
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-3 border border-white/5 flex-shrink-0 relative">
-                {imageLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-surface-3">
-                    <Loader2 size={14} className="text-rose-400/50 animate-spin" />
-                  </div>
-                )}
-                <img
-                  src={menu.image}
-                  alt={menu.name}
-                  className="w-full h-full object-cover"
-                  onLoad={() => setImageLoading(false)}
-                  onError={() => {
-                    setImageLoading(false);
-                    setImageError(true);
-                  }}
-                />
-                {menu.imagePublicId && (
-                  <div className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full border border-surface-3" title="Sincronizado con Cloudinary" />
-                )}
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-surface-3 to-surface-2 border border-white/5 flex-shrink-0 flex items-center justify-center">
-                <ImageIcon size={16} className="text-muted/40" />
-              </div>
-            )}
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <h3 className="text-sm font-black text-ivory tracking-tight uppercase truncate">
+      <div className="flex items-start justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {menu.image && !imageError ? (
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#090E14] border border-[#30363D] shrink-0 relative">
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#161B22]">
+                  <Loader2 size={13} className="text-[#F0B429] animate-spin" />
+                </div>
+              )}
+              <img
+                src={menu.image}
+                alt={menu.name}
+                className="w-full h-full object-cover"
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageLoading(false);
+                  setImageError(true);
+                }}
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-[#090E14] border border-[#30363D] shrink-0 flex items-center justify-center">
+              <ImageIcon size={16} className="text-[#8B949E]/40" />
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-[#E6EDF3] truncate" title={menu.name}>
                 {menu.name}
-              </h3>
-              <div className="flex items-center gap-1">
-                {menu.active && (
-                  <CheckCircle size={10} className="text-emerald-400 flex-shrink-0" />
-                )}
-                {isPublic && (
-                  <Eye size={10} className="text-cyan-400 flex-shrink-0" />
-                )}
-                {featured && (
-                  <Star size={10} className="text-gold-400 flex-shrink-0" />
-                )}
-                {menu.gallery && menu.gallery.length > 0 && (
-                  <div className="flex items-center gap-0.5 bg-violet/10 px-1.5 py-0.5 rounded-full">
-                    <ImageIcon size={8} className="text-violet-400" />
-                    <span className="text-[8px] font-semibold text-violet-300">{menu.gallery.length}</span>
-                  </div>
-                )}
-              </div>
+              </h4>
+              {menu.active ? (
+                <CheckCircle size={12} className="text-[#3FB950] shrink-0" title="Activa en salón" />
+              ) : (
+                <XCircle size={12} className="text-[#F85149] shrink-0" title="Inactiva" />
+              )}
+              {featured && (
+                <Star size={11} className="text-[#F0B429] fill-[#F0B429] shrink-0" />
+              )}
             </div>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[8px] font-semibold uppercase tracking-wider">
-              {getTypeIcon()}
-              <span>{menu.type || 'mixed'}</span>
+
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="flex items-center gap-1 text-xs text-[#8B949E] capitalize">
+                {getTypeIcon()}
+                <span>{menu.type || "mixta"}</span>
+              </span>
             </div>
-            {menu.description && (
-              <p className="text-[10px] text-muted/70 line-clamp-1">{menu.description}</p>
-            )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+
+        {/* Acciones */}
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={(e) => { e.stopPropagation(); onEdit(menu); }}
-            className="p-2 rounded-lg bg-white/5 border border-white/10 text-muted hover:text-ivory hover:bg-white/10 transition-all"
+            onClick={() => onEdit(menu)}
+            className="p-1.5 rounded-md text-[#8B949E] hover:text-[#F0B429] hover:bg-[#161B22] transition-colors"
+            title="Editar carta"
           >
-            <Edit2 size={12} />
+            <Edit2 size={13} />
           </button>
           {onDuplicate && (
             <button
-              onClick={(e) => { e.stopPropagation(); onDuplicate(menu); }}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-muted hover:text-ivory hover:bg-white/10 transition-all"
+              onClick={() => onDuplicate(menu)}
+              className="p-1.5 rounded-md text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22] transition-colors"
+              title="Duplicar carta"
             >
-              <Copy size={12} />
+              <Copy size={13} />
             </button>
           )}
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(menu._id!); }}
-            className="p-2 rounded-lg bg-red/5 border border-red/10 text-red/40 hover:text-red hover:bg-red/20 transition-all"
+            onClick={() => {
+              if (confirm(`¿Eliminar carta "${menu.name}"?`)) onDelete(menu._id!);
+            }}
+            className="p-1.5 rounded-md text-[#8B949E] hover:text-[#F85149] hover:bg-[rgba(248,81,73,0.12)] transition-colors"
+            title="Eliminar carta"
           >
-            <Trash2 size={12} />
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-3 pt-2 border-t border-white/5 flex-wrap">
-        <div className="flex items-center gap-1.5">
-          <Layers size={10} className="text-rose-400" />
-          <span className="text-[10px] font-semibold text-muted">
-            {totalCategories} cat
-          </span>
+      {/* Métricas */}
+      <div className="flex items-center gap-3 pt-2 border-t border-[#30363D]/60 text-xs text-[#8B949E]">
+        <div className="flex items-center gap-1">
+          <Layers size={12} className="text-[#F0B429]" />
+          <span>{totalCategories} cat</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <FileText size={10} className="text-violet-400" />
-          <span className="text-[10px] font-semibold text-muted">
-            {totalProducts} prod
-          </span>
+        <div className="flex items-center gap-1">
+          <Box size={12} className="text-[#3FB950]" />
+          <span>{totalProducts} prod</span>
         </div>
         {recipesCount > 0 && (
-          <div className="flex items-center gap-1.5">
-            <FileText size={10} className="text-emerald-400" />
-            <span className="text-[10px] font-semibold text-muted">
-              {recipesCount} rec
-            </span>
+          <div className="flex items-center gap-1">
+            <FileText size={12} className="text-[#388BFD]" />
+            <span>{recipesCount} rec</span>
           </div>
         )}
       </div>
-
-      {/* Completion Progress */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <TrendingUp size={10} className="text-gold" />
-            <span className="text-[8px] font-semibold text-muted uppercase tracking-wider">
-              Completitud
-            </span>
-          </div>
-          <span className="text-[8px] font-bold text-ivory">
-            {completionPercent}%
-          </span>
-        </div>
-        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all duration-500 ${
-              completionPercent === 100 ? 'bg-emerald-500' : 'bg-gold'
-            }`}
-            style={{ width: `${completionPercent}%` }}
-          />
-        </div>
-        {completionPercent < 100 && (
-          <div className="flex items-center gap-1 text-[8px] text-muted/70">
-            <AlertTriangle size={8} className={completionPercent >= 50 ? 'text-amber-400' : 'text-red-400'} />
-            <span>
-              {!hasName && 'Falta nombre · '}
-              {!hasImage && 'Falta imagen · '}
-              {!hasCategories && 'Falta categorías · '}
-              {!hasProducts && 'Falta productos'}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Recipe Completion */}
-      {totalProducts > 0 && (
-        <div className="space-y-2 pt-2 border-t border-white/5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <FileText size={10} className="text-violet-400" />
-              <span className="text-[8px] font-semibold text-muted uppercase tracking-wider">
-                Recetas
-              </span>
-            </div>
-            <span className="text-[8px] font-bold text-ivory">
-              {productsWithRecipes}/{totalProducts}
-            </span>
-          </div>
-          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                recipeCompletion === 100 ? 'bg-emerald-500' : 'bg-violet-500'
-              }`}
-              style={{ width: `${recipeCompletion}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Last Updated */}
-      {menu.updatedAt && (
-        <div className="flex items-center gap-1.5 pt-2 border-t border-white/5">
-          <Clock size={8} className="text-muted/50" />
-          <span className="text-[8px] text-muted/50 font-semibold">
-            Actualizado {new Date(menu.updatedAt).toLocaleDateString()}
-          </span>
-        </div>
-      )}
-
-      {/* Active indicator */}
-      {selected && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-400 rounded-l-2xl" />
-      )}
     </div>
   );
 }

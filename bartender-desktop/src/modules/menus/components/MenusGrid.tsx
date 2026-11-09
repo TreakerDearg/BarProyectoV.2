@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Loader2 } from "lucide-react";
+import { LayoutDashboard, Loader2, Layers } from "lucide-react";
 import { useEffect, useRef, memo } from "react";
 import MenuCard from "./MenuCard";
 import type { Menu } from "../../../types/menu";
@@ -61,10 +61,10 @@ function MenusGrid({
     return (
       <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="nebula-panel rounded-xl p-4 space-y-4">
-            <div className="h-32 bg-surface-3 rounded-lg animate-pulse" />
-            <div className="h-4 bg-surface-3 rounded w-3/4 animate-pulse" />
-            <div className="h-3 bg-surface-3 rounded w-1/2 animate-pulse" />
+          <div key={i} className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 space-y-3.5">
+            <div className="aspect-[16/10] bg-[#1C2333] rounded-lg animate-pulse" />
+            <div className="h-4 bg-[#1C2333] rounded w-3/4 animate-pulse" />
+            <div className="h-3 bg-[#1C2333] rounded w-1/2 animate-pulse" />
           </div>
         ))}
       </div>
@@ -73,15 +73,20 @@ function MenusGrid({
 
   if (menus.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <LayoutDashboard size={48} className="text-violet-300/40 mb-4" />
-        <p className="text-muted text-sm">No se encontraron cartas</p>
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+        <div className="p-4 rounded-2xl bg-[#161B22] border border-[#30363D]">
+          <Layers size={36} className="text-[#8B949E]" />
+        </div>
+        <p className="text-sm font-semibold text-[#E6EDF3]">No se encontraron cartas registradas</p>
+        <p className="text-xs text-[#8B949E] max-w-sm">
+          Crea una nueva carta desde cero o utiliza una de las plantillas preconfiguradas para comenzar.
+        </p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-4">
       <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
         {menus.map((menu) => {
           const menuId = menu._id || '';
@@ -94,7 +99,7 @@ function MenusGrid({
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => onToggleSelection(menuId)}
-                    className="w-5 h-5 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50 cursor-pointer"
+                    className="w-4 h-4 rounded border-[#30363D] bg-[#1C2333] accent-[#F0B429] cursor-pointer"
                   />
                 </div>
               )}
@@ -109,16 +114,16 @@ function MenusGrid({
         })}
       </div>
 
-      {/* Load More Trigger */}
+      {/* Infinite Scroll Trigger */}
       {hasMore && (
-        <div ref={loadMoreRef} className="flex items-center justify-center py-8">
+        <div ref={loadMoreRef} className="flex items-center justify-center py-6">
           {loading ? (
-            <div className="flex items-center gap-2 text-muted text-sm">
-              <Loader2 size={16} className="animate-spin" />
+            <div className="flex items-center gap-2 text-xs text-[#8B949E]">
+              <Loader2 size={15} className="animate-spin text-[#F0B429]" />
               Cargando más cartas...
             </div>
           ) : (
-            <div className="text-muted text-xs">Desplázate para cargar más</div>
+            <div className="text-xs text-[#8B949E]">Desplázate para ver más</div>
           )}
         </div>
       )}

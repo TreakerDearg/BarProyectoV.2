@@ -28,66 +28,70 @@ export default function MenusFilters({
   hasActiveFilters,
 }: Props) {
   return (
-    <div className="p-4 bg-surface-3 border border-white/10 rounded-xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">Filtros Avanzados</h3>
+    <div className="p-4 bg-[#161B22] border border-[#30363D] rounded-xl space-y-3.5 shadow-sm">
+      <div className="flex items-center justify-between pb-2 border-b border-[#30363D]">
+        <h3 className="text-xs font-bold text-[#E6EDF3] uppercase tracking-wider">Filtros de Catálogo</h3>
         {hasActiveFilters && (
           <button
             onClick={onClearFilters}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red/10 border border-red/30 text-red-300 text-xs font-semibold hover:bg-red/20 transition-all"
+            className="flex items-center gap-1 text-xs font-semibold text-[#F85149] hover:underline transition-colors"
           >
-            <X size={12} />
-            Limpiar
+            <X size={13} />
+            Limpiar filtros
           </button>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         <div>
-          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Tipo</label>
+          <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1.5 block">Tipo de Carta</label>
           <select
             value={filterType}
             onChange={(e) => onFilterTypeChange(e.target.value as any)}
-            className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+            className="w-full px-3 py-2 bg-[#1C2333] border border-[#30363D] rounded-lg text-[#E6EDF3] text-xs focus:outline-none focus:border-[#F0B429] transition-colors"
           >
-            <option value="all">Todos</option>
-            <option value="drink">Bebidas</option>
-            <option value="food">Comida</option>
-            <option value="mixed">Mixto</option>
+            <option value="all">Todas las categorías</option>
+            <option value="drink">Mixología / Bebidas</option>
+            <option value="food">Gastronomía / Platos</option>
+            <option value="mixed">Mixtas (Bebidas + Comida)</option>
           </select>
         </div>
+
         <div>
-          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Estado</label>
+          <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1.5 block">Estado en Salón</label>
           <select
             value={filterActive}
             onChange={(e) => onFilterActiveChange(e.target.value as any)}
-            className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+            className="w-full px-3 py-2 bg-[#1C2333] border border-[#30363D] rounded-lg text-[#E6EDF3] text-xs focus:outline-none focus:border-[#F0B429] transition-colors"
           >
-            <option value="all">Todos</option>
-            <option value="active">Activos</option>
-            <option value="inactive">Inactivos</option>
+            <option value="all">Todos los estados</option>
+            <option value="active">Activas (Visibles para clientes)</option>
+            <option value="inactive">Inactivas (Ocultas)</option>
           </select>
         </div>
+
         <div>
-          <label className="text-[10px] font-semibold text-muted uppercase tracking-wider mb-2 block">Visibilidad</label>
+          <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1.5 block">Visibilidad Web</label>
           <select
             value={filterPublic}
             onChange={(e) => onFilterPublicChange(e.target.value as any)}
-            className="w-full px-3 py-2 bg-surface-2 border border-white/10 rounded-lg text-ivory text-xs focus:outline-none focus:border-gold/30 transition-colors"
+            className="w-full px-3 py-2 bg-[#1C2333] border border-[#30363D] rounded-lg text-[#E6EDF3] text-xs focus:outline-none focus:border-[#F0B429] transition-colors"
           >
-            <option value="all">Todos</option>
-            <option value="public">Públicos</option>
-            <option value="private">Privados</option>
+            <option value="all">Todas las visibilidades</option>
+            <option value="public">Pública (Acceso por QR libre)</option>
+            <option value="private">Privada (Sólo personal)</option>
           </select>
         </div>
-        <div className="flex items-end">
+
+        <div className="flex items-center pt-5">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               checked={filterFeatured}
               onChange={(e) => onFilterFeaturedChange(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-surface-2 text-gold focus:ring-gold/50"
+              className="w-4 h-4 rounded border-[#30363D] bg-[#1C2333] accent-[#F0B429] cursor-pointer"
             />
-            <span className="text-xs font-semibold text-muted">Solo destacados</span>
+            <span className="text-xs font-semibold text-[#E6EDF3]">Solo cartas destacadas</span>
           </label>
         </div>
       </div>

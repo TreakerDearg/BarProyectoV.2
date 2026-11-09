@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, LayoutDashboard, List, Grid3x3, RefreshCcw, Plus, Filter, HelpCircle } from "lucide-react";
+import { Search, LayoutGrid, List, RefreshCcw, Plus, Filter, HelpCircle, Layers, X, Sparkles, SlidersHorizontal } from "lucide-react";
 
 interface Props {
   search: string;
@@ -18,33 +18,6 @@ interface Props {
   onRefresh: () => void;
   onNewMenu: () => void;
   onOpenTutorial: () => void;
-}
-
-function ModeToggle({ mode, onChange }: { mode: 'simple' | 'advanced'; onChange: (mode: 'simple' | 'advanced') => void }) {
-  return (
-    <div className="nebula-mode-toggle">
-      <button
-        onClick={() => onChange('simple')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-          mode === 'simple'
-            ? 'bg-violet-500/20 text-violet-300 border border-violet-400/30'
-            : 'text-muted hover:text-violet-200'
-        }`}
-      >
-        Simple
-      </button>
-      <button
-        onClick={() => onChange('advanced')}
-        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-          mode === 'advanced'
-            ? 'bg-violet-500/20 text-violet-300 border border-violet-400/30'
-            : 'text-muted hover:text-violet-200'
-        }`}
-      >
-        Avanzado
-      </button>
-    </div>
-  );
 }
 
 export default function MenusHeader({
@@ -65,95 +38,130 @@ export default function MenusHeader({
   onOpenTutorial,
 }: Props) {
   return (
-    <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
-          <LayoutDashboard className="text-violet-200" size={28} />
+    <header className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-[#161B22] border border-[#30363D] shrink-0">
+      {/* Título y estado */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-xl bg-[rgba(240,180,41,0.12)] text-[#F0B429] border border-[rgba(240,180,41,0.25)] shrink-0">
+          <Layers size={20} />
         </div>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
+          <h1 className="text-xl font-bold tracking-tight text-[#E6EDF3]">
             Cartas Digitales
           </h1>
-          <p className="text-xs text-muted mt-1 flex items-center gap-1.5">
-            <span className="text-violet-400/70">●</span>
-            Menu Architecture · Nebula v3
+          <p className="text-xs text-[#8B949E] mt-0.5">
+            Gestión y diseño de cartas interactivas con QR para mesas
           </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search size={18} className="text-violet-300/60 group-focus-within:text-violet-200 transition-colors" />
-          </div>
+      {/* Barra de herramientas */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Buscador unificado */}
+        <div className="relative w-48 sm:w-60">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E] pointer-events-none" />
           <input 
             type="text"
             placeholder="Buscar cartas..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="bg-surface-3/60 border border-violet-400/20 rounded-xl py-2.5 pl-11 pr-4 text-sm font-medium text-ivory outline-none focus:border-violet-400/40 focus:ring-2 focus:ring-violet-400/10 transition-all w-64 backdrop-blur-sm"
+            className="h-9 w-full pl-8 pr-7 rounded-lg bg-[#1C2333] border border-[#30363D] text-xs text-[#E6EDF3] placeholder:text-[#8B949E]/60 focus:outline-none focus:border-[#F0B429] transition-colors"
           />
+          {search && (
+            <button
+              onClick={() => onSearchChange("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B949E] hover:text-[#E6EDF3]"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
 
+        {/* Filtros */}
         <button
           onClick={onFiltersToggle}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
+          className={`flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all ${
             filtersOpen || hasActiveFilters
-              ? 'bg-gold/10 border-gold/30 text-gold'
-              : 'border-white/10 text-muted hover:text-violet-200 hover:border-violet-400/30'
+              ? 'bg-[#21283A] border-[rgba(240,180,41,0.40)] text-[#F0B429]'
+              : 'bg-[#1C2333] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D]'
           }`}
         >
-          <Filter size={16} />
-          <span>Filtros</span>
-          {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-gold" />}
+          <SlidersHorizontal size={13} />
+          <span className="hidden sm:inline">Filtros</span>
+          {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-[#F0B429]" />}
         </button>
 
-        <button
-          onClick={onOpenTutorial}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-          title="Tutorial de cartas"
-        >
-          <HelpCircle size={16} />
-          Tutorial
-        </button>
-
-        <ModeToggle mode={mode} onChange={onModeChange} />
-
+        {/* Modo Constructor vs Catálogo */}
         <button
           onClick={onBuilderModeToggle}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-colors ${
+          className={`flex items-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-semibold transition-all ${
             builderMode
-              ? 'bg-rose/10 border-rose/30 text-rose-300'
-              : 'border-white/10 text-muted hover:text-violet-200 hover:border-violet-400/30'
+              ? 'bg-[rgba(240,180,41,0.15)] border-[#F0B429] text-[#F0B429] font-bold'
+              : 'bg-[#1C2333] border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D]'
           }`}
-          title={builderMode ? 'Vista Normal' : 'Constructor de Menús'}
+          title={builderMode ? 'Volver al catálogo' : 'Abrir Menu Studio (Constructor)'}
         >
-          <Grid3x3 size={16} />
-          <span>{builderMode ? 'Normal' : 'Constructor'}</span>
+          <Sparkles size={14} className={builderMode ? "text-[#F0B429]" : "text-[#8B949E]"} />
+          <span>{builderMode ? 'Ver Catálogo' : 'Menu Studio'}</span>
         </button>
 
+        {/* Selector de modo Simple / Avanzado */}
+        <div className="flex items-center bg-[#1C2333] border border-[#30363D] rounded-lg p-0.5">
+          <button
+            onClick={() => onModeChange('simple')}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              mode === 'simple'
+                ? 'bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.30)] font-bold shadow-sm'
+                : 'text-[#8B949E] hover:text-[#E6EDF3]'
+            }`}
+          >
+            Simple
+          </button>
+          <button
+            onClick={() => onModeChange('advanced')}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+              mode === 'advanced'
+                ? 'bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.30)] font-bold shadow-sm'
+                : 'text-[#8B949E] hover:text-[#E6EDF3]'
+            }`}
+          >
+            Avanzado
+          </button>
+        </div>
+
+        {/* Toggle Vista Cuadrícula / Lista */}
         <button
           onClick={onViewToggle}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
+          className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           title={`Vista: ${view === 'grid' ? 'Cuadrícula' : 'Lista'}`}
         >
-          {view === 'grid' ? <LayoutDashboard size={16} /> : <List size={16} />}
+          {view === 'grid' ? <LayoutGrid size={15} /> : <List size={15} />}
         </button>
 
+        {/* Actualizar */}
         <button
           onClick={onRefresh}
-          className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-semibold text-muted hover:text-violet-200 hover:border-violet-400/30 transition-colors"
-          title="Actualizar"
+          className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
+          title="Actualizar cartas"
         >
-          <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
+          <RefreshCcw size={15} className={loading ? "animate-spin text-[#F0B429]" : ""} />
         </button>
 
+        {/* Tutorial */}
+        <button
+          onClick={onOpenTutorial}
+          className="flex items-center justify-center h-9 w-9 rounded-lg border border-[#30363D] bg-[#1C2333] text-[#8B949E] hover:text-[#F0B429] hover:border-[#F0B429]/40 transition-colors"
+          title="Ver tutorial interactivo"
+        >
+          <HelpCircle size={15} />
+        </button>
+
+        {/* CTA + NUEVA CARTA */}
         <button
           onClick={onNewMenu}
-          className="nebula-btn-primary flex items-center gap-2 px-5 py-2.5"
+          className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-[#F0B429] hover:bg-[#F5C842] text-black font-extrabold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-95 shrink-0"
         >
-          <Plus size={18} />
-          <span className="text-xs font-bold tracking-wide uppercase">Nueva Carta</span>
+          <Plus size={16} />
+          <span>Nueva Carta</span>
         </button>
       </div>
     </header>
