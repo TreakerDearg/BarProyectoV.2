@@ -8,143 +8,98 @@ interface Props {
   onUpdate: (id: string, updates: Partial<RouletteDrink>) => void;
 }
 
-const MAX_FADERS = 12;
+const MAX_FADERS = 10;
 
 export default function FaderMixer({ drinks, onUpdate }: Props) {
-  // Show only active drinks, capped at 12
   const visibleDrinks = drinks.filter((d) => d && d.active).slice(0, MAX_FADERS);
-
   const totalWeight = visibleDrinks.reduce((sum, d) => sum + (d.weight || 0), 0) || 1;
 
   return (
-    <div className="relative glass-royale border border-white/5 rounded-[2.5rem] p-6 shadow-royale overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute -top-16 -right-16 w-48 h-48 bg-gold/5 blur-[80px] rounded-full pointer-events-none" />
-
+    <div className="bg-surface-2 border border-border rounded-2xl p-5 shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5 relative z-10 border-b border-white/5 pb-4">
-        <Sliders size={16} className="text-gold" />
-        <div>
-          <h3 className="text-sm font-black text-ivory tracking-tighter uppercase">
-            Fader <span className="text-grad-gold">Mixer</span>
-          </h3>
-          <p className="text-[8px] text-muted font-black uppercase tracking-[0.35em] mt-0.5">
-            Control Visual de Pesos
-          </p>
+      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
+        <div className="flex items-center gap-2.5">
+          <Sliders size={16} className="text-gold" />
+          <div>
+            <h4 className="text-xs font-black text-ivory tracking-wider uppercase">
+              Fader Mixer
+            </h4>
+            <p className="text-xs text-muted">
+              Ecualizador de pesos activos
+            </p>
+          </div>
         </div>
-        <div className="ml-auto text-[8px] text-muted font-black uppercase tracking-widest">
-          {visibleDrinks.length}/{MAX_FADERS} activos
-        </div>
+        <span className="text-xs text-muted font-bold uppercase">
+          {visibleDrinks.length}/{MAX_FADERS}
+        </span>
       </div>
 
       {/* Faders */}
-      <div className="relative z-10">
-        {visibleDrinks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <Sliders size={24} className="text-muted/30 mb-2" />
-            <p className="text-[9px] text-muted font-black uppercase tracking-widest">
-              Sin tragos activos
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto pb-2">
-            <div
-              className="flex gap-4 min-w-max"
-              style={{ minHeight: "180px" }}
-            >
-              {visibleDrinks.map((drink) => {
-                const weight = drink.weight || 1;
-                const probability = ((weight / totalWeight) * 100).toFixed(1);
-                const isActive = drink.active;
+      {visibleDrinks.length === 0 ? (
+        <div className="py-8 text-center text-muted">
+          <Sliders size={24} className="mx-auto mb-2 opacity-40" />
+          <p className="text-xs font-bold uppercase tracking-wider">
+            Sin tragos activos
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto pb-2 custom-scrollbar">
+          <div className="flex gap-4 min-w-max items-end py-2" style={{ minHeight: "180px" }}>
+            {visibleDrinks.map((drink) => {
+              const weight = drink.weight || 1;
+              const probability = ((weight / totalWeight) * 100).toFixed(1);
+              const isActive = drink.active;
+              const shortName = drink.name.length > 9 ? `${drink.name.slice(0, 8)}.` : drink.name;
 
-                // Truncate name to 8 chars for vertical display
-                const shortName = drink.name.length > 8
-                  ? drink.name.slice(0, 8)
-                  : drink.name;
+              return (
+                <div key={drink._id} className="flex flex-col items-center gap-2 w-14">
+                  {/* Probability */}
+                  <span className="text-xs font-black text-gold">
+                    {probability}%
+                  </span>
 
-                return (
-                  <div
-                    key={drink._id}
-                    className="flex flex-col items-center gap-2"
-                    style={{ width: "48px" }}
-                  >
-                    {/* Drink name — rotated vertical */}
+                  {/* Vertical fader track */}
+                  <div className="relative flex items-center justify-center h-28">
+                    {/* Track background */}
+                    <div className="w-2 h-28 rounded-full bg-surface-3 border border-border" />
+                    {/* Fill level */}
                     <div
-                      className="text-[7px] font-black uppercase tracking-widest whitespace-nowrap overflow-hidden"
+                      className="absolute bottom-0 w-2 rounded-full bg-gradient-to-t from-gold-dark to-gold transition-all duration-200"
                       style={{
-                        transform: "rotate(-90deg) translateX(-50%)",
-                        transformOrigin: "left center",
-                        width: "72px",
-                        height: "12px",
-                        marginBottom: "28px",
-                        color: isActive ? "var(--color-gold, #D4A340)" : "var(--color-muted, #6B6B6B)",
+                        height: `${Math.min(100, Math.max(5, (weight / 100) * 112))}px`,
                       }}
-                      title={drink.name}
-                    >
-                      {shortName}
-                    </div>
-
-                    {/* Vertical fader track */}
-                    <div className="relative flex items-center justify-center" style={{ height: "120px" }}>
-                      {/* Track background */}
-                      <div
-                        className="absolute rounded-full border border-white/10"
-                        style={{
-                          width: "6px",
-                          height: "120px",
-                          background: "rgba(255,255,255,0.05)",
-                        }}
-                      />
-                      {/* Fill level */}
-                      <div
-                        className="absolute bottom-0 rounded-full transition-all duration-300"
-                        style={{
-                          width: "6px",
-                          height: `${(weight / 100) * 120}px`,
-                          maxHeight: "120px",
-                          background: isActive
-                            ? "linear-gradient(to top, #D4A340, #F0C060)"
-                            : "rgba(107,107,107,0.3)",
-                        }}
-                      />
-                      {/* Slider input — rotated */}
-                      <input
-                        type="range"
-                        min={1}
-                        max={100}
-                        value={weight}
-                        disabled={!isActive}
-                        onChange={(e) =>
-                          onUpdate(drink._id, { weight: Number(e.target.value) })
-                        }
-                        className="absolute opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                        style={{
-                          width: "120px",
-                          height: "24px",
-                          transform: "rotate(-90deg)",
-                          transformOrigin: "center center",
-                          WebkitAppearance: "slider-vertical",
-                        }}
-                        title={`${drink.name}: ${weight}`}
-                      />
-                    </div>
-
-                    {/* Probability label */}
-                    <span
-                      className="text-[8px] font-black tracking-widest"
-                      style={{
-                        color: isActive ? "var(--color-gold, #D4A340)" : "rgba(107,107,107,0.5)",
-                      }}
-                    >
-                      {probability}%
-                    </span>
+                    />
+                    {/* Range input */}
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={weight}
+                      disabled={!isActive}
+                      onChange={(e) => onUpdate(drink._id, { weight: Number(e.target.value) })}
+                      className="absolute opacity-0 cursor-pointer w-28 h-8 -rotate-90"
+                      title={`${drink.name}: peso ${weight}`}
+                    />
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Weight value */}
+                  <span className="text-xs font-bold text-ivory/80">
+                    {weight}
+                  </span>
+
+                  {/* Drink name */}
+                  <span
+                    className="text-xs font-bold uppercase text-muted text-center truncate max-w-full"
+                    title={drink.name}
+                  >
+                    {shortName}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

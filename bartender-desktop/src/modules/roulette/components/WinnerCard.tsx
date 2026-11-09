@@ -1,4 +1,6 @@
-import { Zap, FlaskConical, Printer } from "lucide-react";
+"use client";
+
+import { Zap, FlaskConical, Printer, Sparkles, Award } from "lucide-react";
 import type { SpinPhase, RouletteSpinResult } from "../types/roulette";
 import RarityBadge from "./RarityBadge";
 
@@ -22,32 +24,32 @@ function printPOSReceipt(result: RouletteSpinResult) {
           ${drink.recipe.ingredients
             .map(
               (ing) =>
-                `<li style="font-size:12px;margin:2px 0;">• ${ing.name} — ${ing.quantity} ${ing.unit}</li>`
+                `<li style="font-size:12px;margin:3px 0;">• ${ing.name} — ${ing.quantity} ${ing.unit}</li>`
             )
             .join("")}
          </ul>`
-      : "<p style='font-size:12px;color:#666;'>Sin receta disponible</p>";
+      : "<p style='font-size:12px;color:#888;'>Sin receta adjunta</p>";
 
   const priceHTML =
     product?.dynamicPrice != null
-      ? `<p style="font-size:14px;margin:4px 0;"><strong>Precio:</strong> $${product.dynamicPrice.toLocaleString("es-AR")}</p>`
+      ? `<p style="font-size:14px;margin:6px 0;"><strong>Precio POS:</strong> $${product.dynamicPrice.toLocaleString("es-AR")}</p>`
       : "";
 
   const receiptHTML = `
-    <div id="pos-receipt" style="font-family:monospace;max-width:280px;padding:16px;">
-      <h2 style="text-align:center;font-size:16px;margin:0 0 8px 0;text-transform:uppercase;">
+    <div id="pos-receipt" style="font-family:monospace;max-width:280px;padding:16px;background:#fff;color:#000;">
+      <h2 style="text-align:center;font-size:16px;margin:0 0 8px 0;text-transform:uppercase;letter-spacing:1px;">
         🍸 RULETA ROYALE
       </h2>
       <hr style="border:1px dashed #000;margin:8px 0;"/>
-      <p style="font-size:14px;font-weight:bold;margin:4px 0;text-transform:uppercase;">${drink.name}</p>
+      <p style="font-size:15px;font-weight:bold;margin:4px 0;text-transform:uppercase;">${drink.name}</p>
       <p style="font-size:12px;margin:2px 0;">Rareza: ${drink.rarity}</p>
       <p style="font-size:12px;margin:2px 0;">Categoría: ${drink.category}</p>
       ${priceHTML}
       <hr style="border:1px dashed #000;margin:8px 0;"/>
-      <p style="font-size:12px;font-weight:bold;margin:4px 0;">INGREDIENTES:</p>
+      <p style="font-size:12px;font-weight:bold;margin:4px 0;">COMPOSICIÓN / INGREDIENTES:</p>
       ${ingredientsHTML}
       <hr style="border:1px dashed #000;margin:8px 0;"/>
-      <p style="font-size:11px;color:#666;text-align:center;">${dateStr}</p>
+      <p style="font-size:11px;color:#555;text-align:center;">${dateStr}</p>
     </div>
   `;
 
@@ -78,136 +80,159 @@ export default function WinnerCard({ result, phase, onSpin }: WinnerCardProps) {
   const product = drink && typeof drink.product === "object" && drink.product ? drink.product : null;
 
   return (
-    <div className="glass-royale rounded-[3.5rem] p-8 border border-white/5 flex-1 flex flex-col justify-between relative overflow-hidden min-h-[280px]">
-      {/* Decorative watermark */}
-      <div className="absolute -right-10 -top-10 text-[100px] font-black text-white/5 pointer-events-none select-none uppercase tracking-tighter">
+    <div className="bg-surface-2 border border-border rounded-3xl p-6 sm:p-7 shadow-xl flex-1 flex flex-col justify-between relative overflow-hidden min-h-[360px]">
+      {/* Marca de agua decorativa */}
+      <div className="absolute -right-8 -top-8 text-7xl font-black text-white/[0.03] pointer-events-none select-none uppercase tracking-tighter">
         ROYALE
       </div>
 
-      <div>
-        {/* ── Header ── */}
-        <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-5">
-          ÚLTIMO GANADOR
-        </span>
+      <div className="relative z-10">
+        {/* Cabecera del Podio */}
+        <div className="flex items-center justify-between pb-4 border-b border-border mb-5">
+          <div className="flex items-center gap-2">
+            <Award size={18} className="text-gold" />
+            <span className="text-xs font-black text-ivory uppercase tracking-widest">
+              Podio de la Tirada
+            </span>
+          </div>
+          {isRevealed && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald/10 border border-emerald/30 text-emerald text-xs font-bold uppercase tracking-wider">
+              <Sparkles size={12} /> Ganador
+            </span>
+          )}
+        </div>
 
+        {/* Contenido Dinámico */}
         {isRevealed && drink ? (
-          <div className="animate-fade-in space-y-5">
-            {/* ── Hero row ── */}
-            <div className="flex items-center gap-5">
+          <div className="space-y-5 animate-fadeIn">
+            {/* Ficha Principal del Ganador */}
+            <div className="flex items-start gap-4">
               {product?.image ? (
                 <img
                   src={product.image}
                   alt={drink.name}
-                  className="w-16 h-16 rounded-2xl object-cover border border-gold/20"
+                  className="w-20 h-20 rounded-2xl object-cover border border-gold/40 shadow-md shrink-0"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gold flex items-center justify-center text-3xl shadow-gold-glow animate-bounce-subtle">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gold to-gold-dark text-bg flex items-center justify-center text-3xl font-black shadow-gold-glow shrink-0">
                   🍸
                 </div>
               )}
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <RarityBadge rarity={drink.rarity} size="lg" />
-                  <span className="text-[9px] font-black text-muted uppercase tracking-[0.3em]">
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <RarityBadge rarity={drink.rarity} size="sm" />
+                  <span className="text-xs text-muted font-bold uppercase tracking-wider">
                     {drink.category}
                   </span>
                 </div>
-                <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase leading-tight capitalize">
+                <h3 className="text-xl sm:text-2xl font-black text-ivory tracking-tight uppercase truncate">
                   {drink.name}
-                </h2>
+                </h3>
                 {product?.description && (
-                  <p className="text-[9px] text-muted mt-1 line-clamp-2">{product.description}</p>
+                  <p className="text-xs text-muted line-clamp-2 mt-1">
+                    {product.description}
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* ── Stats grid ── */}
-            <div className="pt-4 border-t border-white/5 grid grid-cols-3 gap-4">
+            {/* Métricas del Trago */}
+            <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-surface-3/60 border border-border">
               <div>
-                <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                  PROBABILIDAD
+                <p className="text-xs text-muted font-bold uppercase tracking-wider mb-0.5">
+                  Probabilidad
                 </p>
-                <span className="text-2xl font-black text-grad-gold tracking-tighter">
+                <span className="text-lg sm:text-xl font-black text-gold">
                   {(drink.probability ?? 0).toFixed(1)}%
                 </span>
               </div>
               <div>
-                <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                  TIRADAS
+                <p className="text-xs text-muted font-bold uppercase tracking-wider mb-0.5">
+                  Tiradas
                 </p>
-                <span className="text-lg font-black text-ivory tracking-tight">
+                <span className="text-lg sm:text-xl font-black text-ivory">
                   {drink.totalSpins ?? 0}
                 </span>
               </div>
-              {product?.dynamicPrice != null && (
-                <div>
-                  <p className="text-[8px] text-muted font-black uppercase tracking-widest mb-1">
-                    PRECIO
-                  </p>
-                  <span className="text-lg font-black text-ivory tracking-tight">
-                    ${product.dynamicPrice.toLocaleString("es-AR")}
-                  </span>
-                </div>
-              )}
+              <div>
+                <p className="text-xs text-muted font-bold uppercase tracking-wider mb-0.5">
+                  Precio POS
+                </p>
+                <span className="text-lg sm:text-xl font-black text-emerald">
+                  {product?.dynamicPrice != null ? `$${product.dynamicPrice.toLocaleString("es-AR")}` : "Incluido"}
+                </span>
+              </div>
             </div>
 
-            {/* ── Ingredients ── */}
+            {/* Receta & Composición */}
             {drink.recipe?.ingredients && drink.recipe.ingredients.length > 0 && (
-              <div className="pt-4 border-t border-white/5">
-                <div className="flex items-center gap-2 mb-3">
-                  <FlaskConical size={13} className="text-gold/60" />
-                  <span className="text-[9px] font-black text-muted uppercase tracking-widest">
-                    Ingredientes
+              <div className="p-4 rounded-2xl bg-surface-3/40 border border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <FlaskConical size={14} className="text-gold" />
+                  <span className="text-xs font-black text-ivory uppercase tracking-wider">
+                    Ingredientes de la Receta
                   </span>
                 </div>
-                <ul className="space-y-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {drink.recipe.ingredients.map((ing, i) => (
-                    <li key={i} className="text-[9px] text-ivory/80 font-mono">
-                      <span className="text-gold/60 mr-1">•</span>
-                      {ing.name}
-                      <span className="text-muted"> — {ing.quantity} {ing.unit}</span>
-                    </li>
+                    <div key={i} className="text-xs text-ivory/80 flex items-center justify-between bg-surface-2/60 px-2.5 py-1.5 rounded-lg border border-border">
+                      <span className="truncate">{ing.name}</span>
+                      <span className="text-gold font-bold shrink-0 ml-2">{ing.quantity} {ing.unit}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
-            {/* ── Print POS ── */}
-            <div className="pt-2">
+            {/* Acción de Comanda POS */}
+            <div className="flex items-center justify-end">
               <button
                 onClick={() => printPOSReceipt(result!)}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-muted hover:text-ivory transition-all text-[9px] font-black uppercase tracking-widest"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-3 hover:bg-surface-4 border border-border hover:border-gold/30 text-ivory text-xs font-bold uppercase tracking-wider transition-all"
               >
-                <Printer size={13} />
-                Imprimir comanda POS
+                <Printer size={14} className="text-gold" />
+                Imprimir Comanda POS
               </button>
             </div>
           </div>
         ) : (
-          /* ── Empty state ── */
+          /* Estado Vacío / Espera de Giro */
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-2xl text-muted/40 mb-3 border border-white/5">
-              🎰
+            <div className="w-16 h-16 rounded-2xl bg-surface-3 border border-border flex items-center justify-center text-3xl mb-3 shadow-inner">
+              🎲
             </div>
-            <h3 className="text-xs font-black text-muted uppercase tracking-widest">
-              Sin resultados aún
-            </h3>
-            <p className="text-[9px] text-muted/50 uppercase tracking-wider mt-2 max-w-[220px]">
-              Lanzá la ruleta para ver el ganador
+            <h4 className="text-sm font-black text-ivory uppercase tracking-wider">
+              {spinning ? "Girando Ruleta..." : "Esperando Lanzamiento"}
+            </h4>
+            <p className="text-xs text-muted max-w-[260px] mt-1.5 leading-relaxed">
+              {spinning
+                ? "Determinando aleatoriamente el cóctel seleccionado según los pesos del pool."
+                : "Presiona el botón inferior para iniciar el sorteo y descubrir el trago ganador."}
             </p>
           </div>
         )}
       </div>
 
-      {/* ── CTA ── */}
-      <div className="pt-6 border-t border-white/5">
+      {/* Botón de Lanzamiento Heroico */}
+      <div className="pt-6 border-t border-border mt-6 relative z-10">
         <button
           onClick={onSpin}
           disabled={!canSpin}
-          className="w-full flex items-center justify-center gap-4 px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] bg-grad-gold text-bg shadow-gold-glow hover:scale-102 active:scale-98 transition-all disabled:opacity-50 disabled:grayscale cursor-pointer"
+          className={`w-full flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all cursor-pointer shadow-lg ${
+            canSpin
+              ? "bg-gold hover:bg-gold-light text-bg shadow-gold-glow hover:scale-[1.01] active:scale-[0.99]"
+              : "bg-surface-3 text-muted border border-border cursor-not-allowed opacity-60"
+          }`}
         >
-          <Zap size={18} className={spinning ? "animate-spin" : ""} />
-          {spinning ? "GIRANDO LA RULETA..." : "LANZAR DE NUEVO"}
+          <Zap size={18} className={spinning ? "animate-spin text-gold" : "text-bg"} />
+          <span>
+            {spinning
+              ? "Girando Ruleta..."
+              : isRevealed
+              ? "Lanzar Nuevamente"
+              : "Iniciar Giro Royale"}
+          </span>
         </button>
       </div>
     </div>

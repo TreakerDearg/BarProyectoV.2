@@ -38,12 +38,10 @@ export default function RoulettePage() {
   const {
     drinks,
     loading,
-    // SpinPhase
     phase,
     revealedResult,
     targetAngle,
     onWheelLanded,
-    // Backward compat
     spinning,
     lastResult,
     logs,
@@ -51,7 +49,6 @@ export default function RoulettePage() {
   } = useRoulette();
 
   const { playTick, playImpact, playFanfare, isMuted, toggleMute } = useRouletteAudio();
-
   const { toasts, removeToast, success, error } = useToast();
 
   const [viewMode, setViewMode] = useState<"playroom" | "control">("playroom");
@@ -82,26 +79,8 @@ export default function RoulettePage() {
 
     if (isSpinning) {
       spinStartTimeRef.current = performance.now();
-
-      const loop = (now: number) => {
-        const elapsed = (now - spinStartTimeRef.current) / 1000;
-
-        // Linear decay: speed starts at 1 and drops to 0.1 over 8s
-        const speed = Math.max(0.1, 1 - elapsed / 8);
-
-        // Tick every ~(120ms at full speed) → ~(600ms at slow speed)
-        const interval = 0.06 + (1 - speed) * 0.5;
-
-        // Throttle by accumulating elapsed time
-        if (!tickRafRef.current) {
-          playTick(speed);
-        }
-
-        tickRafRef.current = requestAnimationFrame(loop);
-      };
-
-      // Start loop — use a simple interval approach for tick frequency
       let lastTick = 0;
+
       const tickLoop = (now: number) => {
         const elapsed = (now - spinStartTimeRef.current) / 1000;
         const speed = Math.max(0.1, 1 - elapsed / 8);
@@ -145,7 +124,7 @@ export default function RoulettePage() {
     prevPhaseRef.current = phase;
   }, [phase, revealedResult, playImpact, playFanfare]);
 
-  // Estadísticas por rareza para el Playroom
+  // Estadísticas por rareza
   const rarityStats = useMemo(() => {
     const active = drinks.filter((d) => d && d.active);
     const totalW = active.reduce((s, d) => s + (d.weight || 0), 0) || 1;
@@ -160,8 +139,8 @@ export default function RoulettePage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] gap-6">
-        <div className="w-16 h-16 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
-        <p className="text-[10px] font-black text-gold uppercase tracking-[0.5em] animate-pulse">
+        <div className="w-14 h-14 border-4 border-gold/20 border-t-gold rounded-full animate-spin" />
+        <p className="text-xs font-black text-gold uppercase tracking-widest animate-pulse">
           Iniciando Smart Roulette Engine...
         </p>
       </div>
@@ -169,8 +148,7 @@ export default function RoulettePage() {
   }
 
   return (
-    <div className="flex flex-col gap-10 animate-fade-in p-2 md:p-8">
-
+    <div className="flex flex-col gap-8 animate-fadeIn p-4 sm:p-6 lg:p-8 max-w-[1920px] mx-auto w-full">
       {/* ================= JACKPOT BANNER ================= */}
       <JackpotBanner
         visible={!!jackpot}
@@ -179,90 +157,101 @@ export default function RoulettePage() {
       />
 
       {/* ================= HEADER ================= */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 border-b border-white/5 pb-10">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 pb-6 border-b border-border">
         <div>
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 rounded-2xl bg-gold/10 text-gold shadow-gold-glow">
+          <div className="flex items-center gap-3.5 mb-2">
+            <div className="p-3 rounded-2xl bg-gold/10 text-gold border border-gold/30 shadow-gold-glow">
               <Shuffle size={24} />
             </div>
-            <h1 className="text-4xl font-black text-ivory tracking-tighter uppercase">
-              Roulette <span className="text-grad-gold">Engine</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <p className="text-[10px] text-muted font-black uppercase tracking-[0.5em]">
-              Operational Gamification Protocol v5.1
-            </p>
-            <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">
-              Live Sync Active
-            </span>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black text-ivory tracking-tight uppercase">
+                Ruleta de <span className="text-gold">Tragos</span>
+              </h1>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-xs text-muted font-bold uppercase tracking-wider">
+                  Motor de Gamificación & Sorteo Royale
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald/10 text-emerald text-xs font-bold uppercase border border-emerald/20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald animate-pulse" />
+                  Live Sync Activo
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Mute toggle + Tutorial */}
-        <div className="flex items-center gap-3">
+        {/* Acciones del Header: Sonido, Tutorial y Selector de Vistas */}
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
           <button
             onClick={toggleMute}
-            className="flex items-center gap-2 px-4 py-2 bg-surface-3/50 hover:bg-surface-3 text-muted hover:text-ivory rounded-xl border border-white/5 transition-all text-[9px] font-black uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-2.5 bg-surface-2 hover:bg-surface-3 text-ivory rounded-xl border border-border transition-all text-xs font-bold uppercase tracking-wider"
             title={isMuted ? "Activar sonido" : "Silenciar"}
           >
-            {isMuted ? <VolumeX size={14} className="text-muted" /> : <Volume2 size={14} className="text-gold" />}
-            {isMuted ? "Muted" : "Sound"}
+            {isMuted ? <VolumeX size={15} className="text-muted" /> : <Volume2 size={15} className="text-gold" />}
+            <span>{isMuted ? "Silenciado" : "Audio Activo"}</span>
           </button>
 
           <button
             onClick={() => setShowTutorial(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gold/10 hover:bg-gold/20 text-gold rounded-xl border border-gold/20 transition-all text-[9px] font-black uppercase tracking-widest"
+            className="flex items-center gap-2 px-4 py-2.5 bg-gold/10 hover:bg-gold/20 text-gold rounded-xl border border-gold/30 transition-all text-xs font-bold uppercase tracking-wider"
           >
-            <BookOpen size={14} />
-            Tutorial
+            <BookOpen size={15} />
+            <span>Tutorial</span>
           </button>
-        </div>
 
-        {/* View Toggle */}
-        <div className="flex bg-surface-3/30 p-1.5 rounded-2xl border border-white/5 w-full xl:w-auto overflow-x-auto">
-          {(
-            [
-              { mode: "playroom", tab: "main",  icon: <Tv size={12} />,               label: "Playroom Mode" },
-              { mode: "control",  tab: "main",  icon: <SlidersHorizontal size={12} />, label: "Control Deck" },
-              { mode: "playroom", tab: "logs",  icon: <History size={12} />,           label: "Logs"         },
-            ] as const
-          ).map((item) => {
-            const isActive = viewMode === item.mode && activeTab === item.tab;
-            return (
-              <button
-                key={`${item.mode}-${item.tab}`}
-                onClick={() => { setViewMode(item.mode); setActiveTab(item.tab); }}
-                className={`flex-1 xl:flex-none flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl text-[9px] font-black tracking-widest uppercase transition-all whitespace-nowrap ${
-                  isActive
-                    ? "bg-gold/15 text-gold border border-gold/10 shadow-gold-glow/5"
-                    : "text-muted hover:text-ivory"
-                }`}
-              >
-                {item.icon} {item.label}
-              </button>
-            );
-          })}
+          {/* Selector de Modo / Tabs */}
+          <div className="flex bg-surface-2 p-1 rounded-2xl border border-border">
+            {(
+              [
+                { mode: "playroom", tab: "main", icon: <Tv size={14} />, label: "Modo Escenario" },
+                { mode: "control", tab: "main", icon: <SlidersHorizontal size={14} />, label: "Control Deck" },
+                { mode: "playroom", tab: "logs", icon: <History size={14} />, label: "Auditoría" },
+              ] as const
+            ).map((item) => {
+              const isActive = viewMode === item.mode && activeTab === item.tab;
+              return (
+                <button
+                  key={`${item.mode}-${item.tab}`}
+                  onClick={() => {
+                    setViewMode(item.mode);
+                    setActiveTab(item.tab);
+                  }}
+                  className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? "bg-gold text-bg shadow-sm"
+                      : "text-muted hover:text-ivory"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* ================= STATS ROW ================= */}
       <RouletteStats drinks={drinks} lastResult={lastResult} />
 
-      {/* ================= RARITY DISTRIBUTION BAR ================= */}
+      {/* ================= BARRA DE DISTRIBUCIÓN POR RAREZA ================= */}
       {activeTab === "main" && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {rarityStats.map(({ rarity, count, probability }) => (
             <div
               key={rarity}
-              className="glass-royale rounded-2xl p-4 border border-white/5 flex flex-col gap-1"
+              className="bg-surface-2 rounded-2xl p-4 border border-border flex items-center justify-between shadow-sm"
             >
-              <RarityBadge rarity={rarity} size="sm" />
-              <p className="text-xl font-black text-ivory mt-1">{count}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-[8px] text-muted font-black uppercase tracking-widest">tragos</span>
-                <span className="text-[9px] font-black text-gold/70">~{probability}%</span>
+              <div>
+                <RarityBadge rarity={rarity} size="sm" />
+                <p className="text-xl sm:text-2xl font-black text-ivory mt-2">{count}</p>
+                <span className="text-xs text-muted font-bold uppercase tracking-wider">
+                  tragos en rotación
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-black text-gold">~{probability}%</span>
+                <span className="text-xs text-muted block uppercase font-bold">Prob. total</span>
               </div>
             </div>
           ))}
@@ -271,38 +260,44 @@ export default function RoulettePage() {
 
       {/* ================= VIEWS ================= */}
       {activeTab === "logs" ? (
-        <div className="glass-royale rounded-[3rem] p-10 border border-white/5 flex flex-col min-h-[600px] animate-fadeIn">
-          <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
-            <History size={20} className="text-gold" />
-            <h3 className="text-xl font-black text-ivory tracking-tighter uppercase">
-              Historial de Actividad
+        /* ── AUDITORÍA / LOGS ── */
+        <div className="bg-surface-2 rounded-3xl p-6 sm:p-8 border border-border flex flex-col min-h-[600px] shadow-xl animate-fadeIn">
+          <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
+            <History size={22} className="text-gold" />
+            <h3 className="text-lg sm:text-xl font-black text-ivory tracking-tight uppercase">
+              Historial de Auditoría & Eventos
             </h3>
           </div>
-          <div className="flex-1 overflow-y-auto max-h-[500px]">
+          <div className="flex-1">
             <RouletteLogs logs={logs} />
           </div>
         </div>
       ) : viewMode === "playroom" ? (
-        /* ── PLAYROOM ── */
-        <div className="grid grid-cols-12 gap-8 items-stretch animate-fadeIn">
-
-          {/* Rueda visual */}
-          <div className="col-span-12 lg:col-span-7 glass-royale rounded-[3.5rem] p-10 border border-white/5 relative overflow-hidden flex flex-col items-center justify-center min-h-[500px]">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gold/5 blur-[120px] rounded-full pointer-events-none" />
-            <div className="flex justify-between items-center w-full mb-8 absolute top-8 left-0 px-10">
-              <div className="flex items-center gap-3">
-                <Sparkles size={16} className="text-gold" />
-                <span className="text-[10px] font-black text-muted uppercase tracking-[0.4em]">
-                  Live Royale Visualizer
+        /* ── PLAYROOM / ESCENARIO ── */
+        <div className="grid grid-cols-12 gap-6 lg:gap-8 items-start animate-fadeIn">
+          {/* Escenario Central de la Ruleta (7 Cols) */}
+          <div className="col-span-12 lg:col-span-7 bg-surface-2 rounded-3xl p-6 sm:p-8 border border-border relative overflow-hidden flex flex-col items-center justify-between min-h-[580px] shadow-xl">
+            {/* Header del Escenario */}
+            <div className="flex justify-between items-center w-full pb-4 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <Sparkles size={18} className="text-gold" />
+                <span className="text-xs font-black text-ivory uppercase tracking-widest">
+                  Escenario Royale Visualizer
                 </span>
               </div>
-              {spinning && (
-                <div className="px-4 py-1.5 rounded-full bg-gold/10 text-gold border border-gold/20 text-[8px] font-black uppercase tracking-widest animate-pulse">
-                  MOTOR GIRANDO
+              {spinning ? (
+                <div className="px-3 py-1 rounded-full bg-gold/10 text-gold border border-gold/30 text-xs font-black uppercase tracking-wider animate-pulse">
+                  Motor Girando...
+                </div>
+              ) : (
+                <div className="px-3 py-1 rounded-full bg-surface-3 text-muted border border-border text-xs font-bold uppercase tracking-wider">
+                  En Espera
                 </div>
               )}
             </div>
-            <div className="relative mt-8 transform hover:scale-102 transition-transform duration-700">
+
+            {/* Rueda Royale */}
+            <div className="py-6 flex items-center justify-center w-full">
               <RoulettePreview
                 drinks={drinks}
                 phase={phase}
@@ -311,79 +306,88 @@ export default function RoulettePage() {
                 revealedResult={revealedResult?.result ?? null}
               />
             </div>
-            <div className="mt-8 w-full max-w-md p-6 rounded-2xl bg-surface-3/20 border border-white/5 flex items-center justify-between">
+
+            {/* Barra de Estado Inferior */}
+            <div className="w-full p-4 rounded-2xl bg-surface-3 border border-border flex items-center justify-between">
               <div>
-                <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-1">
-                  Estado de la Ruleta
+                <p className="text-xs text-muted font-bold uppercase tracking-wider mb-0.5">
+                  Estado de la Rueda
                 </p>
-                <p className="text-sm font-black text-ivory uppercase tracking-tighter">
-                  {phase === "idle"      && "Esperando lanzamiento"}
-                  {phase === "launching" && "Iniciando..."}
-                  {phase === "spinning"  && "Seleccionando trago..."}
-                  {phase === "revealing" && "Determinando ganador..."}
-                  {phase === "landing"   && "Aterrizando..."}
-                  {phase === "revealed"  && "¡Ganador revelado!"}
+                <p className="text-sm font-black text-ivory uppercase tracking-tight">
+                  {phase === "idle" && "Esperando lanzamiento"}
+                  {phase === "launching" && "Iniciando giro..."}
+                  {phase === "spinning" && "Seleccionando cóctel ganador..."}
+                  {phase === "revealing" && "Frenando en el objetivo..."}
+                  {phase === "landing" && "Aterrizando en premio..."}
+                  {phase === "revealed" && "¡Premio revelado en pantalla!"}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
-                    spinning ? "bg-amber-400 animate-ping" : "bg-emerald-400 animate-pulse"
+                    spinning ? "bg-gold animate-ping" : "bg-emerald animate-pulse"
                   }`}
                 />
-                <span className="text-[9px] font-black text-muted uppercase tracking-widest">
-                  {spinning ? "Active" : "Ready"}
+                <span className="text-xs font-black text-muted uppercase tracking-wider">
+                  {spinning ? "En Giro" : "Listo"}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Resultados + receta */}
+          {/* Podio de Resultados & Pool Activo (5 Cols) */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
-
-            {/* Último ganador */}
+            {/* Tarjeta de Ganador */}
             <WinnerCard
               result={revealedResult}
               phase={phase}
               onSpin={actions.spin}
             />
 
-            {/* Pool de tragos activos */}
-            <div className="glass-royale rounded-[3rem] p-7 border border-white/5 max-h-[260px] overflow-hidden flex flex-col">
-              <span className="text-[10px] font-black text-muted uppercase tracking-[0.3em] block mb-3">
-                POOL ACTIVO
-              </span>
-              <div className="space-y-2.5 overflow-y-auto pr-1 custom-scrollbar flex-1">
-                {drinks.filter((d) => d && d.active).map((drink) => (
-                  <div
-                    key={drink._id}
-                    className="flex justify-between items-center bg-white/5 px-3 py-2 rounded-xl border border-white/5"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-sm flex-shrink-0">🍸</span>
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-black text-ivory uppercase tracking-tight truncate capitalize">
-                          {drink.name}
-                        </p>
-                        <p className="text-[8px] text-muted uppercase tracking-widest">{drink.category}</p>
+            {/* Pool de Cócteles Activos */}
+            <div className="bg-surface-2 rounded-3xl p-6 border border-border flex flex-col max-h-[300px] shadow-lg">
+              <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
+                <span className="text-xs font-black text-ivory uppercase tracking-widest">
+                  Pool en Rotación
+                </span>
+                <span className="text-xs text-gold font-bold">
+                  {drinks.filter((d) => d && d.active).length} activos
+                </span>
+              </div>
+              <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-1">
+                {drinks
+                  .filter((d) => d && d.active)
+                  .map((drink) => (
+                    <div
+                      key={drink._id}
+                      className="flex justify-between items-center bg-surface-3/60 px-3.5 py-2.5 rounded-xl border border-border"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0">🍸</span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-ivory uppercase truncate">
+                            {drink.name}
+                          </p>
+                          <p className="text-xs text-muted uppercase">{drink.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <RarityBadge rarity={drink.rarity} size="sm" />
+                        <span className="text-xs font-black text-gold">
+                          {(drink.probability ?? 0).toFixed(1)}%
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <RarityBadge rarity={drink.rarity} size="sm" />
-                      <span className="text-[10px] font-black text-grad-gold">
-                        {(drink.probability ?? 0).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           </div>
         </div>
       ) : (
-        /* ── CONTROL DECK ── */
-        <div className="grid grid-cols-12 gap-6 animate-fadeIn">
-          <div className="col-span-12 xl:col-span-8 space-y-6">
+        /* ── CONTROL DECK (MATRIZ & LABORATORIO) ── */
+        <div className="grid grid-cols-12 gap-6 items-start animate-fadeIn">
+          {/* Matriz de Probabilidades (8 Cols) */}
+          <div className="col-span-12 xl:col-span-8">
             <ProbabilityEngine
               drinks={drinks}
               onUpdate={actions.update}
@@ -391,60 +395,64 @@ export default function RoulettePage() {
               onRemove={actions.remove}
             />
           </div>
-          <div className="col-span-12 xl:col-span-4 space-y-4">
-            {/* Add Drink button */}
-            <div className="glass-royale rounded-[2.5rem] p-6 border border-white/5 animate-fade-in">
-              <div className="flex items-center gap-3 mb-5">
-                <LayoutDashboard size={18} className="text-gold" />
+
+          {/* Consola Lateral: Añadir Trago & The Lab (4 Cols) */}
+          <div className="col-span-12 xl:col-span-4 space-y-5">
+            {/* Tarjeta Rápida: Añadir Trago */}
+            <div className="bg-surface-2 rounded-3xl p-6 border border-border shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gold/10 text-gold border border-gold/20">
+                  <LayoutDashboard size={18} />
+                </div>
                 <div>
-                  <h3 className="text-base font-black text-ivory tracking-tighter uppercase">
-                    Añadir Trago
+                  <h3 className="text-sm font-black text-ivory tracking-tight uppercase">
+                    Añadir al Pool
                   </h3>
-                  <p className="text-[8px] text-muted uppercase tracking-[0.2em] mt-1">Inventario POS</p>
+                  <p className="text-xs text-muted">Integrar producto del inventario</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAddDrinkModal(true)}
-                className="w-full flex flex-col items-center justify-center gap-3 p-6 bg-gold/10 hover:bg-gold/20 border-2 border-dashed border-gold/30 hover:border-gold/50 rounded-2xl transition-all group"
+                className="w-full flex flex-col items-center justify-center gap-3 p-6 bg-surface-3 hover:bg-surface-4 border-2 border-dashed border-border hover:border-gold/50 rounded-2xl transition-all cursor-pointer group"
               >
-                <div className="p-3 rounded-full bg-gold/20 group-hover:bg-gold/30 transition-all">
-                  <Plus size={24} className="text-gold" />
+                <div className="p-3 rounded-full bg-gold/10 text-gold group-hover:bg-gold/20 transition-all">
+                  <Plus size={24} />
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-black text-ivory uppercase tracking-tight mb-1">
-                    Abrir Selector
+                  <p className="text-xs font-black text-ivory uppercase tracking-wider mb-0.5">
+                    Abrir Catálogo de Tragos
                   </p>
-                  <p className="text-[8px] text-muted uppercase tracking-widest">Busca y añade tragos</p>
+                  <p className="text-xs text-muted">Configura peso y rareza</p>
                 </div>
               </button>
             </div>
 
-            {/* THE LAB collapsible section */}
-            <div className="glass-royale rounded-[2.5rem] border border-white/5 overflow-hidden">
+            {/* THE LAB */}
+            <div className="bg-surface-2 rounded-3xl border border-border shadow-lg overflow-hidden">
               <button
                 onClick={() => setShowTheLab((v) => !v)}
-                className="w-full flex items-center justify-between px-6 py-5 hover:bg-white/3 transition-all"
+                className="w-full flex items-center justify-between p-5 hover:bg-surface-3 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gold/10 text-gold">
-                    <Zap size={16} />
+                  <div className="p-2 rounded-xl bg-gold/10 text-gold border border-gold/20">
+                    <Zap size={18} />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-sm font-black text-ivory tracking-tighter uppercase">
-                      The <span className="text-grad-gold">Lab</span>
+                    <h3 className="text-sm font-black text-ivory tracking-tight uppercase">
+                      The <span className="text-gold">Lab</span>
                     </h3>
-                    <p className="text-[8px] text-muted uppercase tracking-[0.3em] mt-0.5">
-                      Fader · Presets · Pity
+                    <p className="text-xs text-muted">
+                      Fader Mixer · Smart Presets · Pity Vault
                     </p>
                   </div>
                 </div>
-                <span className={`text-muted transition-transform duration-300 ${showTheLab ? "rotate-180" : ""}`}>
+                <span className={`text-muted text-xs transition-transform duration-300 ${showTheLab ? "rotate-180" : ""}`}>
                   ▼
                 </span>
               </button>
 
               {showTheLab && (
-                <div className="px-4 pb-4 space-y-4 animate-fadeIn border-t border-white/5 pt-4">
+                <div className="p-4 space-y-4 border-t border-border bg-surface-2/60 animate-fadeIn">
                   <FaderMixer drinks={drinks} onUpdate={actions.update} />
                   <SmartPresets
                     drinks={drinks}
@@ -462,50 +470,48 @@ export default function RoulettePage() {
       {/* Tutorial */}
       <RouletteTutorial isOpen={showTutorial} onClose={() => setShowTutorial(false)} />
 
-      {/* Add Drink Modal */}
+      {/* Modal Añadir Trago */}
       {showAddDrinkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-gold/20 rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-white/5 bg-gold/5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fadeIn">
+          <div className="relative w-full max-w-2xl bg-surface-2 border border-border rounded-3xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-border bg-surface-3/50">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gold/10 text-gold">
+                <div className="p-2 rounded-xl bg-gold/10 text-gold border border-gold/20">
                   <LayoutDashboard size={20} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-ivory tracking-tighter uppercase">
-                    Añadir Trago
+                  <h2 className="text-base font-black text-ivory tracking-tight uppercase">
+                    Añadir Trago a la Ruleta
                   </h2>
-                  <p className="text-[9px] text-muted uppercase tracking-[0.2em] mt-0.5">
-                    Inventario POS
-                  </p>
+                  <p className="text-xs text-muted">Inventario POS del Sistema</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAddDrinkModal(false)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-muted hover:text-ivory transition-all"
+                className="p-2 rounded-xl bg-surface-3 hover:bg-surface-4 text-muted hover:text-ivory border border-border transition-all cursor-pointer"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
               <ProductSelector
                 onSelect={async (product, config) => {
                   const result = await actions.create({
-                    name:     product.name,
-                    weight:   config.weight,
-                    color:    "#D4A340",
+                    name: product.name,
+                    weight: config.weight,
+                    color: "#F0B429",
                     category: "general",
-                    rarity:   config.rarity,
-                    product:  product._id,
+                    rarity: config.rarity,
+                    product: product._id,
                   });
                   if (result.success) {
                     setShowAddDrinkModal(false);
-                    success("Trago Añadido", `${product.name} ha sido añadido a la ruleta`);
+                    success("Trago Añadido", `${product.name} fue integrado a la ruleta exitosamente.`);
                   } else {
                     const msgs: Record<string, string> = {
-                      duplicate:      `El trago "${product.name}" ya está en la ruleta`,
-                      missing_name:   "El nombre del trago es requerido",
-                      invalid_weight: "El peso debe estar entre 1 y 1000",
+                      duplicate: `El trago "${product.name}" ya se encuentra configurado en la ruleta`,
+                      missing_name: "El nombre del trago es requerido",
+                      invalid_weight: "El peso debe estar entre 1 y 100",
                     };
                     error("Error", msgs[result.error ?? ""] ?? `No se pudo añadir: ${result.error}`);
                   }
@@ -516,7 +522,7 @@ export default function RoulettePage() {
         </div>
       )}
 
-      {/* Toasts */}
+      {/* Toasts de Notificación */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

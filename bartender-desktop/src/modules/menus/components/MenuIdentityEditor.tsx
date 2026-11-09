@@ -105,7 +105,6 @@ export default function MenuIdentityEditor({ menu, onUpdate }: Props) {
         });
       }, 100);
 
-      const { uploadImage } = await import("../../../services/uploadService");
       const result = await uploadImage(file, {
         folder: "bartender/menus",
         transformation: [{ width: 1200, height: 630, crop: "fill" }],

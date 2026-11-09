@@ -1,58 +1,71 @@
-import type { RouletteRarity } from '../types/roulette';
-import { Sparkles, Star, Zap, Flame } from 'lucide-react';
+import type { RouletteRarity } from "../types/roulette";
+import { Sparkles, Star, Zap, Flame } from "lucide-react";
 
 interface Props {
-  rarity: RouletteRarity;
-  size?: 'sm' | 'md' | 'lg';
+  rarity: RouletteRarity | string;
+  size?: "sm" | "md" | "lg";
 }
 
-const RARITY_CONFIG = {
+const RARITY_CONFIG: Record<
+  string,
+  {
+    color: string;
+    bg: string;
+    border: string;
+    label: string;
+    icon: React.ReactNode;
+    glow: string;
+  }
+> = {
   COMMON: {
-    color: 'text-gray-400',
-    bg: 'bg-gray-400/10',
-    border: 'border-gray-400/20',
-    label: 'COMÚN',
-    icon: <Zap size={10} />,
-    glow: ''
+    color: "text-[#388BFD]",
+    bg: "bg-[#388BFD]/10",
+    border: "border-[#388BFD]/25",
+    label: "COMÚN",
+    icon: <Zap size={12} />,
+    glow: "",
   },
   RARE: {
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-400/10',
-    border: 'border-emerald-400/20',
-    label: 'RARO',
-    icon: <Star size={10} />,
-    glow: 'shadow-emerald-400/20'
+    color: "text-emerald",
+    bg: "bg-emerald/10",
+    border: "border-emerald/30",
+    label: "RARO",
+    icon: <Star size={12} />,
+    glow: "shadow-[0_0_12px_rgba(63,185,80,0.18)]",
   },
   EPIC: {
-    color: 'text-purple-400',
-    bg: 'bg-purple-400/10',
-    border: 'border-purple-400/20',
-    label: 'ÉPICO',
-    icon: <Sparkles size={10} />,
-    glow: 'shadow-purple-400/30 shadow-[0_0_15px_rgba(192,132,252,0.3)]'
+    color: "text-[#A371F7]",
+    bg: "bg-[#A371F7]/10",
+    border: "border-[#A371F7]/30",
+    label: "ÉPICO",
+    icon: <Sparkles size={12} />,
+    glow: "shadow-[0_0_16px_rgba(163,113,247,0.22)]",
   },
   LEGENDARY: {
-    color: 'text-gold',
-    bg: 'bg-gold/10',
-    border: 'border-gold/20',
-    label: 'LEGENDARIO',
-    icon: <Flame size={10} />,
-    glow: 'shadow-gold-glow animate-pulse'
-  }
+    color: "text-gold",
+    bg: "bg-gold/10",
+    border: "border-gold/35",
+    label: "LEGENDARIO",
+    icon: <Flame size={12} />,
+    glow: "shadow-gold-glow",
+  },
 };
 
-export default function RarityBadge({ rarity, size = 'md' }: Props) {
-  const config = RARITY_CONFIG[rarity || 'COMMON'];
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[8px]' : size === 'lg' ? 'px-4 py-1.5 text-xs' : 'px-3 py-1 text-[10px]';
+export default function RarityBadge({ rarity = "COMMON", size = "md" }: Props) {
+  const config = RARITY_CONFIG[rarity] || RARITY_CONFIG.COMMON;
+  const sizeClasses =
+    size === "sm"
+      ? "px-2.5 py-0.5 text-xs gap-1.5"
+      : size === "lg"
+      ? "px-4 py-1.5 text-sm gap-2"
+      : "px-3 py-1 text-xs gap-1.5";
 
   return (
-    <div className={`
-      flex items-center gap-1.5 font-black uppercase tracking-[0.2em] rounded-full border
-      ${config.bg} ${config.color} ${config.border} ${config.glow} ${sizeClasses}
-      transition-all duration-500
-    `}>
+    <div
+      className={`inline-flex items-center font-black uppercase tracking-wider rounded-full border transition-all duration-300 ${config.bg} ${config.color} ${config.border} ${config.glow} ${sizeClasses}`}
+    >
       {config.icon}
-      {config.label}
+      <span>{config.label}</span>
     </div>
   );
 }

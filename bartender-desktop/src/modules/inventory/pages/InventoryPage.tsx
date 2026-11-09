@@ -1,9 +1,11 @@
+"use client";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Plus, Package, AlertTriangle, Activity, RefreshCcw,
   TrendingUp, LayoutGrid, HelpCircle, List, X,
   Layers, GlassWater, Flame, DollarSign,
-  ChevronDown, Search, SlidersHorizontal,
+  Search, SlidersHorizontal, CheckCircle,
 } from "lucide-react";
 
 import InventoryCard from "../components/InventoryCard";
@@ -21,26 +23,27 @@ import {
   getInventoryCategories,
 } from "../services/inventoryService";
 
-import { useInventoryTutorial }    from "../hooks/useInventoryTutorial";
+import { useInventoryTutorial } from "../hooks/useInventoryTutorial";
 import { useInventoryUiStore, type InventoryMode } from "../store/inventoryUiStore";
 import { useInventorySocketEvents } from "../../../hooks/useSocket";
 
 import type { InventoryItem } from "../types/inventory";
-import "../../../styles/nebula-theme.css";
 
 // ── Helpers ───────────────────────────────────────────────────────
 
 function stockStatus(item: InventoryItem): "critical" | "low" | "normal" {
   const s = Number(item.stock ?? 0);
   const m = Number(item.minStock ?? 0);
-  if (s <= m)          return "critical";
-  if (s <= m * 1.5)    return "low";
+  if (s <= m) return "critical";
+  if (s <= m * 1.5) return "low";
   return "normal";
 }
 
 function fmtMoney(n: number) {
   return n.toLocaleString("es-AR", {
-    style: "currency", currency: "ARS", maximumFractionDigits: 0,
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
   });
 }
 
@@ -50,37 +53,36 @@ const MODE_OPTIONS: { value: InventoryMode; label: string; desc: string; icon: R
   {
     value: "basic",
     label: "Básico",
-    desc:  "Nombre, stock y ajuste rápido",
-    icon:  <Layers size={15} />,
+    desc: "Vista operativa rápida: stock y ajuste ±",
+    icon: <Layers size={14} />,
   },
   {
     value: "standard",
     label: "Estándar",
-    desc:  "Imagen, costo, proveedor y ajuste",
-    icon:  <Package size={15} />,
+    desc: "Ficha técnica completa: imagen, costos, proveedor y nivel",
+    icon: <Package size={14} />,
   },
   {
     value: "advanced",
     label: "Avanzado",
-    desc:  "Valor, recetas y forecasting",
-    icon:  <TrendingUp size={15} />,
+    desc: "Analytics de inventario: valorización, salud y desglose",
+    icon: <TrendingUp size={14} />,
   },
 ];
 
 function ModeToggle({ mode, onChange }: { mode: InventoryMode; onChange: (m: InventoryMode) => void }) {
   return (
-    <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-xl p-1">
+    <div className="flex items-center gap-1 bg-[#0D1117] border border-[#30363D] rounded-xl p-1">
       {MODE_OPTIONS.map((opt) => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
           title={opt.desc}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
-            mode === opt.value
-              ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
-              : "text-muted hover:text-ivory"
-          }`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${mode === opt.value
+              ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40 shadow-sm"
+              : "text-[#8B949E] hover:text-[#E6EDF3]"
+            }`}
         >
           {opt.icon}
           <span className="hidden sm:inline">{opt.label}</span>
@@ -93,24 +95,34 @@ function ModeToggle({ mode, onChange }: { mode: InventoryMode; onChange: (m: Inv
 // ── KPI box ───────────────────────────────────────────────────────
 
 function KPIBox({
-  label, value, sub, icon, colorCls, pulse,
+  label, value, icon, variant = "default", helperText,
 }: {
   label: string;
-  value: string | number;
-  sub?: string;
+  value: number | string;
   icon: React.ReactNode;
-  colorCls: string;
-  pulse?: boolean;
+  variant?: "default" | "green" | "gold" | "red" | "orange" | "blue";
+  helperText?: string;
 }) {
+  const variantStyles = {
+    default: { text: "text-[#E6EDF3]", iconBg: "bg-[#21283A] text-[#8B949E]", border: "border-[#30363D]" },
+    green: { text: "text-[#3FB950]", iconBg: "bg-[rgba(63,185,80,0.12)] text-[#3FB950]", border: "border-[rgba(63,185,80,0.30)]" },
+    gold: { text: "text-[#F0B429]", iconBg: "bg-[rgba(240,180,41,0.12)] text-[#F0B429]", border: "border-[rgba(240,180,41,0.30)]" },
+    red: { text: "text-[#F85149]", iconBg: "bg-[rgba(248,81,73,0.12)] text-[#F85149]", border: "border-[rgba(248,81,73,0.30)]" },
+    orange: { text: "text-[#FF7B54]", iconBg: "bg-[rgba(255,123,84,0.12)] text-[#FF7B54]", border: "border-[rgba(255,123,84,0.30)]" },
+    blue: { text: "text-[#388BFD]", iconBg: "bg-[rgba(56,139,253,0.12)] text-[#388BFD]", border: "border-[#30363D]" },
+  }[variant];
+
   return (
-    <div className={`p-4 rounded-xl border bg-surface-3/50 flex items-center gap-3 ${colorCls}`}>
-      <div className={`p-2 rounded-xl ${colorCls} ${pulse ? "animate-pulse" : ""}`}>
-        {icon}
-      </div>
+    <div className={`p-4 rounded-xl border ${variantStyles.border} bg-[#161B22] flex items-center justify-between gap-3 shadow-sm transition-all hover:border-[#3D444D]`}>
       <div className="min-w-0">
-        <p className="text-[10px] text-muted uppercase tracking-widest truncate">{label}</p>
-        <p className="text-xl font-bold text-ivory leading-tight">{value}</p>
-        {sub && <p className="text-[10px] text-muted/60 mt-0.5">{sub}</p>}
+        <p className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider mb-1">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <p className={`text-2xl font-black ${variantStyles.text} tracking-tight truncate`}>{value}</p>
+          {helperText && <span className="text-xs text-[#8B949E] shrink-0">{helperText}</span>}
+        </div>
+      </div>
+      <div className={`p-2.5 rounded-xl ${variantStyles.iconBg} shrink-0`}>
+        {icon}
       </div>
     </div>
   );
@@ -119,29 +131,29 @@ function KPIBox({
 // ── Filtro de stock (pill) ────────────────────────────────────────
 
 const STOCK_FILTERS = [
-  { value: "all",      label: "Todos"    },
-  { value: "critical", label: "Crítico"  },
-  { value: "low",      label: "Bajo"     },
-  { value: "normal",   label: "Normal"   },
+  { value: "all", label: "Todos" },
+  { value: "critical", label: "Crítico" },
+  { value: "low", label: "Bajo" },
+  { value: "normal", label: "Normal" },
 ] as const;
 
 type StockFilter = typeof STOCK_FILTERS[number]["value"];
 
-// ── Página ────────────────────────────────────────────────────────
+// ── Página Principal de Inventario ───────────────────────────────
 
 export default function InventoryPage() {
-  const [items, setItems]           = useState<InventoryItem[]>([]);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [selected, setSelected]     = useState<InventoryItem | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState<string | null>(null);
+  const [selected, setSelected] = useState<InventoryItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [stockAlert, setStockAlert] = useState<string | null>(null);
 
   // Filtros
-  const [search, setSearch]             = useState("");
+  const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState<string>("");
-  const [stockFilter, setStockFilter]   = useState<StockFilter>("all");
+  const [stockFilter, setStockFilter] = useState<StockFilter>("all");
 
   const {
     mode, setMode,
@@ -153,7 +165,7 @@ export default function InventoryPage() {
   const { isOpen: tutorialOpen, openTutorial, closeTutorial, completeTutorial } =
     useInventoryTutorial();
 
-  // ── Fetch ──────────────────────────────────────────────────────
+  // ── Fetch de datos ────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -174,7 +186,7 @@ export default function InventoryPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // ── Socket.IO ─────────────────────────────────────────────────
+  // ── Socket.IO Realtime ────────────────────────────────────────
 
   useInventorySocketEvents(
     () => { fetchData(); },
@@ -192,7 +204,7 @@ export default function InventoryPage() {
         if (item) {
           const status = stockStatus({ ...item, stock: nextStock });
           if (status !== "normal") {
-            setStockAlert(`${item.name}: stock ${status === "critical" ? "crítico" : "bajo"} (${nextStock})`);
+            setStockAlert(`${item.name}: stock ${status === "critical" ? "crítico" : "bajo"} (${nextStock} ${item.unit})`);
           }
         }
         return current.map((entry) =>
@@ -215,7 +227,7 @@ export default function InventoryPage() {
     return Array.from(new Set(items.map((i) => i.category).filter(Boolean)));
   }, [categories, items]);
 
-  // ── Filtrado — lógica corregida (OR dentro del grupo) ─────────
+  // ── Filtrado de insumos ───────────────────────────────────────
 
   const filteredItems = useMemo(() => {
     let list = items;
@@ -241,24 +253,26 @@ export default function InventoryPage() {
     return list;
   }, [items, search, sectorFilter, stockFilter]);
 
-  // ── Estadísticas ──────────────────────────────────────────────
+  // ── Estadísticas para KPIs ───────────────────────────────────
 
   const stats = useMemo(() => {
-    const total      = items.length;
-    const critical   = items.filter((i) => stockStatus(i) === "critical").length;
-    const low        = items.filter((i) => stockStatus(i) === "low").length;
+    const total = items.length;
+    const critical = items.filter((i) => stockStatus(i) === "critical").length;
+    const low = items.filter((i) => stockStatus(i) === "low").length;
+    const normal = items.filter((i) => stockStatus(i) === "normal").length;
     const totalValue = items.reduce((s, i) => s + Number(i.stock ?? 0) * Number(i.cost ?? 0), 0);
-    const barItems   = items.filter((i) => i.sector === "bar").length;
-    const kitItems   = items.filter((i) => i.sector === "kitchen").length;
-    return { total, critical, low, totalValue, barItems, kitItems };
+    const barItems = items.filter((i) => i.sector === "bar").length;
+    const kitItems = items.filter((i) => i.sector === "kitchen").length;
+    const activeCount = items.filter((i) => i.isActive).length;
+    return { total, critical, low, normal, totalValue, barItems, kitItems, activeCount };
   }, [items]);
 
-  // ── CRUD ──────────────────────────────────────────────────────
+  // ── Acciones CRUD ─────────────────────────────────────────────
 
   const handleSave = async (item: InventoryItem) => {
     try {
       if (item._id) await updateInventoryItem(item._id, item);
-      else           await createInventoryItem(item);
+      else await createInventoryItem(item);
       setPageView("list");
       setSelected(null);
       fetchData();
@@ -267,9 +281,13 @@ export default function InventoryPage() {
     }
   };
 
-  const handleEdit   = (item: InventoryItem) => { setSelected(item); setPageView("form"); };
+  const handleEdit = (item: InventoryItem) => {
+    setSelected(item);
+    setPageView("form");
+  };
+
   const handleDelete = async (id: string) => {
-    if (!window.confirm("¿Eliminar este insumo permanentemente?")) return;
+    if (!window.confirm("¿Eliminar este insumo permanentemente de la bóveda?")) return;
     try {
       await deleteInventoryItem(id);
       fetchData();
@@ -282,21 +300,21 @@ export default function InventoryPage() {
 
   const handleExport = async () => {
     const blob = new Blob([JSON.stringify(filteredItems, null, 2)], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
     a.download = `inventario-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  // ── Grid columns según modo ───────────────────────────────────
+  // ── Columnas del Grid según modo ──────────────────────────────
 
   const gridCols = useMemo(() => {
-    if (view === "list")         return "grid-cols-1";
-    if (mode === "basic")        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
-    if (mode === "standard")     return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
-    return "grid-cols-1"; // advanced — lista horizontal siempre
+    if (view === "list") return "grid-cols-1";
+    if (mode === "basic") return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+    if (mode === "standard") return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+    return "grid-cols-1";
   }, [view, mode]);
 
   const cardView = view === "list" ? "advanced" : mode;
@@ -304,7 +322,7 @@ export default function InventoryPage() {
   // ── Render ────────────────────────────────────────────────────
 
   return (
-    <div className="nebula-dashboard-root flex flex-col h-full min-h-0 gap-5 animate-fade-in-up-fusion relative overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 gap-4 bg-[#0D1117] relative overflow-hidden p-4 md:p-6">
 
       {/* Tutorial */}
       <InventoryTutorial
@@ -313,227 +331,239 @@ export default function InventoryPage() {
         onComplete={completeTutorial}
       />
 
-      {/* Aurora background */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <div className="nebula-aurora" />
-      </div>
-
       {/* ── HEADER ─────────────────────────────────────────────── */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-linear-to-br from-violet-500/30 to-cyan-500/20 border border-violet-400/20 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
-            <Package className="text-violet-200" size={26} />
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 pb-3 border-b border-[#30363D]">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-[rgba(240,180,41,0.12)] text-[#F0B429] border border-[rgba(240,180,41,0.25)] shadow-sm">
+            <Package size={22} />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-ivory">
+            <h1 className="text-xl md:text-2xl font-black tracking-tight text-[#E6EDF3]">
               Bóveda de Insumos
             </h1>
-            <p className="text-xs text-muted mt-0.5">
-              {stats.total} insumos · {stats.critical > 0
-                ? <span className="text-red-400">{stats.critical} críticos</span>
-                : "stock OK"
+            <p className="text-xs text-[#8B949E] mt-0.5">
+              {stats.total} insumos registrados · {stats.critical > 0
+                ? <span className="text-[#F85149] font-bold">{stats.critical} críticos</span>
+                : <span className="text-[#3FB950] font-semibold">stock óptimo</span>
               } · modo {MODE_OPTIONS.find((m) => m.value === mode)?.label}
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-
-          {/* Búsqueda */}
+          {/* Buscador expandido */}
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E] pointer-events-none" />
             <input
-              type="search"
+              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar insumo…"
-              className="h-9 pl-8 pr-3 rounded-xl bg-white/5 border border-white/10 text-xs text-ivory placeholder:text-muted/50 focus:outline-none focus:border-violet-400/40 w-44"
+              placeholder="Buscar por nombre, categoría o proveedor…"
+              className="h-9 pl-9 pr-8 rounded-xl bg-[#161B22] border border-[#30363D] text-xs text-[#E6EDF3] placeholder:text-[#8B949E] focus:outline-none focus:border-[#F0B429] w-64 md:w-72 transition-all"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B949E] hover:text-[#E6EDF3]"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
 
-          {/* Filtro sector */}
-          <div className="relative">
-            <select
-              value={sectorFilter}
-              onChange={(e) => setSectorFilter(e.target.value)}
-              className="h-9 pl-3 pr-7 rounded-xl bg-white/5 border border-white/10 text-xs text-ivory focus:outline-none focus:border-violet-400/40 appearance-none cursor-pointer"
-            >
-              <option value="">Todos los sectores</option>
-              <option value="bar">Barra</option>
-              <option value="kitchen">Cocina</option>
-              <option value="general">General</option>
-            </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          </div>
-
+          {/* Selector de modo */}
           <ModeToggle mode={mode} onChange={setMode} />
 
+          {/* Toggle de vista cuadrícula / lista */}
           <button
             type="button"
             onClick={toggleView}
             title={`Vista: ${view === "grid" ? "cuadrícula" : "lista"}`}
-            className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            className="p-2 rounded-xl bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
             {view === "grid" ? <LayoutGrid size={15} /> : <List size={15} />}
           </button>
 
+          {/* Refrescar */}
           <button
             type="button"
             onClick={fetchData}
-            title="Actualizar"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            title="Sincronizar inventario"
+            className="p-2 rounded-xl bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
-            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
+            <RefreshCcw size={15} className={loading ? "animate-spin text-[#F0B429]" : ""} />
           </button>
 
+          {/* Exportar */}
           <button
             type="button"
             onClick={() => setShowExport(true)}
-            title="Exportar"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-ivory hover:border-white/20 transition-colors"
+            title="Opciones de exportación"
+            className="p-2 rounded-xl bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#E6EDF3] hover:border-[#3D444D] transition-colors"
           >
             <SlidersHorizontal size={15} />
           </button>
 
+          {/* Tutorial */}
           <button
             type="button"
             onClick={openTutorial}
-            title="Tutorial"
-            className="flex items-center px-2.5 py-2 rounded-xl border border-white/10 text-xs text-muted hover:text-violet-300 hover:border-violet-400/20 transition-colors"
+            title="Tutorial interactivo"
+            className="p-2 rounded-xl bg-[#161B22] border border-[#30363D] text-[#8B949E] hover:text-[#F0B429] hover:border-[#F0B429]/40 transition-colors"
           >
             <HelpCircle size={15} />
           </button>
 
+          {/* CTA Nuevo Insumo */}
           <button
             type="button"
             onClick={() => { setSelected(null); setPageView("form"); }}
-            className="nebula-btn-primary flex items-center gap-2 px-4 py-2"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F0B429] hover:bg-[#D99B16] text-[#0D1117] font-bold text-xs uppercase tracking-wider shadow-sm shadow-[#F0B429]/20 transition-all active:scale-95 ml-1"
           >
             <Plus size={16} />
-            <span className="text-xs font-bold uppercase tracking-wider">Nuevo</span>
+            <span>Nuevo Insumo</span>
           </button>
         </div>
       </header>
 
-      {/* ── KPIs adaptativos ───────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+      {/* ── 4 KPIs SIEMPRE EQUILIBRADOS (SIN HUECOS VACÍOS) ────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
         <KPIBox
-          label="Total insumos"
+          label="Total Insumos"
           value={stats.total}
-          icon={<LayoutGrid size={17} />}
-          colorCls="from-violet-500/15 border-violet-500/25 bg-linear-to-br"
+          helperText={`${stats.activeCount} activos`}
+          icon={<Package size={18} />}
+          variant="default"
         />
         <KPIBox
-          label="Críticos"
+          label="Reposición Crítica"
           value={stats.critical}
-          sub={stats.critical > 0 ? "Reposición urgente" : undefined}
-          icon={<AlertTriangle size={17} />}
-          colorCls="from-red-500/15 border-red-500/25 bg-linear-to-br"
-          pulse={stats.critical > 0}
+          helperText={stats.critical > 0 ? "Reposición urgente" : "Niveles seguros"}
+          icon={<AlertTriangle size={18} />}
+          variant={stats.critical > 0 ? "red" : "green"}
         />
-        {/* Solo en standard y advanced */}
-        {mode !== "basic" && (
-          <>
-            <KPIBox
-              label="Stock bajo"
-              value={stats.low}
-              icon={<Activity size={17} />}
-              colorCls="from-amber-500/15 border-amber-500/25 bg-linear-to-br"
-            />
-            <KPIBox
-              label="Valor total"
-              value={fmtMoney(stats.totalValue)}
-              icon={<DollarSign size={17} />}
-              colorCls="from-cyan-500/15 border-cyan-500/25 bg-linear-to-br"
-            />
-          </>
+        <KPIBox
+          label="Stock en Alerta"
+          value={stats.low}
+          helperText="Próximo a mínimo"
+          icon={<Activity size={18} />}
+          variant={stats.low > 0 ? "orange" : "default"}
+        />
+        {mode === "basic" ? (
+          <KPIBox
+            label="Insumos en Barra"
+            value={stats.barItems}
+            helperText={`de ${stats.total} insumos`}
+            icon={<GlassWater size={18} />}
+            variant="gold"
+          />
+        ) : (
+          <KPIBox
+            label="Valorización Total"
+            value={fmtMoney(stats.totalValue)}
+            helperText="En stock actual"
+            icon={<DollarSign size={18} />}
+            variant="gold"
+          />
         )}
       </div>
 
-      {/* ── Panel avanzado — solo en modo advanced ─────────────── */}
-      {mode === "advanced" && (
-        <InventoryAdvancedPanel items={items} />
-      )}
+      {/* ── FILTROS LIMPIOS (STOCK + SECTORES) ─────────────────── */}
+      <div className="flex flex-wrap items-center gap-2 shrink-0 py-1">
+        {/* Pills de estado de stock */}
+        <div className="flex items-center gap-1.5 bg-[#161B22] p-1 rounded-xl border border-[#30363D]">
+          {STOCK_FILTERS.map((f) => {
+            const count =
+              f.value === "all"
+                ? items.length
+                : items.filter((i) => stockStatus(i) === f.value).length;
 
-      {/* ── Filtros de stock (pills) — CORREGIDO: OR dentro del grupo ── */}
-      <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {STOCK_FILTERS.map((f) => {
-          const count =
-            f.value === "all"
-              ? items.length
-              : items.filter((i) => stockStatus(i) === f.value).length;
-          return (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => setStockFilter(f.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${
-                stockFilter === f.value
-                  ? f.value === "critical"
-                    ? "bg-red-500/20 border-red-500/40 text-red-300"
-                    : f.value === "low"
-                      ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
-                      : "bg-violet-500/20 border-violet-500/40 text-violet-300"
-                  : "bg-white/3 border-white/8 text-muted hover:border-white/18 hover:text-ivory"
-              }`}
-            >
-              {f.label}
-              <span className={`text-[9px] font-bold px-1 py-0.5 rounded-full ${
-                stockFilter === f.value ? "bg-white/10" : "bg-white/5 text-muted/70"
-              }`}>
-                {count}
-              </span>
-            </button>
-          );
-        })}
+            const isSelected = stockFilter === f.value;
 
-        {/* Filtros de sector como pills adicionales */}
-        <div className="flex items-center gap-1.5 ml-2">
-          {[
-            { value: "bar",     label: "Barra",   icon: <GlassWater size={11} />, color: "text-amber-400 border-amber-500/30 bg-amber-500/10"  },
-            { value: "kitchen", label: "Cocina",  icon: <Flame      size={11} />, color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" },
-            { value: "general", label: "General", icon: <Layers     size={11} />, color: "text-violet-400 border-violet-500/30 bg-violet-500/10" },
-          ].map((s) => (
-            <button
-              key={s.value}
-              type="button"
-              onClick={() => setSectorFilter(sectorFilter === s.value ? "" : s.value)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all ${
-                sectorFilter === s.value
-                  ? s.color
-                  : "bg-white/3 border-white/8 text-muted hover:border-white/18 hover:text-ivory"
-              }`}
-            >
-              {s.icon} {s.label}
-            </button>
-          ))}
+            return (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => setStockFilter(f.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSelected
+                    ? f.value === "critical"
+                      ? "bg-[rgba(248,81,73,0.15)] text-[#F85149] border border-[rgba(248,81,73,0.30)]"
+                      : f.value === "low"
+                        ? "bg-[rgba(255,123,84,0.15)] text-[#FF7B54] border border-[rgba(255,123,84,0.30)]"
+                        : "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40"
+                    : "text-[#8B949E] hover:text-[#E6EDF3] border border-transparent"
+                  }`}
+              >
+                <span>{f.label}</span>
+                <span className={`text-xs px-1.5 py-0.2 rounded-md ${isSelected ? "bg-white/10" : "bg-[#0D1117] text-[#8B949E]"
+                  }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
+        {/* Separador vertical */}
+        <div className="h-5 w-px bg-[#30363D] mx-1 hidden sm:block" />
+
+        {/* Pills de sector operativo */}
+        <div className="flex items-center gap-1.5 bg-[#161B22] p-1 rounded-xl border border-[#30363D]">
+          {[
+            { value: "bar", label: "Barra", icon: <GlassWater size={13} />, count: stats.barItems },
+            { value: "kitchen", label: "Cocina", icon: <Flame size={13} />, count: stats.kitItems },
+            { value: "general", label: "General", icon: <Layers size={13} />, count: items.filter(i => i.sector === "general").length },
+          ].map((s) => {
+            const isSelected = sectorFilter === s.value;
+            return (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => setSectorFilter(sectorFilter === s.value ? "" : s.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${isSelected
+                    ? "bg-[#21283A] text-[#388BFD] border border-[#388BFD]/40 shadow-sm"
+                    : "text-[#8B949E] hover:text-[#E6EDF3] border border-transparent"
+                  }`}
+              >
+                {s.icon}
+                <span>{s.label}</span>
+                <span className={`text-xs px-1.5 py-0.2 rounded-md ${isSelected ? "bg-white/10" : "bg-[#0D1117] text-[#8B949E]"
+                  }`}>
+                  {s.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Botón de limpiar filtros activos */}
         {(search || sectorFilter || stockFilter !== "all") && (
           <button
             type="button"
             onClick={() => { setSearch(""); setSectorFilter(""); setStockFilter("all"); }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] text-muted/60 hover:text-muted transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#8B949E] hover:text-[#E6EDF3] bg-[#161B22] border border-[#30363D] transition-colors ml-auto"
           >
-            <X size={10} /> Limpiar
+            <X size={12} />
+            <span>Limpiar filtros</span>
           </button>
         )}
       </div>
 
-      {/* ── Alertas realtime de stock ─────────────────────────── */}
+      {/* ── Alerta realtime de stock ───────────────────────────── */}
       {stockAlert && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-400/25 text-amber-200 text-xs shrink-0" role="status" aria-live="polite">
-          <AlertTriangle size={16} className="text-amber-300" />
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,123,84,0.12)] border border-[rgba(255,123,84,0.30)] text-[#FF7B54] text-xs font-semibold shrink-0 animate-in fade-in" role="status" aria-live="polite">
+          <AlertTriangle size={16} className="text-[#FF7B54] shrink-0" />
           <span className="flex-1">{stockAlert}</span>
-          <button type="button" onClick={() => setStockAlert(null)} aria-label="Cerrar alerta de stock">
+          <button type="button" onClick={() => setStockAlert(null)} aria-label="Cerrar alerta">
             <X size={14} />
           </button>
         </div>
       )}
 
-      {/* ── Error ─────────────────────────────────────────────── */}
+      {/* ── Error Banner ───────────────────────────────────────── */}
       {error && (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs shrink-0">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(248,81,73,0.12)] border border-[rgba(248,81,73,0.30)] text-[#F85149] text-xs font-semibold shrink-0">
           <span className="flex-1">{error}</span>
           <button type="button" onClick={() => setError(null)}>
             <X size={14} />
@@ -541,61 +571,67 @@ export default function InventoryPage() {
         </div>
       )}
 
-      {/* ── Grid principal ────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-0.5 pb-4">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="relative w-12 h-12">
-              <div className="absolute inset-0 rounded-full border-2 border-violet-400/20 animate-spin" />
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-400 animate-spin" />
+      {/* ── ÁREA PRINCIPAL: PANEL AVANZADO O GRID DE INSUMOS ──── */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-4 space-y-4">
+        {mode === "advanced" && (
+          <div className="space-y-4">
+            <InventoryAdvancedPanel items={items} />
+            <div className="flex items-center justify-between pt-2 pb-1 border-b border-[#30363D]">
+              <h3 className="text-xs font-bold text-[#8B949E] uppercase tracking-wider">
+                Auditoría Detallada de Insumos ({filteredItems.length})
+              </h3>
             </div>
-            <p className="text-xs text-muted animate-pulse">Cargando inventario…</p>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-9 h-9 rounded-full border-2 border-[#F0B429]/30 border-t-[#F0B429] animate-spin" />
+            <p className="text-xs text-[#8B949E]">Sincronizando bóveda de insumos…</p>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-            <div className="p-5 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
-              <Package size={40} className="text-violet-300/40" />
+          <div className="flex flex-col items-center justify-center py-20 text-center gap-3 p-8 rounded-2xl bg-[#161B22] border border-[#30363D]">
+            <div className="p-4 rounded-xl bg-[#21283A] text-[#8B949E]">
+              <Package size={36} />
             </div>
-            <p className="text-sm font-semibold text-ivory/60">
+            <p className="text-sm font-bold text-[#E6EDF3]">
               {search || sectorFilter || stockFilter !== "all"
                 ? "Sin resultados para los filtros aplicados"
-                : "No hay insumos registrados"}
+                : "No hay insumos registrados en la bóveda"}
+            </p>
+            <p className="text-xs text-[#8B949E] max-w-sm">
+              {search || sectorFilter || stockFilter !== "all"
+                ? "Intenta modificar el término de búsqueda o limpiar los filtros seleccionados."
+                : "Comienza agregando tu primer destilado, licor, jarabe o insumo gastronómico."}
             </p>
             {(search || sectorFilter || stockFilter !== "all") && (
               <button
                 type="button"
                 onClick={() => { setSearch(""); setSectorFilter(""); setStockFilter("all"); }}
-                className="text-xs text-violet-400 hover:text-violet-300 underline transition-colors"
+                className="text-xs text-[#F0B429] hover:underline mt-1 font-semibold"
               >
-                Limpiar filtros
+                Limpiar todos los filtros
               </button>
             )}
           </div>
         ) : (
-          <>
-            <p className="text-[10px] text-muted mb-3 uppercase tracking-widest">
-              {filteredItems.length} insumo{filteredItems.length !== 1 ? "s" : ""}
-              {stockFilter !== "all" ? ` · ${STOCK_FILTERS.find((f) => f.value === stockFilter)?.label}` : ""}
-              {sectorFilter ? ` · ${sectorFilter}` : ""}
-            </p>
-            <div className={`grid gap-3 ${gridCols}`}>
-              {filteredItems.map((item) => (
-                <InventoryCard
-                  key={item._id}
-                  item={item}
-                  view={cardView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          </>
+          <div className={`grid gap-3.5 ${gridCols}`}>
+            {filteredItems.map((item) => (
+              <InventoryCard
+                key={item._id}
+                item={item}
+                view={cardView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* ── Formulario (overlay) ──────────────────────────────── */}
+      {/* ── Formulario Modal / Pantalla Completa ──────────────── */}
       {pageView === "form" && (
-        <div className="absolute inset-0 z-30 bg-surface-2 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#0D1117] flex flex-col">
           <InventoryForm
             item={selected}
             onSave={handleSave}
@@ -616,11 +652,20 @@ export default function InventoryPage() {
 
       {/* ── Export modal ──────────────────────────────────────── */}
       {showExport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-          <div className="bg-surface-3 border border-white/10 rounded-2xl p-6 max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-ivory">Exportar inventario</h3>
-              <button type="button" onClick={() => setShowExport(false)} className="text-muted hover:text-ivory">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#30363D]">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={18} className="text-[#F0B429]" />
+                <h3 className="text-sm font-bold text-[#E6EDF3] uppercase tracking-wider">
+                  Exportar Inventario
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExport(false)}
+                className="text-[#8B949E] hover:text-[#E6EDF3] p-1 rounded-lg"
+              >
                 <X size={18} />
               </button>
             </div>
@@ -633,15 +678,6 @@ export default function InventoryPage() {
             />
           </div>
         </div>
-      )}
-
-      {/* ── Tutorial ──────────────────────────────────────────── */}
-      {tutorialOpen && (
-        <InventoryTutorial
-          isOpen={tutorialOpen}
-          onClose={closeTutorial}
-          onComplete={completeTutorial}
-        />
       )}
     </div>
   );

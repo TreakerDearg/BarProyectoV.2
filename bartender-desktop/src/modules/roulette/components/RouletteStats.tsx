@@ -9,10 +9,7 @@ interface Props {
   lastResult: RouletteSpinResult | null;
 }
 
-export default function RouletteStats({
-  drinks,
-  lastResult,
-}: Props) {
+export default function RouletteStats({ drinks, lastResult }: Props) {
   const active = drinks.filter((d) => d && d.active);
 
   const avgWeight =
@@ -24,55 +21,68 @@ export default function RouletteStats({
     .sort((a, b) => (b.totalSpins || 0) - (a.totalSpins || 0))[0];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      <PremiumStat 
-        icon={<Activity size={24} />} 
-        label="Pool Activo" 
-        value={active.length} 
-        sub="Drinks configurados"
-        color="gold"
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard
+        icon={<Activity size={20} className="text-gold" />}
+        label="Pool Activo"
+        value={active.length}
+        sub={`${drinks.length} configurados en total`}
+        accentColor="gold"
       />
-      <PremiumStat 
-        icon={<Target size={24} />} 
-        label="Peso Promedio" 
-        value={avgWeight.toFixed(1)} 
-        sub="Distribución de carga"
-        color="emerald"
+      <StatCard
+        icon={<Target size={20} className="text-emerald" />}
+        label="Peso Promedio"
+        value={avgWeight.toFixed(1)}
+        sub="Distribución de probabilidades"
+        accentColor="emerald"
       />
-      <PremiumStat 
-        icon={<Trophy size={24} />} 
-        label="Más Popular" 
-        value={mostFrequent?.name || "N/A"} 
-        sub={`${mostFrequent?.totalSpins || 0} selecciones`}
-        color="gold"
+      <StatCard
+        icon={<Trophy size={20} className="text-gold" />}
+        label="Favorito de la Casa"
+        value={mostFrequent?.name || "Sin registros"}
+        sub={`${mostFrequent?.totalSpins || 0} selecciones registradas`}
+        accentColor="gold"
       />
-      <PremiumStat 
-        icon={<Zap size={24} />} 
-        label="Último Drop" 
-        value={lastResult?.result.name || "---"} 
-        sub={lastResult?.meta.rarity || "Esperando spin"}
-        color="emerald"
+      <StatCard
+        icon={<Zap size={20} className="text-emerald" />}
+        label="Último Drop"
+        value={lastResult?.result.name || "---"}
+        sub={lastResult?.meta.rarity ? `Rareza: ${lastResult.meta.rarity}` : "Esperando primer giro"}
+        accentColor="emerald"
       />
     </div>
   );
 }
 
-function PremiumStat({ icon, label, value, sub, color }: { icon: ReactNode; label: string; value: string | number; sub: string; color: "gold" | "emerald" }) {
-  const theme = color === 'gold' ? 'text-gold' : 'text-emerald-400';
+function StatCard({
+  icon,
+  label,
+  value,
+  sub,
+  accentColor,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  sub: string;
+  accentColor: "gold" | "emerald";
+}) {
+  const valueColor = accentColor === "gold" ? "text-gold" : "text-emerald";
+
   return (
-    <div className="glass-royale p-8 rounded-4xl border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden shadow-royale">
-      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-        {icon}
+    <div className="bg-surface-2 p-5 rounded-2xl border border-border hover:border-border-strong hover:bg-surface-3 transition-all relative overflow-hidden group shadow-md">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-black text-muted uppercase tracking-wider">{label}</span>
+        <div className="p-2 rounded-xl bg-surface-3 border border-border group-hover:border-gold/30 transition-colors">
+          {icon}
+        </div>
       </div>
-      <div className="relative z-10">
-        <p className="text-[10px] font-black text-muted uppercase tracking-[0.4em] mb-4">{label}</p>
-        <p className={`text-3xl font-black ${theme} tracking-tighter truncate uppercase`}>
-          {value}
-        </p>
-        <p className="text-[9px] font-black text-muted/60 uppercase tracking-[0.2em] mt-2">
-          {sub}
-        </p>
+      <div className={`text-2xl sm:text-3xl font-black ${valueColor} tracking-tight truncate uppercase mb-1`}>
+        {value}
       </div>
+      <p className="text-xs text-muted/70 font-medium truncate">
+        {sub}
+      </p>
     </div>
   );
 }

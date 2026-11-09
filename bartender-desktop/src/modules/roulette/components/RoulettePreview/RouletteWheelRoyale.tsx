@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RouletteDrink, SpinPhase } from "../../types/roulette";
 import RouletteSliceRoyale from "./RouletteSliceRoyale";
-import { Flame } from "lucide-react";
+import RoulettePointer from "./RoulettePointer";
+import { Wine, Sparkles } from "lucide-react";
 
 interface Props {
   drinks: RouletteDrink[];
@@ -11,7 +12,6 @@ interface Props {
   phase: SpinPhase;
   targetAngle: number | null;
   onLanded: () => void;
-  /** _id of the winning drink — only used to highlight after phase==='revealed' */
   revealedDrinkId?: string | null;
 }
 
@@ -38,33 +38,39 @@ export default function RouletteWheelRoyale({
 
   const wheelRef = useRef<SVGSVGElement>(null);
   const onLandedRef = useRef(onLanded);
-  useEffect(() => { onLandedRef.current = onLanded; }, [onLanded]);
+  useEffect(() => {
+    onLandedRef.current = onLanded;
+  }, [onLanded]);
 
   /* ==============================
      Slices computation
   ============================== */
+  const activeDrinks = useMemo(() => drinks.filter((d) => d && d.active), [drinks]);
+
   const slices = useMemo(() => {
-    return drinks.reduce<Array<RouletteDrink & { startAngle: number; sliceAngle: number }>>(
+    const pool = activeDrinks.length > 0 ? activeDrinks : drinks;
+    const effectiveTotal = pool.reduce((acc, d) => acc + (d.weight || 1), 0) || 1;
+
+    return pool.reduce<Array<RouletteDrink & { startAngle: number; sliceAngle: number }>>(
       (acc, drink) => {
         const cumulative =
           acc.length === 0
             ? 0
             : acc[acc.length - 1].startAngle + acc[acc.length - 1].sliceAngle;
-        const startAngle = (cumulative / totalWeight) * 360;
-        const sliceAngle = (drink.weight / totalWeight) * 360;
+        const startAngle = (cumulative / effectiveTotal) * 360;
+        const sliceAngle = ((drink.weight || 1) / effectiveTotal) * 360;
         acc.push({ ...drink, startAngle, sliceAngle });
         return acc;
       },
       []
     );
-  }, [drinks, totalWeight]);
+  }, [activeDrinks, drinks]);
 
   /* ==============================
      Phase-driven animation
   ============================== */
   useEffect(() => {
     if (phase === "spinning") {
-      // Start free-spin loop ~180 deg/s
       setTransitionStyle("none");
 
       const loop = (timestamp: number) => {
@@ -74,7 +80,7 @@ export default function RouletteWheelRoyale({
         const delta = timestamp - lastFreeSpinTimestampRef.current;
         lastFreeSpinTimestampRef.current = timestamp;
 
-        freeSpinAngleRef.current = freeSpinAngleRef.current + (delta / 1000) * 180;
+        freeSpinAngleRef.current = freeSpinAngleRef.current + (delta / 1000) * 220;
         setRotation(freeSpinAngleRef.current);
 
         freeSpinRafRef.current = requestAnimationFrame(loop);
@@ -92,27 +98,22 @@ export default function RouletteWheelRoyale({
     }
 
     if (phase === "revealing" && targetAngle !== null) {
-      // Stop free-spin loop
       if (freeSpinRafRef.current !== null) {
         cancelAnimationFrame(freeSpinRafRef.current);
         freeSpinRafRef.current = null;
       }
       lastFreeSpinTimestampRef.current = 0;
 
-      // Add enough full rotations so it doesn't spin backwards from current position
-      const fullRotations = Math.ceil(freeSpinAngleRef.current / 360);
+      const fullRotations = Math.ceil(freeSpinAngleRef.current / 360) + 2;
       const finalAngle = fullRotations * 360 + targetAngle;
       freeSpinAngleRef.current = finalAngle;
 
-      // Apply ease-out transition
-      setTransitionStyle("transform 5s cubic-bezier(0.15, 0.8, 0.3, 1)");
+      setTransitionStyle("transform 5s cubic-bezier(0.12, 0.85, 0.25, 1)");
 
-      // rAF to ensure transition is applied after DOM flush
       requestAnimationFrame(() => {
         setRotation(finalAngle);
       });
 
-      // Call onLanded after animation completes
       const timer = setTimeout(() => {
         onLandedRef.current();
       }, 5100);
@@ -121,7 +122,6 @@ export default function RouletteWheelRoyale({
     }
 
     if (phase === "idle" || phase === "revealed") {
-      // Stop free-spin loop
       if (freeSpinRafRef.current !== null) {
         cancelAnimationFrame(freeSpinRafRef.current);
         freeSpinRafRef.current = null;
@@ -129,8 +129,6 @@ export default function RouletteWheelRoyale({
       lastFreeSpinTimestampRef.current = 0;
       setTransitionStyle("none");
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, targetAngle]);
 
   /* ==============================
@@ -139,7 +137,7 @@ export default function RouletteWheelRoyale({
   useEffect(() => {
     if (phase === "landing") {
       setNeedleBounce(true);
-      const t = setTimeout(() => setNeedleBounce(false), 400);
+      const t = setTimeout(() => setNeedleBounce(false), 450);
       return () => clearTimeout(t);
     }
   }, [phase]);
@@ -155,8 +153,7 @@ export default function RouletteWheelRoyale({
 
       const loop = (now: number) => {
         const elapsed = (now - startTime) / 1000;
-        // 2 full pattern rotations per second
-        setChaseOffset((elapsed * 2 * Math.PI * 2) % (2 * Math.PI));
+        setChaseOffset((elapsed * 3 * Math.PI * 2) % (2 * Math.PI));
         chaseRafRef.current = requestAnimationFrame(loop);
       };
 
@@ -180,95 +177,95 @@ export default function RouletteWheelRoyale({
   const isActive = phase === "spinning" || phase === "revealing";
 
   /* ==============================
-     36 rivets at r=96
+     24 Rivets y LEDs perimetrales
   ============================== */
-  const rivets = useMemo(
+  const perimeterLights = useMemo(
     () =>
-      Array.from({ length: 36 }, (_, i) => {
-        const angleRad = ((i * 10 - 90) * Math.PI) / 180;
+      Array.from({ length: 24 }, (_, i) => {
+        const angleRad = ((i * 15 - 90) * Math.PI) / 180;
         return {
-          cx: 100 + 96 * Math.cos(angleRad),
-          cy: 100 + 96 * Math.sin(angleRad),
-        };
-      }),
-    []
-  );
-
-  /* ==============================
-     12 chase lights at r=98
-  ============================== */
-  const chaseLights = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => {
-        const angleRad = ((i * 30 - 90) * Math.PI) / 180;
-        return {
-          cx: 100 + 98 * Math.cos(angleRad),
-          cy: 100 + 98 * Math.sin(angleRad),
-          phaseOffset: (i / 12) * 2 * Math.PI,
+          cx: 100 + 97 * Math.cos(angleRad),
+          cy: 100 + 97 * Math.sin(angleRad),
+          phaseOffset: (i / 24) * 2 * Math.PI,
         };
       }),
     []
   );
 
   return (
-    <div className="relative w-112.5 h-112.5 flex items-center justify-center group">
-
-      {/* AURA EXTERNA DINÁMICA */}
+    <div className="relative w-80 h-80 sm:w-96 sm:h-96 md:w-[440px] md:h-[440px] lg:w-[460px] lg:h-[460px] flex items-center justify-center select-none">
+      {/* Halo ambiental profundo Slate Elegante */}
       <div
-        className={`absolute inset-0 rounded-full border-12 border-white/5 shadow-[0_0_80px_rgba(212,163,64,0.1)] transition-all duration-1000 ${isActive ? "scale-105" : ""}`}
+        className={`absolute inset-0 rounded-full transition-all duration-700 pointer-events-none ${
+          isActive
+            ? "bg-gold/15 blur-[60px] scale-105"
+            : phase === "revealed"
+            ? "bg-emerald/15 blur-[60px] scale-100"
+            : "bg-surface-3/30 blur-[40px]"
+        }`}
       />
 
-      {/* PUNTOS PERIMETRALES (LUCES) */}
-      {Array.from({ length: 24 }, (_, i) => (
-        <div
-          key={i}
-          className={`absolute w-1.5 h-1.5 rounded-full transition-all duration-500 ${isActive ? "bg-gold shadow-gold-glow animate-pulse" : "bg-white/10"}`}
-          style={{ transform: `rotate(${i * 15}deg) translateY(-210px)` }}
-        />
-      ))}
+      {/* Puntero Superior Daga Royale */}
+      <RoulettePointer needleBounce={needleBounce} isActive={isActive} />
 
-      {/* CONTENEDOR DE LA RUEDA */}
-      <div className="relative w-full h-full p-4 flex items-center justify-center">
-
-        {/* PUNTERO SUPERIOR PREMIUM */}
-        <div
-          className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-50 flex flex-col items-center ${needleBounce ? "needle-bounce" : ""}`}
-        >
-          <div className="px-3 py-1 bg-gold/10 border border-gold/30 rounded-full mb-2 backdrop-blur-md">
-            <span className="text-[8px] font-black text-gold uppercase tracking-[0.2em]">Preview Model</span>
-          </div>
-          <div className="w-8 h-12 bg-grad-gold rounded-b-full shadow-gold-glow relative flex items-center justify-center border-x border-b border-gold/50">
-            <div className="w-1 h-6 bg-bg/50 rounded-full animate-pulse" />
-          </div>
-        </div>
-
+      {/* Contenedor SVG de la Ruleta */}
+      <div className="relative w-full h-full p-2 flex items-center justify-center">
         <svg
           ref={wheelRef}
           viewBox="0 0 200 200"
-          className="w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+          className="w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] filter"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: transitionStyle,
           }}
         >
           <defs>
-            {/* Golden bezel gradient */}
-            <linearGradient id="bezel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stopColor="#D4A340" />
-              <stop offset="25%"  stopColor="#F7E08A" />
-              <stop offset="50%"  stopColor="#D4A340" />
-              <stop offset="75%"  stopColor="#8B6914" />
-              <stop offset="100%" stopColor="#D4A340" />
+            {/* Bisel de Oro Pulido multicapa */}
+            <radialGradient id="bezel-metal" cx="50%" cy="50%" r="50%">
+              <stop offset="90%" stopColor="#161B22" />
+              <stop offset="94%" stopColor="#C8920F" />
+              <stop offset="97%" stopColor="#F5C842" />
+              <stop offset="99%" stopColor="#F0B429" />
+              <stop offset="100%" stopColor="#8A6008" />
+            </radialGradient>
+
+            <linearGradient id="bezel-gold-linear" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#F5C842" />
+              <stop offset="30%" stopColor="#F0B429" />
+              <stop offset="50%" stopColor="#C8920F" />
+              <stop offset="70%" stopColor="#F5C842" />
+              <stop offset="100%" stopColor="#8A6008" />
             </linearGradient>
           </defs>
 
-          {/* SOMBRA INTERNA */}
-          <circle cx="100" cy="100" r="98" fill="none" stroke="black" strokeWidth="2" opacity="0.2" />
+          {/* Sombra base */}
+          <circle cx="100" cy="100" r="99" fill="#090E14" />
 
-          {/* SLICES */}
-          {slices.map((slice) => (
+          {/* Bisel exterior de oro */}
+          <circle
+            cx="100"
+            cy="100"
+            r="98.5"
+            fill="none"
+            stroke="url(#bezel-gold-linear)"
+            strokeWidth="3"
+          />
+
+          {/* Anillo de contraste Slate */}
+          <circle
+            cx="100"
+            cy="100"
+            r="95.5"
+            fill="none"
+            stroke="#161B22"
+            strokeWidth="1"
+          />
+
+          {/* Gajos / Slices */}
+          {slices.map((slice, index) => (
             <RouletteSliceRoyale
               key={slice._id}
+              index={index}
               startAngle={slice.startAngle}
               sliceAngle={slice.sliceAngle}
               color={slice.color}
@@ -278,58 +275,66 @@ export default function RouletteWheelRoyale({
             />
           ))}
 
-          {/* GOLDEN BEZEL — outer ring */}
+          {/* Anillo interior de fijación */}
           <circle
-            cx="100" cy="100" r="99"
+            cx="100"
+            cy="100"
+            r="95"
             fill="none"
-            stroke="url(#bezel-grad)"
-            strokeWidth="2.5"
-          />
-          {/* GOLDEN BEZEL — inner ring (double-ring effect) */}
-          <circle
-            cx="100" cy="100" r="95"
-            fill="none"
-            stroke="url(#bezel-grad)"
-            strokeWidth="0.8"
-            opacity="0.5"
+            stroke="rgba(240, 180, 41, 0.4)"
+            strokeWidth="0.6"
           />
 
-          {/* 36 RIVETS at r=96 */}
-          {rivets.map((pos, i) => (
-            <circle
-              key={`rivet-${i}`}
-              cx={pos.cx}
-              cy={pos.cy}
-              r="1.2"
-              fill="#D4A340"
-              opacity="0.85"
-            />
-          ))}
-
-          {/* 12 CHASE LIGHTS at r=98 */}
-          {chaseLights.map((light, i) => {
+          {/* 24 Pernos / Luces LED Perimetrales */}
+          {perimeterLights.map((light, i) => {
             const opacity = isActive
-              ? 0.15 + 0.75 * Math.max(0, Math.sin(chaseOffset + light.phaseOffset))
-              : 0.08;
+              ? 0.25 + 0.75 * Math.max(0, Math.sin(chaseOffset + light.phaseOffset))
+              : 0.4;
+            const isLit = opacity > 0.6;
+
             return (
-              <circle
-                key={`chase-${i}`}
-                cx={light.cx}
-                cy={light.cy}
-                r="2"
-                fill="#F7E08A"
-                opacity={opacity}
-              />
+              <g key={`pin-${i}`}>
+                {/* Remache base de oro */}
+                <circle
+                  cx={light.cx}
+                  cy={light.cy}
+                  r="1.4"
+                  fill="#F0B429"
+                  stroke="#161B22"
+                  strokeWidth="0.3"
+                />
+                {/* Destello del LED */}
+                <circle
+                  cx={light.cx}
+                  cy={light.cy}
+                  r={isLit ? "1.8" : "1.0"}
+                  fill={isLit ? "#FFFFFF" : "#F5C842"}
+                  opacity={opacity}
+                />
+              </g>
             );
           })}
         </svg>
 
-        {/* EJE CENTRAL (THE HUB) */}
+        {/* Buje Central Compacto (The Crown Core) */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-24 h-24 rounded-full bg-linear-to-b from-surface-3 to-bg border border-white/10 shadow-2xl flex items-center justify-center relative">
-            <div className="absolute inset-0 rounded-full bg-gold/5 animate-ping opacity-20" />
-            <div className="w-16 h-16 rounded-full bg-bg border border-gold/30 flex items-center justify-center shadow-inner">
-              <Flame className={`w-8 h-8 ${isActive ? "text-gold animate-pulse" : "text-muted/20"}`} />
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#1C2333] via-[#161B22] to-[#0D1117] border-2 border-gold shadow-[0_0_20px_rgba(240,180,41,0.3)] flex items-center justify-center">
+            {/* Halo rotatorio interior cuando gira */}
+            {isActive && (
+              <div className="absolute inset-0 rounded-full border border-gold-light/40 animate-ping opacity-30" />
+            )}
+
+            {/* Centro medalla */}
+            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-surface-2 border border-border flex items-center justify-center shadow-inner">
+              {phase === "revealed" ? (
+                <Sparkles className="w-6 h-6 text-gold animate-bounce" />
+              ) : (
+                <Wine
+                  className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-300 ${
+                    isActive ? "text-gold animate-pulse" : "text-gold/80"
+                  }`}
+                />
+              )}
             </div>
           </div>
         </div>

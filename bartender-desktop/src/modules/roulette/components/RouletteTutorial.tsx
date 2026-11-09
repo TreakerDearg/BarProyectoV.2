@@ -194,75 +194,75 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl bg-linear-to-br from-zinc-900 to-zinc-950 border border-gold/20 rounded-[2.5rem] shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-fadeIn">
+      <div className="relative w-full max-w-4xl bg-surface-2 border border-border rounded-3xl shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-8 border-b border-white/5 bg-gold/5">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-gold/10 text-gold">
-              <BookOpen size={24} />
+        <div className="flex items-center justify-between p-6 sm:p-7 border-b border-border bg-surface-3/50">
+          <div className="flex items-center gap-3.5">
+            <div className="p-2.5 rounded-xl bg-gold/10 text-gold border border-gold/20">
+              <BookOpen size={22} />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-ivory tracking-tighter uppercase">
+              <h2 className="text-xl sm:text-2xl font-black text-ivory tracking-tight uppercase">
                 Tutorial del Sistema Roulette
               </h2>
-              <p className="text-[10px] text-muted font-black uppercase tracking-[0.4em] mt-1">
-                Guía completa para entender y configurar el sistema
+              <p className="text-xs text-muted font-bold uppercase tracking-wider mt-0.5">
+                Guía completa para operar y calibrar la ruleta
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-muted hover:text-ivory transition-all"
+            className="p-2.5 rounded-xl bg-surface-3 hover:bg-surface-4 text-muted hover:text-ivory border border-border transition-all cursor-pointer"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Progress Bar */}
         <div className="h-1 bg-surface-3">
           <div 
-            className="h-full bg-grad-gold transition-all duration-500"
+            className="h-full bg-gold transition-all duration-300"
             style={{ width: `${((currentStep + 1) / tutorialSteps.length) * 100}%` }}
           />
         </div>
 
         {/* Content */}
-        <div className="p-8 space-y-8">
+        <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
           
           {/* Step Header */}
-          <div className="flex items-start gap-6">
-            <div className="p-4 rounded-2xl bg-gold/10 text-gold shrink-0">
-              <Icon size={32} />
+          <div className="flex items-start gap-4 sm:gap-6">
+            <div className="p-3 sm:p-4 rounded-2xl bg-gold/10 text-gold border border-gold/20 shrink-0">
+              <Icon size={28} />
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="px-3 py-1 bg-gold/20 text-gold text-[9px] font-black uppercase tracking-widest rounded-full">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-3 py-1 bg-gold/15 text-gold text-xs font-bold uppercase tracking-wider rounded-full border border-gold/25">
                   Paso {currentStep + 1} de {tutorialSteps.length}
                 </span>
               </div>
-              <h3 className="text-3xl font-black text-ivory tracking-tighter uppercase mb-4">
+              <h3 className="text-2xl font-black text-ivory tracking-tight uppercase mb-2">
                 {step.title}
               </h3>
-              <p className="text-base text-muted/90 leading-relaxed">
+              <p className="text-sm text-muted leading-relaxed">
                 {step.content}
               </p>
             </div>
           </div>
 
           {/* Tips Section */}
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Lightbulb className="text-emerald-400" size={20} />
-              <h4 className="text-sm font-black text-emerald-400 uppercase tracking-widest">
+          <div className="bg-emerald/10 border border-emerald/20 rounded-2xl p-5">
+            <div className="flex items-center gap-2.5 mb-3">
+              <Lightbulb className="text-emerald" size={18} />
+              <h4 className="text-xs font-black text-emerald uppercase tracking-wider">
                 Consejos Clave
               </h4>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {step.tips.map((tip, index) => (
-                <li key={index} className="flex items-start gap-3 text-sm text-muted/90">
-                  <span className="text-emerald-400 mt-1">•</span>
+                <li key={index} className="flex items-start gap-2.5 text-xs text-ivory/90 leading-relaxed">
+                  <span className="text-emerald font-bold mt-0.5">•</span>
                   <span>{tip}</span>
                 </li>
               ))}
@@ -271,17 +271,17 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
 
           {/* Examples Section */}
           {step.examples && step.examples.length > 0 && (
-            <div className="bg-gold/5 border border-gold/20 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="text-gold" size={20} />
-                <h4 className="text-sm font-black text-gold uppercase tracking-widest">
+            <div className="bg-surface-3 border border-border rounded-2xl p-5">
+              <div className="flex items-center gap-2.5 mb-3">
+                <Sparkles className="text-gold" size={18} />
+                <h4 className="text-xs font-black text-gold uppercase tracking-wider">
                   Ejemplos Prácticos
                 </h4>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {step.examples.map((example, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-muted/90">
-                    <span className="text-gold mt-1">→</span>
+                  <li key={index} className="flex items-start gap-2.5 text-xs text-ivory/90 leading-relaxed">
+                    <span className="text-gold font-bold mt-0.5">→</span>
                     <span>{example}</span>
                   </li>
                 ))}
@@ -292,28 +292,28 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex items-center justify-between p-8 border-t border-white/5 bg-surface-3/20">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-t border-border bg-surface-3/40">
           <button
             onClick={handlePrevious}
             disabled={currentStep === 0}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/5 text-muted"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-surface-3 text-muted hover:text-ivory"
           >
             <ChevronLeft size={16} />
-            Anterior
+            <span>Anterior</span>
           </button>
 
           {/* Step Indicators */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {tutorialSteps.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentStep(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                className={`w-2 h-2 rounded-full transition-all ${
                   index === currentStep 
                     ? "bg-gold scale-125" 
                     : index < currentStep 
                       ? "bg-gold/50" 
-                      : "bg-white/20 hover:bg-white/30"
+                      : "bg-surface-4"
                 }`}
               />
             ))}
@@ -321,16 +321,16 @@ export default function RouletteTutorial({ isOpen, onClose }: Props) {
 
           <button
             onClick={currentStep === tutorialSteps.length - 1 ? onClose : handleNext}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-grad-gold text-black text-[10px] font-black tracking-widest uppercase hover:opacity-90 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-bg text-xs font-black tracking-wider uppercase shadow-gold-glow transition-all cursor-pointer"
           >
             {currentStep === tutorialSteps.length - 1 ? (
               <>
                 <HelpCircle size={16} />
-                Entendido
+                <span>Entendido</span>
               </>
             ) : (
               <>
-                Siguiente
+                <span>Siguiente</span>
                 <ChevronRight size={16} />
               </>
             )}
