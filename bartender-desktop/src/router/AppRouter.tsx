@@ -15,7 +15,7 @@ import Dashboard from "../modules/dashboard/pages/Dashboard";
 import ProductsPage from "../modules/products/pages/ProductsPage";
 import MenusPage from "../modules/menus/pages/MenusPage";
 import InventoryPage from "../modules/inventory/pages/InventoryPage";
-import NebulaRecipeStudio from "../modules/recipes/pages/NebulaRecipeStudio";
+import RecipeMasterPage from "../modules/recipes/pages/RecipeMasterPage";
 import TablesPage from "../modules/tables/pages/TablesPage";
 import ReservationsPage from "../modules/reservations/pages/ReservationsPage";
 import RoulettePage from "../modules/roulette/pages/RoulettePage";
@@ -112,10 +112,10 @@ export default function AppRouter() {
               <Route path="/inventory" element={<InventoryPage />} />
             </Route>
             <Route element={<RoleRoute path="/recipes" />}>
-              <Route path="/recipes" element={<NebulaRecipeStudio />} />
-              <Route path="/recipes/new" element={<NebulaRecipeStudio />} />
-              <Route path="/recipes/:id" element={<NebulaRecipeStudio />} />
-              <Route path="/recipes/edit/:id" element={<NebulaRecipeStudio />} />
+              <Route path="/recipes" element={<RecipeMasterPage />} />
+              <Route path="/recipes/new" element={<RecipeMasterPage />} />
+              <Route path="/recipes/:id" element={<RecipeMasterPage />} />
+              <Route path="/recipes/edit/:id" element={<RecipeMasterPage />} />
             </Route>
             <Route element={<RoleRoute path="/roulette" />}>
               <Route path="/roulette" element={<RoulettePage />} />

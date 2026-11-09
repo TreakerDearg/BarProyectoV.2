@@ -3,48 +3,48 @@
 import { useState, type ReactNode } from "react";
 import {
   Plus, RefreshCcw, ChefHat, Zap, Flame, Clock,
-  History, LayoutGrid, X, AlertCircle, Search,
+  History, LayoutGrid, X, AlertCircle, Search, Wine,
 } from "lucide-react";
 
-import OrderCard          from "../components/OrderCard/Card";
+import OrderCard from "../components/OrderCard/Card";
 import NewOrderTablePicker from "../components/NewOrderTablePicker";
-import FocusPanel          from "../components/FocusPanel";
-import OrderEditModal      from "../components/OrderEditModal";
+import FocusPanel from "../components/FocusPanel";
+import OrderEditModal from "../components/OrderEditModal";
 
 import { useOrders, type FilterStatus } from "../hooks/useOrders";
 import "../../../styles/nebula-theme.css";
 
 /* ── Configuración de tabs ─────────────────────────────────── */
 interface TabConfig {
-  filter:    FilterStatus;
-  label:     string;
-  icon:      ReactNode;
+  filter: FilterStatus;
+  label: string;
+  icon: ReactNode;
   countKey?: "pending" | "inProgress" | "total" | "critical";
   advanced?: boolean; // solo visible en modo avanzado
 }
 
 const TABS: TabConfig[] = [
-  { filter: "pending",     label: "Pendientes",  icon: <Clock    size={14} />, countKey: "pending"    },
-  { filter: "in-progress", label: "En curso",    icon: <Zap      size={14} />, countKey: "inProgress" },
-  { filter: "completed",   label: "Historial",   icon: <History  size={14} />,                         advanced: true },
-  { filter: "all",         label: "Todo",        icon: <LayoutGrid size={14} />, countKey: "total",   advanced: true },
+  { filter: "pending", label: "Pendientes", icon: <Clock size={14} />, countKey: "pending" },
+  { filter: "in-progress", label: "En curso", icon: <Zap size={14} />, countKey: "inProgress" },
+  { filter: "completed", label: "Historial", icon: <History size={14} />, advanced: true },
+  { filter: "all", label: "Todo", icon: <LayoutGrid size={14} />, countKey: "total", advanced: true },
 ];
 
 /* ── MetricCard interno ────────────────────────────────────── */
 function MetricCard({
   label, value, icon, color, warn,
 }: {
-  label:  string;
-  value:  number;
-  icon:   ReactNode;
-  color:  "gold" | "orange" | "green" | "red";
-  warn?:  boolean;
+  label: string;
+  value: number;
+  icon: ReactNode;
+  color: "gold" | "orange" | "green" | "red";
+  warn?: boolean;
 }) {
   const cfg = {
-    gold:   { text: "#F0B429", border: "rgba(240,180,41,0.25)",  bg: "rgba(240,180,41,0.06)"  },
-    orange: { text: "#FF7B54", border: "rgba(255,123,84,0.25)",  bg: "rgba(255,123,84,0.06)"  },
-    green:  { text: "#3FB950", border: "rgba(63,185,80,0.25)",   bg: "rgba(63,185,80,0.06)"   },
-    red:    { text: "#F85149", border: "rgba(248,81,73,0.25)",   bg: "rgba(248,81,73,0.06)"   },
+    gold: { text: "#F0B429", border: "rgba(240,180,41,0.25)", bg: "rgba(240,180,41,0.06)" },
+    orange: { text: "#FF7B54", border: "rgba(255,123,84,0.25)", bg: "rgba(255,123,84,0.06)" },
+    green: { text: "#3FB950", border: "rgba(63,185,80,0.25)", bg: "rgba(63,185,80,0.06)" },
+    red: { text: "#F85149", border: "rgba(248,81,73,0.25)", bg: "rgba(248,81,73,0.06)" },
   }[color];
 
   const activeBorder = warn && value > 0 ? "rgba(248,81,73,0.50)" : cfg.border;
@@ -73,6 +73,7 @@ function MetricCard({
 /* ── OrdersPage ────────────────────────────────────────────── */
 export default function OrdersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [kdsStation, setKdsStation] = useState<"all" | "bar" | "kitchen">("all");
 
   const {
     loading, error, setError,
@@ -88,6 +89,25 @@ export default function OrdersPage() {
     handleItemStatusChange, handleEditOrder,
     salonMode, setSalonMode,
   } = useOrders();
+
+  const displayedOrders = processedOrders.filter((order) => {
+    if (kdsStation === "all") return true;
+    if (kdsStation === "bar") {
+      return order.items.some(
+        (i) =>
+          i.type === "drink" ||
+          (typeof i.product === "object" && (i.product as any)?.type === "drink")
+      );
+    }
+    if (kdsStation === "kitchen") {
+      return order.items.some(
+        (i) =>
+          i.type === "food" ||
+          (typeof i.product === "object" && (i.product as any)?.type === "food")
+      );
+    }
+    return true;
+  });
 
   const visibleTabs = TABS.filter(
     (t) => !t.advanced || salonMode === "advanced"
@@ -143,9 +163,9 @@ export default function OrdersPage() {
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all"
             style={{
-              background:  "#F0B429",
-              color:       "#0D1117",
-              boxShadow:   "0 0 20px rgba(240,180,41,0.25)",
+              background: "#F0B429",
+              color: "#0D1117",
+              boxShadow: "0 0 20px rgba(240,180,41,0.25)",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = "#F5C842";
@@ -166,7 +186,7 @@ export default function OrdersPage() {
       >
         {visibleTabs.map((tab) => {
           const isActive = filter === tab.filter;
-          const count    = tab.countKey ? stats[tab.countKey] : undefined;
+          const count = tab.countKey ? stats[tab.countKey] : undefined;
 
           return (
             <button
@@ -175,7 +195,7 @@ export default function OrdersPage() {
               onClick={() => setFilter(tab.filter)}
               className="flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all relative"
               style={{
-                color:       isActive ? "#F0B429" : "#566270",
+                color: isActive ? "#F0B429" : "#566270",
                 borderBottom: isActive ? "3px solid #F0B429" : "3px solid transparent",
                 marginBottom: "-1px",
               }}
@@ -193,7 +213,7 @@ export default function OrdersPage() {
                   className="px-1.5 py-0.5 rounded-full text-[10px] font-black"
                   style={{
                     background: isActive ? "rgba(240,180,41,0.15)" : "#21283A",
-                    color:      isActive ? "#F0B429"               : "#566270",
+                    color: isActive ? "#F0B429" : "#566270",
                   }}
                 >
                   {count}
@@ -212,9 +232,9 @@ export default function OrdersPage() {
               onClick={() => setSalonMode(m)}
               className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
               style={{
-                background:   salonMode === m ? "rgba(240,180,41,0.15)" : "transparent",
-                color:        salonMode === m ? "#F0B429"               : "#566270",
-                border:       salonMode === m ? "1px solid rgba(240,180,41,0.30)" : "1px solid transparent",
+                background: salonMode === m ? "rgba(240,180,41,0.15)" : "transparent",
+                color: salonMode === m ? "#F0B429" : "#566270",
+                border: salonMode === m ? "1px solid rgba(240,180,41,0.30)" : "1px solid transparent",
               }}
             >
               {m === "simple" ? "Simple" : "Avanzado"}
@@ -241,9 +261,9 @@ export default function OrdersPage() {
             placeholder="Buscar por mesa o producto..."
             className="w-full pl-9 pr-3 py-2 rounded-xl text-sm outline-none transition-colors"
             style={{
-              background:  "#1C2333",
-              border:      "1px solid #30363D",
-              color:       "#E6EDF3",
+              background: "#1C2333",
+              border: "1px solid #30363D",
+              color: "#E6EDF3",
             }}
             onFocus={(e) => {
               (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(240,180,41,0.50)";
@@ -252,6 +272,40 @@ export default function OrdersPage() {
               (e.currentTarget as HTMLInputElement).style.borderColor = "#30363D";
             }}
           />
+        </div>
+
+        {/* Estación KDS Selector */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-[#161B22] border border-[#30363D]">
+          <button
+            type="button"
+            onClick={() => setKdsStation("all")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${kdsStation === "all"
+                ? "bg-[#21283A] text-[#F0B429] border border-[rgba(240,180,41,0.3)] shadow-sm"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+              }`}
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            onClick={() => setKdsStation("bar")}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${kdsStation === "bar"
+                ? "bg-[rgba(56,139,253,0.15)] text-[#388BFD] border border-[rgba(56,139,253,0.3)] shadow-sm"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+              }`}
+          >
+            <Wine size={12} /> KDS Barra
+          </button>
+          <button
+            type="button"
+            onClick={() => setKdsStation("kitchen")}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${kdsStation === "kitchen"
+                ? "bg-[rgba(255,123,84,0.15)] text-[#FF7B54] border border-[rgba(255,123,84,0.3)] shadow-sm"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+              }`}
+          >
+            <ChefHat size={12} /> KDS Cocina
+          </button>
         </div>
 
         {/* Chips de mesas activas */}
@@ -269,9 +323,9 @@ export default function OrdersPage() {
                   onClick={() => setTableNumberFilter(active ? null : num)}
                   className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
                   style={{
-                    background:  active ? "rgba(240,180,41,0.15)" : "#1C2333",
-                    border:      active ? "1px solid rgba(240,180,41,0.40)" : "1px solid #30363D",
-                    color:       active ? "#F0B429"               : "#8B949E",
+                    background: active ? "rgba(240,180,41,0.15)" : "#1C2333",
+                    border: active ? "1px solid rgba(240,180,41,0.40)" : "1px solid #30363D",
+                    color: active ? "#F0B429" : "#8B949E",
                   }}
                 >
                   {num}
@@ -299,10 +353,10 @@ export default function OrdersPage() {
           className="flex-shrink-0 grid grid-cols-4 gap-3 px-6 py-3"
           style={{ borderBottom: "1px solid #30363D" }}
         >
-          <MetricCard label="Total"      value={stats.total}      icon={<ChefHat  size={15} />} color="gold"   />
-          <MetricCard label="Pendientes" value={stats.pending}    icon={<Clock    size={15} />} color="orange" />
-          <MetricCard label="En curso"   value={stats.inProgress} icon={<Zap      size={15} />} color="green"  />
-          <MetricCard label="Críticos"   value={stats.critical}   icon={<Flame    size={15} />} color="red"    warn />
+          <MetricCard label="Total" value={stats.total} icon={<ChefHat size={15} />} color="gold" />
+          <MetricCard label="Pendientes" value={stats.pending} icon={<Clock size={15} />} color="orange" />
+          <MetricCard label="En curso" value={stats.inProgress} icon={<Zap size={15} />} color="green" />
+          <MetricCard label="Críticos" value={stats.critical} icon={<Flame size={15} />} color="red" warn />
         </div>
       )}
 
@@ -341,7 +395,7 @@ export default function OrdersPage() {
                 Cargando comandas…
               </p>
             </div>
-          ) : processedOrders.length === 0 ? (
+          ) : displayedOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 opacity-50">
               <div
                 className="p-4 rounded-2xl"
@@ -355,7 +409,7 @@ export default function OrdersPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
-              {processedOrders.map((order) => (
+              {displayedOrders.map((order) => (
                 <OrderCard
                   key={order._id}
                   order={order}

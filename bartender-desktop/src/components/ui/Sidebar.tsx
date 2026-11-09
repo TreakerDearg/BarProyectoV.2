@@ -1,43 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, UtensilsCrossed, ClipboardList,
   CalendarDays, Armchair, Package, Wine, LogOut,
   BookOpen, Users, Dices, Percent, ChevronLeft,
   Settings, ChevronDown, BarChart3, Shield, Clock,
   Activity, Calendar, TrendingUp, Bell, FlaskConical,
-  Layers, GlassWater, Gift,
+  Layers, GlassWater, Gift, ChefHat,
 } from "lucide-react";
 
-import { useAuthStore }    from "../../store/authStore";
-import { useUIStore }      from "../../store/uiStore";
-import { canAccessPath }   from "../../config/accessControl";
+import { useAuthStore } from "../../store/authStore";
+import { useUIStore } from "../../store/uiStore";
+import { canAccessPath } from "../../config/accessControl";
 
 /* ── Rutas (sin cambios) ───────────────────────────────────────── */
 const PATHS = {
-  DASHBOARD:                "/dashboard",
-  ORDERS:                   "/orders",
-  TABLES:                   "/tables",
-  RESERVATIONS:             "/reservations",
-  DISCOUNTS:                "/discounts",
-  PRODUCTS:                 "/products",
-  MENUS:                    "/menus",
-  INVENTORY:                "/inventory",
-  RECIPES:                  "/recipes",
-  RECIPES_NEW:              "/recipes/new",
-  EMPLOYEES:                "/employees",
-  EMPLOYEES_DASHBOARD:      "/employees/dashboard",
-  EMPLOYEES_ROLES:          "/employees/roles",
-  EMPLOYEES_PERMISSIONS:    "/employees/permissions",
-  EMPLOYEES_SHIFTS:         "/employees/shifts",
-  EMPLOYEES_ACTIVITY:       "/employees/activity",
+  DASHBOARD: "/dashboard",
+  ORDERS: "/orders",
+  TABLES: "/tables",
+  RESERVATIONS: "/reservations",
+  DISCOUNTS: "/discounts",
+  PRODUCTS: "/products",
+  MENUS: "/menus",
+  INVENTORY: "/inventory",
+  RECIPES: "/recipes",
+  RECIPES_NEW: "/recipes/new",
+  EMPLOYEES: "/employees",
+  EMPLOYEES_DASHBOARD: "/employees/dashboard",
+  EMPLOYEES_ROLES: "/employees/roles",
+  EMPLOYEES_PERMISSIONS: "/employees/permissions",
+  EMPLOYEES_SHIFTS: "/employees/shifts",
+  EMPLOYEES_ACTIVITY: "/employees/activity",
   EMPLOYEES_SHIFT_MANAGEMENT: "/employees/shift-management",
-  EMPLOYEES_SHIFT_METRICS:  "/employees/shift-metrics",
-  ROULETTE:                 "/roulette",
-  REWARDS:                  "/rewards",
-  SETTINGS:                 "/settings",
+  EMPLOYEES_SHIFT_METRICS: "/employees/shift-metrics",
+  ROULETTE: "/roulette",
+  REWARDS: "/rewards",
+  SETTINGS: "/settings",
 };
 
 interface NavItem {
@@ -80,9 +80,9 @@ function NavItemLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
         `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl
          text-sm font-medium transition-all duration-200 cursor-pointer
          ${isActive
-           ? "bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/25 shadow-[0_0_12px_rgba(240,180,41,0.08)]"
-           : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5 border border-transparent"
-         }
+          ? "bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/25 shadow-[0_0_12px_rgba(240,180,41,0.08)]"
+          : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/5 border border-transparent"
+        }
          ${collapsed ? "justify-center" : ""}
         `
       }
@@ -96,9 +96,8 @@ function NavItemLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
 
           <item.icon
             size={18}
-            className={`flex-shrink-0 transition-colors ${
-              isActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
-            }`}
+            className={`flex-shrink-0 transition-colors ${isActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
+              }`}
           />
 
           {!collapsed && (
@@ -128,6 +127,7 @@ function NavItemSubmenu({
   onToggle: () => void;
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div>
@@ -146,9 +146,8 @@ function NavItemSubmenu({
       >
         <item.icon
           size={18}
-          className={`flex-shrink-0 transition-colors ${
-            expanded && !collapsed ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
-          }`}
+          className={`flex-shrink-0 transition-colors ${expanded && !collapsed ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#E6EDF3]"
+            }`}
         />
 
         {!collapsed && (
@@ -167,31 +166,34 @@ function NavItemSubmenu({
       {/* Submenu expandido */}
       {!collapsed && expanded && (
         <div className="mt-1 ml-4 pl-3 border-l-2 border-[#30363D] space-y-0.5">
-          {item.submenu!.map((sub) => (
-            <NavLink
-              key={sub.name}
-              to={sub.path}
-              end
-              className={({ isActive }) =>
-                `group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium
-                 transition-all duration-150
-                 ${isActive
-                   ? "text-[#F0B429] bg-[#F0B429]/8 border border-[#F0B429]/20"
-                   : "text-[#566270] hover:text-[#E6EDF3] hover:bg-white/4 border border-transparent"
-                 }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <sub.icon
-                    size={14}
-                    className={`flex-shrink-0 ${isActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#8B949E]"}`}
-                  />
-                  <span className="truncate leading-none">{sub.name}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
+          {item.submenu!.map((sub) => {
+            const currentFull = location.pathname + location.search;
+            const isSubActive = sub.path.includes("?")
+              ? currentFull === sub.path
+              : location.pathname === sub.path && !location.search;
+
+            return (
+              <NavLink
+                key={sub.name}
+                to={sub.path}
+                end
+                className={
+                  `group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium
+                   transition-all duration-150
+                   ${isSubActive
+                    ? "text-[#F0B429] bg-[#F0B429]/8 border border-[#F0B429]/20"
+                    : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-white/4 border border-transparent"
+                  }`
+                }
+              >
+                <sub.icon
+                  size={14}
+                  className={`flex-shrink-0 ${isSubActive ? "text-[#F0B429]" : "text-[#566270] group-hover:text-[#8B949E]"}`}
+                />
+                <span className="truncate leading-none">{sub.name}</span>
+              </NavLink>
+            );
+          })}
         </div>
       )}
     </div>
@@ -200,14 +202,14 @@ function NavItemSubmenu({
 
 /* ── Componente principal ────────────────────────────────────── */
 export default function Sidebar() {
-  const logout   = useAuthStore((s) => s.logout);
-  const user     = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
 
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
-  const toggle    = useUIStore((s) => s.toggleSidebar);
+  const toggle = useUIStore((s) => s.toggleSidebar);
 
-  const [expanded, setExpanded] = useState<string | null>("Nebula Recipe Studio");
+  const [expanded, setExpanded] = useState<string | null>("Fichas Técnicas");
 
   const handleLogout = () => { logout(); navigate("/", { replace: true }); };
   const toggleSection = (name: string) =>
@@ -224,26 +226,27 @@ export default function Sidebar() {
     {
       title: "Operación",
       items: [
-        { name: "Pedidos",    path: PATHS.ORDERS,      icon: ClipboardList },
-        { name: "Mesas",      path: PATHS.TABLES,      icon: Armchair },
-        { name: "Reservas",   path: PATHS.RESERVATIONS, icon: CalendarDays },
-        { name: "Descuentos", path: PATHS.DISCOUNTS,   icon: Percent },
+        { name: "Pedidos", path: PATHS.ORDERS, icon: ClipboardList },
+        { name: "Mesas", path: PATHS.TABLES, icon: Armchair },
+        { name: "Reservas", path: PATHS.RESERVATIONS, icon: CalendarDays },
+        { name: "Descuentos", path: PATHS.DISCOUNTS, icon: Percent },
       ],
     },
     {
       title: "Gestión",
       items: [
         { name: "Productos", path: PATHS.PRODUCTS, icon: Wine },
-        { name: "Menús",     path: PATHS.MENUS,    icon: UtensilsCrossed },
-        { name: "Inventario",path: PATHS.INVENTORY, icon: Package },
+        { name: "Menús", path: PATHS.MENUS, icon: UtensilsCrossed },
+        { name: "Inventario", path: PATHS.INVENTORY, icon: Package },
         {
-          name: "Nebula Recipe Studio",
+          name: "Fichas Técnicas",
           path: PATHS.RECIPES,
-          icon: FlaskConical,
+          icon: BookOpen,
           submenu: [
-            { name: "Biblioteca",  path: PATHS.RECIPES,     icon: BookOpen },
-            { name: "Constructor", path: PATHS.RECIPES_NEW, icon: GlassWater },
-            { name: "Técnicas",    path: `${PATHS.RECIPES}?view=techniques`, icon: Layers },
+            { name: "Catálogo General", path: PATHS.RECIPES, icon: BookOpen },
+            { name: "Barra & Cócteles", path: `${PATHS.RECIPES}?type=drink`, icon: Wine },
+            { name: "Cocina & Platos", path: `${PATHS.RECIPES}?type=food`, icon: ChefHat },
+            { name: "Centro de Control", path: `${PATHS.RECIPES}?view=dashboard`, icon: BarChart3 },
           ],
         },
       ],
@@ -256,18 +259,18 @@ export default function Sidebar() {
           path: PATHS.EMPLOYEES,
           icon: Users,
           submenu: [
-            { name: "Lista",           path: PATHS.EMPLOYEES,                  icon: Users },
-            { name: "Dashboard",       path: PATHS.EMPLOYEES_DASHBOARD,        icon: BarChart3 },
-            { name: "Roles",           path: PATHS.EMPLOYEES_ROLES,            icon: Shield },
-            { name: "Permisos",        path: PATHS.EMPLOYEES_PERMISSIONS,      icon: Shield },
-            { name: "Turnos",          path: PATHS.EMPLOYEES_SHIFTS,           icon: Clock },
-            { name: "Actividad",       path: PATHS.EMPLOYEES_ACTIVITY,         icon: Activity },
-            { name: "Gestión Turnos",  path: PATHS.EMPLOYEES_SHIFT_MANAGEMENT, icon: Calendar },
-            { name: "Métricas Turnos", path: PATHS.EMPLOYEES_SHIFT_METRICS,    icon: TrendingUp },
+            { name: "Lista", path: PATHS.EMPLOYEES, icon: Users },
+            { name: "Dashboard", path: PATHS.EMPLOYEES_DASHBOARD, icon: BarChart3 },
+            { name: "Roles", path: PATHS.EMPLOYEES_ROLES, icon: Shield },
+            { name: "Permisos", path: PATHS.EMPLOYEES_PERMISSIONS, icon: Shield },
+            { name: "Turnos", path: PATHS.EMPLOYEES_SHIFTS, icon: Clock },
+            { name: "Actividad", path: PATHS.EMPLOYEES_ACTIVITY, icon: Activity },
+            { name: "Gestión Turnos", path: PATHS.EMPLOYEES_SHIFT_MANAGEMENT, icon: Calendar },
+            { name: "Métricas Turnos", path: PATHS.EMPLOYEES_SHIFT_METRICS, icon: TrendingUp },
           ],
         },
-        { name: "Ruleta",        path: PATHS.ROULETTE, icon: Dices },
-        { name: "Recompensas",   path: PATHS.REWARDS,  icon: Gift },
+        { name: "Ruleta", path: PATHS.ROULETTE, icon: Dices },
+        { name: "Recompensas", path: PATHS.REWARDS, icon: Gift },
         { name: "Configuración", path: PATHS.SETTINGS, icon: Settings },
       ],
     },

@@ -5,7 +5,8 @@
  * Las notas/modificaciones se muestran SIEMPRE visibles si existen.
  */
 import type { OrderItem as IOrderItem } from "../../types/order";
-import { CheckCircle2, Circle, AlertCircle, Zap, MessageSquare } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, Zap, MessageSquare, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   item:      IOrderItem;
@@ -54,6 +55,7 @@ const statusConfig = {
 } as const;
 
 export default function OrderItem({ item, onSelect, isActive }: Props) {
+  const navigate = useNavigate();
   const itemStatus = (item.status as string) || "pending";
   const config     = statusConfig[itemStatus as keyof typeof statusConfig] ?? statusConfig.pending;
   const isCancelled = itemStatus === "cancelled";
@@ -132,6 +134,20 @@ export default function OrderItem({ item, onSelect, isActive }: Props) {
             {itemStatus === "ready" ? "LISTO" : "SERVIDO"}
           </div>
         )}
+
+        {/* Acceso Ficha Técnica */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            const station = item.type === "food" ? "food" : "drink";
+            navigate(`/recipes?type=${station}`);
+          }}
+          title="Ver Ficha Técnica"
+          className="p-1.5 rounded-lg text-text-muted hover:text-gold hover:bg-gold/15 transition-colors flex-shrink-0"
+        >
+          <FileText size={13} />
+        </button>
       </div>
 
       {/* ── Notas — siempre visibles si existen ──────────── */}
