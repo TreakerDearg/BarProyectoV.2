@@ -191,7 +191,23 @@ export const getRecipes = async (params?: { type?: string; category?: string }):
 /* =========================
    CREATE VARIANT FROM RECIPE
 ========================= */
-export const createRecipeVariant = async (parentRecipeId: string, payload: { productId: string; variantName?: string }): Promise<Recipe> => {
+export const createRecipeVariant = async (
+  parentRecipeId: string,
+  payload: {
+    productId?: string;
+    variantName?: string;
+    variantType?: "size" | "spirit" | "dietary";
+    multiplier?: number;
+    ingredientReplacements?: Array<{
+      originalItemId: string;
+      newItemId: string;
+      newQuantity?: number;
+      newUnit?: string;
+    }>;
+    newPrice?: number;
+    additionalCost?: number;
+  }
+): Promise<Recipe> => {
   try {
     const { data } = await api.post(`/recipes/${parentRecipeId}/variants`, payload);
     return data;

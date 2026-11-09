@@ -82,19 +82,19 @@ export default function RecipeDetailDrawer({
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-xl bg-surface-card border-l border-border/70 shadow-2xl flex flex-col">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 z-10">
+        <div className="w-screen max-w-xl bg-[#161B22] border-l border-[#30363D] shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-border/60 flex items-center justify-between bg-surface-dark/60">
+          <div className="px-6 py-4 border-b border-[#30363D] flex items-center justify-between bg-[#1C2333]">
             <div className="flex items-center gap-3">
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${
                   isDrink
-                    ? "bg-cyan/10 text-cyan border-cyan/30"
-                    : "bg-amber/10 text-amber border-amber/30"
+                    ? "bg-[#388BFD]/15 text-[#388BFD] border-[#388BFD]/30"
+                    : "bg-[#FF7B54]/15 text-[#FF7B54] border-[#FF7B54]/30"
                 }`}
               >
                 {isDrink ? (
@@ -109,7 +109,7 @@ export default function RecipeDetailDrawer({
               </span>
 
               {recipe.variantName && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gold/10 text-gold border border-gold/20">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/30">
                   <Sparkles className="w-3 h-3" />
                   {recipe.variantName}
                 </span>
@@ -120,20 +120,20 @@ export default function RecipeDetailDrawer({
               <button
                 onClick={handlePrint}
                 title="Imprimir Ficha POS"
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+                className="p-2 rounded-lg text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A] transition-colors"
               >
                 <Printer className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onEdit(recipe)}
                 title="Editar Ficha"
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+                className="p-2 rounded-lg text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A] transition-colors"
               >
                 <Pencil className="w-4 h-4" />
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
+                className="p-2 rounded-lg text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -145,18 +145,18 @@ export default function RecipeDetailDrawer({
             {/* Title & Image Hero */}
             <div className="space-y-4">
               {recipe.image && (
-                <div className="w-full h-48 rounded-xl overflow-hidden border border-border/60 bg-surface-dark relative">
+                <div className="w-full h-48 rounded-2xl overflow-hidden border border-[#30363D] bg-[#090E14] relative">
                   <img
                     src={recipe.image}
                     alt={productName}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-dark via-transparent to-transparent opacity-80" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#161B22] via-transparent to-transparent opacity-90" />
                   <div className="absolute bottom-3 left-4">
-                    <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-[#8B949E]">
                       {recipe.category || "General"}
                     </span>
-                    <h2 className="text-xl font-bold text-text-primary leading-tight">
+                    <h2 className="text-xl font-bold text-[#E6EDF3] leading-tight">
                       {productName}
                     </h2>
                   </div>
@@ -164,11 +164,11 @@ export default function RecipeDetailDrawer({
               )}
 
               {!recipe.image && (
-                <div className="border-b border-border/50 pb-3">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-text-muted">
+                <div className="border-b border-[#30363D] pb-3">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[#8B949E]">
                     Categoría: {recipe.category || "General"}
                   </span>
-                  <h2 className="text-2xl font-bold text-text-primary leading-tight">
+                  <h2 className="text-2xl font-bold text-[#E6EDF3] leading-tight">
                     {productName}
                   </h2>
                 </div>
@@ -176,31 +176,31 @@ export default function RecipeDetailDrawer({
             </div>
 
             {/* Financial & Escandallo Ribbon */}
-            <div className="grid grid-cols-3 gap-3 bg-surface-dark/70 rounded-xl p-3.5 border border-border/60">
+            <div className="grid grid-cols-3 gap-3 bg-[#1C2333] rounded-2xl p-4 border border-[#30363D]">
               <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-wider text-text-muted font-medium block">
+                <span className="text-[11px] uppercase tracking-wider text-[#8B949E] font-medium block">
                   Costo Insumos
                 </span>
-                <span className="text-base font-bold text-text-primary">
+                <span className="text-base font-bold text-[#E6EDF3] font-mono">
                   ${cost.toLocaleString()}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-wider text-text-muted font-medium block">
+                <span className="text-[11px] uppercase tracking-wider text-[#8B949E] font-medium block">
                   Precio POS
                 </span>
-                <span className="text-base font-bold text-text-primary">
+                <span className="text-base font-bold text-[#F0B429] font-mono">
                   ${price.toLocaleString()}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-wider text-text-muted font-medium block">
+                <span className="text-[11px] uppercase tracking-wider text-[#8B949E] font-medium block">
                   Margen Bruto
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-base font-bold ${marginColor}`}>
+                  <span className={`text-base font-bold font-mono ${marginColor}`}>
                     {margin}%
                   </span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold ${marginBadge}`}>
@@ -213,16 +213,16 @@ export default function RecipeDetailDrawer({
             {/* Insumos & Escandallo Table */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs uppercase tracking-wider font-bold text-text-primary flex items-center gap-1.5">
-                  <Package className="w-3.5 h-3.5 text-gold" />
+                <h4 className="text-xs uppercase tracking-wider font-bold text-[#E6EDF3] flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-[#F0B429]" />
                   Escandallo de Insumos ({recipe.ingredients?.length || 0})
                 </h4>
-                <span className="text-[11px] text-text-muted">
+                <span className="text-[11px] text-[#8B949E]">
                   Bóveda de Insumos vinculada
                 </span>
               </div>
 
-              <div className="border border-border/60 rounded-xl overflow-hidden bg-surface-dark/40 divide-y divide-border/40">
+              <div className="border border-[#30363D] rounded-2xl overflow-hidden bg-[#1C2333] divide-y divide-[#30363D]">
                 {recipe.ingredients && recipe.ingredients.length > 0 ? (
                   recipe.ingredients.map((ing, idx) => {
                     const item =
@@ -237,17 +237,17 @@ export default function RecipeDetailDrawer({
                     return (
                       <div
                         key={idx}
-                        className="p-3 flex items-center justify-between hover:bg-surface-card/40 transition-colors text-xs"
+                        className="p-3.5 flex items-center justify-between hover:bg-[#21283A] transition-colors text-xs"
                       >
                         <div className="space-y-0.5">
-                          <span className="font-semibold text-text-primary block">
+                          <span className="font-semibold text-[#E6EDF3] block">
                             {itemName}
                           </span>
-                          <div className="flex items-center gap-2 text-[11px] text-text-muted">
+                          <div className="flex items-center gap-2 text-[11px] text-[#8B949E]">
                             {itemStock !== null && (
                               <span
                                 className={`inline-flex items-center gap-1 ${
-                                  isLow ? "text-red" : "text-emerald"
+                                  isLow ? "text-[#F85149]" : "text-[#3FB950]"
                                 }`}
                               >
                                 {isLow ? (
@@ -262,11 +262,11 @@ export default function RecipeDetailDrawer({
                         </div>
 
                         <div className="text-right">
-                          <span className="font-mono font-bold text-text-primary block text-sm">
+                          <span className="font-mono font-bold text-[#E6EDF3] block text-sm">
                             {ing.quantity} {itemUnit}
                           </span>
                           {item?.cost ? (
-                            <span className="text-[11px] text-text-muted">
+                            <span className="text-[11px] text-[#8B949E]">
                               ~${Math.round(item.cost * (ing.quantity / 1000 || 1)).toLocaleString()}
                             </span>
                           ) : null}
@@ -275,7 +275,7 @@ export default function RecipeDetailDrawer({
                     );
                   })
                 ) : (
-                  <div className="p-4 text-center text-xs text-text-muted">
+                  <div className="p-4 text-center text-xs text-[#8B949E]">
                     No se especificaron ingredientes para esta ficha.
                   </div>
                 )}
@@ -284,26 +284,26 @@ export default function RecipeDetailDrawer({
 
             {/* Protocolo Operativo / Técnica & Servicio */}
             <div className="space-y-3">
-              <h4 className="text-xs uppercase tracking-wider font-bold text-text-primary flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-cyan" />
+              <h4 className="text-xs uppercase tracking-wider font-bold text-[#E6EDF3] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#388BFD]" />
                 Protocolo Operativo de Estación
               </h4>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="bg-surface-dark/40 border border-border/50 rounded-xl p-3 space-y-1">
-                  <span className="text-[11px] text-text-muted uppercase font-medium flex items-center gap-1">
-                    <Flame className="w-3 h-3 text-amber" /> Método / Técnica
+                <div className="bg-[#1C2333] border border-[#30363D] rounded-2xl p-3.5 space-y-1">
+                  <span className="text-[11px] text-[#8B949E] uppercase font-medium flex items-center gap-1">
+                    <Flame className="w-3 h-3 text-[#F0B429]" /> Método / Técnica
                   </span>
-                  <span className="font-semibold text-text-primary block">
+                  <span className="font-semibold text-[#E6EDF3] block">
                     {recipe.method || "Estándar"}
                   </span>
                 </div>
 
-                <div className="bg-surface-dark/40 border border-border/50 rounded-xl p-3 space-y-1">
-                  <span className="text-[11px] text-text-muted uppercase font-medium flex items-center gap-1">
-                    <GlassWater className="w-3 h-3 text-cyan" /> Cristalería / Vajilla
+                <div className="bg-[#1C2333] border border-[#30363D] rounded-2xl p-3.5 space-y-1">
+                  <span className="text-[11px] text-[#8B949E] uppercase font-medium flex items-center gap-1">
+                    <GlassWater className="w-3 h-3 text-[#388BFD]" /> Cristalería / Vajilla
                   </span>
-                  <span className="font-semibold text-text-primary block">
+                  <span className="font-semibold text-[#E6EDF3] block">
                     {typeof recipe.specifications?.glassware === "string"
                       ? recipe.specifications.glassware
                       : (recipe.specifications?.glassware as any)?.name || "Vaso sugerido"}
@@ -311,11 +311,11 @@ export default function RecipeDetailDrawer({
                 </div>
 
                 {recipe.specifications?.ice && (
-                  <div className="bg-surface-dark/40 border border-border/50 rounded-xl p-3 space-y-1">
-                    <span className="text-[11px] text-text-muted uppercase font-medium flex items-center gap-1">
-                      <Snowflake className="w-3 h-3 text-cyan" /> Servicio de Hielo
+                  <div className="bg-[#1C2333] border border-[#30363D] rounded-2xl p-3.5 space-y-1">
+                    <span className="text-[11px] text-[#8B949E] uppercase font-medium flex items-center gap-1">
+                      <Snowflake className="w-3 h-3 text-[#388BFD]" /> Servicio de Hielo
                     </span>
-                    <span className="font-semibold text-text-primary block">
+                    <span className="font-semibold text-[#E6EDF3] block">
                       {typeof recipe.specifications.ice === "string"
                         ? recipe.specifications.ice
                         : (recipe.specifications.ice as any)?.name || "Cúbico"}
@@ -325,11 +325,11 @@ export default function RecipeDetailDrawer({
 
                 {recipe.specifications?.decorations &&
                   recipe.specifications.decorations.length > 0 && (
-                    <div className="bg-surface-dark/40 border border-border/50 rounded-xl p-3 space-y-1">
-                      <span className="text-[11px] text-text-muted uppercase font-medium block">
+                    <div className="bg-[#1C2333] border border-[#30363D] rounded-2xl p-3.5 space-y-1">
+                      <span className="text-[11px] text-[#8B949E] uppercase font-medium block">
                         Garnish / Decoración
                       </span>
-                      <span className="font-semibold text-text-primary block">
+                      <span className="font-semibold text-[#E6EDF3] block">
                         {recipe.specifications.decorations
                           .map((d: any) => (typeof d === "string" ? d : d.name))
                           .join(", ")}
@@ -341,8 +341,8 @@ export default function RecipeDetailDrawer({
 
             {/* Preparation Steps */}
             <div className="space-y-3">
-              <h4 className="text-xs uppercase tracking-wider font-bold text-text-primary flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-gold" />
+              <h4 className="text-xs uppercase tracking-wider font-bold text-[#E6EDF3] flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#F0B429]" />
                 Pasos de Elaboración ({recipe.steps?.length || 0})
               </h4>
 
@@ -351,18 +351,18 @@ export default function RecipeDetailDrawer({
                   recipe.steps.map((st, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-xl bg-surface-dark/40 border border-border/50 flex items-start gap-3"
+                      className="p-3.5 rounded-2xl bg-[#1C2333] border border-[#30363D] flex items-start gap-3"
                     >
-                      <span className="w-6 h-6 rounded-full bg-gold/15 text-gold border border-gold/30 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                      <span className="w-6 h-6 rounded-full bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/30 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                         {st.stepNumber || idx + 1}
                       </span>
-                      <p className="text-xs text-text-primary leading-relaxed">
+                      <p className="text-xs text-[#E6EDF3] leading-relaxed">
                         {st.instruction}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-xs text-text-muted bg-surface-dark/30 rounded-xl border border-border/40">
+                  <div className="p-4 text-center text-xs text-[#8B949E] bg-[#1C2333] rounded-2xl border border-[#30363D]">
                     No se especificaron pasos de elaboración para esta ficha.
                   </div>
                 )}
@@ -370,23 +370,23 @@ export default function RecipeDetailDrawer({
             </div>
 
             {/* Variantes del Ítem */}
-            <div className="space-y-3 border-t border-border/50 pt-4">
+            <div className="space-y-3 border-t border-[#30363D] pt-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs uppercase tracking-wider font-bold text-text-primary flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-gold" />
+                <h4 className="text-xs uppercase tracking-wider font-bold text-[#E6EDF3] flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#F0B429]" />
                   Variantes Registradas ({childVariants.length})
                 </h4>
                 <button
                   onClick={() => onAddVariant(recipe)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-gold/15 text-gold border border-gold/30 hover:bg-gold/25 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/30 hover:bg-[#F0B429]/25 transition-colors cursor-pointer"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-3.5 h-3.5" />
                   Nueva Variante
                 </button>
               </div>
 
               {childVariants.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {childVariants.map((variant) => {
                     const varPrice =
                       typeof variant.product === "object" && variant.product?.price
@@ -397,25 +397,25 @@ export default function RecipeDetailDrawer({
                       <div
                         key={variant._id}
                         onClick={() => onSelectVariant && onSelectVariant(variant)}
-                        className="p-2.5 rounded-xl bg-surface-dark/50 border border-border/50 hover:border-gold/40 flex items-center justify-between cursor-pointer transition-all"
+                        className="p-3.5 rounded-2xl bg-[#1C2333] border border-[#30363D] hover:border-[#F0B429]/60 flex items-center justify-between cursor-pointer transition-all group"
                       >
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-gold" />
+                        <div className="flex items-center gap-3">
+                          <span className="w-2.5 h-2.5 rounded-full bg-[#F0B429] ring-2 ring-[#0D1117]" />
                           <div>
-                            <span className="text-xs font-semibold text-text-primary block">
+                            <span className="text-xs font-bold text-[#E6EDF3] group-hover:text-[#F0B429] transition-colors block">
                               {variant.variantName || (variant.product as any)?.name || "Variante"}
                             </span>
-                            <span className="text-[11px] text-text-muted">
-                              {variant.ingredients?.length || 0} insumos
+                            <span className="text-[11px] text-[#8B949E]">
+                              {variant.ingredients?.length || 0} insumos vinculados
                             </span>
                           </div>
                         </div>
 
                         <div className="text-right">
-                          <span className="text-xs font-bold text-text-primary block">
+                          <span className="text-xs font-bold font-mono text-[#F0B429] block">
                             ${varPrice.toLocaleString()}
                           </span>
-                          <span className="text-[10px] text-text-muted">
+                          <span className="text-[10px] text-[#8B949E] font-mono">
                             Costo: ${varCost.toLocaleString()}
                           </span>
                         </div>
@@ -424,7 +424,7 @@ export default function RecipeDetailDrawer({
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-text-muted bg-surface-dark/30 p-3 rounded-xl border border-border/40">
+                <p className="text-xs text-[#8B949E] bg-[#1C2333] p-4 rounded-2xl border border-[#30363D]">
                   Esta ficha no tiene variantes registradas (formatos, sustituciones o adaptaciones dietarias).
                 </p>
               )}
@@ -432,19 +432,19 @@ export default function RecipeDetailDrawer({
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 border-t border-border/60 bg-surface-dark/70 flex items-center justify-between gap-3">
+          <div className="p-4 border-t border-[#30363D] bg-[#1C2333] flex items-center justify-between gap-3">
             <button
               onClick={() => onAddVariant(recipe)}
-              className="px-3.5 py-2 rounded-xl text-xs font-medium bg-surface-card hover:bg-surface-hover text-text-primary border border-border/60 transition-colors flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#21283A] hover:bg-[#293042] text-[#E6EDF3] border border-[#30363D] transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 text-gold" />
-              + Variante
+              <Plus className="w-3.5 h-3.5 text-[#F0B429]" />
+              Nueva Variante
             </button>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onEdit(recipe)}
-                className="px-4 py-2 rounded-xl text-xs font-medium bg-gold hover:bg-gold-hover text-surface-dark font-semibold transition-colors flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl text-xs font-black bg-[#F0B429] hover:bg-[#F5C842] text-[#0D1117] uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 Editar Ficha

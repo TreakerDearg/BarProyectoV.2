@@ -117,11 +117,14 @@ export const createOrderSchema = z.object({
   table:     z.string().min(1, "table es obligatorio"),
   sessionId: z.string().min(1, "sessionId es obligatorio"),
   items:     z.array(z.object({
-    product:  z.string().optional(),
-    menu:     z.string().optional(),
-    quantity: z.number().int().positive().optional().default(1),
-    price:    z.number().min(0).optional(), // Para menús con precio personalizado
-    notes:    z.string().optional().default(""),
+    product:     z.string().optional(),
+    menu:        z.string().optional(),
+    quantity:    z.number().int().positive().optional().default(1),
+    price:       z.number().min(0).optional(), // Para menús o variantes con precio personalizado
+    notes:       z.string().optional().default(""),
+    variantId:   z.string().optional(),
+    variantName: z.string().optional(),
+    recipeId:    z.string().optional(),
   })).refine((items) => items.length > 0 && items.some(item => item.product || item.menu), {
     message: "Debes agregar al menos un producto o menú",
   }),

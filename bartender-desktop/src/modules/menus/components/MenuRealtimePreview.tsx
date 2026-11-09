@@ -41,22 +41,20 @@ export default function MenuRealtimePreview({ menu }: Props) {
           <div className="flex items-center bg-[#0D1117] p-1 rounded-xl border border-[#30363D]">
             <button
               onClick={() => setViewMode("mobile")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === "mobile"
-                  ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40"
-                  : "text-[#8B949E] hover:text-[#E6EDF3]"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "mobile"
+                ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+                }`}
             >
               <Smartphone size={14} />
               <span>Móvil</span>
             </button>
             <button
               onClick={() => setViewMode("desktop")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                viewMode === "desktop"
-                  ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40"
-                  : "text-[#8B949E] hover:text-[#E6EDF3]"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === "desktop"
+                ? "bg-[#21283A] text-[#F0B429] border border-[#F0B429]/40"
+                : "text-[#8B949E] hover:text-[#E6EDF3]"
+                }`}
             >
               <Monitor size={14} />
               <span>Escritorio</span>
@@ -76,9 +74,8 @@ export default function MenuRealtimePreview({ menu }: Props) {
       {/* Frame Container */}
       <div className="flex justify-center">
         <div
-          className={`rounded-2xl border-2 border-[#30363D] bg-[#0D1117] overflow-hidden shadow-2xl transition-all ${
-            viewMode === "mobile" ? "w-full max-w-sm" : "w-full"
-          }`}
+          className={`rounded-2xl border-2 border-[#30363D] bg-[#0D1117] overflow-hidden shadow-2xl transition-all ${viewMode === "mobile" ? "w-full max-w-sm" : "w-full"
+            }`}
         >
           {/* Header Image or Minimal Banner */}
           {menu.image ? (

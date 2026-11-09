@@ -183,21 +183,31 @@ export const createOrder = async (req, res, next) => {
 
     const productMap = Object.fromEntries(products.map((p) => [p._id.toString(), p]));
 
-    /* ─── Construir items de productos con precios dinámicos ─── */
+    /* ─── Construir items de productos con precios dinámicos & variantes ─── */
     const orderItems = await Promise.all(productItems.map(async (item) => {
       const product = productMap[item.product?.toString()];
       if (!product) throw new Error("Producto inválido");
 
-      const dynamicPrice = await calculateProductPrice(product);
+      const itemPrice =
+        item.price !== undefined && item.price !== null && Number(item.price) >= 0
+          ? Number(item.price)
+          : await calculateProductPrice(product);
+
+      const displayName = item.variantName
+        ? `${product.name} (${item.variantName})`
+        : product.name;
 
       return {
-        product:  product._id,
-        name:     product.name,
-        quantity: Math.max(1, Number(item.quantity) || 1),
-        price:    dynamicPrice,
-        type:     product.type === "food" ? "food" : "drink",
-        status:   "pending",
-        notes:    item.notes || "",
+        product:     product._id,
+        name:        displayName,
+        quantity:    Math.max(1, Number(item.quantity) || 1),
+        price:       itemPrice,
+        type:        product.type === "food" ? "food" : "drink",
+        status:      "pending",
+        notes:       item.notes || "",
+        variantId:   item.variantId || null,
+        variantName: item.variantName || "",
+        recipeId:    item.recipeId || null,
       };
     }));
 

@@ -75,6 +75,26 @@ const orderItemSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    /* =========================
+       VARIANT & RECIPE REFERENCE
+    ========================= */
+    variantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      default: null,
+    },
+
+    variantName: {
+      type: String,
+      default: "",
+    },
+
+    recipeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Recipe",
+      default: null,
+    },
   },
   { _id: true }
 );

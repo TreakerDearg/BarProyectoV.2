@@ -806,60 +806,89 @@ export const getRecipeTimeline = async (req, res, next) => {
 };
 
 /* =========================================================
-   CREATE VARIANT FROM RECIPE
+   CREATE VARIANT FROM RECIPE (BARRA & COCINA)
 ========================================================= */
 export const createRecipeVariant = async (req, res, next) => {
   try {
     const { id: parentRecipeId } = req.params;
-    const { productId, variantName } = req.body;
+    const {
+      productId,
+      variantName,
+      variantType = "size",
+      multiplier = 1,
+      ingredientReplacements = [],
+      newPrice,
+      additionalCost = 0,
+    } = req.body;
 
     // Validate IDs
     if (!isValidId(parentRecipeId)) return badRequest(res, "ID de receta padre inválido");
-    if (!isValidId(productId)) return badRequest(res, "ID de producto inválido");
 
     // Validate parent recipe exists
     const parentRecipe = await Recipe.findById(parentRecipeId).lean();
     if (!parentRecipe) return notFound(res, "Receta padre no encontrada");
 
-    // Validate product exists and is a beverage
-    const product = await Product.findById(productId).lean();
+    // Target product can be the passed productId OR inherited from parent recipe
+    const targetProductId = productId && isValidId(productId) ? productId : parentRecipe.product;
+    const product = await Product.findById(targetProductId).lean();
     if (!product) return notFound(res, "Producto no encontrado");
-    if (product.type !== "drink") {
-      return badRequest(res, "Solo se pueden crear variantes para productos tipo bebida");
-    }
 
-    // Check for duplicate variant (same parent + product + variantName)
+    // Check for duplicate variant name under same parent recipe
     const existingVariant = await Recipe.findOne({
       parentId: parentRecipeId,
-      product: productId,
-      variantName: variantName || ''
+      variantName: variantName || "",
     }).lean();
 
     if (existingVariant) {
-      return badRequest(res, "Ya existe una variante con esta combinación");
+      return badRequest(res, "Ya existe una variante con este nombre para esta ficha técnica");
     }
 
-    // Copy ingredients from parent recipe
-    const ingredients = parentRecipe.ingredients.map(ing => ({
-      inventoryItem: ing.inventoryItem,
-      quantity: ing.quantity,
-      unit: ing.unit,
-      order: ing.order,
-      baseUnitMultiplier: ing.baseUnitMultiplier
-    }));
+    // Build ingredients with multiplier or replacements
+    const effectiveMultiplier = Number(multiplier) > 0 ? Number(multiplier) : 1;
+    const ingredients = (parentRecipe.ingredients || []).map((ing) => {
+      let invItem = ing.inventoryItem;
+      let qty = Math.round(Number(ing.quantity) * effectiveMultiplier * 100) / 100;
+      let unit = ing.unit;
+
+      // Check for item replacement
+      const replacement = Array.isArray(ingredientReplacements)
+        ? ingredientReplacements.find(
+            (r) => r.originalItemId?.toString() === invItem?.toString()
+          )
+        : null;
+
+      if (replacement && replacement.newItemId) {
+        invItem = replacement.newItemId;
+        if (replacement.newQuantity) qty = Number(replacement.newQuantity);
+        if (replacement.newUnit) unit = replacement.newUnit;
+      }
+
+      return {
+        inventoryItem: invItem,
+        quantity: qty,
+        unit: unit,
+        order: ing.order || 0,
+        baseUnitMultiplier: ing.baseUnitMultiplier || 1,
+      };
+    });
 
     // Copy steps from parent recipe
-    const steps = parentRecipe.steps.map(step => ({
+    const steps = (parentRecipe.steps || []).map((step) => ({
       stepNumber: step.stepNumber,
       instruction: step.instruction,
       technique: step.technique,
       time: step.time,
-      temperature: step.temperature
+      temperature: step.temperature,
     }));
 
-    // Create variant recipe
+    // Calculate approximate or provided total cost
+    const baseCost = parentRecipe.totalCost || 0;
+    const computedCost =
+      Math.round((baseCost * effectiveMultiplier + Number(additionalCost || 0)) * 100) / 100;
+
+    // Create variant recipe (Works for BOTH drink and food)
     const variantRecipe = new Recipe({
-      product: productId,
+      product: targetProductId,
       parentId: parentRecipeId,
       isPrimary: false,
       variantName: variantName || `${product.name} - Variante`,
@@ -873,15 +902,15 @@ export const createRecipeVariant = async (req, res, next) => {
       image: parentRecipe.image,
       imagePublicId: parentRecipe.imagePublicId,
       specifications: parentRecipe.specifications,
-      totalCost: parentRecipe.totalCost,
-      isActive: true
+      totalCost: computedCost,
+      isActive: true,
     });
 
     await variantRecipe.save();
 
     // Update product's recipeId if it doesn't have one
     if (!product.recipeId) {
-      await Product.findByIdAndUpdate(productId, { recipeId: variantRecipe._id });
+      await Product.findByIdAndUpdate(targetProductId, { recipeId: variantRecipe._id });
     }
 
     // Populate and return
@@ -891,18 +920,22 @@ export const createRecipeVariant = async (req, res, next) => {
 
     // Log de actividad
     ActivityLog.logRecipeActivity({
-      userId:       req.user?.id,
-      userName:     req.user?.name,
-      userRole:     req.user?.role,
+      userId: req.user?.id,
+      userName: req.user?.name,
+      userRole: req.user?.role,
       activityType: "recipe_variant_created",
-      description:  `Creó variante "${variantName || product.name}" derivada de la receta padre`,
-      recipeId:     variantRecipe._id,
-      metadata:     { parentRecipeId, productId, variantName },
-      sessionId:    req.user?.sessionId,
+      description: `Creó variante "${variantName || product.name}" (${
+        parentRecipe.type === "drink" ? "Barra" : "Cocina"
+      })`,
+      recipeId: variantRecipe._id,
+      metadata: { parentRecipeId, productId: targetProductId, variantName, variantType },
+      sessionId: req.user?.sessionId,
     }).catch(() => {});
 
     return ok(res, populatedVariant, "Variante creada exitosamente");
-  } catch (error) { throw error; }
+  } catch (error) {
+    throw error;
+  }
 };
 
 /* =========================================================
