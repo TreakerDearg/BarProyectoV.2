@@ -68,8 +68,9 @@ export default function RecipeDetailDrawer({
       : "bg-red/10 text-red border-red/20";
 
   // Filter child variants of this master recipe
-  const childVariants = allVariants.filter(
-    (v) => v.parentId === recipe._id || (recipe.parentId && v.parentId === recipe.parentId)
+  const safeVariants = Array.isArray(allVariants) ? allVariants : [];
+  const childVariants = safeVariants.filter(
+    (v) => v && (v.parentId === recipe._id || (recipe.parentId && v.parentId === recipe.parentId))
   );
 
   const handlePrint = () => {

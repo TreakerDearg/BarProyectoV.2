@@ -28,7 +28,7 @@ interface Props {
 type SortOption = "name-asc" | "cost-asc" | "cost-desc" | "margin-desc" | "ingredients-desc";
 
 export default function RecipeGrid({
-  recipes,
+  recipes = [],
   activeStation,
   selectedCategory,
   searchQuery,
@@ -39,21 +39,23 @@ export default function RecipeGrid({
   onCreateNew,
 }: Props) {
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
+  const safeRecipes = useMemo(() => (Array.isArray(recipes) ? recipes : []), [recipes]);
 
   // Map variant count per master recipe ID
   const variantsCountMap = useMemo(() => {
     const map = new Map<string, number>();
-    recipes.forEach((r) => {
-      if (r.parentId) {
+    safeRecipes.forEach((r) => {
+      if (r?.parentId) {
         map.set(r.parentId, (map.get(r.parentId) || 0) + 1);
       }
     });
     return map;
-  }, [recipes]);
+  }, [safeRecipes]);
 
   // Filter recipes
   const filteredRecipes = useMemo(() => {
-    return recipes.filter((r) => {
+    return safeRecipes.filter((r) => {
+      if (!r) return false;
       // Station filter
       if (activeStation !== "all" && r.type !== activeStation) {
         return false;

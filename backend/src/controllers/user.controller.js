@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import Attendance from "../models/Attendance.js";
 import { logger } from "../config/logger.js";
 import {
   ok, created, badRequest, notFound, conflict, forbidden,
@@ -52,15 +53,15 @@ export const createEmployee = async (req, res, next) => {
 };
 
 /* =========================================================
-   GET EMPLOYEES
+   GET EMPLOYEES (ENRICHED WITH REAL-TIME ATTENDANCE)
 ========================================================= */
 export const getEmployees = async (req, res, next) => {
   try {
     const { role, shift, active } = req.query;
 
     const filter = { isEmployee: true, deletedAt: null };
-    if (role)             filter.role     = role;
-    if (shift)            filter.shift    = shift;
+    if (role)                 filter.role     = role;
+    if (shift)                filter.shift    = shift;
     if (active !== undefined) filter.isActive = active === "true";
 
     const users = await User.find(filter)
@@ -68,7 +69,50 @@ export const getEmployees = async (req, res, next) => {
       .sort({ name: 1 })
       .lean();
 
-    return ok(res, users);
+    // Consultar asistencia activa de hoy
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const todayAttendances = await Attendance.find({
+      date: { $gte: startOfDay },
+    }).lean();
+
+    const attendanceMap = new Map();
+    todayAttendances.forEach((att) => {
+      attendanceMap.set(att.user.toString(), att);
+    });
+
+    const enrichedUsers = users.map((u) => {
+      const att = attendanceMap.get(u._id.toString());
+      let currentStatus = "checked-out";
+      let lastCheckIn = att?.checkIn?.time || u.attendance?.lastCheckIn || null;
+
+      if (att) {
+        if (!att.checkOut || !att.checkOut.time) {
+          currentStatus = att.breakStart && !att.breakEnd ? "break" : "checked-in";
+        } else {
+          currentStatus = "checked-out";
+        }
+      }
+
+      return {
+        ...u,
+        attendance: {
+          ...u.attendance,
+          currentStatus,
+          lastCheckIn,
+          todayShift: att?.shift || u.shift || null,
+          todayStatus: att?.status || "present",
+          thisMonth: {
+            present: u.attendance?.thisMonth?.present || (att ? 1 : 0),
+            absent: u.attendance?.thisMonth?.absent || 0,
+            totalHours: u.attendance?.thisMonth?.totalHours || (att?.workedHours || 0),
+          },
+        },
+      };
+    });
+
+    return ok(res, enrichedUsers);
   } catch (error) { throw error; }
 };
 
@@ -95,7 +139,7 @@ export const updateUser = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const ALLOWED = ["name", "role", "shift", "permissions", "isActive", "schedule"];
+    const ALLOWED = ["name", "email", "phone", "role", "shift", "permissions", "isActive", "schedule", "hourlyRate", "notes"];
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );

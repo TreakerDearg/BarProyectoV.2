@@ -289,8 +289,8 @@ export function StudioDashboard({ onNavigate }: Props) {
                 ))}
               </div>
             ) : barData.length > 0 ? (
-              <div className="w-full" style={{ height: 160 }}>
-                <ResponsiveContainer width="100%" height={160}>
+              <div className="w-full min-w-0" style={{ height: 160, minHeight: 160 }}>
+                <ResponsiveContainer width="100%" height={160} minWidth={0} minHeight={160}>
                   <BarChart data={barData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                     <XAxis
                       dataKey="name"

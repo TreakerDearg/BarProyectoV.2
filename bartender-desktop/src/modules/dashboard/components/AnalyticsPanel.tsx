@@ -95,8 +95,8 @@ export default function AnalyticsPanel({ data, loading = false }: Props) {
             <p className="text-sm text-[#566270]">Sin ventas registradas en el período</p>
           </div>
         ) : (
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-48 min-w-0" style={{ minHeight: 180 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
               <AreaChart data={salesData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradVentasSlate" x1="0" y1="0" x2="0" y2="1">

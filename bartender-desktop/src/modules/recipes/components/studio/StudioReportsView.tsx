@@ -176,8 +176,8 @@ export function StudioReportsView() {
             </div>
           ) : (
             <div className="flex gap-6 items-center flex-wrap">
-              <div style={{ width: 180, height: 180, flexShrink: 0 }}>
-                <ResponsiveContainer width="100%" height="100%">
+              <div style={{ width: 180, height: 180, flexShrink: 0, minWidth: 0, minHeight: 180 }}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={180}>
                   <PieChart>
                     <Pie
                       data={pieData} cx="50%" cy="50%"
@@ -227,8 +227,8 @@ export function StudioReportsView() {
               Sin datos todavía
             </div>
           ) : (
-            <div style={{ height: 192, width: '100%' }}>
-              <ResponsiveContainer width="100%" height={192}>
+            <div className="w-full min-w-0" style={{ height: 192, minHeight: 192 }}>
+              <ResponsiveContainer width="100%" height={192} minWidth={0} minHeight={192}>
                 <BarChart data={barData} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                   <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 9 }} tickLine={false} axisLine={false} />

@@ -1,57 +1,60 @@
 import EmployeesPage from "../modules/admin/pages/EmployeesPage";
-import RoleManagementPage from "../modules/admin/pages/RoleManagementPage";
-import PermissionPage from "../modules/admin/pages/PermissionPage";
-import ShiftPermissionsPage from "../modules/admin/pages/ShiftPermissionsPage";
-import EmployeeActivityTrackingPage from "../modules/admin/pages/EmployeeActivityTrackingPage";
-import ShiftManagementPage from "../modules/admin/pages/ShiftManagementPage";
-import ShiftMetricsPage from "../modules/admin/pages/ShiftMetricsPage";
+import ShiftAttendancePage from "../modules/admin/pages/ShiftAttendancePage";
+import RolePermissionMatrixPage from "../modules/admin/pages/RolePermissionMatrixPage";
+import WorkforceIntelligenceDashboard from "../modules/admin/pages/WorkforceIntelligenceDashboard";
 import SettingsPage from "../modules/admin/pages/SettingsPage";
-import WorkforceDashboardPage from "../modules/admin/features/employees/pages/WorkforceDashboardPage";
-import EmployeeDetailPage from "../modules/admin/features/employees/pages/EmployeeDetailPage";
 import AlertsConfigurationPage from "../modules/admin/pages/AlertsConfigurationPage";
 
 export const adminRoutes = [
+  // 1. Directorio & Plantilla 360°
   {
     path: "/employees",
     element: EmployeesPage,
   },
   {
-    path: "/employees/dashboard",
-    element: WorkforceDashboardPage,
-  },
-  {
     path: "/employees/:id",
-    element: EmployeeDetailPage,
+    element: EmployeesPage,
   },
-  {
-    path: "/employees/roles",
-    element: RoleManagementPage,
-  },
-  {
-    path: "/employees/permissions",
-    element: PermissionPage,
-  },
+
+  // 2. Turnos & Asistencia en Vivo (Consolidado)
   {
     path: "/employees/shifts",
-    element: ShiftPermissionsPage,
-  },
-  {
-    path: "/employees/activity",
-    element: EmployeeActivityTrackingPage,
+    element: ShiftAttendancePage,
   },
   {
     path: "/employees/shift-management",
-    element: ShiftManagementPage,
+    element: ShiftAttendancePage,
+  },
+
+  // 3. Roles & Matriz Granular de Permisos (Consolidado)
+  {
+    path: "/employees/roles",
+    element: RolePermissionMatrixPage,
+  },
+  {
+    path: "/employees/permissions",
+    element: RolePermissionMatrixPage,
+  },
+
+  // 4. Inteligencia Laboral & Auditoría (Consolidado)
+  {
+    path: "/employees/dashboard",
+    element: WorkforceIntelligenceDashboard,
+  },
+  {
+    path: "/employees/activity",
+    element: WorkforceIntelligenceDashboard,
   },
   {
     path: "/employees/shift-metrics",
-    element: ShiftMetricsPage,
+    element: WorkforceIntelligenceDashboard,
   },
+
+  // Configuración & Alertas
   {
     path: "/settings",
     element: SettingsPage,
   },
-  // ── Alertas de configuración ─────────────────────────────────────
   {
     path: "/settings/alerts",
     element: AlertsConfigurationPage,

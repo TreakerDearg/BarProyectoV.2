@@ -59,10 +59,11 @@ export default function RecipeMasterPage() {
       setLoading(true);
       setError(null);
       const data = await getRecipes();
-      setRecipes(data);
+      setRecipes(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error("Failed to load recipes:", err);
       setError("No se pudieron cargar las fichas técnicas. Intenta nuevamente.");
+      setRecipes([]);
     } finally {
       setLoading(false);
     }
@@ -83,23 +84,26 @@ export default function RecipeMasterPage() {
     }
   };
 
+  const safeRecipes = useMemo(() => (Array.isArray(recipes) ? recipes : []), [recipes]);
+
   // Categories list extracted from recipes
   const categories = useMemo(() => {
     const set = new Set<string>();
-    recipes.forEach((r) => {
-      if (r.category) set.add(r.category);
+    safeRecipes.forEach((r) => {
+      if (r && r.category) set.add(r.category);
     });
     return Array.from(set).sort();
-  }, [recipes]);
+  }, [safeRecipes]);
 
   // Symmetrical KPIs for Header
-  const totalCount = recipes.length;
-  const drinksCount = recipes.filter((r) => r.type === "drink").length;
-  const foodCount = recipes.filter((r) => r.type === "food").length;
+  const totalCount = safeRecipes.length;
+  const drinksCount = useMemo(() => safeRecipes.filter((r) => r?.type === "drink").length, [safeRecipes]);
+  const foodCount = useMemo(() => safeRecipes.filter((r) => r?.type === "food").length, [safeRecipes]);
   const avgMargin = useMemo(() => {
     let totalRev = 0;
     let totalCost = 0;
-    recipes.forEach((r) => {
+    safeRecipes.forEach((r) => {
+      if (!r) return;
       const price = typeof r.product === "object" && r.product?.price ? r.product.price : 0;
       const cost = r.totalCost || 0;
       if (price > 0) {
@@ -108,7 +112,7 @@ export default function RecipeMasterPage() {
       }
     });
     return totalRev > 0 ? Math.round(((totalRev - totalCost) / totalRev) * 100) : 72;
-  }, [recipes]);
+  }, [safeRecipes]);
 
   // Drawer handlers
   const handleViewRecipe = (recipe: Recipe) => {
@@ -183,15 +187,18 @@ export default function RecipeMasterPage() {
       <RecipeHeader
         activeStation={activeStation}
         onStationChange={handleStationChange}
+        search={searchQuery}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
         categories={categories}
+        recipes={safeRecipes}
         totalCount={totalCount}
         drinksCount={drinksCount}
         foodCount={foodCount}
         avgMargin={avgMargin}
+        onNewRecipe={(station) => handleCreateNew(station)}
         onCreateDrink={() => handleCreateNew("drink")}
         onCreateFood={() => handleCreateNew("food")}
       />

@@ -74,6 +74,16 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    hourlyRate: {
+      type: Number,
+      default: 0,
+    },
+
+    notes: {
+      type: String,
+      default: "",
+    },
+
     /* ================= PERMISSIONS (FIXED) ================= */
     permissions: {
       type: mongoose.Schema.Types.Mixed,

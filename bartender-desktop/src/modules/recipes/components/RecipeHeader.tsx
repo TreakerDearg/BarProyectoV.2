@@ -17,44 +17,83 @@ import type { Recipe } from "../types/recipe";
 interface Props {
   activeStation: "all" | "drink" | "food" | "dashboard";
   onStationChange: (station: "all" | "drink" | "food" | "dashboard") => void;
-  search: string;
+  search?: string;
+  searchQuery?: string;
   onSearchChange: (search: string) => void;
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
-  categories: string[];
-  recipes: Recipe[];
-  onNewRecipe: (station: "drink" | "food") => void;
+  selectedCategory?: string;
+  onCategoryChange?: (category: string) => void;
+  categories?: string[];
+  recipes?: Recipe[];
+  totalCount?: number;
+  drinksCount?: number;
+  foodCount?: number;
+  avgMargin?: number;
+  onNewRecipe?: (station: "drink" | "food") => void;
+  onCreateDrink?: () => void;
+  onCreateFood?: () => void;
 }
 
 export default function RecipeHeader({
   activeStation,
   onStationChange,
   search,
+  searchQuery,
   onSearchChange,
-  selectedCategory,
+  selectedCategory = "all",
   onCategoryChange,
-  categories,
-  recipes,
+  categories = [],
+  recipes = [],
+  totalCount: propTotalCount,
+  drinksCount: propDrinksCount,
+  foodCount: propFoodCount,
+  avgMargin: propAvgMargin,
   onNewRecipe,
+  onCreateDrink,
+  onCreateFood,
 }: Props) {
-  const drinkCount = recipes.filter((r) => r.type === "drink").length;
-  const foodCount = recipes.filter((r) => r.type === "food").length;
+  const currentSearch = search ?? searchQuery ?? "";
+  const safeRecipes = Array.isArray(recipes) ? recipes : [];
+
+  const drinkCount =
+    propDrinksCount !== undefined
+      ? propDrinksCount
+      : safeRecipes.filter((r) => r?.type === "drink").length;
+
+  const foodCount =
+    propFoodCount !== undefined
+      ? propFoodCount
+      : safeRecipes.filter((r) => r?.type === "food").length;
+
+  const totalCount =
+    propTotalCount !== undefined ? propTotalCount : safeRecipes.length;
 
   // Cálculo del margen promedio real
-  const recipesWithPrice = recipes.filter(
-    (r) => r.product && typeof r.product === "object" && (r.product.price || 0) > 0
+  const recipesWithPrice = safeRecipes.filter(
+    (r) => r?.product && typeof r.product === "object" && ((r.product as any).price || 0) > 0
   );
   const avgMargin =
-    recipesWithPrice.length > 0
+    propAvgMargin !== undefined
+      ? propAvgMargin
+      : recipesWithPrice.length > 0
       ? Math.round(
           recipesWithPrice.reduce((sum, r) => {
-            const price = (r.product as any).price || 0;
+            const price = (r.product as any)?.price || 0;
             const cost = r.totalCost || 0;
             const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
             return sum + margin;
           }, 0) / recipesWithPrice.length
         )
       : 0;
+
+  const handleCreateDrink = () => {
+    if (onCreateDrink) onCreateDrink();
+    else if (onNewRecipe) onNewRecipe("drink");
+  };
+
+  const handleCreateFood = () => {
+    if (onCreateFood) onCreateFood();
+    else if (onNewRecipe) onNewRecipe("food");
+  };
 
   return (
     <div className="flex flex-col gap-5 pb-6 border-b border-border">
@@ -77,7 +116,7 @@ export default function RecipeHeader({
         {/* Acciones de Alta por Estación */}
         <div className="flex items-center gap-3 w-full xl:w-auto">
           <button
-            onClick={() => onNewRecipe("drink")}
+            onClick={handleCreateDrink}
             className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-bg text-xs font-black uppercase tracking-wider shadow-gold-glow transition-all cursor-pointer"
           >
             <Wine size={15} />
@@ -85,7 +124,7 @@ export default function RecipeHeader({
           </button>
 
           <button
-            onClick={() => onNewRecipe("food")}
+            onClick={handleCreateFood}
             className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-ivory border border-border hover:border-gold/30 text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
           >
             <ChefHat size={15} className="text-emerald" />
@@ -101,7 +140,7 @@ export default function RecipeHeader({
             <span className="text-xs text-muted font-bold uppercase tracking-wider block mb-1">
               Fichas Totales
             </span>
-            <span className="text-2xl font-black text-ivory">{recipes.length}</span>
+            <span className="text-2xl font-black text-ivory">{totalCount}</span>
           </div>
           <div className="p-2.5 rounded-xl bg-surface-3 border border-border text-gold">
             <Layers size={18} />
@@ -151,7 +190,7 @@ export default function RecipeHeader({
         <div className="flex bg-surface-2 p-1 rounded-2xl border border-border overflow-x-auto">
           {(
             [
-              { id: "all", label: `Todas (${recipes.length})`, icon: BookOpen },
+              { id: "all", label: `Todas (${totalCount})`, icon: BookOpen },
               { id: "drink", label: `🍸 Barra (${drinkCount})`, icon: Wine },
               { id: "food", label: `🍳 Cocina (${foodCount})`, icon: ChefHat },
               { id: "dashboard", label: "📊 Centro de Control", icon: BarChart3 },
@@ -182,7 +221,7 @@ export default function RecipeHeader({
               <input
                 type="text"
                 placeholder="Buscar por nombre o insumo..."
-                value={search}
+                value={currentSearch}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-surface-2 border border-border rounded-xl text-xs text-ivory placeholder:text-muted/60 focus:outline-none focus:border-gold/50 font-medium"
               />
@@ -190,7 +229,7 @@ export default function RecipeHeader({
 
             <select
               value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value)}
+              onChange={(e) => onCategoryChange?.(e.target.value)}
               className="px-3 py-2 bg-surface-2 border border-border rounded-xl text-xs text-ivory font-bold focus:outline-none focus:border-gold/50"
             >
               <option value="all">Todas las Categorías</option>

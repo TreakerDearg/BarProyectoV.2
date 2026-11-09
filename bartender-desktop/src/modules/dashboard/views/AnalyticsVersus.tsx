@@ -232,8 +232,8 @@ export default function AnalyticsVersus({
             </span>
           </div>
         </div>
-        <div className={isSimple ? "h-[280px]" : "h-[360px]"}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div className={`min-w-0 ${isSimple ? "h-[280px]" : "h-[360px]"}`} style={{ minHeight: 250 }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
             <BarChart data={comparisonData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis type="number" domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }} />

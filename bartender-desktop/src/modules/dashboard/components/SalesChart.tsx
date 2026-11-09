@@ -24,8 +24,8 @@ export function SalesChart({ data }: { data: any[] }) {
     <div className="nebula-panel p-6">
       <h3 className="text-sm font-bold text-ivory mb-4">Ventas</h3>
 
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[300px] min-w-0" style={{ minHeight: 250 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
           <LineChart data={data}>
             <XAxis dataKey="day" tick={{ fill: "#a0a0a0", fontSize: 12 }} />
             <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} />

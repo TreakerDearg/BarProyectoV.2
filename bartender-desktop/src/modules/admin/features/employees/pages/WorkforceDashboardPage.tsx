@@ -275,8 +275,8 @@ export default function WorkforceDashboardPage() {
           ) : weekData.length === 0 ? (
             <div className="h-52 flex items-center justify-center text-xs text-muted">Sin datos de asistencia</div>
           ) : (
-            <div style={{ height: 208 }}>
-              <ResponsiveContainer width="100%" height={208}>
+            <div className="w-full min-w-0" style={{ height: 208, minHeight: 208 }}>
+              <ResponsiveContainer width="100%" height={208} minWidth={0} minHeight={208}>
                 <BarChart data={weekData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                   <XAxis dataKey="day" tick={{ fill: "#6B7280", fontSize: 11 }} tickLine={false} axisLine={false} />

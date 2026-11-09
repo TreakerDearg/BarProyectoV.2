@@ -34,11 +34,15 @@ export const assignShiftSchema  = z.object({ shift: z.enum(SHIFTS) });
 export const changePasswordSchema = z.object({ password: z.string().min(6) });
 export const updateUserSchema = z.object({
   name:        z.string().min(2).max(50).trim().optional(),
+  email:       z.string().email().optional(),
+  phone:       z.string().nullable().optional(),
   role:        z.enum(ROLES).optional(),
   shift:       z.enum(SHIFTS).nullable().optional(),
   permissions: z.record(z.boolean()).optional(),
   isActive:    z.boolean().optional(),
   schedule:    z.any().optional(),
+  hourlyRate:  z.number().min(0).optional(),
+  notes:       z.string().optional(),
 }).refine(
   (data) => Object.keys(data).length > 0,
   { message: "Debes enviar al menos un campo para actualizar" }

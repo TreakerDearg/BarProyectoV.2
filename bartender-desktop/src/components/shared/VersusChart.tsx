@@ -103,8 +103,8 @@ export default function VersusChart({
             </span>
           </div>
 
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80 min-w-0" style={{ minHeight: 250 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
               <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                 <XAxis type="number" domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }} />

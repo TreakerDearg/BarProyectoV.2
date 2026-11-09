@@ -120,15 +120,20 @@ export const getActivityLogs = async (req, res, next) => {
     if (activityType) filter.activityType = activityType;
     if (shift) filter.shift = shift;
     if (startDate || endDate) {
-      filter.timestamp = {};
-      if (startDate) filter.timestamp.$gte = new Date(startDate);
-      if (endDate) filter.timestamp.$lte = new Date(endDate);
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
 
-    const logs = await ActivityLog.find(filter)
-      .sort({ timestamp: -1 })
+    const rawLogs = await ActivityLog.find(filter)
+      .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .lean();
+
+    const logs = rawLogs.map((l) => ({
+      ...l,
+      timestamp: l.createdAt ? new Date(l.createdAt).toISOString() : new Date().toISOString(),
+    }));
 
     return ok(res, logs);
   } catch (error) {

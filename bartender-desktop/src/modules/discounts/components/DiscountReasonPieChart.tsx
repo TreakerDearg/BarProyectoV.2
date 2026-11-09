@@ -68,8 +68,8 @@ export default function DiscountReasonPieChart({ data, loading }: Props) {
       </div>
 
       {/* Pie Chart */}
-      <div className="h-40">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-40 min-w-0" style={{ minHeight: 160 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
           <PieChart>
             <Pie
               data={chartData}

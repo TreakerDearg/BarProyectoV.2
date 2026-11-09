@@ -1,933 +1,629 @@
-import { useEffect, useState, useMemo } from "react";
-import { Plus, X, ShieldCheck, Clock, KeyRound, Calendar, Loader2, Check, Database, FileText, Target, Users, UserCheck, UserPlus } from "lucide-react";
+"use client";
+
+import { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  Users,
+  UserPlus,
+  RefreshCw,
+  Search,
+  Filter,
+  Wine,
+  UtensilsCrossed,
+  ChefHat,
+  CreditCard,
+  Crown,
+  Clock,
+  Sparkles,
+  Award,
+  AlertCircle,
+  CheckCircle2,
+  TrendingUp,
+} from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import EmployeeCard from "../components/EmployeeCard";
+import EmployeeDetailDrawer from "../components/EmployeeDetailDrawer";
 import EmployeeForm from "../components/EmployeeForm";
 import PromoteModal from "../components/PromoteModal";
-import BackupSystem from "../../../components/shared/BackupSystem";
-import AuditLogSystem from "../../../components/shared/AuditLogSystem";
-import AdvancedSearchFilter from "../../../components/shared/AdvancedSearchFilter";
-import DataExportImport from "../../../components/shared/DataExportImport";
 import {
   getEmployees,
   getClients,
   createEmployee,
+  updateUser,
   deactivateUser,
   activateUser,
-  updateUser,
 } from "../services/userService";
-import { getAuditLogs, exportAuditLogs } from "../services/auditService";
-import type { AuditLog } from "../../../components/shared/AuditLogSystem";
-import type { User, UserSchedule } from "../types/user";
-import "../../../styles/nebula-obsidian-theme.css";
+import type { User as UserType } from "../types/user";
 
 export default function EmployeesPage() {
-  // Rol del usuario autenticado — solo admin puede ascender/cambiar roles
   const currentUser = useAuthStore((s) => s.user);
   const isAdmin = currentUser?.role === "admin";
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [clients, setClients] = useState<User[]>([]);
-  const [clientSearch, setClientSearch] = useState("");
-  const [promoteTarget, setPromoteTarget] = useState<User | null>(null);
-  const [open, setOpen] = useState(false);
-  const [auditUser, setAuditUser] = useState<User | null>(null);
+  const [employees, setEmployees] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [clientsLoading, setClientsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeSystemTab, setActiveSystemTab] = useState<"employees" | "clients" | "backup" | "audit">("employees");
+
+  // Filters
   const [search, setSearch] = useState("");
-  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
-  // Audit logs reales
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [auditLoading, setAuditLoading] = useState(false);
-  const [showExportImport, setShowExportImport] = useState(false);
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>("all");
+  const [onlyOnShift, setOnlyOnShift] = useState(false);
 
-  // Filter groups for AdvancedSearchFilter
-  const filterGroups = [
-    {
-      id: "role",
-      label: "Rol",
-      type: "radio" as const,
-      options: [
-        { value: "admin", label: "Admin" },
-        { value: "bartender", label: "Bartender" },
-        { value: "waiter", label: "Waiter" },
-        { value: "cashier", label: "Cashier" },
-        { value: "kitchen", label: "Kitchen" },
-      ],
-      selected: activeFilters["role"] || [],
-    },
-    {
-      id: "status",
-      label: "Estado",
-      type: "checkbox" as const,
-      options: [
-        { value: "active", label: "Activo" },
-        { value: "inactive", label: "Inactivo" },
-      ],
-      selected: activeFilters["status"] || [],
-    },
-    {
-      id: "shift",
-      label: "Turno",
-      type: "checkbox" as const,
-      options: [
-        { value: "morning", label: "Mañana" },
-        { value: "afternoon", label: "Tarde" },
-        { value: "night", label: "Noche" },
-      ],
-      selected: activeFilters["shift"] || [],
-    },
-  ];
+  // Drawer & Modals
+  const [selectedUserForDrawer, setSelectedUserForDrawer] = useState<UserType | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  /* =====================================================
-     FETCH EMPLOYEES (SIMPLIFICADO + SAFE SERVICE)
-  ===================================================== */
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    const data = await getEmployees();
-    setUsers(data);
-    setLoading(false);
-  };
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
-  const fetchClients = async (search?: string) => {
-    setClientsLoading(true);
+  const [promoteCandidate, setPromoteCandidate] = useState<UserType | null>(null);
+  const [clientsList, setClientsList] = useState<UserType[]>([]);
+  const [showClientSelector, setShowClientSelector] = useState(false);
+  const [clientsLoading, setClientsLoading] = useState(false);
+
+  // Load employees
+  const loadEmployees = useCallback(async () => {
     try {
-      const data = await getClients(search);
-      setClients(data);
-    } catch {
-      // silencioso — la pestaña de empleados no se rompe
+      setLoading(true);
+      setError(null);
+      const data = await getEmployees();
+      setEmployees(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error("Error loading employees:", err);
+      setError("No se pudieron cargar los colaboradores. Verifica la conexión.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
+
+  // Load clients for promotion
+  const loadClientsForPromotion = async () => {
+    try {
+      setClientsLoading(true);
+      const clients = await getClients();
+      setClientsList(clients);
+      setShowClientSelector(true);
+    } catch (err) {
+      console.warn("Could not load clients:", err);
     } finally {
       setClientsLoading(false);
     }
   };
 
-  /* =====================================================
-     KPIs CALCULATION
-  ===================================================== */
+  // KPIs Calculations
   const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter(u => u.isActive).length;
-    const inactive = total - active;
-    const byRole = users.reduce((acc, u) => {
-      acc[u.role] = (acc[u.role] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return { total, active, inactive, byRole };
-  }, [users]);
-  const filteredUsers = useMemo(() => {
-    let list = users;
+    const total = employees.length;
+    const active = employees.filter((e) => e.isActive).length;
+    const onShift = employees.filter(
+      (e) => e.attendance?.currentStatus === "checked-in" && e.isActive
+    ).length;
 
-    // Apply search text
-    if (search.trim()) {
-      const lower = search.toLowerCase();
-      list = list.filter(u =>
-        u.name?.toLowerCase().includes(lower) ||
-        u.email?.toLowerCase().includes(lower)
-      );
-    }
+    const bartenders = employees.filter((e) => e.role === "bartender").length;
+    const waiters = employees.filter((e) => e.role === "waiter").length;
+    const kitchen = employees.filter((e) => e.role === "kitchen").length;
+    const cashiers = employees.filter((e) => e.role === "cashier").length;
+    const admins = employees.filter((e) => e.role === "admin").length;
 
-    // Apply role filter
-    if (activeFilters["role"]?.length > 0) {
-      list = list.filter(u => activeFilters["role"]!.includes(u.role));
-    }
+    const totalHoursThisMonth = employees.reduce(
+      (sum, e) => sum + (e.attendance?.thisMonth?.totalHours || 0),
+      0
+    );
 
-    // Apply status filter
-    if (activeFilters["status"]?.length > 0) {
-      list = list.filter(u => {
-        const filters = activeFilters["status"]!;
-        if (filters.includes("active") && !u.isActive) return false;
-        if (filters.includes("inactive") && u.isActive) return false;
-        return true;
-      });
-    }
+    return {
+      total,
+      active,
+      onShift,
+      bartenders,
+      waiters,
+      kitchen,
+      cashiers,
+      admins,
+      totalHoursThisMonth,
+    };
+  }, [employees]);
 
-    // Apply shift filter
-    if (activeFilters["shift"]?.length > 0) {
-      list = list.filter(u => activeFilters["shift"]!.includes(u.shift || ""));
-    }
-
-    return list;
-  }, [users, search, activeFilters]);
-
-  const handleExport = async (options: { format: "json" | "csv" | "xlsx" }) => {
-    try {
-      const data = filteredUsers;
-      const filename = `empleados-export-${new Date().toISOString().split('T')[0]}`;
-
-      if (options.format === "json") {
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filename}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+  // Filtered employees list
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((e) => {
+      // Role filter
+      if (selectedRoleFilter !== "all" && e.role !== selectedRoleFilter) {
+        return false;
       }
-    } catch (err) {
-      console.error("Error exporting employees:", err);
-      setError("Error al exportar empleados");
-    }
+
+      // On-shift filter
+      if (onlyOnShift && e.attendance?.currentStatus !== "checked-in") {
+        return false;
+      }
+
+      // Search query
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const nameMatch = e.name?.toLowerCase().includes(q);
+        const emailMatch = e.email?.toLowerCase().includes(q);
+        const roleMatch = e.role?.toLowerCase().includes(q);
+        const phoneMatch = e.phone?.includes(q);
+        if (!nameMatch && !emailMatch && !roleMatch && !phoneMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [employees, selectedRoleFilter, onlyOnShift, search]);
+
+  // Handlers
+  const handleInspectUser = (user: UserType) => {
+    setSelectedUserForDrawer(user);
+    setIsDrawerOpen(true);
   };
 
-  const handleImport = async () => {
-    setError("Importación deshabilitada - solo exportación para auditoría");
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Cargar clientes al cambiar a esa pestaña
-  useEffect(() => {
-    if (activeSystemTab === "clients") {
-      fetchClients(clientSearch);
-    }
-    if (activeSystemTab === "audit") {
-      fetchAuditLogs();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSystemTab]);
-
-  const fetchAuditLogs = async () => {
-    setAuditLoading(true);
+  const handleToggleStatus = async (user: UserType) => {
     try {
-      const { logs } = await getAuditLogs({ limit: 100, page: 1 });
-      setAuditLogs(logs);
-    } catch {
-      // silencioso — la página no se rompe
-    } finally {
-      setAuditLoading(false);
+      if (user.isActive) {
+        await deactivateUser(user._id);
+      } else {
+        await activateUser(user._id);
+      }
+      await loadEmployees();
+    } catch (err: any) {
+      console.error("Failed to toggle status:", err);
+      alert("No se pudo cambiar el estado del colaborador.");
     }
   };
 
-  /* =====================================================
-     LISTEN: USER DISABLED (GLOBAL AUTH EVENT)
-  ===================================================== */
-  useEffect(() => {
-    const handleDisabled = () => {
-      setError("Tu usuario fue desactivado");
-      setUsers([]);
-    };
-
-    window.addEventListener("auth:disabled", handleDisabled);
-
-    return () => {
-      window.removeEventListener("auth:disabled", handleDisabled);
-    };
-  }, []);
-
-  const handleCreate = async (form: any) => {
-    const res = await createEmployee(form);
-    if (!res) { alert("No se pudo crear el empleado"); return; }
-    setOpen(false);
-    await fetchData();
+  const handleSaveDrawer = async (userId: string, updates: Partial<UserType>) => {
+    await updateUser(userId, updates);
+    await loadEmployees();
   };
 
-  const handleDeactivate = async (id: string) => {
-    const ok = window.confirm("¿Desactivar usuario?");
-    if (!ok) return;
-    const res = await deactivateUser(id);
-    if (!res) { alert("No se pudo desactivar el usuario"); return; }
-    await fetchData();
+  const handleCreateEmployee = async (formData: any) => {
+    try {
+      setCreateLoading(true);
+      await createEmployee(formData);
+      setIsCreateModalOpen(false);
+      await loadEmployees();
+    } catch (err: any) {
+      console.error("Failed to create employee:", err);
+      alert(err?.message || "Error al crear el colaborador.");
+    } finally {
+      setCreateLoading(false);
+    }
   };
-
-  const handlePromoteSuccess = (updated: User) => {
-    setPromoteTarget(null);
-    // Refrescar ambas listas
-    fetchData();
-    fetchClients(clientSearch);
-  };
-
-  /* =====================================================
-     LOADING
-  ===================================================== */
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="animate-spin text-cyan-400" size={32} />
-      </div>
-    );
-  }
-
-  /* =====================================================
-     KPI CARD COMPONENT (gold+minimal)
-  ===================================================== */
-  function KPICard({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
-    const cfg: Record<string, { border: string; bg: string; text: string }> = {
-      violet:  { border: "border-violet-500/25",  bg: "bg-violet-500/6",  text: "text-violet-300"  },
-      emerald: { border: "border-emerald-500/25", bg: "bg-emerald-500/6", text: "text-emerald-300" },
-      orange:  { border: "border-orange-500/25",  bg: "bg-orange-500/6",  text: "text-orange-300"  },
-      gold:    { border: "border-gold/25",         bg: "bg-gold/6",        text: "text-gold"        },
-    };
-    const c = cfg[color] ?? cfg.violet;
-    return (
-      <div className={`rounded-2xl border p-4 flex flex-col gap-1 ${c.border} ${c.bg}`}>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{label}</span>
-          <span className={c.text}>{icon}</span>
-        </div>
-        <p className={`text-2xl font-extrabold ${c.text}`}>{value}</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="w-full space-y-5 relative">
-
-      {/* Atmospheric Glow */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-gold/6 via-violet-500/6 to-cyan-500/6 rounded-full blur-[120px] -z-10 pointer-events-none" />
-
-      {/* Header */}
-      <div className="flex items-center justify-between relative z-10 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-gold/10 border border-gold/20">
-            <ShieldCheck size={20} className="text-gold" />
+    <div className="min-h-screen bg-background text-text-primary p-6 space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border/60 pb-5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-gold" />
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Gestión de Personal & Talento
+            </span>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-ivory tracking-tight">
-              Directorio de Colaboradores
-            </h1>
-            <p className="text-[11px] text-muted mt-0.5">
-              {stats.total} empleados · {stats.active} activos
-            </p>
-            {error && (
-              <p className="text-[10px] text-red-400 font-bold mt-1">{error}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* System Tabs */}
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
-            <button
-              onClick={() => setActiveSystemTab("employees")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSystemTab === "employees"
-                  ? "bg-gold/20 text-gold border border-gold/30"
-                  : "text-white/50 hover:text-white"
-              }`}
-            >
-              Personal
-            </button>
-            <button
-              onClick={() => setActiveSystemTab("clients")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSystemTab === "clients"
-                  ? "bg-emerald/20 text-emerald-400 border border-emerald/30"
-                  : "text-white/50 hover:text-white"
-              } ${!isAdmin ? "opacity-30 cursor-not-allowed pointer-events-none" : ""}`}
-              disabled={!isAdmin}
-              title={!isAdmin ? "Solo el administrador puede gestionar roles" : undefined}
-            >
-              <UserPlus size={14} className="inline mr-1" />
-              Ascender
-            </button>
-            <button
-              onClick={() => setActiveSystemTab("backup")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSystemTab === "backup"
-                  ? "bg-cyan/20 text-cyan-400 border border-cyan/30"
-                  : "text-white/50 hover:text-white"
-              }`}
-            >
-              <Database size={14} className="inline mr-1" />
-              Respaldos
-            </button>
-            <button
-              onClick={() => setActiveSystemTab("audit")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSystemTab === "audit"
-                  ? "bg-violet/20 text-violet-400 border border-violet/30"
-                  : "text-white/50 hover:text-white"
-              }`}
-            >
-              <FileText size={14} className="inline mr-1" />
-              Auditoría
-            </button>
-          </div>
-
-          {activeSystemTab === "employees" && (
-            <>
-              <button
-                onClick={() => setShowExportImport(true)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-white/50 hover:text-cyan-400 hover:border-cyan/30 transition-colors"
-                title="Exportar/Importar"
-              >
-                <Target size={16} />
-              </button>
-              <button
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-3 h-12 px-6 rounded-xl bg-gradient-to-r from-gold via-violet to-cyan text-black font-bold shadow-lg shadow-gold/20 hover:shadow-gold/40 transition-all"
-              >
-                <Plus size={18} />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Nuevo Colaborador</span>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* KPIs Dashboard */}
-      {activeSystemTab === "employees" && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard label="Total" value={stats.total} icon={<Users size={16} />} color="violet" />
-          <KPICard label="Activos" value={stats.active} icon={<UserCheck size={16} />} color="emerald" />
-          <KPICard label="Inactivos" value={stats.inactive} icon={<Clock size={16} />} color="orange" />
-          <KPICard label="Admins" value={stats.byRole.admin || 0} icon={<ShieldCheck size={16} />} color="gold" />
-        </div>
-      )}
-
-      {/* ================= EMPLOYEES TAB ================= */}
-      {activeSystemTab === "employees" && (
-        <>
-          {/* ================= SEARCH & FILTER ================= */}
-          <div className="mb-6">
-            <AdvancedSearchFilter
-              filterGroups={filterGroups}
-              onSearch={setSearch}
-              onFilterChange={setActiveFilters}
-              placeholder="Buscar colaboradores..."
-              savedFilters={[]}
-              onSaveFilter={() => {}}
-              onLoadFilter={() => {}}
-            />
-          </div>
-
-          {/* Empty State */}
-          {!error && filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <Users size={24} className="text-white/30" />
-              </div>
-              <p className="text-sm text-white/50 font-bold uppercase tracking-wider">
-                {search || Object.keys(activeFilters).length > 0
-                  ? "No se encontraron colaboradores con los filtros aplicados"
-                  : "No hay colaboradores en el sistema"}
-              </p>
-            </div>
-          )}
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-            {filteredUsers.map((u) => (
-              <div key={u._id}>
-                <EmployeeCard
-                  user={u}
-                  onDeactivate={handleDeactivate}
-                  onInspect={setAuditUser}
-                />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* ================= CLIENTS TAB ================= */}
-      {activeSystemTab === "clients" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <input
-              type="search"
-              placeholder="Buscar por nombre o email…"
-              value={clientSearch}
-              onChange={(e) => {
-                setClientSearch(e.target.value);
-                fetchClients(e.target.value);
-              }}
-              className="flex-1 h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 text-sm font-medium focus:outline-none focus:border-gold/40"
-            />
-            <button
-              onClick={() => fetchClients(clientSearch)}
-              className="h-10 px-4 rounded-xl bg-white/5 border border-white/10 text-white/50 text-xs font-bold hover:text-white hover:border-white/20 transition-all"
-            >
-              Actualizar
-            </button>
-          </div>
-
-          {clientsLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="animate-spin text-emerald-400" size={28} />
-            </div>
-          ) : clients.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <Users size={22} className="text-white/30" />
-              </div>
-              <p className="text-sm text-white/40 font-bold uppercase tracking-wider">
-                {clientSearch ? "No se encontraron clientes" : "No hay clientes registrados"}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-              {clients.map((client) => (
-                <div
-                  key={client._id}
-                  className="flex items-center justify-between gap-4 p-4 bg-white/3 border border-white/8 rounded-2xl hover:border-white/15 transition-all"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald/20 to-cyan/10 border border-emerald/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold text-emerald-400">
-                        {client.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{client.name}</p>
-                      <p className="text-xs text-white/40 truncate">{client.email}</p>
-                      {client.provider && client.provider !== "local" && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-400/70">
-                          via {client.provider}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {isAdmin && (
-                  <button
-                    onClick={() => setPromoteTarget(client)}
-                    className="flex-shrink-0 flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-gold/80 to-yellow-500/80 text-black text-[10px] font-bold uppercase tracking-wider hover:from-gold hover:to-yellow-500 hover:shadow-md hover:shadow-gold/20 transition-all"
-                  >
-                    <UserCheck size={13} />
-                    Cambiar rol
-                  </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <p className="text-[10px] text-white/25 text-center font-medium">
-            {clients.length} cliente{clients.length !== 1 ? "s" : ""} encontrado{clients.length !== 1 ? "s" : ""}
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Directorio & Plantilla de Colaboradores
+          </h1>
+          <p className="text-xs text-text-muted">
+            Administración 360° del equipo de barra, salón, cocina, caja y administración
           </p>
         </div>
-      )}
 
-      {/* ================= BACKUP TAB ================= */}
-      {activeSystemTab === "backup" && (
-        <BackupSystem
-          onBackup={async () => {
-            // Implement backup logic
-            console.log("Backup triggered");
-          }}
-          onRestore={async (backupId) => {
-            // Implement restore logic
-            console.log("Restore triggered:", backupId);
-          }}
-          onDelete={async (backupId) => {
-            // Implement delete logic
-            console.log("Delete triggered:", backupId);
-          }}
-          config={{
-            enabled: true,
-            interval: 60,
-            maxBackups: 10,
-            autoCleanup: true
-          }}
-        />
-      )}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={loadEmployees}
+            title="Refrescar lista"
+            className="p-2.5 rounded-xl border border-border/60 hover:border-gold/40 hover:bg-surface-card text-text-muted hover:text-gold transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-gold" : ""}`} />
+          </button>
 
-      {/* ================= AUDIT TAB ================= */}
-      {activeSystemTab === "audit" && (
-        auditLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 className="animate-spin text-violet-400" size={28} />
-          </div>
-        ) : (
-          <AuditLogSystem
-            logs={auditLogs}
-            onExport={async () => {
-              try { await exportAuditLogs(); } catch { /* silencioso */ }
-            }}
-            onClear={undefined}
-          />
-        )
-      )}
-
-      {/* ================= MODAL ================= */}
-      {open && (
-        <EmployeeForm
-          onSave={handleCreate}
-          onClose={() => setOpen(false)}
-        />
-      )}
-
-      {auditUser && (
-        <EmployeeAuditPanel
-          user={auditUser}
-          onClose={() => setAuditUser(null)}
-          onRefresh={fetchData}
-        />
-      )}
-
-      {/* ── PROMOTE MODAL ── */}
-      {promoteTarget && (
-        <PromoteModal
-          user={promoteTarget}
-          adminRole={currentUser?.role ?? ""}
-          onClose={() => setPromoteTarget(null)}
-          onSuccess={handlePromoteSuccess}
-        />
-      )}
-
-      {/* EXPORT/IMPORT PANEL */}
-      {showExportImport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 fused-animate-fade-in">
-          <div className="fused-glass-card p-6 max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-fused-text-primary">Exportar/Importar Empleados</h3>
+          {isAdmin && (
+            <>
               <button
-                onClick={() => setShowExportImport(false)}
-                className="text-fused-text-muted hover:text-fused-text-primary transition-colors"
+                type="button"
+                onClick={loadClientsForPromotion}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-surface-card hover:bg-surface-hover text-text-primary border border-border/60 transition-colors"
               >
-                <X size={20} />
+                <Sparkles className="w-3.5 h-3.5 text-gold" />
+                Ascender Cliente
               </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-gold hover:bg-gold-hover text-surface-dark transition-all shadow-sm hover:shadow"
+              >
+                <UserPlus className="w-4 h-4" />
+                Nuevo Colaborador
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* KPI Ribbons: 4 columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* KPI 1: Total Plantilla */}
+        <div className="bg-surface-card border border-border/60 rounded-xl p-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Total Colaboradores
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-surface-dark border border-border/60 flex items-center justify-center text-gold">
+              <Users className="w-4 h-4" />
             </div>
-            <DataExportImport
-              data={filteredUsers}
-              filename={`empleados-${new Date().toISOString().split('T')[0]}`}
-              onExport={handleExport}
-              onImport={handleImport}
-              availableFormats={["json"]}
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-text-primary font-mono">
+              {stats.total}
+            </span>
+            <span className="text-xs text-emerald font-semibold">
+              ({stats.active} activos)
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-text-muted flex-wrap">
+            <span>🍸 {stats.bartenders} Barra</span>
+            <span>·</span>
+            <span>🍽️ {stats.waiters} Salón</span>
+            <span>·</span>
+            <span>🍳 {stats.kitchen} Cocina</span>
+          </div>
+        </div>
+
+        {/* KPI 2: En Turno Ahora */}
+        <div className="bg-surface-card border border-border/60 rounded-xl p-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              En Turno Ahora
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-emerald/15 border border-emerald/30 flex items-center justify-center text-emerald">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-emerald font-mono">
+              {stats.onShift}
+            </span>
+            <span className="text-xs text-text-muted">
+              colaboradores en servicio
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
+            Dotación en tiempo real activa
+          </div>
+        </div>
+
+        {/* KPI 3: Horas Acumuladas */}
+        <div className="bg-surface-card border border-border/60 rounded-xl p-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Horas del Mes
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-gold font-mono">
+              {stats.totalHoursThisMonth > 0 ? `${stats.totalHoursThisMonth}h` : "Al día"}
+            </span>
+            <span className="text-xs text-text-muted">
+              horas registradas
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-text-muted">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald" />
+            Cálculo continuo en Bóveda
+          </div>
+        </div>
+
+        {/* KPI 4: Roles & Jerarquía */}
+        <div className="bg-surface-card border border-border/60 rounded-xl p-4 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              Estructura Operativa
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <Crown className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-text-primary font-mono">
+              5
+            </span>
+            <span className="text-xs text-text-muted">
+              roles operativos activos
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-text-muted">
+            <span>👑 {stats.admins} Admins</span>
+            <span>·</span>
+            <span>💵 {stats.cashiers} Caja</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-surface-dark/60 p-3 rounded-2xl border border-border/60">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 text-text-muted absolute left-3 top-3" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre, email, teléfono o rol..."
+            className="w-full text-xs bg-surface-card text-text-primary border border-border/60 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-gold/50"
+          />
+        </div>
+
+        {/* Role Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRoleFilter("all");
+              setOnlyOnShift(false);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 ${
+              selectedRoleFilter === "all" && !onlyOnShift
+                ? "bg-gold/15 text-gold border-gold/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            Todos ({stats.total})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setOnlyOnShift(!onlyOnShift);
+              setSelectedRoleFilter("all");
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1.5 ${
+              onlyOnShift
+                ? "bg-emerald/15 text-emerald border-emerald/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
+            En Turno ({stats.onShift})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRoleFilter("bartender");
+              setOnlyOnShift(false);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
+              selectedRoleFilter === "bartender"
+                ? "bg-cyan/15 text-cyan border-cyan/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            <Wine className="w-3 h-3" />
+            Barra ({stats.bartenders})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRoleFilter("waiter");
+              setOnlyOnShift(false);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
+              selectedRoleFilter === "waiter"
+                ? "bg-emerald/15 text-emerald border-emerald/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            <UtensilsCrossed className="w-3 h-3" />
+            Salón ({stats.waiters})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRoleFilter("kitchen");
+              setOnlyOnShift(false);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
+              selectedRoleFilter === "kitchen"
+                ? "bg-amber/15 text-amber border-amber/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            <ChefHat className="w-3 h-3" />
+            Cocina ({stats.kitchen})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRoleFilter("cashier");
+              setOnlyOnShift(false);
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
+              selectedRoleFilter === "cashier"
+                ? "bg-purple-500/15 text-purple-400 border-purple-500/40 shadow-sm"
+                : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
+            }`}
+          >
+            <CreditCard className="w-3 h-3" />
+            Caja ({stats.cashiers})
+          </button>
+        </div>
+      </div>
+
+      {/* Grid of Employees */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="h-64 bg-surface-card/60 rounded-2xl border border-border/40 p-5 flex flex-col justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-surface-dark rounded-2xl" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 bg-surface-dark rounded w-3/4" />
+                  <div className="h-3 bg-surface-dark rounded w-1/2" />
+                </div>
+              </div>
+              <div className="h-10 bg-surface-dark rounded-xl" />
+            </div>
+          ))}
+        </div>
+      ) : filteredEmployees.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+          {filteredEmployees.map((emp) => (
+            <EmployeeCard
+              key={emp._id}
+              user={emp}
+              onInspect={handleInspectUser}
+              onToggleStatus={handleToggleStatus}
+            />
+          ))}
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="bg-surface-card border border-border/60 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-surface-dark border border-border/60 flex items-center justify-center text-text-muted">
+            <Users className="w-8 h-8 text-gold/60" />
+          </div>
+          <div className="space-y-1 max-w-md">
+            <h3 className="text-base font-semibold text-text-primary">
+              No se encontraron colaboradores
+            </h3>
+            <p className="text-xs text-text-muted">
+              {search || selectedRoleFilter !== "all" || onlyOnShift
+                ? "No hay personal que coincida con los criterios de búsqueda o filtros seleccionados."
+                : "Aún no se han registrado colaboradores en el sistema. Puedes dar de alta uno nuevo o ascender a un cliente."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={() => {
+                setSearch("");
+                setSelectedRoleFilter("all");
+                setOnlyOnShift(false);
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-surface-dark hover:bg-surface-hover text-text-primary border border-border/60 transition-colors"
+            >
+              Restablecer Filtros
+            </button>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-gold hover:bg-gold-hover text-surface-dark transition-colors"
+            >
+              + Nuevo Colaborador
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-over Drawer for 360° Management */}
+      <EmployeeDetailDrawer
+        user={selectedUserForDrawer}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onSave={handleSaveDrawer}
+      />
+
+      {/* Create Employee Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div
+            onClick={() => setIsCreateModalOpen(false)}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+          />
+          <div className="relative z-10 w-full max-w-md">
+            <EmployeeForm
+              onClose={() => setIsCreateModalOpen(false)}
+              onSubmit={handleCreateEmployee}
+              loading={createLoading}
             />
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-function EmployeeAuditPanel({
-  user,
-  onClose,
-  onRefresh,
-}: {
-  user: User;
-  onClose: () => void;
-  onRefresh: () => void;
-}) {
-  const [activeTab, setActiveTab] = useState<"audit" | "schedule">("audit");
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  const DAYS_OF_WEEK = [
-    { key: "monday", label: "Lunes" },
-    { key: "tuesday", label: "Martes" },
-    { key: "wednesday", label: "Miércoles" },
-    { key: "thursday", label: "Jueves" },
-    { key: "friday", label: "Viernes" },
-    { key: "saturday", label: "Sábado" },
-    { key: "sunday", label: "Domingo" },
-  ] as const;
-
-  const [schedule, setSchedule] = useState<UserSchedule>(() => {
-    const initial: UserSchedule = {};
-    DAYS_OF_WEEK.forEach((d) => {
-      const existing = user.schedule?.[d.key];
-      initial[d.key] = {
-        isAvailable: existing?.isAvailable ?? false,
-        startTime: existing?.startTime ?? "09:00",
-        endTime: existing?.endTime ?? "17:00",
-      };
-    });
-    return initial;
-  });
-
-  const permissions = Object.entries(user.permissions || {});
-  const activePermissions = permissions.filter(([, enabled]) => enabled);
-  const lastLogin = user.lastLogin
-    ? new Date(user.lastLogin).toLocaleString("es-AR", {
-        day: "2-digit",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Sin registro";
-
-  const handleSaveSchedule = async () => {
-    setIsSaving(true);
-    setSaveSuccess(false);
-    try {
-      await updateUser(user._id, { schedule });
-      setSaveSuccess(true);
-      onRefresh();
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
-    } catch (err) {
-      console.error(err);
-      alert("Error al guardar la agenda semanal");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <section className="w-full max-w-3xl overflow-hidden bg-gradient-to-br from-surface-2 to-surface-3 border border-white/10 rounded-3xl flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="p-6 border-b border-white/10 flex items-start justify-between gap-6 flex-shrink-0 bg-gradient-to-r from-gold/10 via-violet/10 to-cyan/10">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-gold/20 to-violet/20 border border-gold/30">
-              <ShieldCheck className="text-gold" size={24} />
+      {/* Client Selector for Promotion */}
+      {showClientSelector && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+          <div
+            onClick={() => setShowClientSelector(false)}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity"
+          />
+          <div className="relative z-10 bg-surface-card border border-border/70 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-gold" />
+                Seleccionar Cliente para Ascender
+              </h3>
+              <button
+                onClick={() => setShowClientSelector(false)}
+                className="p-1 rounded-lg text-text-muted hover:text-text-primary"
+              >
+                ✕
+              </button>
             </div>
-            <div>
-              <p className="text-[10px] text-gold font-bold uppercase tracking-wider">
-                Auditoría de personal
-              </p>
-              <h2 className="text-2xl font-bold text-white tracking-tight">
-                {user.name}
-              </h2>
-              <p className="text-xs text-white/50 font-bold uppercase tracking-wider">
-                {user.email}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-all flex items-center justify-center"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex gap-6 border-b border-white/10 px-6 pt-2 flex-shrink-0">
-          <button
-            onClick={() => setActiveTab("audit")}
-            className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all relative ${
-              activeTab === "audit" ? "text-gold" : "text-white/50 hover:text-white"
-            }`}
-          >
-            Auditoría y Permisos
-            {activeTab === "audit" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold via-violet to-cyan" />
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("schedule")}
-            className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all relative ${
-              activeTab === "schedule" ? "text-gold" : "text-white/50 hover:text-white"
-            }`}
-          >
-            Agenda Semanal
-            {activeTab === "schedule" && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gold via-violet to-cyan" />
-            )}
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          {activeTab === "audit" ? (
-            <>
-              {/* Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <AuditMetric label="Rol" value={user.role} tone="gold" />
-                <AuditMetric label="Turno" value={user.shift || "Sin turno"} tone="cyan" />
-                <AuditMetric label="Estado" value={user.isActive ? "Activo" : "Inactivo"} tone={user.isActive ? "emerald" : "red"} />
-              </div>
-
-              {/* Details & Permissions */}
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-5">
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="text-cyan-400" size={18} />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                      Registro operativo
-                    </h3>
-                  </div>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between gap-4">
-                      <span className="text-white/50">Último acceso</span>
-                      <span className="text-white font-bold text-right">{lastLogin}</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-white/50">Permisos activos</span>
-                      <span className="text-emerald-400 font-bold">{activePermissions.length}</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="text-white/50">Creado</span>
-                      <span className="text-white font-bold text-right">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString("es-MX") : "N/A"}
+            <div className="max-h-60 overflow-y-auto divide-y divide-border/40 space-y-1">
+              {clientsLoading ? (
+                <p className="text-xs text-text-muted py-6 text-center">
+                  Buscando clientes registrados...
+                </p>
+              ) : clientsList.length > 0 ? (
+                clientsList.map((client) => (
+                  <div
+                    key={client._id}
+                    onClick={() => {
+                      setPromoteCandidate(client);
+                      setShowClientSelector(false);
+                    }}
+                    className="p-2.5 flex items-center justify-between hover:bg-surface-hover rounded-xl cursor-pointer transition-colors text-xs"
+                  >
+                    <div>
+                      <span className="font-semibold text-text-primary block">
+                        {client.name}
+                      </span>
+                      <span className="text-[11px] text-text-muted">
+                        {client.email}
                       </span>
                     </div>
+                    <span className="text-gold font-bold text-xs hover:underline">
+                      Seleccionar →
+                    </span>
                   </div>
-                </div>
-
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <KeyRound className="text-gold" size={18} />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                      Matriz de permisos
-                    </h3>
-                  </div>
-                  {permissions.length === 0 ? (
-                    <p className="text-sm text-white/50">Este usuario no tiene permisos personalizados.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {permissions.map(([key, enabled]) => (
-                        <div
-                          key={key}
-                          className={`px-3 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-wider ${
-                            enabled
-                              ? "bg-emerald/10 border-emerald/30 text-emerald-400"
-                              : "bg-red/10 border-red/30 text-red-400"
-                          }`}
-                        >
-                          {key}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {DAYS_OF_WEEK.map((d) => {
-                  const daySched = schedule[d.key] || { isAvailable: false, startTime: "09:00", endTime: "17:00" };
-                  return (
-                    <div
-                      key={d.key}
-                      className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl transition-all duration-300 border ${
-                        daySched.isAvailable
-                          ? "bg-emerald/5 border-emerald/30"
-                          : "bg-white/5 border-white/10 opacity-60"
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSchedule((prev) => ({
-                              ...prev,
-                              [d.key]: {
-                                ...daySched,
-                                isAvailable: !daySched.isAvailable,
-                              },
-                            }));
-                          }}
-                          className={`w-6 h-6 rounded-lg border transition-all flex items-center justify-center ${
-                            daySched.isAvailable
-                              ? "bg-emerald-400 border-emerald-400 text-black"
-                              : "border-white/20 text-transparent hover:border-emerald/50"
-                          }`}
-                        >
-                          <Check size={14} className="stroke-[3]" />
-                        </button>
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-white">
-                            {d.label}
-                          </p>
-                          <p
-                            className={`text-[9px] font-bold uppercase tracking-wider ${
-                              daySched.isAvailable ? "text-emerald-400" : "text-white/30"
-                            }`}
-                          >
-                            {daySched.isAvailable ? "Disponible" : "No disponible"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 w-full sm:w-auto">
-                        <input
-                          type="time"
-                          disabled={!daySched.isAvailable}
-                          value={daySched.startTime}
-                          onChange={(e) => {
-                            setSchedule((prev) => ({
-                              ...prev,
-                              [d.key]: {
-                                ...daySched,
-                                startTime: e.target.value,
-                              },
-                            }));
-                          }}
-                          className="h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-gold/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
-                        />
-                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">a</span>
-                        <input
-                          type="time"
-                          disabled={!daySched.isAvailable}
-                          value={daySched.endTime}
-                          onChange={(e) => {
-                            setSchedule((prev) => ({
-                              ...prev,
-                              [d.key]: {
-                                ...daySched,
-                                endTime: e.target.value,
-                              },
-                            }));
-                          }}
-                          className="h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs focus:outline-none focus:border-gold/50 disabled:opacity-30 disabled:pointer-events-none transition-all"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-white/10 pt-6 mt-6">
-                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider max-w-[60%] leading-relaxed">
-                  * Los cambios guardados se establecerán como la disponibilidad semanal por defecto del colaborador.
+                ))
+              ) : (
+                <p className="text-xs text-text-muted py-6 text-center">
+                  No se encontraron usuarios con rol cliente para ascender.
                 </p>
-                <button
-                  type="button"
-                  onClick={handleSaveSchedule}
-                  disabled={isSaving}
-                  className={`h-12 px-6 rounded-xl flex items-center gap-3 transition-all ${
-                    saveSuccess
-                      ? "bg-emerald-400 text-black font-bold uppercase tracking-wider"
-                      : "bg-gradient-to-r from-gold via-violet to-cyan text-black font-bold uppercase tracking-wider hover:shadow-lg hover:shadow-gold/20"
-                  } disabled:opacity-50 flex-shrink-0`}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      <span>Guardando...</span>
-                    </>
-                  ) : saveSuccess ? (
-                    <>
-                      <Check size={16} className="stroke-[3]" />
-                      <span>¡Guardado!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Calendar size={16} />
-                      <span>Guardar Agenda</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </section>
-    </div>
-  );
-}
+      )}
 
-function AuditMetric({ label, value, tone }: { label: string; value: string; tone: string }) {
-  const colorConfig = {
-    gold: { bg: "from-gold/20 to-amber/10", border: "border-gold/30", text: "text-gold" },
-    cyan: { bg: "from-cyan/20 to-blue/10", border: "border-cyan/30", text: "text-cyan-400" },
-    emerald: { bg: "from-emerald/20 to-green/10", border: "border-emerald/30", text: "text-emerald-400" },
-    red: { bg: "from-red/20 to-orange/10", border: "border-red/30", text: "text-red-400" },
-  };
-  
-  const config = colorConfig[tone as keyof typeof colorConfig] || colorConfig.gold;
-
-  return (
-    <div className={`bg-gradient-to-br ${config.bg} border ${config.border} rounded-xl p-4`}>
-      <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider mb-2">
-        {label}
-      </p>
-      <p className={`text-xl font-bold uppercase tracking-tight ${config.text}`}>
-        {value}
-      </p>
+      {/* Promote Modal */}
+      {promoteCandidate && (
+        <PromoteModal
+          user={promoteCandidate}
+          adminRole={currentUser?.role || "admin"}
+          onClose={() => setPromoteCandidate(null)}
+          onSuccess={async () => {
+            setPromoteCandidate(null);
+            await loadEmployees();
+          }}
+        />
+      )}
     </div>
   );
 }

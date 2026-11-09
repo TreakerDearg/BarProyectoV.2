@@ -139,10 +139,10 @@ export default function AnalyticsDashboardView({ data, mode, onRangeChange }: Pr
       {/* Charts Row */}
       <div className={`grid gap-8 ${!isSimple ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
         {/* Sales Chart */}
-        <div className="bg-surface-3 border border-white/10 rounded-2xl p-8">
+        <div className="bg-surface-3 border border-white/10 rounded-2xl p-8 min-w-0">
           <h3 className="text-xl font-bold text-ivory mb-4">Ventas por día</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-72 min-w-0" style={{ minHeight: 250 }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
               <BarChart data={salesData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                 <XAxis dataKey="date" tick={{ fill: "#a0a0a0", fontSize: 12 }} />

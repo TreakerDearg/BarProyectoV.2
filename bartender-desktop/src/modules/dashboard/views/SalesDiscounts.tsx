@@ -104,8 +104,8 @@ export default function SalesDiscounts({ data, mode, onRangeChange }: Props) {
           </span>
         </div>
       </div>
-      <div className={isSimple ? "h-[260px]" : "h-[320px]"}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className={`min-w-0 ${isSimple ? "h-[260px]" : "h-[320px]"}`} style={{ minHeight: 250 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={250}>
           <AreaChart
             data={hourlyData}
             margin={{ top: 10, right: 0, left: -20, bottom: 0 }}

@@ -57,15 +57,16 @@ export default function RecipeExecutiveDashboard({
       }
     }
     loadDashboardData();
-  }, [recipes.length]);
+  }, [Array.isArray(recipes) ? recipes.length : 0]);
 
   // Local calculations for real-time accuracy
   const calculations = useMemo(() => {
-    const total = recipes.length;
-    const drinks = recipes.filter((r) => r.type === "drink");
-    const foods = recipes.filter((r) => r.type === "food");
-    const variants = recipes.filter((r) => !r.isPrimary || r.parentId);
-    const masters = recipes.filter((r) => r.isPrimary !== false && !r.parentId);
+    const safeRecipes = Array.isArray(recipes) ? recipes : [];
+    const total = safeRecipes.length;
+    const drinks = safeRecipes.filter((r) => r?.type === "drink");
+    const foods = safeRecipes.filter((r) => r?.type === "food");
+    const variants = safeRecipes.filter((r) => r && (!r.isPrimary || r.parentId));
+    const masters = safeRecipes.filter((r) => r && (r.isPrimary !== false && !r.parentId));
 
     // Margins and costs
     let totalDrinkCost = 0;
@@ -75,7 +76,8 @@ export default function RecipeExecutiveDashboard({
 
     const lowMarginRecipes: { recipe: Recipe; margin: number }[] = [];
 
-    recipes.forEach((r) => {
+    safeRecipes.forEach((r) => {
+      if (!r) return;
       const price = typeof r.product === "object" && r.product?.price ? r.product.price : 0;
       const cost = r.totalCost || 0;
       const margin = price > 0 ? Math.round(((price - cost) / price) * 100) : 0;

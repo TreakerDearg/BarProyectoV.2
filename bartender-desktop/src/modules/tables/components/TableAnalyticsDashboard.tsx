@@ -368,46 +368,50 @@ export default function TableAnalyticsDashboard({ tableId, onClose }: Props) {
           {/* CHARTS */}
           <div className="grid grid-cols-2 gap-8">
             {/* REVENUE CHART */}
-            <div className="glass rounded-2xl p-6 border border-white/10">
+            <div className="glass rounded-2xl p-6 border border-white/10 min-w-0">
               <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Revenue por Período</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="date" stroke="#888888" fontSize={10} />
-                  <YAxis stroke="#888888" fontSize={10} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
-                  <Bar dataKey="revenue" fill="#d4a340" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full min-w-0" style={{ height: 200, minHeight: 200 }}>
+                <ResponsiveContainer width="100%" height={200} minWidth={0} minHeight={200}>
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="date" stroke="#888888" fontSize={10} />
+                    <YAxis stroke="#888888" fontSize={10} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      itemStyle={{ color: '#fff' }}
+                    />
+                    <Bar dataKey="revenue" fill="#d4a340" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* OCCUPANCY CHART */}
-            <div className="glass rounded-2xl p-6 border border-white/10">
+            <div className="glass rounded-2xl p-6 border border-white/10 min-w-0">
               <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Ocupación</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="date" stroke="#888888" fontSize={10} />
-                  <YAxis stroke="#888888" fontSize={10} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
-                  <Line type="monotone" dataKey="occupancy" stroke="#d4a340" strokeWidth={2} dot={{ fill: '#d4a340' }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="w-full min-w-0" style={{ height: 200, minHeight: 200 }}>
+                <ResponsiveContainer width="100%" height={200} minWidth={0} minHeight={200}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="date" stroke="#888888" fontSize={10} />
+                    <YAxis stroke="#888888" fontSize={10} domain={[0, 100]} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      itemStyle={{ color: '#fff' }}
+                    />
+                    <Line type="monotone" dataKey="occupancy" stroke="#d4a340" strokeWidth={2} dot={{ fill: '#d4a340' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
           {/* PAYMENT METHODS */}
           {paymentMethodsData.length > 0 && (
-            <div className="glass rounded-2xl p-6 border border-white/10">
+            <div className="glass rounded-2xl p-6 border border-white/10 min-w-0">
               <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4">Métodos de Pago</h3>
-              <div className="flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={200}>
+              <div className="flex items-center justify-center min-w-0" style={{ height: 200, minHeight: 200 }}>
+                <ResponsiveContainer width="100%" height={200} minWidth={0} minHeight={200}>
                   <PieChart>
                     <Pie
                       data={paymentMethodsData}

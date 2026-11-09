@@ -63,6 +63,7 @@ export interface User {
 
   name: string;
   email: string;
+  phone?: string | null;
 
   role: Role;
 
@@ -82,6 +83,28 @@ export interface User {
   avatar?: string | null;
 
   schedule?: UserSchedule;
+
+  hourlyRate?: number;
+  notes?: string;
+
+  attendance?: {
+    currentStatus?: "checked-in" | "checked-out" | "break" | "absent" | "late";
+    lastCheckIn?: string;
+    todayShift?: string | null;
+    todayStatus?: string;
+    thisMonth?: {
+      present?: number;
+      absent?: number;
+      totalHours?: number;
+    };
+  };
+
+  performance?: {
+    averageRating?: number;
+    totalHours?: number;
+    shiftsCompleted?: number;
+    totalSales?: number;
+  };
 
   lastLogin?: string;
 
