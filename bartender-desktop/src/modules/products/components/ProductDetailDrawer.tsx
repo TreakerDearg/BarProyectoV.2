@@ -1,8 +1,11 @@
 "use client";
 
-import { X, Martini, UtensilsCrossed, Beaker, AlertTriangle, CheckCircle, Layers, DollarSign, Activity, Package, Star, Clock, Tag, Zap, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Martini, UtensilsCrossed, Beaker, AlertTriangle, CheckCircle, Layers, DollarSign, Activity, Package, Star, Clock, Tag, Zap, Pencil, Trash2, Sparkles } from "lucide-react";
 import type { Product } from "../../../types/product";
 import { useProductUiStore } from "../store/productUiStore";
+import { getRecipesByProduct } from "../../recipes/services/recipeService";
+import type { Recipe } from "../../recipes/types/recipe";
 
 interface Props {
   product: Product;
@@ -12,6 +15,20 @@ interface Props {
 
 export default function ProductDetailDrawer({ product, onEdit, onDelete }: Props) {
   const { closeDrawer } = useProductUiStore();
+  const [variants, setVariants] = useState<Recipe[]>([]);
+
+  useEffect(() => {
+    if (product._id) {
+      getRecipesByProduct(product._id)
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setVariants(data.filter((r: Recipe) => !r.isPrimary));
+          }
+        })
+        .catch(() => setVariants([]));
+    }
+  }, [product._id]);
+
   const recipe = product.recipe;
   const ingredients = recipe?.ingredients || [];
   const menuIds = product.menuIds || [];
@@ -163,6 +180,49 @@ export default function ProductDetailDrawer({ product, onEdit, onDelete }: Props
                 })}
                                                       </div>
                                                     </div>
+          )}
+
+          {/* Variantes del Producto */}
+          {variants.length > 0 && (
+            <div className="space-y-2.5 bg-[#1C2333] p-4 rounded-xl border border-[#30363D]">
+              <div className="flex items-center justify-between pb-2 border-b border-[#30363D]">
+                <div className="flex items-center gap-2 text-xs font-bold text-[#F0B429] uppercase tracking-wider">
+                  <Sparkles size={15} />
+                  <span>Variantes Registradas</span>
+                </div>
+                <span className="text-xs text-[#8B949E]">{variants.length} presentaciones</span>
+              </div>
+              <div className="space-y-2">
+                {variants.map((v) => {
+                  const vCost = v.totalCost ?? 0;
+                  const vPrice = (v as any).newPrice || product.price;
+                  const vMargin = vPrice > 0 ? Math.round(((vPrice - vCost) / vPrice) * 100) : 0;
+                  return (
+                    <div
+                      key={v._id}
+                      className="p-3 bg-[#161B22] border border-[#30363D] rounded-lg flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-[#E6EDF3]">
+                            {v.variantName || v.name}
+                          </p>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#388BFD]/15 text-[#388BFD] border border-[#388BFD]/30 uppercase">
+                            Variante
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#8B949E] mt-0.5">
+                          Costo: ${vCost.toFixed(1)} · PVP: ${vPrice.toFixed(0)}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-black ${vMargin >= 40 ? "text-[#3FB950]" : "text-[#F0B429]"}`}>
+                        {vMargin}% mg
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
                                                           {/* Menus Section */}

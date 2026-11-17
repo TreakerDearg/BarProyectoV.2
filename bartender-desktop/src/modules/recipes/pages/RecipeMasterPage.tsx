@@ -154,27 +154,56 @@ export default function RecipeMasterPage() {
     variantName: string;
     variantType: "size" | "spirit" | "dietary";
     productId?: string;
+    multiplier?: number;
+    ingredientReplacements?: Array<{
+      originalItemId: string;
+      newItemId: string;
+      newQuantity?: number;
+      newUnit?: string;
+    }>;
+    excludedIngredientIds?: string[];
+    additionalIngredients?: Array<{
+      inventoryItem: string;
+      quantity: number;
+      unit: string;
+    }>;
     newPrice?: number;
     additionalCost?: number;
   }) => {
     if (!parentRecipeForVariant) return;
 
-    if (data.productId) {
+    try {
       await createRecipeVariant(data.parentRecipeId, {
         productId: data.productId,
         variantName: data.variantName,
+        variantType: data.variantType,
+        multiplier: data.multiplier,
+        ingredientReplacements: data.ingredientReplacements,
+        excludedIngredientIds: data.excludedIngredientIds,
+        additionalIngredients: data.additionalIngredients,
+        newPrice: data.newPrice,
+        additionalCost: data.additionalCost,
       });
-    } else {
+    } catch (err) {
+      console.error("Error creando receta variante via API, usando fallback:", err);
       // Create new clone variant
+      const mult = data.multiplier || 1.0;
+      const baseCost = parentRecipeForVariant.totalCost || 0;
+      const parentName =
+        typeof parentRecipeForVariant.product === "object" && parentRecipeForVariant.product?.name
+          ? parentRecipeForVariant.product.name
+          : parentRecipeForVariant.name || "Receta";
+
       const clonedRecipe: Recipe = {
         ...parentRecipeForVariant,
         _id: undefined,
+        name: `${parentName} (${data.variantName})`,
         variantName: data.variantName,
+        variantType: data.variantType,
+        newPrice: data.newPrice,
         parentId: data.parentRecipeId,
         isPrimary: false,
-        totalCost: Math.round(
-          (parentRecipeForVariant.totalCost || 0) + (data.additionalCost || 0)
-        ),
+        totalCost: Math.round(baseCost * mult + (data.additionalCost || 0)),
       };
       await createRecipe(clonedRecipe);
     }

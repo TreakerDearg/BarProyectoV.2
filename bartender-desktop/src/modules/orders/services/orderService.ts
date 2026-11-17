@@ -74,6 +74,10 @@ export const createOrder = async (order: {
     menu?: string;
     quantity: number;
     price?: number;
+    notes?: string;
+    variantId?: string;
+    variantName?: string;
+    recipeId?: string;
   }[];
   notes?: string;
 }): Promise<Order> => {
@@ -87,11 +91,14 @@ export const createOrder = async (order: {
   const cleanItems = order.items
     .filter(i => (i.product || i.menu) && i.quantity > 0)
     .map(i => ({
-      product:  i.product ? String(i.product) : undefined,
-      menu:     i.menu    ? String(i.menu)    : undefined,
-      quantity: Number(i.quantity),
-      price:    i.price   ? Number(i.price)   : undefined,
-      notes:    (i as any).notes?.trim()      || undefined,  // modificaciones especiales
+      product:     i.product ? String(i.product) : undefined,
+      menu:        i.menu    ? String(i.menu)    : undefined,
+      quantity:    Number(i.quantity),
+      price:       i.price   ? Number(i.price)   : undefined,
+      notes:       i.notes?.trim() || undefined,
+      variantId:   i.variantId || undefined,
+      variantName: i.variantName || undefined,
+      recipeId:    i.recipeId || undefined,
     }));
 
   if (cleanItems.length === 0) {

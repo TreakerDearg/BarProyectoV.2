@@ -204,6 +204,12 @@ export const createRecipeVariant = async (
       newQuantity?: number;
       newUnit?: string;
     }>;
+    excludedIngredientIds?: string[];
+    additionalIngredients?: Array<{
+      inventoryItem: string;
+      quantity: number;
+      unit: string;
+    }>;
     newPrice?: number;
     additionalCost?: number;
   }

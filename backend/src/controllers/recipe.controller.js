@@ -81,8 +81,37 @@ export const createRecipe = async (req, res, next) => {
       return badRequest(res, "Se requiere image URL cuando se proporciona imagePublicId");
     }
 
-    const productDoc = await Product.findById(product);
-    if (!productDoc) return badRequest(res, "Producto no encontrado");
+    let finalProductId = product;
+    let productDoc = null;
+
+    if (isValidId(product)) {
+      productDoc = await Product.findById(product);
+    }
+
+    // Auto-crear producto si se solicita o si no se encontró por ID pero viene nombre
+    if (!productDoc && (req.body.autoCreateProduct || req.body.productName || (typeof product === "object" && product?.name))) {
+      const prodName = req.body.productName || (typeof product === "object" ? product.name : String(product));
+      const prodPrice = Number(req.body.productPrice || (typeof product === "object" ? product.price : 0)) || 0;
+      const prodCategory = (category || req.body.category || "general").trim();
+
+      // Reutilizar producto si ya existe con este nombre
+      let existingProd = await Product.findOne({ name: prodName.toLowerCase().trim() });
+      if (existingProd) {
+        productDoc = existingProd;
+      } else {
+        productDoc = await Product.create({
+          name: prodName.trim(),
+          price: prodPrice,
+          category: prodCategory,
+          type: type || "drink",
+          hasRecipe: true,
+          available: true,
+        });
+      }
+      finalProductId = productDoc._id;
+    }
+
+    if (!productDoc) return badRequest(res, "Producto no encontrado ni especificado para auto-creación");
     if (productDoc.type !== type) {
       return badRequest(res, "El tipo de receta debe coincidir con el tipo del producto");
     }
@@ -96,7 +125,7 @@ export const createRecipe = async (req, res, next) => {
       if (!parentRecipe) {
         return badRequest(res, "Receta padre no encontrada");
       }
-      if (parentRecipe.product.toString() !== product.toString()) {
+      if (parentRecipe.product.toString() !== finalProductId.toString()) {
         return badRequest(res, "La variante debe pertenecer al mismo producto que la receta padre");
       }
     }
@@ -108,7 +137,7 @@ export const createRecipe = async (req, res, next) => {
 
     // Si es primaria, verificar que no exista otra receta primaria para este producto
     if (isPrimary) {
-      const exists = await Recipe.findOne({ product, isPrimary: true });
+      const exists = await Recipe.findOne({ product: finalProductId, isPrimary: true });
       if (exists) return conflict(res, "Ya existe una receta primaria para este producto");
     }
 
@@ -148,7 +177,7 @@ export const createRecipe = async (req, res, next) => {
     }
 
     const recipe = await Recipe.create({
-      product, ingredients: cleanIngredients, type, method,
+      product: finalProductId, ingredients: cleanIngredients, type, method,
       steps: cleanSteps, category, image: imageUrl, imagePublicId: imagePublicIdFinal,
       isPrimary, variantName, parentId,
     });
@@ -817,6 +846,8 @@ export const createRecipeVariant = async (req, res, next) => {
       variantType = "size",
       multiplier = 1,
       ingredientReplacements = [],
+      excludedIngredientIds = [],
+      additionalIngredients = [],
       newPrice,
       additionalCost = 0,
     } = req.body;
@@ -843,34 +874,59 @@ export const createRecipeVariant = async (req, res, next) => {
       return badRequest(res, "Ya existe una variante con este nombre para esta ficha técnica");
     }
 
+    // Excluded IDs list (for mocktails/allergens)
+    const excludedIds = Array.isArray(excludedIngredientIds)
+      ? excludedIngredientIds.map((id) => id?.toString())
+      : [];
+
     // Build ingredients with multiplier or replacements
     const effectiveMultiplier = Number(multiplier) > 0 ? Number(multiplier) : 1;
-    const ingredients = (parentRecipe.ingredients || []).map((ing) => {
-      let invItem = ing.inventoryItem;
-      let qty = Math.round(Number(ing.quantity) * effectiveMultiplier * 100) / 100;
-      let unit = ing.unit;
+    let ingredients = (parentRecipe.ingredients || [])
+      .filter((ing) => {
+        const id = (ing.inventoryItem?._id || ing.inventoryItem)?.toString();
+        return !excludedIds.includes(id);
+      })
+      .map((ing) => {
+        let invItem = ing.inventoryItem?._id || ing.inventoryItem;
+        let qty = Math.round(Number(ing.quantity) * effectiveMultiplier * 100) / 100;
+        let unit = ing.unit;
 
-      // Check for item replacement
-      const replacement = Array.isArray(ingredientReplacements)
-        ? ingredientReplacements.find(
-            (r) => r.originalItemId?.toString() === invItem?.toString()
-          )
-        : null;
+        // Check for item replacement
+        const replacement = Array.isArray(ingredientReplacements)
+          ? ingredientReplacements.find(
+              (r) => r.originalItemId?.toString() === invItem?.toString()
+            )
+          : null;
 
-      if (replacement && replacement.newItemId) {
-        invItem = replacement.newItemId;
-        if (replacement.newQuantity) qty = Number(replacement.newQuantity);
-        if (replacement.newUnit) unit = replacement.newUnit;
-      }
+        if (replacement && replacement.newItemId) {
+          invItem = replacement.newItemId;
+          if (replacement.newQuantity) qty = Number(replacement.newQuantity);
+          if (replacement.newUnit) unit = replacement.newUnit;
+        }
 
-      return {
-        inventoryItem: invItem,
-        quantity: qty,
-        unit: unit,
-        order: ing.order || 0,
-        baseUnitMultiplier: ing.baseUnitMultiplier || 1,
-      };
-    });
+        return {
+          inventoryItem: invItem,
+          quantity: qty,
+          unit: unit,
+          order: ing.order || 0,
+          baseUnitMultiplier: ing.baseUnitMultiplier || 1,
+        };
+      });
+
+    // Append additional ingredients (e.g. syrups, non-alcoholic base)
+    if (Array.isArray(additionalIngredients)) {
+      additionalIngredients.forEach((add, idx) => {
+        if (add.inventoryItem && add.quantity > 0) {
+          ingredients.push({
+            inventoryItem: add.inventoryItem,
+            quantity: Number(add.quantity),
+            unit: add.unit || "ml",
+            order: ingredients.length + idx + 1,
+            baseUnitMultiplier: add.baseUnitMultiplier || 1,
+          });
+        }
+      });
+    }
 
     // Copy steps from parent recipe
     const steps = (parentRecipe.steps || []).map((step) => ({
@@ -892,6 +948,8 @@ export const createRecipeVariant = async (req, res, next) => {
       parentId: parentRecipeId,
       isPrimary: false,
       variantName: variantName || `${product.name} - Variante`,
+      variantType: variantType || "size",
+      newPrice: Number(newPrice) || 0,
       type: parentRecipe.type,
       category: parentRecipe.category,
       drinkStyle: parentRecipe.drinkStyle,

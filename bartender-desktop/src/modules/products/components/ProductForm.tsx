@@ -23,6 +23,8 @@ import {
   Layers,
   Trash2,
   Star,
+  Wine,
+  UtensilsCrossed,
 } from "lucide-react";
 
 import api from "../../../services/api";
@@ -48,8 +50,8 @@ const EMPTY_FORM: Product = {
 };
 
 const TYPE_OPTIONS = [
-  { value: "drink", label: "Mixología / Bebida", icon: <Zap size={15} /> },
-  { value: "food",  label: "Gastronomía / Plato", icon: <Box size={15} /> },
+  { value: "drink", label: "Mixología / Bebida", icon: <Wine size={15} /> },
+  { value: "food",  label: "Gastronomía / Plato", icon: <UtensilsCrossed size={15} /> },
 ];
 
 const DRINK_STYLE_OPTIONS = [

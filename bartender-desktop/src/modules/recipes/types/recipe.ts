@@ -5,6 +5,7 @@ import type { RecipeCollection, RecipeTag } from './collection';
 
 export interface Recipe {
   _id?: string;
+  name?: string;
 
   product: {
     _id: string;
@@ -46,6 +47,8 @@ export interface Recipe {
   // Recipe Master & Variants
   isPrimary?: boolean;
   variantName?: string;
+  variantType?: "size" | "spirit" | "dietary";
+  newPrice?: number;
   parentId?: string;
   inheritanceSettings?: InheritanceSettings;
 

@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Search, Plus, Minus, Loader2, X,
   ChevronRight, ShoppingCart, Utensils,
-  Wine, Check, MessageSquare,
+  Wine, Check, MessageSquare, Sparkles, Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,19 +22,25 @@ import { getProducts } from "../../../modules/products/services/productService";
 import { getTables }   from "../../tables/services/tableService";
 import { createOrder } from "../services/orderService";
 import { getMenus }    from "../../../modules/menus/services/menuService";
+import { getRecipes }  from "../../../modules/recipes/services/recipeService";
 import type { Product } from "../../../types/product";
 import type { Table }   from "../../tables/types/table";
 import type { Menu }    from "../../../modules/menus/types/menu";
+import type { Recipe }  from "../../../modules/recipes/types/recipe";
 
 /* ── Tipos locales ─────────────────────────────────────────── */
 interface LocalItem {
-  product?: string;
-  menu?:    string;
-  name:     string;
-  quantity: number;
-  price:    number;
-  type:     "drink" | "food" | "menu";
-  notes?:   string;
+  key:         string;
+  product?:    string;
+  menu?:       string;
+  name:        string;
+  quantity:    number;
+  price:       number;
+  type:        "drink" | "food" | "menu";
+  notes?:      string;
+  variantId?:  string;
+  variantName?: string;
+  recipeId?:   string;
 }
 
 interface Props {
@@ -66,6 +72,7 @@ export default function OrderForm({
   const [products, setProducts]   = useState<Product[]>([]);
   const [menus, setMenus]         = useState<Menu[]>([]);
   const [tables, setTables]       = useState<Table[]>([]);
+  const [recipes, setRecipes]     = useState<Recipe[]>([]);
   const [items, setItems]         = useState<LocalItem[]>([]);
   const [loading, setLoading]     = useState(false);
   const [search, setSearch]       = useState("");
@@ -77,24 +84,59 @@ export default function OrderForm({
   const [selectedTableId, setSelectedTableId]       = useState(initialTableId     || "");
   const [selectedTableNumber, setSelectedTableNumber] = useState(initialTableNumber || 0);
 
+  // Quick Variant Picker state
+  const [variantPickerProduct, setVariantPickerProduct] = useState<{
+    product: Product;
+    variants: Recipe[];
+  } | null>(null);
+
   /* ── Carga de datos ──────────────────────────────────────── */
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [prodData, menuData, tableData] = await Promise.all([
+        const [prodData, menuData, tableData, recipeData] = await Promise.all([
           getProducts(),
           getMenus(),
           !initialTableId ? getTables() : Promise.resolve([]),
+          getRecipes().catch(() => []),
         ]);
         setProducts(prodData  || []);
         setMenus(menuData     || []);
         setTables(tableData   || []);
+        setRecipes(recipeData || []);
       } catch (err) {
         console.error("Error loading form data", err);
       }
     };
     loadData();
   }, [initialTableId]);
+
+  /* ── Helper: Variantes por Producto ───────────────────────── */
+  const getVariantsForProduct = (productId: string): Recipe[] => {
+    if (!recipes || recipes.length === 0 || !productId) return [];
+
+    // Variantes secundarias directas vinculadas a este producto
+    const directVariants = recipes.filter((r) => {
+      const pId = typeof r.product === "object" ? r.product?._id : r.product;
+      return pId === productId && !r.isPrimary;
+    });
+
+    // Ficha principal del producto
+    const primaryRecipe = recipes.find((r) => {
+      const pId = typeof r.product === "object" ? r.product?._id : r.product;
+      return pId === productId && (r.isPrimary || !r.parentId);
+    });
+
+    // Variantes derivadas de la ficha principal
+    const childVariants = primaryRecipe
+      ? recipes.filter((r) => !r.isPrimary && r.parentId === primaryRecipe._id)
+      : [];
+
+    const map = new Map<string, Recipe>();
+    directVariants.forEach((v) => v._id && map.set(v._id, v));
+    childVariants.forEach((v) => v._id && map.set(v._id, v));
+    return Array.from(map.values());
+  };
 
   /* ── Filtrado ────────────────────────────────────────────── */
   const filteredProducts = useMemo(() =>
@@ -126,37 +168,68 @@ export default function OrderForm({
   [menus, search, activeCategory, activeDietaryFilter]);
 
   /* ── Mutaciones del ticket ───────────────────────────────── */
-  const addProduct = (product: Product) => {
+  const handleProductClick = (product: Product) => {
     if (!product._id) return;
+    const variants = getVariantsForProduct(product._id);
+    if (variants.length > 0) {
+      setVariantPickerProduct({ product, variants });
+    } else {
+      addItemToTicket(product, null);
+    }
+  };
+
+  const addItemToTicket = (product: Product, variant?: Recipe | null) => {
+    if (!product._id) return;
+    const variantId = variant?._id;
+    const variantName = variant?.variantName;
+    const key = variantId ? `${product._id}_${variantId}` : `${product._id}_base`;
+    const displayName = variantName ? `${product.name} (${variantName})` : product.name;
+    const finalPrice = (variant as any)?.newPrice || (variant as any)?.price || product.price;
+
     setItems((prev) => {
-      const exists = prev.find((i) => i.product === product._id);
-      if (exists) return prev.map((i) => i.product === product._id ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { product: product._id, name: product.name, quantity: 1, price: product.price, type: product.type as "drink" | "food" }];
+      const exists = prev.find((i) => i.key === key);
+      if (exists) {
+        return prev.map((i) => (i.key === key ? { ...i, quantity: i.quantity + 1 } : i));
+      }
+      return [
+        ...prev,
+        {
+          key,
+          product: product._id,
+          name: displayName,
+          quantity: 1,
+          price: finalPrice,
+          type: product.type as "drink" | "food",
+          variantId,
+          variantName,
+          recipeId: variant?._id,
+        },
+      ];
     });
+    setVariantPickerProduct(null);
   };
 
   const addMenu = (menu: Menu) => {
     if (!menu._id) return;
+    const key = `menu_${menu._id}`;
     setItems((prev) => {
-      const exists = prev.find((i) => i.menu === menu._id);
-      if (exists) return prev.map((i) => i.menu === menu._id ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { menu: menu._id, name: menu.name, quantity: 1, price: 0, type: "menu" }];
+      const exists = prev.find((i) => i.key === key);
+      if (exists) return prev.map((i) => (i.key === key ? { ...i, quantity: i.quantity + 1 } : i));
+      return [...prev, { key, menu: menu._id, name: menu.name, quantity: 1, price: 0, type: "menu" }];
     });
   };
 
-  const updateQty = (itemId: string, qty: number) => {
+  const updateQty = (itemKey: string, qty: number) => {
     setItems((prev) =>
       qty <= 0
-        ? prev.filter((i) => i.product !== itemId && i.menu !== itemId)
-        : prev.map((i) => (i.product === itemId || i.menu === itemId) ? { ...i, quantity: qty } : i)
+        ? prev.filter((i) => i.key !== itemKey)
+        : prev.map((i) => (i.key === itemKey ? { ...i, quantity: qty } : i))
     );
   };
 
-  const updateNotes = (itemId: string, value: string) => {
+  const updateNotes = (itemKey: string, value: string) => {
     setItems((prev) =>
-      prev.map((i) =>
-        (i.product === itemId || i.menu === itemId) ? { ...i, notes: value } : i
-      )
+      prev.map((i) => (i.key === itemKey ? { ...i, notes: value } : i))
     );
   };
 
@@ -175,11 +248,14 @@ export default function OrderForm({
         table:     selectedTableId,
         sessionId: sessionId,
         items: items.map((i) => ({
-          product:  i.product,
-          menu:     i.menu,
-          quantity: i.quantity,
-          price:    i.price,
-          notes:    i.notes?.trim() || undefined,
+          product:     i.product,
+          menu:        i.menu,
+          quantity:    i.quantity,
+          price:       i.price,
+          notes:       i.notes?.trim() || undefined,
+          variantId:   i.variantId,
+          variantName: i.variantName,
+          recipeId:    i.recipeId,
         })),
       });
       onSuccess?.();
@@ -321,14 +397,20 @@ export default function OrderForm({
             <EmptyState icon={<ShoppingCart size={24} />} text="Sin productos en este filtro" />
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredProducts.map((p) => (
-                <ProductCard
-                  key={p._id}
-                  product={p}
-                  onAdd={() => addProduct(p)}
-                  inTicket={items.find((i) => i.product === p._id)?.quantity}
-                />
-              ))}
+              {filteredProducts.map((p) => {
+                const pVariants = getVariantsForProduct(p._id || "");
+                return (
+                  <ProductCard
+                    key={p._id}
+                    product={p}
+                    variantCount={pVariants.length}
+                    onAdd={() => handleProductClick(p)}
+                    inTicket={items
+                      .filter((i) => i.product === p._id)
+                      .reduce((sum, i) => sum + i.quantity, 0)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -443,7 +525,7 @@ export default function OrderForm({
           <AnimatePresence mode="popLayout">
             {items.map((item) => (
               <motion.div
-                key={item.product || item.menu}
+                key={item.key}
                 layout
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -460,6 +542,11 @@ export default function OrderForm({
                     >
                       {item.name}
                     </h5>
+                    {item.variantName && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#388BFD] mt-0.5">
+                        <Sparkles size={10} /> {item.variantName}
+                      </span>
+                    )}
                     {item.price > 0 && (
                       <p className="text-xs mt-0.5" style={{ color: "#566270" }}>
                         ${item.price.toLocaleString("es-AR")} / unidad
@@ -470,7 +557,7 @@ export default function OrderForm({
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       type="button"
-                      onClick={() => updateQty(item.product || item.menu!, item.quantity - 1)}
+                      onClick={() => updateQty(item.key, item.quantity - 1)}
                       className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
                       style={{ background: "#293042", border: "1px solid #30363D", color: "#8B949E" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F85149"; }}
@@ -486,7 +573,7 @@ export default function OrderForm({
                     </span>
                     <button
                       type="button"
-                      onClick={() => updateQty(item.product || item.menu!, item.quantity + 1)}
+                      onClick={() => updateQty(item.key, item.quantity + 1)}
                       className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
                       style={{ background: "#293042", border: "1px solid #30363D", color: "#8B949E" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#3FB950"; }}
@@ -507,7 +594,7 @@ export default function OrderForm({
                     type="text"
                     placeholder="Modificación especial…"
                     value={item.notes ?? ""}
-                    onChange={(e) => updateNotes(item.product || item.menu!, e.target.value)}
+                    onChange={(e) => updateNotes(item.key, e.target.value)}
                     className="flex-1 text-[11px] rounded-lg px-2.5 py-1.5 outline-none transition-colors"
                     style={{
                       background: "#293042",
@@ -588,6 +675,110 @@ export default function OrderForm({
           </button>
         </div>
       </div>
+
+      {/* Selector Rápido de Variante (Quick Variant Picker) */}
+      {variantPickerProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div
+            className="w-full max-w-md rounded-2xl p-6 shadow-2xl relative overflow-hidden"
+            style={{ background: "#161B22", border: "1px solid #30363D" }}
+          >
+            <div className="flex items-start justify-between pb-4 border-b border-[#30363D]">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: variantPickerProduct.product.type === "drink" ? "rgba(240,180,41,0.15)" : "rgba(63,185,80,0.15)",
+                    color: variantPickerProduct.product.type === "drink" ? "#F0B429" : "#3FB950",
+                  }}
+                >
+                  {variantPickerProduct.product.type === "drink" ? <Wine size={20} /> : <Utensils size={20} />}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#E6EDF3]">
+                    {variantPickerProduct.product.name}
+                  </h3>
+                  <p className="text-xs text-[#8B949E]">
+                    Selecciona presentación o variante para la comanda
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVariantPickerProduct(null)}
+                className="p-1.5 rounded-lg text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A] transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="py-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
+              {/* Opción Base / Estándar */}
+              <button
+                type="button"
+                onClick={() => addItemToTicket(variantPickerProduct.product, null)}
+                className="w-full text-left p-3.5 rounded-xl border border-[#30363D] bg-[#1C2333] hover:border-[#F0B429]/60 hover:bg-[#21283A] transition-all flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#8B949E] group-hover:bg-[#F0B429] transition-colors" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#E6EDF3]">
+                      Presentación Estándar / Clásica
+                    </p>
+                    <p className="text-[11px] text-[#8B949E]">Receta maestra original</p>
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-[#F0B429]">
+                  ${variantPickerProduct.product.price.toLocaleString("es-AR")}
+                </span>
+              </button>
+
+              {/* Variantes Registradas */}
+              {variantPickerProduct.variants.map((v) => {
+                const varPrice = (v as any).newPrice || (v as any).price || variantPickerProduct.product.price;
+                return (
+                  <button
+                    key={v._id}
+                    type="button"
+                    onClick={() => addItemToTicket(variantPickerProduct.product, v)}
+                    className="w-full text-left p-3.5 rounded-xl border border-[#30363D] bg-[#1C2333] hover:border-[#388BFD]/60 hover:bg-[#21283A] transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#388BFD] group-hover:scale-125 transition-transform" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-[#E6EDF3]">
+                            {v.variantName || v.name || (typeof v.product === "object" ? v.product?.name : "") || "Variante"}
+                          </p>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#388BFD]/15 text-[#388BFD] border border-[#388BFD]/30 uppercase">
+                            Variante
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#8B949E]">
+                          {v.type === "food" ? "Ficha técnica de cocina" : "Ficha técnica de barra"}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold text-[#388BFD]">
+                      ${varPrice.toLocaleString("es-AR")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-[#30363D] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setVariantPickerProduct(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8B949E] hover:text-[#E6EDF3] bg-[#21283A] hover:bg-[#293042] transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -641,11 +832,12 @@ function EmptyState({ icon, text }: { icon: ReactNode; text: string }) {
 
 /* ── Card de producto ──────────────────────────────────────── */
 function ProductCard({
-  product, onAdd, inTicket,
+  product, onAdd, inTicket, variantCount = 0,
 }: {
-  product:   Product;
-  onAdd:     () => void;
-  inTicket?: number;
+  product:      Product;
+  onAdd:        () => void;
+  inTicket?:    number;
+  variantCount?: number;
 }) {
   const isFood     = product.type === "food";
   const accent     = isFood ? "#3FB950" : "#388BFD";
@@ -707,6 +899,21 @@ function ProductCard({
       >
         {product.name}
       </h4>
+
+      {/* Indicador de Variantes disponibles */}
+      {variantCount > 0 && (
+        <span
+          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit"
+          style={{
+            background: "rgba(240,180,41,0.12)",
+            color:      "#F0B429",
+            border:     "1px solid rgba(240,180,41,0.30)",
+          }}
+        >
+          <Sparkles size={10} />
+          {variantCount} {variantCount === 1 ? "variante" : "variantes"}
+        </span>
+      )}
 
       {/* Badges dietéticos */}
       {product.dietaryRestrictions && product.dietaryRestrictions.length > 0 && (

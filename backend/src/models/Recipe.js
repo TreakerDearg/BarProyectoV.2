@@ -91,6 +91,17 @@ const recipeSchema = new mongoose.Schema(
       default: "",
     },
 
+    variantType: {
+      type: String,
+      enum: ["size", "spirit", "dietary", ""],
+      default: "",
+    },
+
+    newPrice: {
+      type: Number,
+      default: 0,
+    },
+
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Recipe",

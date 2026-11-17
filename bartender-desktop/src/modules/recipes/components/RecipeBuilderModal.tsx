@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import {
   X,
   Wine,
@@ -21,6 +21,20 @@ import {
   GlassWater,
   Flame,
   Snowflake,
+  RotateCcw,
+  Zap,
+  Crosshair,
+  RefreshCw,
+  UtensilsCrossed,
+  Sliders,
+  Thermometer,
+  Square,
+  CircleDot,
+  Shield,
+  Link as LinkIcon,
+  HelpCircle,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import type { Recipe } from "../types/recipe";
 import type { RecipeIngredient } from "../types/ingredient";
@@ -33,28 +47,29 @@ import type { InventoryItem } from "../../inventory/types/inventory";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (recipeData: Recipe) => Promise<void>;
+  onSave: (recipeData: any) => Promise<void>;
   recipeToEdit?: Recipe | null;
   defaultStation?: "drink" | "food";
 }
 
+// ── Técnicas Profesionales con Lucide React (Sin Emojis) ──────────────────────────
 const DRINK_TECHNIQUES = [
-  { id: "shake", label: "Shake (Batido con shaker)", icon: "🍸" },
-  { id: "stir", label: "Stir (Revuelto en vaso mezclador)", icon: "🥄" },
-  { id: "build", label: "Build (Construido directo en vaso)", icon: "🧊" },
-  { id: "blend", label: "Blend (Licuado frozen)", icon: "🌪️" },
-  { id: "muddle", label: "Muddle (Macerado mortero)", icon: "🍋" },
-  { id: "smoke", label: "Smoke (Ahumado artesanal)", icon: "💨" },
-  { id: "roll", label: "Throwing / Roll (Oxigenado)", icon: "🔄" },
+  { id: "shake", label: "Shake", sub: "Batido en coctelera", icon: Wine },
+  { id: "stir", label: "Stir", sub: "Revuelto en vaso mezclador", icon: RotateCcw },
+  { id: "build", label: "Build", sub: "Directo en vaso", icon: Layers },
+  { id: "blend", label: "Blend", sub: "Licuado frozen", icon: Zap },
+  { id: "muddle", label: "Muddle", sub: "Macerado con mortero", icon: Crosshair },
+  { id: "smoke", label: "Smoke", sub: "Ahumado artesanal", icon: Flame },
+  { id: "roll", label: "Throwing / Roll", sub: "Escanciado oxigenado", icon: RefreshCw },
 ];
 
 const FOOD_TECHNIQUES = [
-  { id: "grill", label: "Parrilla / Josper", icon: "🔥" },
-  { id: "saute", label: "Salteado en Wok", icon: "🍳" },
-  { id: "oven", label: "Horno de Convección", icon: "♨️" },
-  { id: "sous-vide", label: "Sous-Vide (Baja Temp)", icon: "🌡️" },
-  { id: "fryer", label: "Fritura Crujiente", icon: "🍟" },
-  { id: "cold", label: "Emplatado en Frío", icon: "🥗" },
+  { id: "grill", label: "Parrilla / Josper", sub: "Fuego directo", icon: Flame },
+  { id: "saute", label: "Salteado Wok", sub: "Alta temperatura", icon: UtensilsCrossed },
+  { id: "oven", label: "Horno Convección", sub: "Cocción envolvente", icon: Sliders },
+  { id: "sous-vide", label: "Sous-Vide", sub: "Baja temperatura", icon: Thermometer },
+  { id: "fryer", label: "Fritura Crujiente", sub: "Inmersión en aceite", icon: Sparkles },
+  { id: "cold", label: "Emplatado en Frío", sub: "Preparación fresca", icon: Snowflake },
 ];
 
 const DRINK_GLASSWARE = [
@@ -76,6 +91,32 @@ const FOOD_DISHWARE = [
   "Cesta Freidora",
 ];
 
+const ICE_SERVICES = [
+  { id: "Hielo Macizo 5x5", label: "Hielo Macizo 5x5", icon: Square },
+  { id: "Esfera de Hielo", label: "Esfera de Hielo", icon: CircleDot },
+  { id: "Hielo Picado / Frappé", label: "Hielo Picado / Frappé", icon: Snowflake },
+  { id: "Cubos Estándar", label: "Cubos Estándar", icon: Square },
+  { id: "Sin Hielo / Neat", label: "Sin Hielo / Neat", icon: Shield },
+];
+
+const CATEGORY_PRESETS_DRINK = [
+  "Cócteles Clásicos",
+  "Firma del Bar",
+  "Aperitivos & Vermut",
+  "Gintonería",
+  "Sin Alcohol / Mocktails",
+  "Cervezas & Vinos",
+];
+
+const CATEGORY_PRESETS_FOOD = [
+  "Para Picar / Entradas",
+  "Platos Principales",
+  "Hamburguesas & Sandwiches",
+  "Tapas del Bar",
+  "Guarniciones",
+  "Postres",
+];
+
 export default function RecipeBuilderModal({
   isOpen,
   onClose,
@@ -90,16 +131,32 @@ export default function RecipeBuilderModal({
     recipeToEdit?.type || defaultStation
   );
 
-  // Form states
+  // Modo de vinculación POS
+  const [posMode, setPosMode] = useState<"auto_create" | "link_existing">(
+    recipeToEdit?.product ? "link_existing" : "auto_create"
+  );
+  const [recipeName, setRecipeName] = useState<string>(
+    typeof recipeToEdit?.product === "object"
+      ? recipeToEdit.product.name
+      : (recipeToEdit as any)?.name || ""
+  );
   const [selectedProductId, setSelectedProductId] = useState<string>(
     typeof recipeToEdit?.product === "object"
       ? recipeToEdit.product._id
       : (recipeToEdit?.product as string) || ""
   );
-  const [category, setCategory] = useState<string>(
-    recipeToEdit?.category || (station === "drink" ? "Cócteles Clásicos" : "Platos Principales")
+  const [manualSalePrice, setManualSalePrice] = useState<number>(
+    typeof recipeToEdit?.product === "object" && recipeToEdit.product.price
+      ? recipeToEdit.product.price
+      : 2500
   );
-  const [method, setMethod] = useState<string>(recipeToEdit?.method || "shake");
+
+  const [category, setCategory] = useState<string>(
+    recipeToEdit?.category || (station === "drink" ? "Cócteles Clásicos" : "Para Picar / Entradas")
+  );
+  const [method, setMethod] = useState<string>(
+    recipeToEdit?.method || (station === "drink" ? "shake" : "grill")
+  );
   const [glassware, setGlassware] = useState<string>(
     typeof recipeToEdit?.specifications?.glassware === "string"
       ? recipeToEdit.specifications.glassware
@@ -118,7 +175,7 @@ export default function RecipeBuilderModal({
   );
   const [imageUrl, setImageUrl] = useState<string>(recipeToEdit?.image || "");
 
-  // Ingredients and Steps
+  // Ingredientes y Pasos
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>(
     recipeToEdit?.ingredients || []
   );
@@ -126,7 +183,7 @@ export default function RecipeBuilderModal({
     recipeToEdit?.steps || [{ stepNumber: 1, instruction: "" }]
   );
 
-  // External data
+  // Datos externos
   const [products, setProducts] = useState<Product[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [inventorySearch, setInventorySearch] = useState("");
@@ -134,17 +191,17 @@ export default function RecipeBuilderModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load products and inventory
+  // Carga inicial
   useEffect(() => {
     async function loadResources() {
       try {
         setLoadingData(true);
         const [prodList, invList] = await Promise.all([
           getProducts(),
-          getInventory({ limit: 150 }),
+          getInventory({ limit: 200 }),
         ]);
-        setProducts(prodList);
-        setInventoryItems(invList);
+        setProducts(Array.isArray(prodList) ? prodList : []);
+        setInventoryItems(Array.isArray(invList) ? invList : []);
       } catch (err) {
         console.warn("Could not load products or inventory:", err);
       } finally {
@@ -154,50 +211,62 @@ export default function RecipeBuilderModal({
     loadResources();
   }, []);
 
-  // Filtered inventory for searching
-  const filteredInventory = useMemo(() => {
-    if (!inventorySearch.trim()) return [];
-    const q = inventorySearch.toLowerCase();
-    return inventoryItems
-      .filter((item) => item.name?.toLowerCase().includes(q))
-      .slice(0, 8);
-  }, [inventoryItems, inventorySearch]);
+  // Sincronizar producto seleccionado si existe
+  const selectedProduct = useMemo(
+    () => products.find((p) => p._id === selectedProductId),
+    [products, selectedProductId]
+  );
 
-  // Selected product object
-  const selectedProduct = useMemo(() => {
-    return products.find((p) => p._id === selectedProductId) || null;
-  }, [products, selectedProductId]);
+  useEffect(() => {
+    if (selectedProduct) {
+      if (!recipeName) setRecipeName(selectedProduct.name);
+      if (selectedProduct.price) setManualSalePrice(selectedProduct.price);
+      if (selectedProduct.category) setCategory(selectedProduct.category);
+    }
+  }, [selectedProduct]);
 
-  // Real-time escandallo cost calculation
+  // Cálculo del Costo Total del Escandallo
   const totalCost = useMemo(() => {
     return ingredients.reduce((sum, ing) => {
       const inv =
-        typeof ing.inventoryItem === "object" && ing.inventoryItem
-          ? (ing.inventoryItem as any)
-          : inventoryItems.find((x) => x._id === ing.inventoryItem);
+        typeof ing.inventoryItem === "object"
+          ? (ing.inventoryItem as InventoryItem)
+          : inventoryItems.find((i) => i._id === ing.inventoryItem);
 
-      if (!inv || !inv.cost) return sum;
+      if (!inv || typeof inv.cost !== "number") return sum;
 
-      // Normalize cost according to unit
-      const unit = ing.unit || "ml";
+      const unit = (ing.unit || "").toLowerCase();
+      const invUnit = (inv.unit || "").toLowerCase();
       let costPerUnit = inv.cost;
-      if (unit === "ml" || unit === "g") {
-        costPerUnit = inv.cost / 1000;
-      } else if (unit === "oz") {
-        costPerUnit = (inv.cost / 1000) * 29.57;
-      }
-      return sum + costPerUnit * ing.quantity;
+
+      if (invUnit === "l" && unit === "ml") costPerUnit = inv.cost / 1000;
+      else if (invUnit === "kg" && unit === "g") costPerUnit = inv.cost / 1000;
+      else if (invUnit === "l" && unit === "cl") costPerUnit = inv.cost / 100;
+
+      return sum + Number(ing.quantity) * costPerUnit;
     }, 0);
   }, [ingredients, inventoryItems]);
 
-  const price = selectedProduct?.price || 0;
-  const margin = price > 0 ? Math.round(((price - totalCost) / price) * 100) : 0;
-  const marginColor =
-    margin >= 70 ? "text-emerald" : margin >= 50 ? "text-gold" : "text-red";
+  const grossMargin = useMemo(() => {
+    if (manualSalePrice <= 0) return 0;
+    return Math.round(((manualSalePrice - totalCost) / manualSalePrice) * 100);
+  }, [manualSalePrice, totalCost]);
 
-  // Handlers for ingredients
+  // Filtrado de inventario
+  const filteredInventory = useMemo(() => {
+    if (!inventorySearch.trim()) return [];
+    const q = inventorySearch.toLowerCase().trim();
+    return inventoryItems
+      .filter(
+        (i) =>
+          i.name.toLowerCase().includes(q) ||
+          i.category?.toLowerCase().includes(q)
+      )
+      .slice(0, 6);
+  }, [inventoryItems, inventorySearch]);
+
+  // Handlers de ingredientes
   const handleAddIngredient = (invItem: InventoryItem) => {
-    // Check if already in recipe
     const exists = ingredients.some((i) => {
       const id = typeof i.inventoryItem === "object" ? i.inventoryItem._id : i.inventoryItem;
       return id === invItem._id;
@@ -237,7 +306,7 @@ export default function RecipeBuilderModal({
     setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
-  // Handlers for steps
+  // Handlers de pasos de elaboración
   const handleAddStep = () => {
     setRecipeSteps([
       ...recipeSteps,
@@ -251,24 +320,39 @@ export default function RecipeBuilderModal({
     setRecipeSteps(updated);
   };
 
+  const handleMoveStep = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= recipeSteps.length) return;
+    const updated = [...recipeSteps];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, moved);
+    setRecipeSteps(updated.map((s, idx) => ({ ...s, stepNumber: idx + 1 })));
+  };
+
   const handleRemoveStep = (index: number) => {
-    const updated = recipeSteps.filter((_, i) => i !== index).map((s, idx) => ({
-      ...s,
-      stepNumber: idx + 1,
-    }));
+    const updated = recipeSteps
+      .filter((_, i) => i !== index)
+      .map((s, idx) => ({ ...s, stepNumber: idx + 1 }));
     setRecipeSteps(updated);
   };
 
   // Submit
   const handleSubmit = async () => {
-    if (!selectedProductId) {
-      setError("Debes seleccionar un producto del catálogo POS.");
+    const finalName = (posMode === "link_existing" ? selectedProduct?.name : recipeName) || "";
+    if (!finalName.trim()) {
+      setError("Debes indicar un nombre para la ficha técnica o producto.");
+      setStep(1);
+      return;
+    }
+
+    if (posMode === "link_existing" && !selectedProductId) {
+      setError("Debes seleccionar un producto existente del catálogo.");
       setStep(1);
       return;
     }
 
     if (ingredients.length === 0) {
-      setError("Debes agregar al menos 1 insumo de inventario a la ficha.");
+      setError("Debes agregar al menos 1 insumo de inventario al escandallo.");
       setStep(2);
       return;
     }
@@ -277,14 +361,12 @@ export default function RecipeBuilderModal({
       setSaving(true);
       setError(null);
 
-      const payload: Recipe = {
+      const payload: any = {
         _id: recipeToEdit?._id,
-        product: {
-          _id: selectedProductId,
-          name: selectedProduct?.name || "Producto",
-          price: selectedProduct?.price || 0,
-          type: station,
-        },
+        product: posMode === "link_existing" ? selectedProductId : undefined,
+        autoCreateProduct: posMode === "auto_create",
+        productName: finalName.trim(),
+        productPrice: manualSalePrice,
         type: station,
         category: category.trim(),
         method,
@@ -303,8 +385,8 @@ export default function RecipeBuilderModal({
         ingredients: ingredients.map((ing, idx) => ({
           inventoryItem:
             typeof ing.inventoryItem === "object"
-              ? ing.inventoryItem
-              : { _id: ing.inventoryItem as string, name: "Insumo" },
+              ? ing.inventoryItem._id
+              : ing.inventoryItem,
           quantity: Number(ing.quantity),
           unit: ing.unit,
           order: idx + 1,
@@ -328,513 +410,625 @@ export default function RecipeBuilderModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Backdrop 100% Sólido sin fugas */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-background/85 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
       />
 
-      <div className="relative bg-surface-card border border-border/70 rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-6 z-10 max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/60 pb-4 shrink-0">
+      {/* Contenedor Modal Slate Elegante */}
+      <div
+        className="relative rounded-2xl shadow-2xl max-w-4xl w-full p-6 space-y-5 z-10 max-h-[92vh] flex flex-col"
+        style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
+      >
+        {/* Header con Stepper */}
+        <div className="flex items-center justify-between pb-4 shrink-0" style={{ borderBottom: "1px solid #30363D" }}>
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
-                station === "drink"
-                  ? "bg-cyan/15 text-cyan border-cyan/30"
-                  : "bg-amber/15 text-amber border-amber/30"
-              }`}
+              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold"
+              style={{
+                background: station === "drink" ? "rgba(56,139,253,0.15)" : "rgba(240,180,41,0.15)",
+                color: station === "drink" ? "#388BFD" : "#F0B429",
+                border: `1px solid ${station === "drink" ? "rgba(56,139,253,0.30)" : "rgba(240,180,41,0.30)"}`,
+              }}
             >
-              {station === "drink" ? (
-                <Wine className="w-5 h-5" />
-              ) : (
-                <ChefHat className="w-5 h-5" />
-              )}
+              {station === "drink" ? <Wine size={20} /> : <ChefHat size={20} />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-text-primary">
+              <h3 className="text-base font-bold text-[#E6EDF3]">
                 {recipeToEdit ? "Editar Ficha Técnica" : "Nueva Ficha Técnica"}
               </h3>
-              <p className="text-xs text-text-muted">
-                {station === "drink" ? "Estación de Barra" : "Estación de Cocina"} —
-                Escandallo y Protocolo Operativo
+              <p className="text-xs text-[#8B949E]">
+                {station === "drink" ? "Estación Barra & Cócteles" : "Estación Cocina & Gastronomía"} — Escandallo y Protocolo
               </p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-hover transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Stepper Tabs */}
+          <div className="flex items-center gap-2">
+            {[
+              { num: 1, label: "Identidad & POS" },
+              { num: 2, label: `Escandallo (${ingredients.length})` },
+              { num: 3, label: "Protocolo & Pasos" },
+            ].map((s) => {
+              const active = step === s.num;
+              return (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => setStep(s.num as any)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+                  style={{
+                    background: active ? "rgba(240,180,41,0.18)" : "#1C2333",
+                    border: `1px solid ${active ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                    color: active ? "#F0B429" : "#8B949E",
+                  }}
+                >
+                  <span
+                    className="w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-black"
+                    style={{
+                      background: active ? "#F0B429" : "#30363D",
+                      color: active ? "#0D1117" : "#8B949E",
+                    }}
+                  >
+                    {s.num}
+                  </span>
+                  <span>{s.label}</span>
+                </button>
+              );
+            })}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#21283A] transition-colors ml-2"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Step Progress Bar */}
-        <div className="grid grid-cols-3 gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setStep(1)}
-            className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
-              step === 1
-                ? "bg-gold/15 text-gold border-gold/40"
-                : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-            }`}
-          >
-            <span className="w-5 h-5 rounded-full bg-surface-dark border border-current flex items-center justify-center text-[10px]">
-              1
-            </span>
-            Identidad & Producto
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStep(2)}
-            className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
-              step === 2
-                ? "bg-gold/15 text-gold border-gold/40"
-                : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-            }`}
-          >
-            <span className="w-5 h-5 rounded-full bg-surface-dark border border-current flex items-center justify-center text-[10px]">
-              2
-            </span>
-            Escandallo Insumos ({ingredients.length})
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStep(3)}
-            className={`py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
-              step === 3
-                ? "bg-gold/15 text-gold border-gold/40"
-                : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-            }`}
-          >
-            <span className="w-5 h-5 rounded-full bg-surface-dark border border-current flex items-center justify-center text-[10px]">
-              3
-            </span>
-            Técnicas & Protocolo
-          </button>
-        </div>
-
+        {/* Mensaje de error si ocurre */}
         {error && (
-          <div className="p-3 rounded-xl bg-red/10 border border-red/30 text-xs text-red flex items-center gap-2 shrink-0">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className="p-3 rounded-xl bg-[rgba(248,81,73,0.12)] border border-[rgba(248,81,73,0.30)] flex items-center gap-2 text-xs text-[#F85149]">
+            <AlertCircle size={15} />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Modal Body with internal scrolling */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-5">
-          {/* STEP 1: Identidad & Producto */}
+        {/* Cuerpo del Modal con Scroll */}
+        <div className="flex-1 overflow-y-auto space-y-5 pr-1">
+          {/* ══════════════════════════════════════════════════════════════
+              PASO 1: Identidad & Vinculación POS
+          ══════════════════════════════════════════════════════════════ */}
           {step === 1 && (
             <div className="space-y-4">
-              {/* Station Toggle */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-                  Estación Operativa *
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStation("drink");
-                      setMethod("shake");
-                      setGlassware("Copa Coupe");
-                    }}
-                    className={`p-3 rounded-xl border flex items-center gap-3 transition-all ${
-                      station === "drink"
-                        ? "bg-cyan/15 text-cyan border-cyan/40 shadow-sm"
-                        : "bg-surface-dark/50 text-text-muted border-border/60 hover:text-text-primary"
-                    }`}
+              {/* Selector de Estación */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStation("drink")}
+                  className="p-3.5 rounded-xl border flex items-center gap-3 transition-all text-left"
+                  style={{
+                    background: station === "drink" ? "rgba(56,139,253,0.15)" : "#1C2333",
+                    borderColor: station === "drink" ? "#388BFD" : "#30363D",
+                  }}
+                >
+                  <div
+                    className="p-2 rounded-lg"
+                    style={{ background: "rgba(56,139,253,0.15)", color: "#388BFD" }}
                   >
-                    <Wine className="w-5 h-5" />
-                    <div className="text-left">
-                      <span className="text-xs font-bold block">🍸 Barra & Cócteles</span>
-                      <span className="text-[11px] opacity-75">
-                        Bebidas, destilados, cafés y mocktails
-                      </span>
-                    </div>
-                  </button>
+                    <Wine size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#E6EDF3]">Barra & Cócteles</p>
+                    <p className="text-[11px] text-[#8B949E]">Bebidas, destilados, cafés y mocktails</p>
+                  </div>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStation("food");
-                      setMethod("grill");
-                      setGlassware("Plato Llano 28cm");
-                    }}
-                    className={`p-3 rounded-xl border flex items-center gap-3 transition-all ${
-                      station === "food"
-                        ? "bg-amber/15 text-amber border-amber/40 shadow-sm"
-                        : "bg-surface-dark/50 text-text-muted border-border/60 hover:text-text-primary"
-                    }`}
+                <button
+                  type="button"
+                  onClick={() => setStation("food")}
+                  className="p-3.5 rounded-xl border flex items-center gap-3 transition-all text-left"
+                  style={{
+                    background: station === "food" ? "rgba(240,180,41,0.15)" : "#1C2333",
+                    borderColor: station === "food" ? "#F0B429" : "#30363D",
+                  }}
+                >
+                  <div
+                    className="p-2 rounded-lg"
+                    style={{ background: "rgba(240,180,41,0.15)", color: "#F0B429" }}
                   >
-                    <ChefHat className="w-5 h-5" />
-                    <div className="text-left">
-                      <span className="text-xs font-bold block">🍳 Cocina & Platos</span>
-                      <span className="text-[11px] opacity-75">
-                        Platos calientes, fríos, tapas y postres
-                      </span>
-                    </div>
-                  </button>
-                </div>
+                    <ChefHat size={18} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#E6EDF3]">Cocina & Platos</p>
+                    <p className="text-[11px] text-[#8B949E]">Platos calientes, fríos, tapas y postres</p>
+                  </div>
+                </button>
               </div>
 
-              {/* Product Selector */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-                  Producto Asociado en Menú POS *
-                </label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gold/50 cursor-pointer"
-                >
-                  <option value="">-- Seleccionar producto de la carta --</option>
-                  {products
-                    .filter((p) => !p.type || p.type === station)
-                    .map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name} — ${p.price?.toLocaleString() || 0} ({p.category || "General"})
-                      </option>
-                    ))}
-                </select>
-                {selectedProduct && (
-                  <div className="p-3 bg-surface-dark/50 rounded-xl border border-border/50 flex items-center justify-between text-xs">
-                    <span className="text-text-muted">
-                      Precio de Venta registrado en POS:
-                    </span>
-                    <span className="font-bold text-gold font-mono">
-                      ${selectedProduct.price?.toLocaleString()}
-                    </span>
+              {/* Selector de Modo POS (Auto-crear vs Vincular a existente) */}
+              <div className="p-4 rounded-xl space-y-3" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#8B949E]">
+                    Vinculación con la Carta POS
+                  </p>
+                  <div className="flex items-center gap-1.5 p-1 rounded-lg" style={{ background: "#161B22", border: "1px solid #30363D" }}>
+                    <button
+                      type="button"
+                      onClick={() => setPosMode("auto_create")}
+                      className="px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all"
+                      style={{
+                        background: posMode === "auto_create" ? "rgba(240,180,41,0.20)" : "transparent",
+                        color: posMode === "auto_create" ? "#F0B429" : "#8B949E",
+                      }}
+                    >
+                      <Sparkles size={12} />
+                      Auto-crear Producto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPosMode("link_existing")}
+                      className="px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all"
+                      style={{
+                        background: posMode === "link_existing" ? "rgba(56,139,253,0.20)" : "transparent",
+                        color: posMode === "link_existing" ? "#388BFD" : "#8B949E",
+                      }}
+                    >
+                      <LinkIcon size={12} />
+                      Vincular a Existente
+                    </button>
+                  </div>
+                </div>
+
+                {posMode === "auto_create" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-[#8B949E] block mb-1">
+                        Nombre Comercial del Plato / Trago *
+                      </label>
+                      <input
+                        type="text"
+                        value={recipeName}
+                        onChange={(e) => setRecipeName(e.target.value)}
+                        placeholder="Ej. Negroni Clásico, Bruschetta de Tomate..."
+                        className="w-full px-3 py-2 rounded-lg text-xs outline-none transition-colors"
+                        style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-[#8B949E] block mb-1">
+                        Precio Venta POS ($) *
+                      </label>
+                      <div className="relative">
+                        <DollarSign size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" />
+                        <input
+                          type="number"
+                          value={manualSalePrice || ""}
+                          onChange={(e) => setManualSalePrice(Number(e.target.value))}
+                          placeholder="2500"
+                          className="w-full pl-8 pr-3 py-2 rounded-lg text-xs font-bold outline-none"
+                          style={{ background: "#161B22", border: "1px solid #30363D", color: "#F0B429" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-xs font-semibold text-[#8B949E] block mb-1">
+                      Seleccionar Producto Registrado de la Carta *
+                    </label>
+                    <select
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-lg text-xs outline-none"
+                      style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
+                    >
+                      <option value="">-- Seleccionar producto de la carta --</option>
+                      {products
+                        .filter((p) => p.type === station)
+                        .map((p) => (
+                          <option key={p._id} value={p._id}>
+                            {p.name} (${p.price.toLocaleString("es-AR")}) - [{p.category}]
+                          </option>
+                        ))}
+                    </select>
                   </div>
                 )}
               </div>
 
-              {/* Category */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-                  Categoría de Carta *
+              {/* Categoría de Carta con Sugerencias Rápidas */}
+              <div className="p-4 rounded-xl space-y-2.5" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
+                  Categoría de Menú
                 </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {(station === "drink" ? CATEGORY_PRESETS_DRINK : CATEGORY_PRESETS_FOOD).map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategory(cat)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                      style={{
+                        background: category === cat ? "rgba(240,180,41,0.20)" : "#161B22",
+                        border: `1px solid ${category === cat ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                        color: category === cat ? "#F0B429" : "#8B949E",
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
                 <input
                   type="text"
-                  required
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder={station === "drink" ? "Cócteles Clásicos, Gin Tonic..." : "Hamburguesas, Postres..."}
-                  className="w-full text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gold/50"
+                  placeholder="Categoría personalizada..."
+                  className="w-full px-3 py-2 rounded-lg text-xs outline-none"
+                  style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
                 />
               </div>
 
-              {/* Image URL */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
+              {/* Fotografía de la Ficha Técnica */}
+              <div className="p-4 rounded-xl space-y-2" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
                   URL de Imagen (Opcional)
                 </label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://res.cloudinary.com/..."
-                  className="w-full text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gold/50"
-                />
+                <div className="flex gap-3 items-center">
+                  <div
+                    className="w-16 h-16 rounded-xl shrink-0 overflow-hidden flex items-center justify-center border"
+                    style={{ background: "#161B22", borderColor: "#30363D" }}
+                  >
+                    {imageUrl ? (
+                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Package size={20} className="text-[#8B949E]" />
+                    )}
+                  </div>
+                  <input
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://res.cloudinary.com/..."
+                    className="flex-1 px-3 py-2.5 rounded-lg text-xs outline-none"
+                    style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
+                  />
+                </div>
               </div>
             </div>
           )}
 
-          {/* STEP 2: Escandallo Insumos */}
+          {/* ══════════════════════════════════════════════════════════════
+              PASO 2: Bóveda de Insumos & Escandallo Dinámico
+          ══════════════════════════════════════════════════════════════ */}
           {step === 2 && (
             <div className="space-y-4">
-              {/* Financial KPI Banner */}
-              <div className="grid grid-cols-3 gap-3 bg-surface-dark/70 rounded-xl p-3 border border-border/60">
-                <div className="space-y-0.5">
-                  <span className="text-[11px] text-text-muted uppercase font-medium block">
-                    Costo Insumos
-                  </span>
-                  <span className="text-base font-bold text-text-primary font-mono">
-                    ${Math.round(totalCost).toLocaleString()}
-                  </span>
+              {/* Barra Financiera Resumen */}
+              <div className="grid grid-cols-3 gap-3 p-4 rounded-xl" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">Costo Insumos</p>
+                  <p className="text-xl font-black text-[#F0B429]">${totalCost.toFixed(1)}</p>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[11px] text-text-muted uppercase font-medium block">
-                    Precio Venta
-                  </span>
-                  <span className="text-base font-bold text-text-primary font-mono">
-                    ${price.toLocaleString()}
-                  </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">Precio Venta POS</p>
+                  <p className="text-xl font-black text-[#E6EDF3]">${manualSalePrice.toLocaleString("es-AR")}</p>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="text-[11px] text-text-muted uppercase font-medium block">
-                    Margen Estimado
-                  </span>
-                  <span className={`text-base font-bold font-mono ${marginColor}`}>
-                    {margin}%
-                  </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B949E]">Margen Bruto</p>
+                  <p
+                    className="text-xl font-black"
+                    style={{
+                      color: grossMargin >= 70 ? "#3FB950" : grossMargin >= 40 ? "#F0B429" : "#F85149",
+                    }}
+                  >
+                    {grossMargin}%
+                  </p>
                 </div>
               </div>
 
-              {/* Search Inventory Add Bar */}
-              <div className="space-y-1.5 relative">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block flex items-center justify-between">
-                  <span>Buscar Insumos en Bóveda</span>
-                  <span className="text-[11px] text-text-muted font-normal">
-                    {inventoryItems.length} insumos disponibles
-                  </span>
+              {/* Buscador de Insumos de Inventario */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
+                  Añadir Insumos de la Bóveda de Inventario
                 </label>
                 <div className="relative">
-                  <Search className="w-4 h-4 text-text-muted absolute left-3 top-3" />
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" />
                   <input
                     type="text"
                     value={inventorySearch}
                     onChange={(e) => setInventorySearch(e.target.value)}
-                    placeholder="Escribe para buscar (Ej. Gin, Jugo, Limón, Miel, Carne)..."
-                    className="w-full text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-gold/50"
+                    placeholder="Escribe para buscar (Ej. Gin, Jugo, Limón, Queso, Carne)..."
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs outline-none"
+                    style={{ background: "#1C2333", border: "1px solid #30363D", color: "#E6EDF3" }}
                   />
                 </div>
 
-                {/* Dropdown Results */}
+                {/* Dropdown de resultados encontrados */}
                 {filteredInventory.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-surface-card border border-border/70 rounded-xl shadow-xl z-20 overflow-hidden divide-y divide-border/50 max-h-48 overflow-y-auto">
+                  <div
+                    className="p-1 rounded-xl shadow-xl space-y-1 max-h-48 overflow-y-auto"
+                    style={{ background: "#1C2333", border: "1px solid #30363D" }}
+                  >
                     {filteredInventory.map((item) => (
-                      <div
+                      <button
                         key={item._id}
+                        type="button"
                         onClick={() => handleAddIngredient(item)}
-                        className="p-2.5 flex items-center justify-between hover:bg-surface-hover cursor-pointer transition-colors text-xs"
+                        className="w-full text-left p-2.5 rounded-lg flex items-center justify-between hover:bg-[#21283A] transition-colors"
                       >
-                        <div className="flex items-center gap-2">
-                          <Package className="w-3.5 h-3.5 text-gold" />
-                          <span className="font-semibold text-text-primary">
-                            {item.name}
-                          </span>
-                          <span className="text-[11px] text-text-muted">
-                            (Stock: {item.stock} {item.unit})
-                          </span>
+                        <div>
+                          <p className="text-xs font-bold text-[#E6EDF3]">{item.name}</p>
+                          <p className="text-[10px] text-[#8B949E]">
+                            Stock: {item.stock} {item.unit} · Costo base: ${item.cost}/{item.unit}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-text-muted">
-                            ${item.cost?.toLocaleString() || 0} / {item.unit}
-                          </span>
-                          <span className="text-gold font-bold text-xs">+ Agregar</span>
-                        </div>
-                      </div>
+                        <Plus size={14} className="text-[#F0B429]" />
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Added Ingredients Table */}
+              {/* Tabla de Insumos del Escandallo */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Insumos de la Ficha ({ingredients.length})
-                </h4>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#8B949E]">
+                    Insumos de la Ficha Técnica ({ingredients.length})
+                  </p>
+                  <span className="text-[11px] text-[#8B949E]">Ajusta cantidades y unidades</span>
+                </div>
 
-                {ingredients.length > 0 ? (
-                  <div className="border border-border/60 rounded-xl overflow-hidden divide-y divide-border/40 bg-surface-dark/30">
+                {ingredients.length === 0 ? (
+                  <div
+                    className="p-8 rounded-xl text-center space-y-2"
+                    style={{ background: "#1C2333", border: "1px dashed #30363D" }}
+                  >
+                    <Package size={28} className="mx-auto text-[#8B949E] opacity-50" />
+                    <p className="text-xs font-semibold text-[#8B949E]">
+                      No has agregado insumos aún. Utiliza el buscador arriba para añadir insumos de la Bóveda.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
                     {ingredients.map((ing, idx) => {
-                      const item =
+                      const inv =
                         typeof ing.inventoryItem === "object"
-                          ? ing.inventoryItem
-                          : null;
+                          ? (ing.inventoryItem as InventoryItem)
+                          : inventoryItems.find((i) => i._id === ing.inventoryItem);
+                      const invName = inv?.name || "Insumo de inventario";
+                      const invCost = inv?.cost || 0;
+
                       return (
                         <div
                           key={idx}
-                          className="p-3 flex items-center justify-between gap-3 text-xs"
+                          className="p-3 rounded-xl flex items-center justify-between gap-3"
+                          style={{ background: "#1C2333", border: "1px solid #30363D" }}
                         >
-                          <div className="flex-1">
-                            <span className="font-semibold text-text-primary block">
-                              {item?.name || "Insumo"}
-                            </span>
-                            <span className="text-[11px] text-text-muted">
-                              Stock: {item?.stock || 0} {item?.unit || ""}
-                            </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-[#E6EDF3] truncate">{invName}</p>
+                            <p className="text-[10px] text-[#8B949E]">
+                              Costo ref: ${invCost} / {inv?.unit || "u"}
+                            </p>
                           </div>
 
+                          {/* Cantidad y Unidad */}
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
                               min="0.1"
-                              step="any"
+                              step="0.5"
                               value={ing.quantity}
                               onChange={(e) =>
-                                handleUpdateIngredient(
-                                  idx,
-                                  "quantity",
-                                  parseFloat(e.target.value) || 0
-                                )
+                                handleUpdateIngredient(idx, "quantity", Number(e.target.value))
                               }
-                              className="w-20 text-xs bg-surface-card text-text-primary border border-border/60 rounded-lg px-2.5 py-1.5 font-mono text-right focus:outline-none focus:border-gold/50"
+                              className="w-20 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold text-center outline-none"
+                              style={{ background: "#161B22", border: "1px solid #30363D", color: "#F0B429" }}
                             />
-
                             <select
                               value={ing.unit}
-                              onChange={(e) =>
-                                handleUpdateIngredient(idx, "unit", e.target.value)
-                              }
-                              className="text-xs bg-surface-card text-text-primary border border-border/60 rounded-lg px-2 py-1.5 cursor-pointer focus:outline-none focus:border-gold/50"
+                              onChange={(e) => handleUpdateIngredient(idx, "unit", e.target.value)}
+                              className="px-2 py-1.5 rounded-lg text-xs outline-none"
+                              style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
                             >
                               <option value="ml">ml</option>
+                              <option value="cl">cl</option>
                               <option value="oz">oz</option>
                               <option value="g">g</option>
                               <option value="kg">kg</option>
-                              <option value="unit">unid</option>
+                              <option value="unit">unit</option>
                               <option value="portion">porción</option>
                             </select>
-
                             <button
                               type="button"
                               onClick={() => handleRemoveIngredient(idx)}
-                              className="p-1.5 text-text-muted hover:text-red rounded-lg transition-colors"
+                              className="p-1.5 rounded-lg text-[#8B949E] hover:text-[#F85149] hover:bg-[#21283A] transition-colors"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 size={15} />
                             </button>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                ) : (
-                  <div className="p-6 text-center text-xs text-text-muted border border-dashed border-border/60 rounded-xl bg-surface-dark/30">
-                    No has agregado insumos aún. Utiliza el buscador arriba para añadir insumos de la Bóveda.
-                  </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* STEP 3: Técnicas & Protocolo */}
+          {/* ══════════════════════════════════════════════════════════════
+              PASO 3: Protocolo Técnico & Pasos
+          ══════════════════════════════════════════════════════════════ */}
           {step === 3 && (
             <div className="space-y-4">
-              {/* Integrated Techniques Chips */}
+              {/* Selector de Técnicas (Sin emojis, iconos Lucide) */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
                   Técnica / Método de Elaboración *
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(station === "drink" ? DRINK_TECHNIQUES : FOOD_TECHNIQUES).map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setMethod(t.id)}
-                      className={`p-2.5 rounded-xl border text-xs font-medium flex items-center gap-2 text-left transition-all ${
-                        method === t.id
-                          ? "bg-gold/15 text-gold border-gold/40 shadow-sm"
-                          : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-                      }`}
-                    >
-                      <span className="text-base">{t.icon}</span>
-                      <span className="truncate">{t.label}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {(station === "drink" ? DRINK_TECHNIQUES : FOOD_TECHNIQUES).map((t) => {
+                    const Icon = t.icon;
+                    const selected = method === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setMethod(t.id)}
+                        className="p-3 rounded-xl border text-left transition-all flex items-start gap-2.5"
+                        style={{
+                          background: selected ? "rgba(240,180,41,0.15)" : "#1C2333",
+                          borderColor: selected ? "#F0B429" : "#30363D",
+                        }}
+                      >
+                        <div
+                          className="p-1.5 rounded-lg shrink-0"
+                          style={{
+                            background: selected ? "rgba(240,180,41,0.20)" : "#161B22",
+                            color: selected ? "#F0B429" : "#8B949E",
+                          }}
+                        >
+                          <Icon size={16} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-[#E6EDF3]">{t.label}</p>
+                          <p className="text-[10px] text-[#8B949E]">{t.sub}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Glassware / Dishware Selector */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-                  {station === "drink" ? "Cristalería Sugerida" : "Vajilla de Servicio"} *
+              {/* Cristalería / Vajilla */}
+              <div className="p-4 rounded-xl space-y-2" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
+                  {station === "drink" ? "Cristalería Sugerida" : "Vajilla de Presentación"}
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {(station === "drink" ? DRINK_GLASSWARE : FOOD_DISHWARE).map((g) => (
+                <div className="flex flex-wrap gap-1.5">
+                  {(station === "drink" ? DRINK_GLASSWARE : FOOD_DISHWARE).map((glass) => (
                     <button
-                      key={g}
+                      key={glass}
                       type="button"
-                      onClick={() => setGlassware(g)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs transition-colors ${
-                        glassware === g
-                          ? "bg-cyan/15 text-cyan border-cyan/40 font-semibold"
-                          : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-                      }`}
+                      onClick={() => setGlassware(glass)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                      style={{
+                        background: glassware === glass ? "rgba(56,139,253,0.20)" : "#161B22",
+                        border: `1px solid ${glassware === glass ? "rgba(56,139,253,0.40)" : "#30363D"}`,
+                        color: glassware === glass ? "#388BFD" : "#8B949E",
+                      }}
                     >
-                      {g}
+                      {glass}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Drink Specific: Ice */}
+              {/* Servicio de Hielo (Solo para Bebidas) */}
               {station === "drink" && (
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
+                <div className="p-4 rounded-xl space-y-2" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                  <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
                     Servicio de Hielo
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Hielo Macizo 5x5",
-                      "Esfera de Hielo",
-                      "Hielo Picado / Frappé",
-                      "Cubos Estándar",
-                      "Sin Hielo / Neat",
-                    ].map((i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setIce(i)}
-                        className={`px-3 py-1.5 rounded-xl border text-xs transition-colors ${
-                          ice === i
-                            ? "bg-gold/15 text-gold border-gold/40 font-semibold"
-                            : "bg-surface-dark/50 text-text-muted border-border/50 hover:text-text-primary"
-                        }`}
-                      >
-                        {i}
-                      </button>
-                    ))}
+                  <div className="flex flex-wrap gap-1.5">
+                    {ICE_SERVICES.map((item) => {
+                      const Icon = item.icon;
+                      const selected = ice === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setIce(item.id)}
+                          className="px-3 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all"
+                          style={{
+                            background: selected ? "rgba(240,180,41,0.20)" : "#161B22",
+                            border: `1px solid ${selected ? "rgba(240,180,41,0.40)" : "#30363D"}`,
+                            color: selected ? "#F0B429" : "#8B949E",
+                          }}
+                        >
+                          <Icon size={13} />
+                          {item.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {/* Garnish */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
-                  {station === "drink" ? "Garnish / Decoración" : "Emplatado / Topping"}
+              {/* Garnish / Decoraciones */}
+              <div className="p-4 rounded-xl space-y-1.5" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+                <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
+                  Garnish / Decoración de Estación
                 </label>
                 <input
                   type="text"
                   value={garnish}
                   onChange={(e) => setGarnish(e.target.value)}
-                  placeholder="Ej. Twist de limón, ramillete de hierbabuena, sal ahumada..."
-                  className="w-full text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-gold/50"
+                  placeholder="Ej. Twist de limón, ramillete de menta fresca, sal en escamas..."
+                  className="w-full px-3 py-2 rounded-lg text-xs outline-none"
+                  style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
                 />
               </div>
 
-              {/* Preparation Steps 1..N */}
-              <div className="space-y-3">
+              {/* Pasos de Elaboración Operativa */}
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">
+                  <label className="text-xs font-semibold text-[#8B949E] uppercase tracking-wider block">
                     Pasos de Elaboración ({recipeSteps.length})
                   </label>
                   <button
                     type="button"
                     onClick={handleAddStep}
-                    className="inline-flex items-center gap-1 text-xs text-gold hover:underline font-semibold"
+                    className="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 text-[#F0B429] hover:bg-[#21283A] transition-colors"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Agregar Paso
+                    <Plus size={13} />
+                    Agregar Paso
                   </button>
                 </div>
 
                 <div className="space-y-2">
-                  {recipeSteps.map((st, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-lg bg-surface-dark border border-border/60 text-gold text-xs font-bold flex items-center justify-center shrink-0">
+                  {recipeSteps.map((s, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl flex items-center gap-2"
+                      style={{ background: "#1C2333", border: "1px solid #30363D" }}
+                    >
+                      <span
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        style={{ background: "rgba(240,180,41,0.15)", color: "#F0B429" }}
+                      >
                         {idx + 1}
                       </span>
                       <input
                         type="text"
-                        value={st.instruction}
+                        value={s.instruction}
                         onChange={(e) => handleUpdateStep(idx, e.target.value)}
                         placeholder={`Instrucción para el paso ${idx + 1}...`}
-                        className="flex-1 text-xs bg-surface-dark/80 text-text-primary border border-border/60 rounded-xl px-3 py-2 focus:outline-none focus:border-gold/50"
+                        className="flex-1 px-3 py-1.5 rounded-lg text-xs outline-none"
+                        style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
                       />
-                      {recipeSteps.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStep(idx)}
-                          className="p-1.5 text-text-muted hover:text-red transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleMoveStep(idx, "up")}
+                        disabled={idx === 0}
+                        className="p-1 rounded text-[#8B949E] hover:text-[#E6EDF3] disabled:opacity-30"
+                      >
+                        <ChevronUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveStep(idx, "down")}
+                        disabled={idx === recipeSteps.length - 1}
+                        className="p-1 rounded text-[#8B949E] hover:text-[#E6EDF3] disabled:opacity-30"
+                      >
+                        <ChevronDown size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveStep(idx)}
+                        disabled={recipeSteps.length <= 1}
+                        className="p-1 text-[#8B949E] hover:text-[#F85149] disabled:opacity-30"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -843,26 +1037,26 @@ export default function RecipeBuilderModal({
           )}
         </div>
 
-        {/* Modal Footer Controls */}
-        <div className="flex items-center justify-between border-t border-border/60 pt-4 shrink-0">
+        {/* Footer con Navegación de Pasos y Guardado */}
+        <div className="flex items-center justify-between pt-4 shrink-0" style={{ borderTop: "1px solid #30363D" }}>
           <div>
             {step > 1 && (
               <button
                 type="button"
                 onClick={() => setStep((step - 1) as any)}
-                className="px-4 py-2 rounded-xl text-xs font-medium bg-surface-dark/80 hover:bg-surface-hover text-text-primary border border-border/60 transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[#8B949E] hover:text-[#E6EDF3] flex items-center gap-1.5 transition-colors"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft size={14} />
                 Anterior
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium bg-surface-card hover:bg-surface-hover text-text-primary border border-border/60 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
             >
               Cancelar
             </button>
@@ -871,20 +1065,22 @@ export default function RecipeBuilderModal({
               <button
                 type="button"
                 onClick={() => setStep((step + 1) as any)}
-                className="px-5 py-2 rounded-xl text-xs font-medium bg-gold hover:bg-gold-hover text-surface-dark font-semibold transition-colors flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-lg"
+                style={{ background: "#F0B429", color: "#0D1117" }}
               >
                 Siguiente
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight size={14} />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={saving}
-                className="px-6 py-2 rounded-xl text-xs font-semibold bg-gold hover:bg-gold-hover text-surface-dark transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-lg disabled:opacity-50"
+                style={{ background: "#F0B429", color: "#0D1117" }}
               >
-                <Check className="w-4 h-4" />
-                {saving ? "Guardando Ficha..." : "Guardar Ficha Técnica"}
+                <Check size={14} />
+                {saving ? "Guardando..." : "Guardar Ficha Técnica"}
               </button>
             )}
           </div>
@@ -893,4 +1089,3 @@ export default function RecipeBuilderModal({
     </div>
   );
 }
-
