@@ -566,6 +566,7 @@ export default function EmployeesPage() {
 
       {/* Slide-over Drawer for 360° Management */}
       <EmployeeDetailDrawer
+        key={selectedUserForDrawer?._id || "drawer"}
         user={selectedUserForDrawer}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

@@ -139,7 +139,7 @@ export const updateUser = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidId(id)) return badRequest(res, "ID inválido");
 
-    const ALLOWED = ["name", "email", "phone", "role", "shift", "permissions", "isActive", "schedule", "hourlyRate", "notes"];
+    const ALLOWED = ["name", "email", "phone", "role", "shift", "station", "permissions", "isActive", "schedule", "hourlyRate", "notes"];
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([k]) => ALLOWED.includes(k))
     );
