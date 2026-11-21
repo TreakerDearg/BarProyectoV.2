@@ -87,6 +87,7 @@ export default function RecipeVariantModal({
 
   // Búsqueda de inventario para sustituciones o agregados
   const [inventorySearch, setInventorySearch] = useState("");
+  const [additionalSearch, setAdditionalSearch] = useState("");
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingData, setLoadingData] = useState(false);
@@ -178,38 +179,35 @@ export default function RecipeVariantModal({
 
   // Cálculo Dinámico de Costo de Insumos
   const calculatedCost = useMemo(() => {
+    let cost = baseCost;
     if (variantType === "size") {
-      return Math.round((baseCost * multiplier + customAdditionalCost) * 10) / 10;
-    }
-
-    if (variantType === "spirit") {
+      cost = baseCost * multiplier;
+    } else if (variantType === "spirit") {
       let delta = 0;
       Object.values(replacements).forEach((r) => {
         delta += r.costDelta;
       });
-      return Math.max(0, Math.round((baseCost + delta + customAdditionalCost) * 10) / 10);
+      cost = baseCost + delta;
     }
 
-    if (variantType === "dietary") {
-      // Descontar excluidos y sumar adicionales
-      let estimated = baseCost;
-      (parentRecipe.ingredients || []).forEach((ing) => {
-        const id = (ing.inventoryItem?._id || ing.inventoryItem)?.toString();
-        if (excludedItemIds.includes(id)) {
-          const inv = inventoryItems.find((i) => i._id === id);
-          if (inv && typeof inv.cost === "number") {
-            const costPerUnit = inv.unit === "l" || inv.unit === "kg" ? inv.cost / 1000 : inv.cost;
-            estimated -= Number(ing.quantity) * costPerUnit;
-          }
+    // Descontar excluidos
+    (parentRecipe.ingredients || []).forEach((ing) => {
+      const id = (ing.inventoryItem?._id || ing.inventoryItem)?.toString();
+      if (excludedItemIds.includes(id)) {
+        const inv = inventoryItems.find((i) => i._id === id);
+        if (inv && typeof inv.cost === "number") {
+          const costPerUnit = inv.unit === "l" || inv.unit === "kg" ? inv.cost / 1000 : inv.cost;
+          cost -= Number(ing.quantity) * costPerUnit;
         }
-      });
-      additionalIngredients.forEach((add) => {
-        estimated += add.cost;
-      });
-      return Math.max(0, Math.round((estimated + customAdditionalCost) * 10) / 10);
-    }
+      }
+    });
 
-    return baseCost;
+    // Sumar adicionales
+    additionalIngredients.forEach((add) => {
+      cost += add.cost;
+    });
+
+    return Math.max(0, Math.round((cost + customAdditionalCost) * 10) / 10);
   }, [
     variantType,
     baseCost,
@@ -236,6 +234,55 @@ export default function RecipeVariantModal({
       .filter((i) => i.name.toLowerCase().includes(q) || i.category?.toLowerCase().includes(q))
       .slice(0, 5);
   }, [inventoryItems, inventorySearch]);
+
+  const filteredAdditionalInventory = useMemo(() => {
+    if (!additionalSearch.trim()) return [];
+    const q = additionalSearch.toLowerCase().trim();
+    return inventoryItems
+      .filter((i) => i.name.toLowerCase().includes(q) || i.category?.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [inventoryItems, additionalSearch]);
+
+  const handleAddAdditionalIngredient = (item: InventoryItem, qty: number, unit: string) => {
+    const costPerUnit = item.unit === "l" || item.unit === "kg" ? item.cost / 1000 : item.cost;
+    const totalItemCost = qty * costPerUnit;
+
+    setAdditionalIngredients((prev) => [
+      ...prev,
+      {
+        inventoryItem: item._id || "",
+        name: item.name,
+        quantity: qty,
+        unit: unit || item.unit || "ml",
+        cost: totalItemCost,
+      },
+    ]);
+    setAdditionalSearch("");
+  };
+
+  const handleUpdateAdditionalQty = (index: number, newQty: number, newUnit?: string) => {
+    setAdditionalIngredients((prev) =>
+      prev.map((item, idx) => {
+        if (idx !== index) return item;
+        const inv = inventoryItems.find((i) => i._id === item.inventoryItem);
+        const costPerUnit = inv
+          ? inv.unit === "l" || inv.unit === "kg"
+            ? inv.cost / 1000
+            : inv.cost
+          : item.cost / (item.quantity || 1);
+        return {
+          ...item,
+          quantity: newQty,
+          unit: newUnit !== undefined ? newUnit : item.unit,
+          cost: Math.round(newQty * costPerUnit * 10) / 10,
+        };
+      })
+    );
+  };
+
+  const handleRemoveAdditionalIngredient = (index: number) => {
+    setAdditionalIngredients((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Manejo de Sustituciones de Insumos
   const handleSelectReplacement = (originalIngId: string, originalIngQty: number, originalUnit: string, newItem: InventoryItem) => {
@@ -362,9 +409,9 @@ export default function RecipeVariantModal({
               <Layers size={20} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#E6EDF3]">Nueva Variante de Ficha</h3>
+              <h3 className="text-base font-bold text-[#E6EDF3]">Nueva Variante de Receta</h3>
               <p className="text-xs text-[#8B949E]">
-                Derivada de: <span className="font-semibold text-[#F0B429]">{parentName}</span>
+                Derivada de la receta: <span className="font-semibold text-[#F0B429]">{parentName}</span>
               </p>
             </div>
           </div>
@@ -639,9 +686,9 @@ export default function RecipeVariantModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#8B949E]">
                   <Leaf size={13} className="text-[#3FB950]" />
-                  <span>Adaptación Dietaria & Exclusión de Insumos</span>
+                  <span>Adaptación Dietaria & Distintivo</span>
                 </div>
-                <span className="text-[11px] text-[#8B949E]">Desmarca insumos a excluir</span>
+                <span className="text-[11px] text-[#8B949E]">Selecciona la etiqueta de la variante</span>
               </div>
 
               {/* Badges de Distinción Dietaria */}
@@ -674,55 +721,187 @@ export default function RecipeVariantModal({
                   ))}
                 </div>
               </div>
-
-              {/* Toggles de Exclusión de Insumos */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-[#8B949E] block">
-                  Insumos de la Ficha Maestra
-                </label>
-                <div className="space-y-1.5">
-                  {(parentRecipe.ingredients || []).map((ing, idx) => {
-                    const invId = (ing.inventoryItem?._id || ing.inventoryItem)?.toString();
-                    const invName =
-                      typeof ing.inventoryItem === "object"
-                        ? ing.inventoryItem.name
-                        : inventoryItems.find((i) => i._id === invId)?.name || "Insumo";
-                    const isExcluded = excludedItemIds.includes(invId);
-
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => toggleExcludeIngredient(invId)}
-                        className="p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-colors"
-                        style={{
-                          background: isExcluded ? "rgba(248,81,73,0.10)" : "#161B22",
-                          border: `1px solid ${isExcluded ? "rgba(248,81,73,0.30)" : "#30363D"}`,
-                        }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold"
-                            style={{
-                              background: isExcluded ? "#F85149" : "#3FB950",
-                              color: "#0D1117",
-                            }}
-                          >
-                            {isExcluded ? "✕" : "✓"}
-                          </span>
-                          <span className={`text-xs font-semibold ${isExcluded ? "line-through text-[#8B949E]" : "text-[#E6EDF3]"}`}>
-                            {invName} ({ing.quantity} {ing.unit})
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-bold" style={{ color: isExcluded ? "#F85149" : "#3FB950" }}>
-                          {isExcluded ? "Excluido" : "Activo"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           )}
+
+          {/* AJUSTES DE INSUMOS DE LA RECETA: EXCLUIR BASE Y AGREGAR NUEVOS */}
+          <div className="p-4 rounded-xl space-y-4" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
+            <div className="flex items-center justify-between border-b border-[#30363D] pb-2.5">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={14} className="text-[#F0B429]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#E6EDF3]">
+                  Ajustes de Insumos (Agregar Extra / Excluir Base)
+                </span>
+              </div>
+              <span className="text-[11px] text-[#8B949E]">
+                Personaliza los insumos de esta variante
+              </span>
+            </div>
+
+            {/* 1. Excluir insumos de la receta madre */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-[#8B949E] block">
+                  Excluir Insumos de la Receta Base ({excludedItemIds.length} excluidos)
+                </label>
+                {excludedItemIds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setExcludedItemIds([])}
+                    className="text-[10px] text-[#388BFD] hover:underline"
+                  >
+                    Restablecer todos
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {(parentRecipe.ingredients || []).map((ing, idx) => {
+                  const invId = (ing.inventoryItem?._id || ing.inventoryItem)?.toString();
+                  const invName =
+                    typeof ing.inventoryItem === "object"
+                      ? ing.inventoryItem.name
+                      : inventoryItems.find((i) => i._id === invId)?.name || "Insumo";
+                  const isExcluded = excludedItemIds.includes(invId);
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => toggleExcludeIngredient(invId)}
+                      className="p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all border"
+                      style={{
+                        background: isExcluded ? "rgba(248,81,73,0.12)" : "#161B22",
+                        borderColor: isExcluded ? "rgba(248,81,73,0.40)" : "#30363D",
+                      }}
+                      title={isExcluded ? "Clic para reactivar" : "Clic para excluir de esta variante"}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold shrink-0"
+                          style={{
+                            background: isExcluded ? "#F85149" : "#3FB950",
+                            color: "#0D1117",
+                          }}
+                        >
+                          {isExcluded ? "✕" : "✓"}
+                        </span>
+                        <span className={`text-xs font-semibold truncate ${isExcluded ? "line-through text-[#8B949E]" : "text-[#E6EDF3]"}`}>
+                          {invName}
+                        </span>
+                        <span className="text-[10px] text-[#8B949E] shrink-0">
+                          ({ing.quantity} {ing.unit})
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold shrink-0" style={{ color: isExcluded ? "#F85149" : "#3FB950" }}>
+                        {isExcluded ? "Excluido" : "Activo"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. Insumos adicionales */}
+            <div className="space-y-2 pt-2 border-t border-[#30363D]">
+              <label className="text-[11px] font-semibold text-[#8B949E] block">
+                Agregar Insumos Extra a la Receta
+              </label>
+
+              {/* Buscador de insumos en Bóveda */}
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" />
+                <input
+                  type="text"
+                  value={additionalSearch}
+                  onChange={(e) => setAdditionalSearch(e.target.value)}
+                  placeholder="Buscar insumo en Bóveda para agregar a la variante..."
+                  className="w-full pl-9 pr-3 py-2 rounded-lg text-xs outline-none"
+                  style={{ background: "#161B22", border: "1px solid #30363D", color: "#E6EDF3" }}
+                />
+              </div>
+
+              {/* Lista desplegable de coincidencias */}
+              {filteredAdditionalInventory.length > 0 && (
+                <div className="p-1 rounded-lg border border-[#30363D] max-h-40 overflow-y-auto space-y-1" style={{ background: "#161B22" }}>
+                  {filteredAdditionalInventory.map((item) => (
+                    <button
+                      key={item._id}
+                      type="button"
+                      onClick={() => handleAddAdditionalIngredient(item, item.unit === "unit" ? 1 : 30, item.unit || "ml")}
+                      className="w-full text-left p-2 rounded text-xs flex items-center justify-between hover:bg-[#21283A] transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Plus size={13} className="text-[#3FB950]" />
+                        <span className="font-semibold text-[#E6EDF3]">{item.name}</span>
+                        <span className="text-[10px] text-[#8B949E]">({item.category || "Insumo"})</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#F0B429]">
+                        ${item.cost}/{item.unit}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Lista de insumos adicionales agregados */}
+              {additionalIngredients.length > 0 ? (
+                <div className="space-y-1.5 pt-1">
+                  {additionalIngredients.map((add, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-lg flex items-center justify-between"
+                      style={{ background: "#161B22", border: "1px solid #30363D" }}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#3FB950]" />
+                        <span className="text-xs font-semibold text-[#E6EDF3] truncate">
+                          {add.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="number"
+                          min="0.1"
+                          step="0.5"
+                          value={add.quantity}
+                          onChange={(e) => handleUpdateAdditionalQty(idx, Number(e.target.value))}
+                          className="w-16 px-2 py-1 rounded text-xs text-center font-bold font-mono outline-none"
+                          style={{ background: "#1C2333", border: "1px solid #30363D", color: "#F0B429" }}
+                        />
+                        <select
+                          value={add.unit}
+                          onChange={(e) => handleUpdateAdditionalQty(idx, add.quantity, e.target.value)}
+                          className="px-2 py-1 rounded text-xs outline-none"
+                          style={{ background: "#1C2333", border: "1px solid #30363D", color: "#E6EDF3" }}
+                        >
+                          <option value="ml">ml</option>
+                          <option value="cl">cl</option>
+                          <option value="oz">oz</option>
+                          <option value="g">g</option>
+                          <option value="unit">unit</option>
+                        </select>
+                        <span className="text-[11px] font-mono text-[#3FB950] font-bold">
+                          +${add.cost.toFixed(1)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdditionalIngredient(idx)}
+                          className="p-1 text-[#8B949E] hover:text-[#F85149] transition-colors"
+                          title="Eliminar insumo agregado"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-[#8B949E] italic">
+                  No se han agregado insumos adicionales a esta variante.
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Panel Financiero Dinámico */}
           <div className="p-4 rounded-xl grid grid-cols-3 gap-3" style={{ background: "#1C2333", border: "1px solid #30363D" }}>
