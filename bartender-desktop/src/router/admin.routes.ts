@@ -4,6 +4,7 @@ import RolePermissionMatrixPage from "../modules/admin/pages/RolePermissionMatri
 import WorkforceIntelligenceDashboard from "../modules/admin/pages/WorkforceIntelligenceDashboard";
 import SettingsPage from "../modules/admin/pages/SettingsPage";
 import AlertsConfigurationPage from "../modules/admin/pages/AlertsConfigurationPage";
+import WebManagementPage from "../modules/web/pages/WebManagementPage";
 
 export const adminRoutes = [
   // 1. Directorio & Plantilla 360°
@@ -48,6 +49,12 @@ export const adminRoutes = [
   {
     path: "/employees/shift-metrics",
     element: WorkforceIntelligenceDashboard,
+  },
+
+  // Portal Web & Experiencia de Clientes
+  {
+    path: "/web",
+    element: WebManagementPage,
   },
 
   // Configuración & Alertas

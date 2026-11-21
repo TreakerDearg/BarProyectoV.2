@@ -8,7 +8,7 @@ import {
   BookOpen, Users, Dices, Percent, ChevronLeft,
   Settings, ChevronDown, BarChart3, Shield, Clock,
   Activity, Calendar, TrendingUp, Bell, FlaskConical,
-  Layers, GlassWater, Gift, ChefHat,
+  Layers, GlassWater, Gift, ChefHat, Globe,
 } from "lucide-react";
 
 import { useAuthStore } from "../../store/authStore";
@@ -37,6 +37,7 @@ const PATHS = {
   EMPLOYEES_SHIFT_METRICS: "/employees/shift-metrics",
   ROULETTE: "/roulette",
   REWARDS: "/rewards",
+  WEB: "/web",
   SETTINGS: "/settings",
 };
 
@@ -265,6 +266,7 @@ export default function Sidebar() {
             { name: "Inteligencia Laboral", path: PATHS.EMPLOYEES_DASHBOARD, icon: BarChart3 },
           ],
         },
+        { name: "Portal Web", path: PATHS.WEB, icon: Globe },
         { name: "Ruleta", path: PATHS.ROULETTE, icon: Dices },
         { name: "Recompensas", path: PATHS.REWARDS, icon: Gift },
         { name: "Configuración", path: PATHS.SETTINGS, icon: Settings },
