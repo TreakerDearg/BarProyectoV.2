@@ -11,30 +11,32 @@ import { AppDownloadCard } from "./AppDownloadCard";
 
 export default function ClienteHomePage() {
   return (
-    <>
-      {/* Hero Section */}
+    <div className="flex flex-col gap-0 min-h-screen bg-[#090C10]">
+      {/* 1. Hero Resto-Bar con Live Status Beacon */}
       <ModernHero />
 
-      {/* Quick Actions */}
+      {/* 2. Barra de Acciones Rápidas */}
       <QuickActions />
 
-      {/* App exclusiva para clientes recurrentes */}
-      <AppDownloadCard />
-
-      {/* Promotion Card */}
-      <PromotionCard />
-
-      {/* Category Cards */}
+      {/* 3. Cuatro Pilares de Experiencia (Cócteles, Cocina, Cava, Postres) */}
       <CategoryCards />
 
-      {/* Featured Products */}
+      {/* 4. Selección de Autor / Destacados Web (Configurable 100% desde Desktop) */}
       <ModernProductCard />
 
-      {/* Experience Section */}
+      {/* 5. Promociones Especiales y Ofertas en Vivo */}
+      <PromotionCard />
+
+      {/* 6. Experiencia & Filosofía de Barra y Fuegos */}
       <ExperienceSection />
 
-      {/* Final CTA */}
+      {/* 7. Club Nebula & App Móvil */}
+      <div className="max-w-[1200px] w-full mx-auto px-4 sm:px-6 my-4">
+        <AppDownloadCard />
+      </div>
+
+      {/* 8. Cierre Editorial: Horarios, Ubicación & Reservas */}
       <CTAFinal />
-    </>
+    </div>
   );
 }

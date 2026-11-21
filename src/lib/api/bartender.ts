@@ -4,6 +4,7 @@ import type {
   AuthUser,
   ProductBrief,
   ProductPublicDTO,
+  HomeFeaturedDTO,
   PublicMenu,
   RouletteDrinkRow,
   TableRow,
@@ -427,5 +428,18 @@ export async function getMyReservations(params?: {
     }>>(res);
   } catch {
     return []; // silencioso — aún no implementado en backend
+  }
+}
+
+/* =========================================================
+   DESTACADOS WEB CONFIGURADOS DESDE DESKTOP
+========================================================= */
+
+export async function getHomeFeatured() {
+  try {
+    const res = await api.get("/config/home-featured");
+    return extractData<HomeFeaturedDTO>(res);
+  } catch (e) {
+    throw new Error(errMessage(e));
   }
 }

@@ -100,13 +100,27 @@
 }
 
 /* Label — neutral, hover dorado */
+.actionTextWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
 .actionLabel {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-dim);
+  font-weight: var(--font-bold);
+  color: #E6EDF3;
   text-align: center;
   transition: color var(--duration-base) var(--ease-out);
+}
+
+.actionDesc {
+  font-family: var(--font-sans);
+  font-size: 0.725rem;
+  color: #8B949E;
+  text-align: center;
 }
 
 .actionCard:hover .actionLabel {

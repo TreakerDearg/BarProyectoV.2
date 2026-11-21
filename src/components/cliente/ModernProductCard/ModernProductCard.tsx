@@ -1,14 +1,34 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Star, GlassWater, ChefHat, ArrowRight, ShoppingCart } from "lucide-react";
-import { getPublicProducts } from "@/lib/api/bartender";
+import { Plus, Star, GlassWater, ChefHat, ArrowRight, ShoppingCart, Check, Sparkles } from "lucide-react";
+import { getHomeFeatured, getPublicProducts } from "@/lib/api/bartender";
 import { useClienteStore } from "@/stores/useClienteStore";
-import type { ProductPublicDTO } from "@/lib/types/api";
+import type { ProductPublicDTO, HomeFeaturedDTO } from "@/lib/types/api";
 import styles from "./ModernProductCard.module.css";
 
-const MAX_FEATURED = 8;
+// Fallbacks de alta definición para que ninguna card se vea rota o vacía
+const PRODUCT_FALLBACK_IMAGES = {
+  drink: [
+    "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=800&q=80",
+    "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+    "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&q=80",
+  ],
+  food: [
+    "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80",
+    "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&q=80",
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+  ],
+};
+
+function getProductImage(product: ProductPublicDTO, index: number): string {
+  if (product.image && (product.image.startsWith("http") || product.image.startsWith("/"))) {
+    return product.image;
+  }
+  const pool = product.type === "drink" ? PRODUCT_FALLBACK_IMAGES.drink : PRODUCT_FALLBACK_IMAGES.food;
+  return pool[index % pool.length];
+}
 
 function ProductSkeleton() {
   return (
@@ -23,13 +43,14 @@ function ProductSkeleton() {
   );
 }
 
-function ProductCardItem({ product }: { product: ProductPublicDTO }) {
-  const addToCart    = useClienteStore((s) => s.addToCart);
-  const cart         = useClienteStore((s) => s.cart);
+function ProductCardItem({ product, index }: { product: ProductPublicDTO; index: number }) {
+  const addToCart = useClienteStore((s) => s.addToCart);
+  const cart      = useClienteStore((s) => s.cart);
   const [added, setAdded] = useState(false);
 
   const inCartQty = cart.find((c) => c.productId === product.id)?.quantity ?? 0;
   const price = product.dynamicPrice ?? product.price ?? 0;
+  const imageUrl = getProductImage(product, index);
 
   const handleAdd = useCallback(() => {
     addToCart({
@@ -45,61 +66,77 @@ function ProductCardItem({ product }: { product: ProductPublicDTO }) {
 
   const fmtPrice = (n: number) =>
     n.toLocaleString("es-AR", {
-      style: "currency", currency: "ARS", maximumFractionDigits: 0,
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
     });
 
   return (
     <div className={`${styles.productCard} ${!product.available ? styles.productCardUnavailable : ""}`}>
-      {/* Imagen */}
-      <div className={styles.productImage}>
-        {product.image ? (
-          <img src={product.image} alt={product.name} loading="lazy" />
-        ) : (
-          <div className={styles.productImagePlaceholder}>
-            {product.type === "drink"
-              ? <GlassWater size={28} className={styles.placeholderIcon} />
-              : <ChefHat   size={28} className={styles.placeholderIcon} />}
-          </div>
-        )}
+      {/* Imagen & Badges */}
+      <div className={styles.productImageWrap}>
+        <img
+          src={imageUrl}
+          alt={product.name}
+          loading="lazy"
+          className={styles.productImage}
+        />
+        <div className={styles.productImageOverlay} />
 
-        {/* Badges */}
+        {/* Tipo de producto pill */}
+        <div className={styles.typeTag}>
+          {product.type === "drink" ? (
+            <>
+              <GlassWater size={11} className="text-[#F0B429]" />
+              <span>Barra de Autor</span>
+            </>
+          ) : (
+            <>
+              <ChefHat size={11} className="text-[#F0B429]" />
+              <span>Cocina & Brasa</span>
+            </>
+          )}
+        </div>
+
         {product.featured && (
           <div className={styles.badgeFeatured}>
             <Star size={10} />
-            Destacado
+            <span>Destacado</span>
           </div>
         )}
+
         {!product.available && (
-          <div className={styles.badgeUnavailable}>No disponible</div>
-        )}
-        {product.type === "drink" && (
-          <div className={styles.typeTag}>
-            <GlassWater size={10} />
-          </div>
+          <div className={styles.badgeUnavailable}>Agotado hoy</div>
         )}
       </div>
 
-      {/* Contenido */}
+      {/* Contenido Editorial */}
       <div className={styles.productContent}>
-        <p className={styles.productCategory}>{product.category}</p>
+        <div className={styles.categoryLine}>
+          <span className={styles.productCategory}>{product.category}</span>
+        </div>
+
         <h3 className={styles.productName}>{product.name}</h3>
+
         {product.description && (
           <p className={styles.productDescription}>{product.description}</p>
         )}
 
         <div className={styles.productFooter}>
-          <span className={styles.productPrice}>{fmtPrice(price)}</span>
+          <div className={styles.priceContainer}>
+            <span className={styles.productPrice}>{fmtPrice(price)}</span>
+          </div>
 
           <button
             type="button"
             className={`${styles.addButton} ${added ? styles.addButtonAdded : ""}`}
             onClick={handleAdd}
             disabled={!product.available}
-            aria-label={`Agregar ${product.name} al carrito`}
+            aria-label={`Agregar ${product.name} al pedido`}
           >
             {added ? (
               <>
-                <ShoppingCart size={14} />
+                <Check size={14} />
                 <span>Agregado</span>
               </>
             ) : inCartQty > 0 ? (
@@ -110,7 +147,7 @@ function ProductCardItem({ product }: { product: ProductPublicDTO }) {
             ) : (
               <>
                 <Plus size={14} />
-                <span>Agregar</span>
+                <span>Pedir</span>
               </>
             )}
           </button>
@@ -121,59 +158,127 @@ function ProductCardItem({ product }: { product: ProductPublicDTO }) {
 }
 
 export function ModernProductCard() {
-  const [products, setProducts] = useState<ProductPublicDTO[]>([]);
+  const [featuredData, setFeaturedData] = useState<HomeFeaturedDTO>({
+    headline: "Nuestra Selección de Autor",
+    subtitle: "Las creaciones y platos más aclamados de nuestra barra y cocina",
+    badge: "Recomendados de la Casa",
+    maxItems: 6,
+    productIds: [],
+    products: [],
+  });
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<"all" | "drink" | "food">("all");
 
   useEffect(() => {
-    getPublicProducts({ available: true })
+    getHomeFeatured()
       .then((data) => {
-        // Priorizar featured, luego por nombre
-        const sorted = [...data].filter((p) => p?.id).sort((a, b) => {
-          if (a.featured !== b.featured) return a.featured ? -1 : 1;
-          return a.name.localeCompare(b.name, "es");
-        });
-        setProducts(sorted.slice(0, MAX_FEATURED));
+        if (data && Array.isArray(data.products) && data.products.length > 0) {
+          setFeaturedData(data);
+        } else {
+          // Fallback a productos públicos si aún no hay configurados
+          getPublicProducts({ available: true }).then((prods) => {
+            const sorted = [...prods].slice(0, data?.maxItems || 6);
+            setFeaturedData({
+              headline: data?.headline || "Nuestra Selección de Autor",
+              subtitle: data?.subtitle || "Las creaciones y platos más aclamados de nuestra barra y cocina",
+              badge: data?.badge || "Recomendados de la Casa",
+              maxItems: data?.maxItems || 6,
+              productIds: sorted.map((p) => p.id),
+              products: sorted,
+            });
+          });
+        }
       })
-      .catch(() => setProducts([]))
+      .catch(() => {
+        // Fallback silencioso a productos públicos
+        getPublicProducts({ available: true })
+          .then((prods) => {
+            setFeaturedData((prev) => ({
+              ...prev,
+              products: prods.slice(0, 6),
+            }));
+          })
+          .catch(() => { /* silencioso */ });
+      })
       .finally(() => setLoading(false));
   }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (filterType === "all") return featuredData.products;
+    return featuredData.products.filter((p) => p.type === filterType);
+  }, [featuredData.products, filterType]);
 
   return (
     <section className={styles.productsSection}>
       <div className={styles.container}>
-        {/* Header */}
+        {/* Header configurable desde Desktop Settings */}
         <div className={styles.sectionHeader}>
           <div className={styles.sectionKicker}>
-            <Star size={13} />
-            Productos reales de la carta
+            <Sparkles size={12} className="text-[#F0B429]" />
+            <span>{featuredData.badge || "Recomendados de la Casa"}</span>
           </div>
+
           <div className={styles.sectionTitleRow}>
-            <h2 className={styles.sectionTitle}>Lo más pedido</h2>
+            <h2 className={styles.sectionTitle}>
+              {featuredData.headline || "Nuestra Selección de Autor"}
+            </h2>
             <Link href="/cliente/carta" className={styles.seeAllLink}>
-              Ver carta completa
-              <ArrowRight size={15} />
+              <span>Ver carta completa</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
-          <p className={styles.sectionSubtitle}>Los favoritos de nuestros clientes</p>
+
+          <p className={styles.sectionSubtitle}>
+            {featuredData.subtitle || "Las creaciones y platos más aclamados de nuestra barra y cocina"}
+          </p>
+
+          {/* Filtros por Tipo de Producto */}
+          <div className={styles.filterPills}>
+            <button
+              type="button"
+              onClick={() => setFilterType("all")}
+              className={`${styles.filterPill} ${filterType === "all" ? styles.filterPillActive : ""}`}
+            >
+              Todos los destacados ({featuredData.products.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType("drink")}
+              className={`${styles.filterPill} ${filterType === "drink" ? styles.filterPillActive : ""}`}
+            >
+              <GlassWater size={12} />
+              Barra & Cócteles ({featuredData.products.filter((p) => p.type === "drink").length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType("food")}
+              className={`${styles.filterPill} ${filterType === "food" ? styles.filterPillActive : ""}`}
+            >
+              <ChefHat size={12} />
+              Cocina & Fuegos ({featuredData.products.filter((p) => p.type === "food").length})
+            </button>
+          </div>
         </div>
 
-        {/* Grid */}
+        {/* Grilla de Productos Destacados */}
         {loading ? (
           <div className={styles.productsGrid}>
-            {Array.from({ length: 4 }, (_, i) => <ProductSkeleton key={i} />)}
+            {Array.from({ length: 4 }, (_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className={styles.emptyState}>
             <ChefHat size={36} className={styles.emptyIcon} />
-            <p>La carta se está actualizando.</p>
+            <p className={styles.emptyTitle}>No hay productos en esta categoría por el momento.</p>
             <Link href="/cliente/carta" className={styles.emptyLink}>
-              Ver disponibilidad en tiempo real
+              Explorar todo el menú
             </Link>
           </div>
         ) : (
           <div className={styles.productsGrid}>
-            {products.map((p) => (
-              <ProductCardItem key={p.id} product={p} />
+            {filteredProducts.map((p, idx) => (
+              <ProductCardItem key={p.id} product={p} index={idx} />
             ))}
           </div>
         )}

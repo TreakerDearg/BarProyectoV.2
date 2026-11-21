@@ -72,6 +72,15 @@ export type ProductPublicDTO = {
   dietaryRestrictions: DietaryRestriction[];
 };
 
+export type HomeFeaturedDTO = {
+  headline: string;
+  subtitle: string;
+  badge: string;
+  maxItems: number;
+  productIds: string[];
+  products: ProductPublicDTO[];
+};
+
 export type DietaryRestriction = "vegan" | "vegetarian" | "gluten-free" | "dairy-free" | "nut-free" | "sugar-free";
 
 export type MenuPublicDTO = {

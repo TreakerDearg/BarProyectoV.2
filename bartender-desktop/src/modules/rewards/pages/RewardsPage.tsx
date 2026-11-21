@@ -142,11 +142,10 @@ export default function RewardsPage() {
       <div className="flex items-center gap-2 border-b border-[#30363D] pb-3">
         <button
           onClick={() => setActiveTab("catalog")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "catalog"
-              ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
-              : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === "catalog"
+            ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
+            }`}
         >
           <LayoutGrid size={15} />
           Catálogo de Recompensas ({rewards.length})
@@ -154,11 +153,10 @@ export default function RewardsPage() {
 
         <button
           onClick={() => setActiveTab("validator")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "validator"
-              ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
-              : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === "validator"
+            ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
+            }`}
         >
           <Search size={15} />
           Validador de Cupones en Barra
@@ -166,11 +164,10 @@ export default function RewardsPage() {
 
         <button
           onClick={() => setActiveTab("history")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            activeTab === "history"
-              ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
-              : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === "history"
+            ? "bg-[#161B22] text-[#F0B429] border border-[#F0B429]/30"
+            : "text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#161B22]"
+            }`}
         >
           <History size={15} />
           Historial de Canjes ({redemptions.length})
@@ -199,11 +196,10 @@ export default function RewardsPage() {
               <button
                 key={f.id}
                 onClick={() => setCategoryFilter(f.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  categoryFilter === f.id
-                    ? "bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/30"
-                    : "bg-[#161B22] text-[#8B949E] hover:text-[#E6EDF3] border border-[#30363D]"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${categoryFilter === f.id
+                  ? "bg-[#F0B429]/15 text-[#F0B429] border border-[#F0B429]/30"
+                  : "bg-[#161B22] text-[#8B949E] hover:text-[#E6EDF3] border border-[#30363D]"
+                  }`}
               >
                 {f.label}
               </button>

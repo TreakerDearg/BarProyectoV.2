@@ -14,11 +14,24 @@ import {
   AlertCircle,
   Loader2,
   FileSpreadsheet,
+  Star,
+  Search,
+  Plus,
+  Trash2,
+  Sparkles,
+  Layers,
+  Check,
+  GlassWater,
+  ChefHat,
+  Eye,
 } from "lucide-react";
 import {
   getSystemConfig,
   updateSystemConfig,
+  getHomeFeatured,
+  updateHomeFeatured,
   type SystemConfig,
+  type HomeFeaturedConfig,
 } from "../services/configService";
 import {
   downloadDatabaseBackup,
@@ -31,11 +44,12 @@ import {
   exportAuditLogs,
   type AuditQueryParams,
 } from "../services/auditService";
+import { getProducts } from "../../products/services/productService";
 import type { AuditLog } from "../../../components/shared/AuditLogSystem";
 import AuditLogSystem from "../../../components/shared/AuditLogSystem";
 import AlertsConfigurationPage from "./AlertsConfigurationPage";
 
-type SettingsTab = "business" | "pos" | "loyalty" | "backup" | "audit" | "alerts";
+type SettingsTab = "business" | "pos" | "loyalty" | "homeFeatured" | "backup" | "audit" | "alerts";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("business");
@@ -52,6 +66,20 @@ export default function SettingsPage() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
   const [exportingAudit, setExportingAudit] = useState(false);
+
+  // Estados de Destacados Web (Home)
+  const [homeFeaturedConfig, setHomeFeaturedConfig] = useState<HomeFeaturedConfig>({
+    headline: "Nuestra Selección de Autor",
+    subtitle: "Las creaciones y platos más aclamados de nuestra barra y cocina",
+    badge: "Recomendados de la Casa",
+    maxItems: 6,
+    productIds: [],
+  });
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [loadingFeatured, setLoadingFeatured] = useState(false);
+  const [savingFeatured, setSavingFeatured] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const [productTypeFilter, setProductTypeFilter] = useState<"all" | "drink" | "food">("all");
 
   // Feedback Messages
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -108,6 +136,32 @@ export default function SettingsPage() {
     }
   };
 
+  /* ── 4. Cargar Destacados Web y Catálogo ── */
+  const loadHomeFeaturedData = async () => {
+    setLoadingFeatured(true);
+    try {
+      const [feat, prods] = await Promise.all([
+        getHomeFeatured(),
+        getProducts(),
+      ]);
+      if (feat) {
+        setHomeFeaturedConfig({
+          headline: feat.headline || "Nuestra Selección de Autor",
+          subtitle: feat.subtitle || "Las creaciones y platos más aclamados de nuestra barra y cocina",
+          badge: feat.badge || "Recomendados de la Casa",
+          maxItems: feat.maxItems || 6,
+          productIds: Array.isArray(feat.productIds) ? feat.productIds : [],
+        });
+      }
+      setAllProducts(Array.isArray(prods) ? prods : []);
+    } catch (err: unknown) {
+      const e = err as Error;
+      showNotification("error", e.message || "Error al cargar configuración de destacados web");
+    } finally {
+      setLoadingFeatured(false);
+    }
+  };
+
   useEffect(() => {
     loadConfig();
     loadBackupStats();
@@ -118,8 +172,52 @@ export default function SettingsPage() {
       loadAuditLogs();
     } else if (activeTab === "backup") {
       loadBackupStats();
+    } else if (activeTab === "homeFeatured") {
+      loadHomeFeaturedData();
     }
   }, [activeTab]);
+
+  /* ── Alternar Producto en Destacados Web ── */
+  const handleToggleProductFeatured = (productId: string) => {
+    const current = homeFeaturedConfig.productIds || [];
+    const isSelected = current.includes(productId);
+
+    if (isSelected) {
+      setHomeFeaturedConfig({
+        ...homeFeaturedConfig,
+        productIds: current.filter((id) => id !== productId),
+      });
+    } else {
+      const limit = homeFeaturedConfig.maxItems || 6;
+      if (current.length >= limit) {
+        showNotification(
+          "error",
+          `Límite alcanzado: el máximo configurado es de ${limit} productos para mantener el Home ágil y limpio.`
+        );
+        return;
+      }
+      setHomeFeaturedConfig({
+        ...homeFeaturedConfig,
+        productIds: [...current, productId],
+      });
+    }
+  };
+
+  /* ── Guardar Destacados Web ── */
+  const handleSaveHomeFeatured = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingFeatured(true);
+    try {
+      await updateHomeFeatured(homeFeaturedConfig);
+      showNotification("success", "Destacados de la página de inicio guardados correctamente");
+      await loadHomeFeaturedData();
+    } catch (err: unknown) {
+      const e = err as Error;
+      showNotification("error", e.message || "Error al actualizar destacados web");
+    } finally {
+      setSavingFeatured(false);
+    }
+  };
 
   /* ── Guardar Configuración ── */
   const handleSaveConfig = async (e: React.FormEvent) => {
@@ -239,12 +337,13 @@ export default function SettingsPage() {
       {/* ================= TABS NAVIGATION ================= */}
       <div className="flex items-center gap-2 border-b border-[#30363D] pb-3 overflow-x-auto">
         {[
-          { id: "business", label: "Identidad del Bar", icon: Building2 },
-          { id: "pos",      label: "Operación & TPV",   icon: Sliders },
-          { id: "loyalty",  label: "Fidelidad & Puntos", icon: Coins },
-          { id: "backup",   label: "Respaldos de Datos", icon: Database },
-          { id: "audit",    label: "Auditoría en Vivo", icon: Shield },
-          { id: "alerts",   label: "Alertas & Monitoreo", icon: Bell },
+          { id: "business",     label: "Identidad del Bar",  icon: Building2 },
+          { id: "pos",          label: "Operación & TPV",    icon: Sliders },
+          { id: "loyalty",      label: "Fidelidad & Puntos", icon: Coins },
+          { id: "homeFeatured", label: "Destacados Web",     icon: Star },
+          { id: "backup",       label: "Respaldos de Datos", icon: Database },
+          { id: "audit",        label: "Auditoría en Vivo",  icon: Shield },
+          { id: "alerts",       label: "Alertas & Monitoreo", icon: Bell },
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -263,7 +362,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ================= CONTENIDO DE CADA PESTAÑA ================= */}
-      {loadingConfig && activeTab !== "audit" && activeTab !== "alerts" ? (
+      {loadingConfig && activeTab !== "audit" && activeTab !== "alerts" && activeTab !== "homeFeatured" ? (
         <div className="flex items-center justify-center p-20 gap-3 text-[#F0B429]">
           <Loader2 size={24} className="animate-spin" />
           <span className="text-xs font-bold uppercase tracking-wider">Cargando parámetros...</span>
@@ -798,6 +897,346 @@ export default function SettingsPage() {
           {/* TAB 6: ALERTAS */}
           {activeTab === "alerts" && (
             <AlertsConfigurationPage />
+          )}
+
+          {/* TAB 7: DESTACADOS WEB (HOME) */}
+          {activeTab === "homeFeatured" && (
+            <div className="space-y-6">
+              {loadingFeatured ? (
+                <div className="flex items-center justify-center p-20 gap-3 text-[#F0B429]">
+                  <Loader2 size={24} className="animate-spin" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Cargando catálogo web...</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSaveHomeFeatured} className="space-y-6">
+                  {/* Card 1: Parámetros Visuales */}
+                  <div className="bg-[#161B22] p-6 rounded-2xl border border-[#30363D] space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#30363D] pb-4">
+                      <div>
+                        <h2 className="text-sm font-bold text-[#E6EDF3] flex items-center gap-2">
+                          <Star size={16} className="text-[#F0B429]" />
+                          Curaduría de Destacados Web (Home)
+                        </h2>
+                        <p className="text-xs text-[#8B949E] mt-0.5">
+                          Controla qué productos emblemáticos ve el cliente al entrar en la web, con límite estricto para evitar saturación visual.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#8B949E]">Límite en Home:</span>
+                        {[4, 6, 8].map((limit) => (
+                          <button
+                            key={limit}
+                            type="button"
+                            onClick={() => {
+                              const newIds = (homeFeaturedConfig.productIds || []).slice(0, limit);
+                              setHomeFeaturedConfig({
+                                ...homeFeaturedConfig,
+                                maxItems: limit,
+                                productIds: newIds,
+                              });
+                            }}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
+                              homeFeaturedConfig.maxItems === limit
+                                ? "bg-[#F0B429] text-[#0D1117] border-[#F0B429] shadow-sm"
+                                : "bg-[#0D1117] text-[#8B949E] border-[#30363D] hover:text-[#E6EDF3]"
+                            }`}
+                          >
+                            {limit} ítems
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                          Etiqueta / Badge Superior
+                        </label>
+                        <input
+                          type="text"
+                          value={homeFeaturedConfig.badge}
+                          onChange={(e) =>
+                            setHomeFeaturedConfig({
+                              ...homeFeaturedConfig,
+                              badge: e.target.value,
+                            })
+                          }
+                          placeholder="Ej: Recomendados de la Casa"
+                          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-3.5 py-2.5 text-xs text-[#E6EDF3] focus:border-[#F0B429] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                          Título Principal de la Sección
+                        </label>
+                        <input
+                          type="text"
+                          value={homeFeaturedConfig.headline}
+                          onChange={(e) =>
+                            setHomeFeaturedConfig({
+                              ...homeFeaturedConfig,
+                              headline: e.target.value,
+                            })
+                          }
+                          placeholder="Ej: Nuestra Selección de Autor"
+                          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-3.5 py-2.5 text-xs text-[#E6EDF3] focus:border-[#F0B429] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#8B949E] uppercase tracking-wider mb-1.5">
+                          Subtítulo Descriptivo
+                        </label>
+                        <input
+                          type="text"
+                          value={homeFeaturedConfig.subtitle}
+                          onChange={(e) =>
+                            setHomeFeaturedConfig({
+                              ...homeFeaturedConfig,
+                              subtitle: e.target.value,
+                            })
+                          }
+                          placeholder="Ej: Las creaciones y platos más aclamados de nuestra barra y cocina"
+                          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-3.5 py-2.5 text-xs text-[#E6EDF3] focus:border-[#F0B429] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Previsualización Header Web */}
+                    <div className="p-4 rounded-xl bg-[#0D1117]/80 border border-[#F0B429]/20 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#F0B429] bg-[#F0B429]/10 px-2 py-0.5 rounded-full border border-[#F0B429]/30">
+                          <Sparkles size={11} />
+                          {homeFeaturedConfig.badge || "Recomendados de la Casa"}
+                        </span>
+                        <h3 className="text-base font-bold text-[#E6EDF3]">
+                          {homeFeaturedConfig.headline || "Nuestra Selección de Autor"}
+                        </h3>
+                        <p className="text-xs text-[#8B949E]">
+                          {homeFeaturedConfig.subtitle || "Las creaciones y platos más aclamados"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <span className="text-xs font-bold text-[#E6EDF3]">
+                            {(homeFeaturedConfig.productIds || []).length} / {homeFeaturedConfig.maxItems}
+                          </span>
+                          <p className="text-[10px] text-[#8B949E]">Seleccionados</p>
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={savingFeatured}
+                          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#F0B429] hover:bg-[#F0B429]/90 text-[#0D1117] text-xs font-bold transition-all shadow-md shadow-[#F0B429]/20"
+                        >
+                          {savingFeatured ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                          Guardar Cambios
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bandeja de productos seleccionados actualmente */}
+                  <div className="bg-[#161B22] p-5 rounded-2xl border border-[#30363D] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#E6EDF3] flex items-center gap-2">
+                        <Layers size={14} className="text-[#388BFD]" />
+                        Productos en Destacados Ahora ({(homeFeaturedConfig.productIds || []).length})
+                      </span>
+                      {(homeFeaturedConfig.productIds || []).length === 0 && (
+                        <span className="text-xs text-[#F0B429]">
+                          (Se mostrarán automáticamente los productos mejor valorados por defecto)
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {(homeFeaturedConfig.productIds || []).map((id) => {
+                        const prod = allProducts.find((p) => (p._id || p.id) === id);
+                        return (
+                          <div
+                            key={id}
+                            className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-lg bg-[#0D1117] border border-[#F0B429]/40 text-xs text-[#E6EDF3]"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-[#F0B429]" />
+                            <span className="font-medium">{prod?.name || `ID: ${id}`}</span>
+                            <span className="text-[11px] text-[#F0B429] font-bold">
+                              ${Number(prod?.price || 0).toLocaleString("es-AR")}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleProductFeatured(id)}
+                              className="p-1 rounded hover:bg-[#F85149]/20 text-[#8B949E] hover:text-[#F85149] transition-colors ml-1"
+                              title="Quitar de destacados"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Card 2: Catálogo de Productos y Selector */}
+                  <div className="bg-[#161B22] p-6 rounded-2xl border border-[#30363D] space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-sm font-bold text-[#E6EDF3]">
+                          Catálogo de Productos Disponibles
+                        </h3>
+                        <p className="text-xs text-[#8B949E]">
+                          Selecciona los productos del menú que deseas destacar en la portada
+                        </p>
+                      </div>
+
+                      {/* Buscador y Filtro por Tipo */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <div className="relative">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E]" />
+                          <input
+                            type="text"
+                            value={productSearch}
+                            onChange={(e) => setProductSearch(e.target.value)}
+                            placeholder="Buscar producto o categoría..."
+                            className="bg-[#0D1117] border border-[#30363D] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#E6EDF3] placeholder-[#8B949E] focus:border-[#F0B429] focus:outline-none w-56"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-1 bg-[#0D1117] p-1 rounded-xl border border-[#30363D]">
+                          <button
+                            type="button"
+                            onClick={() => setProductTypeFilter("all")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                              productTypeFilter === "all"
+                                ? "bg-[#161B22] text-[#F0B429]"
+                                : "text-[#8B949E] hover:text-[#E6EDF3]"
+                            }`}
+                          >
+                            Todos
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProductTypeFilter("drink")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                              productTypeFilter === "drink"
+                                ? "bg-[#161B22] text-[#F0B429]"
+                                : "text-[#8B949E] hover:text-[#E6EDF3]"
+                            }`}
+                          >
+                            Bebidas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setProductTypeFilter("food")}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                              productTypeFilter === "food"
+                                ? "bg-[#161B22] text-[#F0B429]"
+                                : "text-[#8B949E] hover:text-[#E6EDF3]"
+                            }`}
+                          >
+                            Comidas
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Grilla de Selección de Productos */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-1">
+                      {allProducts
+                        .filter((p) => {
+                          const matchesSearch =
+                            !productSearch ||
+                            p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
+                            p.category?.toLowerCase().includes(productSearch.toLowerCase());
+                          const matchesType =
+                            productTypeFilter === "all" || p.type === productTypeFilter;
+                          return matchesSearch && matchesType;
+                        })
+                        .map((prod) => {
+                          const pId = prod._id || prod.id;
+                          const isSelected = (homeFeaturedConfig.productIds || []).includes(pId);
+                          const isMaxReached =
+                            (homeFeaturedConfig.productIds || []).length >=
+                            (homeFeaturedConfig.maxItems || 6);
+
+                          return (
+                            <div
+                              key={pId}
+                              className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+                                isSelected
+                                  ? "bg-[#0D1117] border-[#F0B429] shadow-md shadow-[#F0B429]/10"
+                                  : "bg-[#0D1117]/60 border-[#30363D] hover:border-[#8B949E]"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                {prod.image ? (
+                                  <img
+                                    src={prod.image}
+                                    alt={prod.name}
+                                    className="w-12 h-12 rounded-lg object-cover bg-[#161B22] shrink-0 border border-[#30363D]"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-lg bg-[#161B22] flex items-center justify-center shrink-0 border border-[#30363D] text-[#8B949E]">
+                                    {prod.type === "drink" ? (
+                                      <GlassWater size={20} className="text-[#388BFD]" />
+                                    ) : (
+                                      <ChefHat size={20} className="text-[#E6EDF3]" />
+                                    )}
+                                  </div>
+                                )}
+
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider">
+                                      {prod.category}
+                                    </span>
+                                    {isSelected && (
+                                      <span className="text-[9px] font-bold text-[#0D1117] bg-[#F0B429] px-1.5 py-0.2 rounded-md">
+                                        EN HOME
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="text-xs font-bold text-[#E6EDF3] truncate">
+                                    {prod.name}
+                                  </h4>
+                                  <p className="text-xs font-extrabold text-[#F0B429] mt-0.5">
+                                    ${Number(prod.price || 0).toLocaleString("es-AR")}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleToggleProductFeatured(pId)}
+                                disabled={!isSelected && isMaxReached}
+                                className={`w-full py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                                  isSelected
+                                    ? "bg-[#F85149]/15 text-[#F85149] hover:bg-[#F85149]/25 border border-[#F85149]/30"
+                                    : isMaxReached
+                                    ? "bg-[#161B22] text-[#8B949E]/50 border border-[#30363D] cursor-not-allowed"
+                                    : "bg-[#161B22] text-[#E6EDF3] hover:text-[#0D1117] hover:bg-[#F0B429] border border-[#30363D] hover:border-[#F0B429]"
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <>
+                                    <Trash2 size={13} /> Quitar de Portada
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus size={13} /> Destacar en Portada
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
         </div>

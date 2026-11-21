@@ -32,11 +32,21 @@ export interface LoyaltyConfig {
   minRedemptionPoints: number;
 }
 
+export interface HomeFeaturedConfig {
+  headline: string;
+  subtitle: string;
+  badge: string;
+  maxItems: number;
+  productIds?: string[];
+  products?: any[];
+}
+
 export interface SystemConfig {
   _id?: string;
   business: BusinessConfig;
   pos: PosConfig;
   loyalty: LoyaltyConfig;
+  homeFeatured?: HomeFeaturedConfig;
   updatedAt?: string;
 }
 
@@ -51,5 +61,17 @@ export const updateSystemConfig = async (
   updates: Partial<SystemConfig>
 ): Promise<SystemConfig> => {
   const res = await api.put("/config", updates);
+  return unwrap(res);
+};
+
+export const getHomeFeatured = async (): Promise<HomeFeaturedConfig> => {
+  const res = await api.get("/config/home-featured");
+  return unwrap(res);
+};
+
+export const updateHomeFeatured = async (
+  data: Partial<HomeFeaturedConfig>
+): Promise<HomeFeaturedConfig> => {
+  const res = await api.put("/config/home-featured", data);
   return unwrap(res);
 };

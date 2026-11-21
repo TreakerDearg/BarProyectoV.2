@@ -17,11 +17,11 @@ import type {
 } from "../types/reward";
 
 export const useRewards = () => {
-  const [rewards, setRewards]         = useState<Reward[]>([]);
-  const [kpis, setKpis]               = useState<RewardsKPIs | null>(null);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [kpis, setKpis] = useState<RewardsKPIs | null>(null);
   const [redemptions, setRedemptions] = useState<RedemptionRecord[]>([]);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /* ==============================
      FETCH REWARDS

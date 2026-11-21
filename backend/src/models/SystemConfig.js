@@ -32,6 +32,13 @@ const SystemConfigSchema = new Schema(
       isActive:              { type: Boolean, default: true },
       minRedemptionPoints:   { type: Number, default: 50, min: 1 },
     },
+    homeFeatured: {
+      headline: { type: String, default: "Selección de la Casa", trim: true },
+      subtitle: { type: String, default: "Cócteles insignia y platos de autor curados por nuestro equipo.", trim: true },
+      badge: { type: String, default: "Recomendados de Barra & Cocina", trim: true },
+      maxItems: { type: Number, default: 6, min: 2, max: 8 },
+      productIds: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    },
     updatedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",

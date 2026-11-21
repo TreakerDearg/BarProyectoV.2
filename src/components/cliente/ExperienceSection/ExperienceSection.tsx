@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, GlassWater, UtensilsCrossed, Music, ArrowRight } from "lucide-react";
+import { Sparkles, GlassWater, Flame, Music, ArrowRight, Award, ShieldCheck } from "lucide-react";
 import styles from "./ExperienceSection.module.css";
 
 export function ExperienceSection() {
@@ -11,59 +11,78 @@ export function ExperienceSection() {
         <div className={styles.experienceCard}>
           <div className={styles.experienceImage}>
             <div className={styles.experienceOverlay} />
+            <div className={styles.imageBadge}>
+              <Sparkles size={12} className="text-[#F0B429]" />
+              <span>Experiencia Nebula Signature</span>
+            </div>
           </div>
-          
+
           <div className={styles.experienceContent}>
             <div className={styles.experienceBadge}>
-              <Sparkles className="h-4 w-4" />
-              Nuestra experiencia
+              <Sparkles className="h-3.5 w-3.5 text-[#F0B429]" />
+              Nuestra Filosofía Resto-Bar
             </div>
-            
+
             <h2 className={styles.experienceTitle}>
-              No es solo pedir.
-              Es disfrutar el momento.
+              La Alquimia de la Barra &
+              <span className="text-[#F0B429]"> el Fuego de la Cocina</span>
             </h2>
-            
+
             <p className={styles.experienceDescription}>
-              Nebula no es solo un lugar para comer. Es un espacio donde cada cóctel, 
-              cada plato y cada momento están diseñados para crear memorias. 
-              Desde nuestra cocina hasta nuestra barra, todo está pensado para ti.
+              En Nebula no creemos en cartas estándar. Cada cóctel nace de infusiones
+              propias, clarificados meticulosos y hielo de alta densidad. Cada plato
+              sale de nuestras brasas pensado específicamente para elevar las notas
+              aromáticas de lo que estás bebiendo.
             </p>
-            
+
             <div className={styles.features}>
               <div className={styles.feature}>
                 <div className={styles.featureIcon}>
-                  <GlassWater className="h-5 w-5" />
+                  <GlassWater className="h-4 w-4" />
                 </div>
-                <span className={styles.featureText}>Cócteles</span>
+                <div className={styles.featureTextWrap}>
+                  <span className={styles.featureTitle}>Hielo Cristalino</span>
+                  <span className={styles.featureDesc}>Tallado a mano para cero dilución</span>
+                </div>
               </div>
-              
+
               <div className={styles.feature}>
                 <div className={styles.featureIcon}>
-                  <UtensilsCrossed className="h-5 w-5" />
+                  <Flame className="h-4 w-4" />
                 </div>
-                <span className={styles.featureText}>Gastronomía</span>
+                <div className={styles.featureTextWrap}>
+                  <span className={styles.featureTitle}>Fuegos & Brasa</span>
+                  <span className={styles.featureDesc}>Tapas gourmet y cortes madurados</span>
+                </div>
               </div>
-              
+
               <div className={styles.feature}>
                 <div className={styles.featureIcon}>
-                  <Music className="h-5 w-5" />
+                  <Music className="h-4 w-4" />
                 </div>
-                <span className={styles.featureText}>Ambiente</span>
+                <div className={styles.featureTextWrap}>
+                  <span className={styles.featureTitle}>Atmósfera Nocturna</span>
+                  <span className={styles.featureDesc}>Sonido curado e iluminación tenue</span>
+                </div>
               </div>
-              
+
               <div className={styles.feature}>
                 <div className={styles.featureIcon}>
-                  <Sparkles className="h-5 w-5" />
+                  <Award className="h-4 w-4" />
                 </div>
-                <span className={styles.featureText}>Reservas</span>
+                <div className={styles.featureTextWrap}>
+                  <span className={styles.featureTitle}>Club Royale</span>
+                  <span className={styles.featureDesc}>Ruleta y beneficios en cada visita</span>
+                </div>
               </div>
             </div>
-            
-            <Link href="/cliente/reservas" className={styles.experienceCTA}>
-              Reservar tu mesa
-              <ArrowRight className="h-5 w-5" />
-            </Link>
+
+            <div className={styles.ctaRow}>
+              <Link href="/cliente/reservas" className={styles.experienceCTA}>
+                <span>Reservar Mesa o Barra VIP</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
