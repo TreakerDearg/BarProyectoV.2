@@ -1,13 +1,14 @@
 /**
- * seed-shifts.js — Pobla turnos y asistencia de empleados
+ * seed-shifts.js — Pobla turnos y asistencia en tiempo real de empleados
  *
  * Ejecutar:  node src/seeds/seed-shifts.js
- *   ó       npm run seed:shifts  (agrega el script en package.json)
+ *   ó       npm run seed:shifts
  *
- * Crea:
- *  - Actualiza shift en todos los empleados existentes
- *  - Registros de Attendance de los últimos 30 días
- *  - Métricas de performance por día
+ * Genera:
+ *  - Estaciones de trabajo asignadas a cada empleado
+ *  - Registros de Attendance de los últimos 28 días con insertMany de alto rendimiento
+ *  - Check-in activo en tiempo real (hoy) para visualizar "En Turno" en el Monitor y Cards
+ *  - Métricas de desempeño acumuladas y horas del mes
  */
 
 import "dotenv/config";
@@ -31,27 +32,21 @@ function dateAt(daysAgo, hour, minute = 0) {
   return d;
 }
 
-// ── Configuración de turnos ────────────────────────────────────────
+// ── Configuración de turnos y estaciones ───────────────────────────
 const SHIFT_SCHEDULE = {
-  morning:   { checkInHour: 9,  checkOutHour: 17, scheduledHours: 8  },
-  afternoon: { checkInHour: 14, checkOutHour: 22, scheduledHours: 8  },
-  night:     { checkInHour: 20, checkOutHour: 4,  scheduledHours: 8  },
-  event:     { checkInHour: 18, checkOutHour: 24, scheduledHours: 6  },
+  morning:   { checkInHour: 8,  checkOutHour: 16, scheduledHours: 8 },
+  afternoon: { checkInHour: 16, checkOutHour: 24, scheduledHours: 8 },
+  night:     { checkInHour: 20, checkOutHour: 4,  scheduledHours: 8 },
+  event:     { checkInHour: 18, checkOutHour: 24, scheduledHours: 6 },
 };
 
-// Probabilidades de estado por día (lunes-viernes vs fin de semana)
-function pickStatus(dayOfWeek) {
-  const rand = Math.random();
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    // Fin de semana — más ausencias
-    if (rand < 0.08) return "absent";
-    if (rand < 0.12) return "late";
-    return "present";
-  }
-  if (rand < 0.04) return "absent";
-  if (rand < 0.09) return "late";
-  return "present";
-}
+const ROLE_STATIONS = {
+  admin:     "Administración & Control",
+  bartender: "Barra Principal",
+  waiter:    "Salón Principal & Terraza",
+  kitchen:   "Cocina Fuegos & Platos",
+  cashier:   "Caja Central & TPV",
+};
 
 // ── 1. Obtener empleados ───────────────────────────────────────────
 const employees = await User.find({
@@ -60,137 +55,132 @@ const employees = await User.find({
 });
 
 if (employees.length === 0) {
-  console.log("⚠  No se encontraron empleados. Ejecutá seed.js primero.");
+  console.log("⚠ No se encontraron empleados. Ejecutá npm run seed primero.");
   await mongoose.disconnect();
   process.exit(0);
 }
 
-console.log(`✓ ${employees.length} empleados encontrados`);
+console.log(`✓ ${employees.length} colaboradores encontrados`);
 
-// ── 2. Asignar turnos rotativos si no tienen ───────────────────────
-const shifts = ["morning", "afternoon", "night", "event"];
+// ── 2. Asignar turnos, estaciones y schedules ──────────────────────
+const shifts = ["night", "afternoon", "morning"];
 let shiftIdx = 0;
 
 for (const emp of employees) {
-  if (!emp.shift) {
-    // Rotar entre turnos asegurando distribución equitativa
-    const assignedShift = shifts[shiftIdx % shifts.length];
-    shiftIdx++;
-    await User.updateOne({ _id: emp._id }, { shift: assignedShift });
-    emp.shift = assignedShift;
-    console.log(`  → ${emp.name} asignado a turno: ${assignedShift}`);
-  } else {
-    console.log(`  ✓ ${emp.name} ya tiene turno: ${emp.shift}`);
+  let station = ROLE_STATIONS[emp.role] || "Operaciones";
+  if (emp.email === "sofia@nebula.bar") {
+    station = "Barra Cócteles & VIP";
   }
+
+  const assignedShift = emp.shift || shifts[shiftIdx % shifts.length];
+  shiftIdx++;
+
+  const shiftCfg = SHIFT_SCHEDULE[assignedShift] || SHIFT_SCHEDULE.night;
+  const padTime = (h) => `${String(h % 24).padStart(2, "0")}:00`;
+
+  const baseDay = {
+    isAvailable: true,
+    startTime:   padTime(shiftCfg.checkInHour),
+    endTime:     padTime(shiftCfg.checkOutHour),
+    breakStart:  padTime(shiftCfg.checkInHour + 3),
+    breakEnd:    padTime(shiftCfg.checkInHour + 4),
+  };
+
+  const schedule = {
+    monday:    { ...baseDay },
+    tuesday:   { ...baseDay },
+    wednesday: { ...baseDay, isAvailable: emp.email !== "bartender@nebula.bar" },
+    thursday:  { ...baseDay },
+    friday:    { ...baseDay },
+    saturday:  { ...baseDay, isAvailable: true },
+    sunday:    { isAvailable: assignedShift === "night", startTime: "19:00", endTime: "02:00" },
+  };
+
+  await User.updateOne(
+    { _id: emp._id },
+    {
+      shift: assignedShift,
+      station,
+      schedule,
+    }
+  );
+  emp.shift = assignedShift;
+  emp.station = station;
+  emp.schedule = schedule;
+  console.log(`  → ${emp.name} (${emp.role}) asignado a: [${assignedShift}] en [${station}]`);
 }
 
-// Actualizar schedules (horario semanal) para empleados sin agenda
-for (const emp of employees) {
-  if (!emp.schedule || Object.keys(emp.schedule ?? {}).length === 0) {
-    const shiftCfg = SHIFT_SCHEDULE[emp.shift ?? "morning"];
-    const padTime  = (h) => `${String(h).padStart(2,"0")}:00`;
+// ── 3. Limpiar asistencia anterior de seed ─────────────────────────
+await Attendance.deleteMany({ "notes.system": { $regex: /seeded/i } });
+await Attendance.deleteMany({ notes: "seeded" });
+console.log("✓ Registros de asistencia de seed anteriores eliminados");
 
-    const baseDay  = {
-      isAvailable: true,
-      startTime:   padTime(shiftCfg.checkInHour),
-      endTime:     padTime(shiftCfg.checkOutHour),
-      breakStart:  padTime(shiftCfg.checkInHour + 3),
-      breakEnd:    padTime(shiftCfg.checkInHour + 4),
-    };
-
-    const schedule = {
-      monday:    { ...baseDay },
-      tuesday:   { ...baseDay },
-      wednesday: { ...baseDay },
-      thursday:  { ...baseDay },
-      friday:    { ...baseDay },
-      saturday:  { ...baseDay, isAvailable: emp.shift === "night" || emp.shift === "event" },
-      sunday:    { isAvailable: false, startTime: "00:00", endTime: "00:00" },
-    };
-
-    await User.updateOne({ _id: emp._id }, { schedule });
-    console.log(`  → ${emp.name}: schedule asignado`);
-  }
-}
-
-// ── 3. Limpiar asistencia anterior del seed ────────────────────────
-await Attendance.deleteMany({ _id: { $exists: true }, notes: "seeded" });
-console.log("✓ Registros de asistencia anteriores (seed) eliminados");
-
-// ── 4. Crear registros de asistencia — últimos 30 días ────────────
-const DAYS_BACK = 30;
-let created = 0;
+// ── 4. Generar histórico de los últimos 28 días (Días 28 al 1) ─────
+const DAYS_BACK = 28;
+const attendanceBatch = [];
 
 for (const emp of employees) {
-  const shiftCfg = SHIFT_SCHEDULE[emp.shift ?? "morning"];
+  const shiftCfg = SHIFT_SCHEDULE[emp.shift ?? "night"];
 
-  for (let daysAgo = DAYS_BACK; daysAgo >= 0; daysAgo--) {
+  for (let daysAgo = DAYS_BACK; daysAgo >= 1; daysAgo--) {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
     date.setHours(0, 0, 0, 0);
 
-    const dayOfWeek = date.getDay(); // 0=dom, 6=sáb
+    const dayOfWeek = date.getDay(); // 0 = dom
+    if (dayOfWeek === 0 && emp.role === "admin") continue;
 
-    // No registrar domingo si el empleado no trabaja
-    if (dayOfWeek === 0 && emp.shift !== "night" && emp.shift !== "event") continue;
+    const isLate = Math.random() < 0.08;
+    const isAbsent = Math.random() < 0.04;
+    const status = isAbsent ? "absent" : isLate ? "late" : "present";
 
-    const status = pickStatus(dayOfWeek);
-
-    // Para ausentes no generar check-in
     if (status === "absent") {
-      await Attendance.create({
+      attendanceBatch.push({
         user:           emp._id,
-        shift:          emp.shift ?? "morning",
+        shift:          emp.shift ?? "night",
+        station:        emp.station,
         date,
         status:         "absent",
         scheduledHours: shiftCfg.scheduledHours,
         workedHours:    0,
         isApproved:     true,
-        notes:          "seeded",
+        notes:          { system: "seeded" },
       });
-      created++;
       continue;
     }
 
-    // Tardanza: llegar 15–45 min tarde
-    const lateMin      = status === "late" ? rnd(15, 45) : rnd(-5, 10);
-    const checkInTime  = dateAt(daysAgo, shiftCfg.checkInHour, lateMin);
+    const lateMin = isLate ? rnd(15, 35) : rnd(-5, 5);
+    const checkInTime = dateAt(daysAgo, shiftCfg.checkInHour, Math.max(0, lateMin));
 
-    // Check-out: 0–30 min sobre el horario
-    const extraMin     = rnd(0, 30);
-    const checkOutHour = shiftCfg.checkOutHour;
+    const extraMin = rnd(0, 25);
     const checkOutTime = new Date(checkInTime);
-    checkOutTime.setHours(checkOutHour, extraMin, 0, 0);
+    checkOutTime.setHours(shiftCfg.checkOutHour, extraMin, 0, 0);
     if (checkOutTime <= checkInTime) checkOutTime.setDate(checkOutTime.getDate() + 1);
 
-    const workedMs   = checkOutTime.getTime() - checkInTime.getTime();
-    const workedHrs  = parseFloat((workedMs / 3_600_000).toFixed(2));
-    const overtime   = Math.max(0, workedHrs - shiftCfg.scheduledHours);
+    const workedMs = checkOutTime.getTime() - checkInTime.getTime();
+    const workedHrs = parseFloat((workedMs / 3_600_000).toFixed(2));
+    const overtime = Math.max(0, workedHrs - shiftCfg.scheduledHours);
 
-    // Break de 1h en el medio
     const breakStart = new Date(checkInTime);
     breakStart.setHours(breakStart.getHours() + 3);
-    const breakEnd   = new Date(breakStart);
+    const breakEnd = new Date(breakStart);
     breakEnd.setHours(breakEnd.getHours() + 1);
 
-    // Performance del día
-    const efficiency = rnd(
-      status === "late" ? 50 : 65,
-      status === "late" ? 80 : 100,
-    );
-    const tasks        = rnd(8, 32);
-    const interactions = rnd(5, 40);
-    const salesAmount  = emp.role === "bartender" || emp.role === "cashier"
-      ? rndFloat(800, 8000)
-      : rndFloat(100, 2000);
+    const efficiency = rnd(isLate ? 75 : 88, 100);
+    const tasks = rnd(12, 45);
+    const interactions = rnd(10, 60);
+    const salesAmount = (emp.role === "bartender" || emp.role === "cashier")
+      ? rndFloat(2500, 12000)
+      : rndFloat(400, 3500);
 
-    await Attendance.create({
+    attendanceBatch.push({
       user:           emp._id,
-      shift:          emp.shift ?? "morning",
+      shift:          emp.shift ?? "night",
+      station:        emp.station,
       date,
       status,
-      checkIn:        { time: checkInTime, device: "Desktop", ip: "192.168.1.1" },
-      checkOut:       { time: checkOutTime },
+      checkIn:        { time: checkInTime, device: "POS Desktop Nebula", ip: "192.168.1.105" },
+      checkOut:       { time: checkOutTime, device: "POS Desktop Nebula", ip: "192.168.1.105" },
       breakStart,
       breakEnd,
       scheduledHours: shiftCfg.scheduledHours,
@@ -199,47 +189,205 @@ for (const emp of employees) {
       overtimeHours:  overtime,
       isApproved:     true,
       performance:    { tasksCompleted: tasks, customerInteractions: interactions, salesAmount, efficiency },
-      notes:          "seeded",
+      notes:          { system: "seeded" },
     });
-    created++;
   }
 }
 
-console.log(`✓ ${created} registros de asistencia creados`);
+// ── 5. Crear fichajes en vivo para el día de HOY (Día 0) ───────────
+const today = new Date();
+const now = new Date();
 
-// ── 5. Actualizar métricas del mes en cada empleado ────────────────
+console.log("✓ Generando personal activo en turno para hoy...");
+
+// Carlos Bartender (En Turno activo, check-in hace 3h 40m)
+const carlos = employees.find((e) => e.email === "bartender@nebula.bar");
+if (carlos) {
+  const checkInTime = new Date(now.getTime() - 3.7 * 3600 * 1000);
+  attendanceBatch.push({
+    user:           carlos._id,
+    shift:          carlos.shift || "night",
+    station:        "Barra Principal",
+    date:           today,
+    status:         "present",
+    checkIn:        { time: checkInTime, device: "POS Barra #1", ip: "192.168.1.101" },
+    scheduledHours: 8,
+    isApproved:     true,
+    notes:          { system: "seeded-live" },
+  });
+
+  await User.updateOne({ _id: carlos._id }, {
+    station: "Barra Principal",
+    "attendance.currentStatus": "checked-in",
+    "attendance.lastCheckIn": checkInTime,
+    "attendance.currentShiftStart": checkInTime,
+  });
+  console.log("  → Carlos Bartender: EN TURNO (Barra Principal)");
+}
+
+// Ana Mesera (En Turno activo, check-in hace 2h 15m)
+const ana = employees.find((e) => e.email === "waiter@nebula.bar");
+if (ana) {
+  const checkInTime = new Date(now.getTime() - 2.25 * 3600 * 1000);
+  attendanceBatch.push({
+    user:           ana._id,
+    shift:          ana.shift || "night",
+    station:        "Salón Principal & Terraza",
+    date:           today,
+    status:         "present",
+    checkIn:        { time: checkInTime, device: "Handheld Mozo #3", ip: "192.168.1.120" },
+    scheduledHours: 8,
+    isApproved:     true,
+    notes:          { system: "seeded-live" },
+  });
+
+  await User.updateOne({ _id: ana._id }, {
+    station: "Salón Principal & Terraza",
+    "attendance.currentStatus": "checked-in",
+    "attendance.lastCheckIn": checkInTime,
+    "attendance.currentShiftStart": checkInTime,
+  });
+  console.log("  → Ana Mesera: EN TURNO (Salón Principal & Terraza)");
+}
+
+// Laura Cajera (En Turno activo, check-in hace 4h)
+const laura = employees.find((e) => e.email === "cashier@nebula.bar");
+if (laura) {
+  const checkInTime = new Date(now.getTime() - 4.1 * 3600 * 1000);
+  attendanceBatch.push({
+    user:           laura._id,
+    shift:          laura.shift || "night",
+    station:        "Caja Central & TPV",
+    date:           today,
+    status:         "present",
+    checkIn:        { time: checkInTime, device: "Caja Principal", ip: "192.168.1.100" },
+    scheduledHours: 8,
+    isApproved:     true,
+    notes:          { system: "seeded-live" },
+  });
+
+  await User.updateOne({ _id: laura._id }, {
+    station: "Caja Central & TPV",
+    "attendance.currentStatus": "checked-in",
+    "attendance.lastCheckIn": checkInTime,
+    "attendance.currentShiftStart": checkInTime,
+  });
+  console.log("  → Laura Cajera: EN TURNO (Caja Central & TPV)");
+}
+
+// Sofía Bartender (En Descanso, check-in hace 3h, descanso hace 15m)
+const sofia = employees.find((e) => e.email === "sofia@nebula.bar");
+if (sofia) {
+  const checkInTime = new Date(now.getTime() - 3.0 * 3600 * 1000);
+  const breakStart = new Date(now.getTime() - 0.25 * 3600 * 1000);
+  attendanceBatch.push({
+    user:           sofia._id,
+    shift:          sofia.shift || "afternoon",
+    station:        "Barra Cócteles & VIP",
+    date:           today,
+    status:         "present",
+    checkIn:        { time: checkInTime, device: "POS Barra VIP", ip: "192.168.1.102" },
+    breakStart,
+    scheduledHours: 8,
+    isApproved:     true,
+    notes:          { system: "seeded-live" },
+  });
+
+  await User.updateOne({ _id: sofia._id }, {
+    station: "Barra Cócteles & VIP",
+    "attendance.currentStatus": "break",
+    "attendance.lastCheckIn": checkInTime,
+    "attendance.currentShiftStart": checkInTime,
+  });
+  console.log("  → Sofía Bartender: EN DESCANSO (Barra Cócteles & VIP)");
+}
+
+// Pedro Cocina (Fuera de turno hoy, próximo turno programado)
+const pedro = employees.find((e) => e.email === "kitchen@nebula.bar");
+if (pedro) {
+  await User.updateOne({ _id: pedro._id }, {
+    station: "Cocina Fuegos & Platos",
+    "attendance.currentStatus": "checked-out",
+  });
+  console.log("  → Pedro Cocina: FUERA DE TURNO (Programado para próximo turno)");
+}
+
+// Admin Principal (En Turno activo, gestión y supervisión)
+const admin = employees.find((e) => e.role === "admin");
+if (admin) {
+  const checkInTime = new Date(now.getTime() - 5.0 * 3600 * 1000);
+  attendanceBatch.push({
+    user:           admin._id,
+    shift:          admin.shift || "night",
+    station:        "Administración & Control",
+    date:           today,
+    status:         "present",
+    checkIn:        { time: checkInTime, device: "Master Dashboard", ip: "192.168.1.1" },
+    scheduledHours: 8,
+    isApproved:     true,
+    notes:          { system: "seeded-live" },
+  });
+
+  await User.updateOne({ _id: admin._id }, {
+    station: "Administración & Control",
+    "attendance.currentStatus": "checked-in",
+    "attendance.lastCheckIn": checkInTime,
+    "attendance.currentShiftStart": checkInTime,
+  });
+  console.log("  → Admin Principal: EN TURNO (Administración & Control)");
+}
+
+// Inserción en lote de alta velocidad
+if (attendanceBatch.length > 0) {
+  await Attendance.insertMany(attendanceBatch);
+  console.log(`✓ ${attendanceBatch.length} registros de asistencia insertados en MongoDB en una sola operación.`);
+}
+
+// ── 6. Actualizar métricas acumuladas del mes en cada colaborador ──
+console.log("\n✓ Consolidando métricas del mes en cada colaborador...");
+
+const monthStart = new Date();
+monthStart.setDate(1);
+monthStart.setHours(0, 0, 0, 0);
+
 for (const emp of employees) {
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  monthStart.setHours(0, 0, 0, 0);
-
   const records = await Attendance.find({
     user: emp._id,
     date: { $gte: monthStart },
   });
 
-  const present    = records.filter((r) => r.status === "present" || r.status === "late").length;
-  const absent     = records.filter((r) => r.status === "absent").length;
-  const totalHours = records.reduce((s, r) => s + (r.workedHours ?? 0), 0);
-  const avgEff     = records.length > 0
-    ? Math.round(records.reduce((s, r) => s + (r.performance?.efficiency ?? 0), 0) / records.length)
-    : 0;
-  const avgSales   = records.length > 0
-    ? records.reduce((s, r) => s + (r.performance?.salesAmount ?? 0), 0) / records.length
-    : 0;
+  const presentCount = records.filter((r) => r.status === "present" || r.status === "late").length;
+  const absentCount  = records.filter((r) => r.status === "absent").length;
+  let totalHours     = records.reduce((s, r) => s + (r.workedHours ?? 0), 0);
+
+  const minTargetHours = rnd(142, 158);
+  if (totalHours < 80) {
+    totalHours = minTargetHours + rndFloat(0.5, 4.5);
+  }
+  const effectiveShifts = Math.max(presentCount, rnd(18, 22));
+
+  const avgEff = rnd(92, 98);
+  const totalSales = emp.role === "bartender"
+    ? rndFloat(140000, 220000, 0)
+    : emp.role === "waiter"
+    ? rndFloat(90000, 160000, 0)
+    : emp.role === "cashier"
+    ? rndFloat(250000, 480000, 0)
+    : rndFloat(15000, 45000, 0);
 
   await User.updateOne({ _id: emp._id }, {
-    "attendance.thisMonth.present":    present,
-    "attendance.thisMonth.absent":     absent,
+    "attendance.thisMonth.present":    effectiveShifts,
+    "attendance.thisMonth.absent":     absentCount,
     "attendance.thisMonth.totalHours": parseFloat(totalHours.toFixed(1)),
-    "performance.averageRating":       parseFloat(Math.min(5, (avgEff / 20)).toFixed(1)),
-    "performance.shiftsCompleted":     present,
+    "performance.averageRating":       parseFloat((avgEff / 20).toFixed(1)),
+    "performance.shiftsCompleted":     effectiveShifts,
     "performance.totalHours":          parseFloat(totalHours.toFixed(1)),
-    "performance.totalSales":          parseFloat(avgSales.toFixed(2)),
+    "performance.totalSales":          totalSales,
   });
-  console.log(`  → ${emp.name}: ${present}p/${absent}a — ${totalHours.toFixed(1)}h — eff:${avgEff}%`);
+
+  console.log(`  ✓ ${emp.name}: ${effectiveShifts} turnos · ${totalHours.toFixed(1)}h · Rating: ${(avgEff/20).toFixed(1)} ★ · Ventas: $${totalSales.toLocaleString()}`);
 }
 
-console.log("\n✅ seed-shifts completado");
+console.log("\n✅ Seed de Workforce y Asistencia en Vivo completado exitosamente.\n");
 await mongoose.disconnect();
 process.exit(0);

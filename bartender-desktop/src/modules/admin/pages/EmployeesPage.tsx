@@ -32,6 +32,7 @@ import {
   deactivateUser,
   activateUser,
 } from "../services/userService";
+import { recordCheckIn, recordCheckOut } from "../services/attendanceService";
 import type { User as UserType } from "../types/user";
 
 export default function EmployeesPage() {
@@ -157,6 +158,33 @@ export default function EmployeesPage() {
   const handleInspectUser = (user: UserType) => {
     setSelectedUserForDrawer(user);
     setIsDrawerOpen(true);
+  };
+
+  const handleQuickCheckIn = async (user: UserType) => {
+    try {
+      await recordCheckIn({
+        targetUserId: user._id,
+        shift: user.shift || "night",
+        station: user.station || "Barra Principal",
+      });
+      await loadEmployees();
+    } catch (err: any) {
+      console.error("Failed to quick check-in:", err);
+      alert(err?.response?.data?.message || err?.message || "Error al registrar entrada.");
+    }
+  };
+
+  const handleQuickCheckOut = async (user: UserType) => {
+    try {
+      await recordCheckOut({
+        targetUserId: user._id,
+        notes: "Salida registrada desde Tarjeta de Colaborador",
+      });
+      await loadEmployees();
+    } catch (err: any) {
+      console.error("Failed to quick check-out:", err);
+      alert(err?.response?.data?.message || err?.message || "Error al registrar salida.");
+    }
   };
 
   const handleToggleStatus = async (user: UserType) => {
@@ -341,9 +369,15 @@ export default function EmployeesPage() {
             </span>
           </div>
           <div className="mt-3 flex items-center gap-2 text-[11px] text-text-muted">
-            <span>👑 {stats.admins} Admins</span>
+            <span className="flex items-center gap-1">
+              <Crown className="w-3 h-3 text-[#F0B429]" />
+              {stats.admins} Admins
+            </span>
             <span>·</span>
-            <span>💵 {stats.cashiers} Caja</span>
+            <span className="flex items-center gap-1">
+              <CreditCard className="w-3 h-3 text-[#BC8CFF]" />
+              {stats.cashiers} Caja
+            </span>
           </div>
         </div>
       </div>
@@ -488,6 +522,8 @@ export default function EmployeesPage() {
               user={emp}
               onInspect={handleInspectUser}
               onToggleStatus={handleToggleStatus}
+              onQuickCheckIn={handleQuickCheckIn}
+              onQuickCheckOut={handleQuickCheckOut}
             />
           ))}
         </div>

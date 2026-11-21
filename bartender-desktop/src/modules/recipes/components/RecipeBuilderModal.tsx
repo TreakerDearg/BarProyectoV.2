@@ -225,13 +225,21 @@ export default function RecipeBuilderModal({
     }
   }, [selectedProduct]);
 
+  // Helper seguro para extraer ID de insumo
+  const getInventoryItemId = (item: any): string => {
+    if (!item) return "";
+    if (typeof item === "object") return item._id || "";
+    return String(item);
+  };
+
   // Cálculo del Costo Total del Escandallo
   const totalCost = useMemo(() => {
     return ingredients.reduce((sum, ing) => {
+      const invId = getInventoryItemId(ing.inventoryItem);
       const inv =
-        typeof ing.inventoryItem === "object"
-          ? (ing.inventoryItem as InventoryItem)
-          : inventoryItems.find((i) => i._id === ing.inventoryItem);
+        typeof ing.inventoryItem === "object" && ing.inventoryItem && typeof (ing.inventoryItem as any).cost === "number"
+          ? (ing.inventoryItem as any)
+          : inventoryItems.find((i) => i._id === invId);
 
       if (!inv || typeof inv.cost !== "number") return sum;
 
@@ -267,10 +275,7 @@ export default function RecipeBuilderModal({
 
   // Handlers de ingredientes
   const handleAddIngredient = (invItem: InventoryItem) => {
-    const exists = ingredients.some((i) => {
-      const id = typeof i.inventoryItem === "object" ? i.inventoryItem._id : i.inventoryItem;
-      return id === invItem._id;
-    });
+    const exists = ingredients.some((i) => getInventoryItemId(i.inventoryItem) === invItem._id);
 
     if (exists) return;
 
@@ -790,10 +795,11 @@ export default function RecipeBuilderModal({
                 ) : (
                   <div className="space-y-2">
                     {ingredients.map((ing, idx) => {
+                      const invId = getInventoryItemId(ing.inventoryItem);
                       const inv =
-                        typeof ing.inventoryItem === "object"
-                          ? (ing.inventoryItem as InventoryItem)
-                          : inventoryItems.find((i) => i._id === ing.inventoryItem);
+                        typeof ing.inventoryItem === "object" && ing.inventoryItem && (ing.inventoryItem as any).name
+                          ? (ing.inventoryItem as any)
+                          : inventoryItems.find((i) => i._id === invId);
                       const invName = inv?.name || "Insumo de inventario";
                       const invCost = inv?.cost || 0;
 

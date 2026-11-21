@@ -74,6 +74,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    station: {
+      type: String,
+      default: "Barra Principal",
+    },
+
     hourlyRate: {
       type: Number,
       default: 0,

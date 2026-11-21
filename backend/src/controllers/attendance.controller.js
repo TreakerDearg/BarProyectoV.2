@@ -18,17 +18,17 @@ const safeUserSelect = "-password -refreshToken -loginAttempts -lockUntil";
 ========================================================= */
 export const checkIn = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    const { shift, location, device } = req.body;
-
-    if (!shift) {
-      return badRequest(res, "Shift es obligatorio");
-    }
+    const isPrivileged = req.user.role === "admin" || req.user.role === "manager";
+    const userId = (req.body.targetUserId && isPrivileged) ? req.body.targetUserId : req.user._id;
+    const { shift, location, device, station } = req.body;
 
     const user = await User.findById(userId);
     if (!user) return notFound(res, "Usuario no encontrado");
 
-    // Verificar si ya tiene check-in hoy
+    const effectiveShift = shift || user.shift || "night";
+    const effectiveStation = station || user.station || "Barra Principal";
+
+    // Verificar si ya tiene check-in hoy sin cerrar
     const today = new Date();
     const startOfDay = new Date(today);
     startOfDay.setHours(0, 0, 0, 0);
@@ -43,18 +43,21 @@ export const checkIn = async (req, res, next) => {
       return conflict(res, "Ya tiene un check-in activo hoy");
     }
 
-    // Verificar disponibilidad según horario
-    const dayName = today.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
-    const schedule = user.schedule?.[dayName];
-    
-    if (!schedule?.isAvailable) {
-      return forbidden(res, "No está programado para trabajar hoy");
+    // Verificar disponibilidad según horario para usuarios no administradores
+    if (!isPrivileged) {
+      const dayName = today.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+      const schedule = user.schedule?.[dayName];
+      
+      if (schedule && !schedule.isAvailable) {
+        return forbidden(res, "No está programado para trabajar hoy");
+      }
     }
 
     // Crear registro de asistencia
     const attendance = await Attendance.create({
       user: userId,
-      shift,
+      shift: effectiveShift,
+      station: effectiveStation,
       date: today,
       checkIn: {
         time: new Date(),
@@ -67,13 +70,14 @@ export const checkIn = async (req, res, next) => {
 
     // Actualizar estado del usuario
     await User.findByIdAndUpdate(userId, {
+      station: effectiveStation,
       "attendance.currentStatus": "checked-in",
       "attendance.lastCheckIn": new Date(),
       "attendance.currentShiftStart": new Date(),
-      "attendance.thisMonth.present": 1,
+      $inc: { "attendance.thisMonth.present": 1 },
     });
 
-    logger.info(`[Attendance] Check-in: ${user.email} (${shift})`);
+    logger.info(`[Attendance] Check-in: ${user.email} (${effectiveShift} en ${effectiveStation})`);
 
     return created(res, attendance, "Check-in registrado exitosamente");
   } catch (error) { throw error; }
@@ -84,7 +88,8 @@ export const checkIn = async (req, res, next) => {
 ========================================================= */
 export const checkOut = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const isPrivileged = req.user.role === "admin" || req.user.role === "manager";
+    const userId = (req.body.targetUserId && isPrivileged) ? req.body.targetUserId : req.user._id;
     const { location, performance, notes } = req.body;
 
     const today = new Date();
@@ -123,13 +128,14 @@ export const checkOut = async (req, res, next) => {
     };
     attendance.workedHours = parseFloat(workedHours.toFixed(2));
     attendance.status = status;
-    attendance.overtimeHours = attendance.calculateOvertime();
+    attendance.overtimeHours = attendance.calculateOvertime ? attendance.calculateOvertime() : Math.max(0, workedHours - (attendance.scheduledHours || 8));
 
     if (performance) {
       attendance.performance = { ...attendance.performance, ...performance };
     }
 
     if (notes) {
+      attendance.notes = attendance.notes || {};
       attendance.notes.employee = notes;
     }
 
@@ -142,12 +148,12 @@ export const checkOut = async (req, res, next) => {
       "attendance.currentShiftStart": null,
       $inc: { 
         "attendance.totalMinutesWorked": Math.round(workedHours * 60),
-        "attendance.thisMonth.totalHours": workedHours
+        "attendance.thisMonth.totalHours": parseFloat(workedHours.toFixed(2))
       },
-      $inc: { "performance.totalHours": workedHours }
+      $inc: { "performance.totalHours": parseFloat(workedHours.toFixed(2)) }
     });
 
-    logger.info(`[Attendance] Check-out: ${userId} (${workedHours}h)`);
+    logger.info(`[Attendance] Check-out: ${userId} (${workedHours.toFixed(2)}h)`);
 
     return ok(res, attendance, "Check-out registrado exitosamente");
   } catch (error) { throw error; }

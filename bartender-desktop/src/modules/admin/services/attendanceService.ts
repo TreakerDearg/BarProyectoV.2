@@ -84,3 +84,28 @@ export const getAttendanceStats = async (
   const res = await api.get(`/attendance/stats?${params.toString()}`);
   return unwrap(res);
 };
+
+/**
+ * Fichar entrada (soporta fichaje administrativo indicando targetUserId)
+ */
+export const recordCheckIn = async (payload: {
+  targetUserId?: string;
+  shift?: string;
+  station?: string;
+  location?: any;
+}): Promise<any> => {
+  const res = await api.post("/attendance/check-in", payload);
+  return unwrap(res);
+};
+
+/**
+ * Fichar salida (soporta fichaje administrativo indicando targetUserId)
+ */
+export const recordCheckOut = async (payload: {
+  targetUserId?: string;
+  notes?: string;
+  location?: any;
+}): Promise<any> => {
+  const res = await api.post("/attendance/check-out", payload);
+  return unwrap(res);
+};

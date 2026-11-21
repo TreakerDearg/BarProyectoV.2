@@ -9,35 +9,23 @@ export const routesConfig = [
   =============================== */
   {
     path: "/employees",
-    title: "Gestión de Empleados",
+    title: "Gestión de Personal & Turnos",
     children: [
       {
         path: "/employees",
-        name: "Activos",
-      },
-      {
-        path: "/employees/permissions",
-        name: "Permisos",
-      },
-      {
-        path: "/employees/roles",
-        name: "Roles",
+        name: "Directorio & Plantilla",
       },
       {
         path: "/employees/shifts",
-        name: "Permisos Turno",
+        name: "Turnos & Asistencia",
       },
       {
-        path: "/employees/activity",
-        name: "Tracking Actividad",
+        path: "/employees/roles",
+        name: "Roles & Permisos",
       },
       {
-        path: "/employees/shift-management",
-        name: "Gestión Turnos",
-      },
-      {
-        path: "/employees/shift-metrics",
-        name: "Métricas Turnos",
+        path: "/employees/dashboard",
+        name: "Inteligencia Laboral",
       },
     ],
   },

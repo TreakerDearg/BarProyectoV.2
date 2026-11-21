@@ -68,6 +68,7 @@ export interface User {
   role: Role;
 
   shift?: Shift | null;
+  station?: string;
 
   permissions: Permissions;
 

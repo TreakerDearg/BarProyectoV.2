@@ -20,6 +20,11 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
+    station: {
+      type: String,
+      default: "Barra Principal",
+    },
+
     date: {
       type: Date,
       required: true,

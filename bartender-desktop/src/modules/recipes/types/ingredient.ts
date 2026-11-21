@@ -9,7 +9,7 @@ export interface RecipeIngredient {
     type?: string;
     category?: string;
     isAvailable?: boolean;
-  };
+  } | string;
   quantity: number;
   unit: "ml" | "l" | "g" | "kg" | "unit" | "oz" | "portion";
   order?: number;
