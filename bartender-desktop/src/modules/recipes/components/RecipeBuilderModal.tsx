@@ -345,7 +345,7 @@ export default function RecipeBuilderModal({
   const handleSubmit = async () => {
     const finalName = (posMode === "link_existing" ? selectedProduct?.name : recipeName) || "";
     if (!finalName.trim()) {
-      setError("Debes indicar un nombre para la ficha técnica o producto.");
+      setError("Debes indicar un nombre para la receta o producto.");
       setStep(1);
       return;
     }
@@ -407,7 +407,7 @@ export default function RecipeBuilderModal({
       await onSave(payload);
       onClose();
     } catch (err: any) {
-      setError(err?.message || "Ocurrió un error al guardar la ficha técnica.");
+      setError(err?.message || "Ocurrió un error al guardar la receta.");
     } finally {
       setSaving(false);
     }
@@ -441,7 +441,7 @@ export default function RecipeBuilderModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-[#E6EDF3]">
-                {recipeToEdit ? "Editar Ficha Técnica" : "Nueva Ficha Técnica"}
+                {recipeToEdit ? "Editar Receta & Escandallo" : "Nueva Receta & Escandallo"}
               </h3>
               <p className="text-xs text-[#8B949E]">
                 {station === "drink" ? "Estación Barra & Cócteles" : "Estación Cocina & Gastronomía"} — Escandallo y Protocolo
@@ -777,7 +777,7 @@ export default function RecipeBuilderModal({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold uppercase tracking-wider text-[#8B949E]">
-                    Insumos de la Ficha Técnica ({ingredients.length})
+                    Insumos del Escandallo ({ingredients.length})
                   </p>
                   <span className="text-[11px] text-[#8B949E]">Ajusta cantidades y unidades</span>
                 </div>
@@ -1086,7 +1086,7 @@ export default function RecipeBuilderModal({
                 style={{ background: "#F0B429", color: "#0D1117" }}
               >
                 <Check size={14} />
-                {saving ? "Guardando..." : "Guardar Ficha Técnica"}
+                {saving ? "Guardando..." : "Guardar Receta & Escandallo"}
               </button>
             )}
           </div>

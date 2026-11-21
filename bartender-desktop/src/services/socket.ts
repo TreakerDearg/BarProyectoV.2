@@ -5,6 +5,7 @@
 
 import { io, Socket } from "socket.io-client";
 import { resolveBackendBaseUrl, resolveTrackingSocketUrl } from "./socketConfig";
+import { getAccessToken } from "../utils/tokenStorage";
 
 export type DesktopOrderDTO = {
   id: string | null;
@@ -149,11 +150,12 @@ class SocketService {
   connect(token?: string): void {
     if (this.socket?.connected) return;
 
+    const authToken = token || getAccessToken() || undefined;
     const socketUrl = resolveBackendBaseUrl();
     console.log(`[Socket] Conectando a ${socketUrl}/tracking...`);
 
     this.socket = io(resolveTrackingSocketUrl(), {
-      auth: { token },
+      auth: { token: authToken },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -269,9 +271,10 @@ function getSocketUrl(): string {
 export function connectMainSocket(token?: string): Socket {
   if (mainSocket?.connected) return mainSocket;
 
+  const authToken = token || getAccessToken() || undefined;
   const url = getSocketUrl();
   mainSocket = io(url, {
-    auth: { token },
+    auth: { token: authToken },
     transports: ["websocket", "polling"],
     reconnection: true,
     reconnectionDelay: 1000,
@@ -279,12 +282,14 @@ export function connectMainSocket(token?: string): Socket {
   });
 
   mainSocket.on("connect", () => {
-
     // El backend actual soporta rooms mediante join; se mantienen ambas
     // formas para que el escritorio reciba pedidos y reservas tras reconectar.
-    mainSocket?.emit("join:orders");
-    mainSocket?.emit("join", { rooms: ["orders:global"] });
-    mainSocket?.emit("join", { rooms: ["reservations:global"] });
+    // Solo suscribir si el cliente posee token de autenticación (staff)
+    const currentToken = authToken || getAccessToken();
+    if (currentToken) {
+      mainSocket?.emit("join:orders");
+      mainSocket?.emit("join", { rooms: ["orders:global", "reservations:global"] });
+    }
   });
 
   mainSocket.on("connect_error", () => {
@@ -304,8 +309,9 @@ export function disconnectMainSocket(): void {
 }
 
 export function connectSalonSockets(token?: string): void {
-  socketService.connect(token);
-  connectMainSocket(token);
+  const authToken = token || getAccessToken() || undefined;
+  socketService.connect(authToken);
+  connectMainSocket(authToken);
 }
 
 export const getSocket = (): Socket | null => {

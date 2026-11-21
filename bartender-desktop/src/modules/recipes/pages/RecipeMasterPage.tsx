@@ -62,7 +62,7 @@ export default function RecipeMasterPage() {
       setRecipes(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error("Failed to load recipes:", err);
-      setError("No se pudieron cargar las fichas técnicas. Intenta nuevamente.");
+      setError("No se pudo cargar el recetario & escandallos. Intenta nuevamente.");
       setRecipes([]);
     } finally {
       setLoading(false);

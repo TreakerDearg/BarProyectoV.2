@@ -294,11 +294,20 @@ export default function EmployeesPage() {
             </span>
           </div>
           <div className="mt-3 flex items-center gap-2 text-[11px] text-text-muted flex-wrap">
-            <span>🍸 {stats.bartenders} Barra</span>
+            <span className="flex items-center gap-1">
+              <Wine className="w-3 h-3 text-[#388BFD]" />
+              {stats.bartenders} Barra
+            </span>
             <span>·</span>
-            <span>🍽️ {stats.waiters} Salón</span>
+            <span className="flex items-center gap-1">
+              <UtensilsCrossed className="w-3 h-3 text-[#3FB950]" />
+              {stats.waiters} Salón
+            </span>
             <span>·</span>
-            <span>🍳 {stats.kitchen} Cocina</span>
+            <span className="flex items-center gap-1">
+              <ChefHat className="w-3 h-3 text-[#D29922]" />
+              {stats.kitchen} Cocina
+            </span>
           </div>
         </div>
 
@@ -404,11 +413,10 @@ export default function EmployeesPage() {
               setSelectedRoleFilter("all");
               setOnlyOnShift(false);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 ${
-              selectedRoleFilter === "all" && !onlyOnShift
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 ${selectedRoleFilter === "all" && !onlyOnShift
                 ? "bg-gold/15 text-gold border-gold/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             Todos ({stats.total})
           </button>
@@ -419,11 +427,10 @@ export default function EmployeesPage() {
               setOnlyOnShift(!onlyOnShift);
               setSelectedRoleFilter("all");
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1.5 ${
-              onlyOnShift
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1.5 ${onlyOnShift
                 ? "bg-emerald/15 text-emerald border-emerald/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             <span className="w-2 h-2 rounded-full bg-emerald animate-pulse" />
             En Turno ({stats.onShift})
@@ -435,11 +442,10 @@ export default function EmployeesPage() {
               setSelectedRoleFilter("bartender");
               setOnlyOnShift(false);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
-              selectedRoleFilter === "bartender"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${selectedRoleFilter === "bartender"
                 ? "bg-cyan/15 text-cyan border-cyan/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             <Wine className="w-3 h-3" />
             Barra ({stats.bartenders})
@@ -451,11 +457,10 @@ export default function EmployeesPage() {
               setSelectedRoleFilter("waiter");
               setOnlyOnShift(false);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
-              selectedRoleFilter === "waiter"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${selectedRoleFilter === "waiter"
                 ? "bg-emerald/15 text-emerald border-emerald/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             <UtensilsCrossed className="w-3 h-3" />
             Salón ({stats.waiters})
@@ -467,11 +472,10 @@ export default function EmployeesPage() {
               setSelectedRoleFilter("kitchen");
               setOnlyOnShift(false);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
-              selectedRoleFilter === "kitchen"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${selectedRoleFilter === "kitchen"
                 ? "bg-amber/15 text-amber border-amber/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             <ChefHat className="w-3 h-3" />
             Cocina ({stats.kitchen})
@@ -483,11 +487,10 @@ export default function EmployeesPage() {
               setSelectedRoleFilter("cashier");
               setOnlyOnShift(false);
             }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${
-              selectedRoleFilter === "cashier"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border shrink-0 flex items-center gap-1 ${selectedRoleFilter === "cashier"
                 ? "bg-purple-500/15 text-purple-400 border-purple-500/40 shadow-sm"
                 : "bg-surface-card text-text-muted border-border/60 hover:text-text-primary"
-            }`}
+              }`}
           >
             <CreditCard className="w-3 h-3" />
             Caja ({stats.cashiers})

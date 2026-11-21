@@ -19,6 +19,7 @@ import {
   onOrderDeleted,
 } from "../../../services/socket";
 import { useSalonUiStore } from "../../../store/salonUiStore";
+import { useAuthStore } from "../../../store/authStore";
 
 /* ── Tipos exportados ──────────────────────────────────────── */
 export type FilterStatus =
@@ -63,6 +64,7 @@ export function useOrders() {
 
   const salonMode   = useSalonUiStore((s) => s.mode);
   const setSalonMode = useSalonUiStore((s) => s.setMode);
+  const token = useAuthStore((s) => s.token);
 
   /* ── Fetch ─────────────────────────────────────────────────── */
   const fetchOrders = useCallback(async () => {
@@ -80,7 +82,7 @@ export function useOrders() {
   /* ── Socket real-time ──────────────────────────────────────── */
   useEffect(() => {
     fetchOrders();
-    connectSalonSockets();
+    connectSalonSockets(token || undefined);
 
     const unwrapOrder = (payload: { order?: Order } | Order): Order =>
       (payload as { order?: Order }).order ?? (payload as Order);

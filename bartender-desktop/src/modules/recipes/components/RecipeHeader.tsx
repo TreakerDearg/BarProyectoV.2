@@ -105,10 +105,10 @@ export default function RecipeHeader({
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-ivory tracking-tight uppercase">
-              Fichas Técnicas & <span className="text-gold">Recetario</span>
+              Recetario & <span className="text-gold">Escandallos</span>
             </h1>
             <p className="text-xs text-muted font-bold uppercase tracking-wider mt-0.5">
-              Ingeniería de Costos, Variantes & Protocolos Operativos
+              Recetas Estándar, Escandallo de Costos, Variantes & Operación
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function RecipeHeader({
             className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gold hover:bg-gold-light text-bg text-xs font-black uppercase tracking-wider shadow-gold-glow transition-all cursor-pointer"
           >
             <Wine size={15} />
-            <span>+ Ficha de Barra</span>
+            <span>+ Receta de Barra</span>
           </button>
 
           <button
@@ -128,7 +128,7 @@ export default function RecipeHeader({
             className="flex-1 xl:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 text-ivory border border-border hover:border-gold/30 text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
           >
             <ChefHat size={15} className="text-emerald" />
-            <span>+ Ficha de Cocina</span>
+            <span>+ Receta de Cocina</span>
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function RecipeHeader({
         <div className="p-4 rounded-2xl bg-surface-2 border border-border flex items-center justify-between">
           <div>
             <span className="text-xs text-muted font-bold uppercase tracking-wider block mb-1">
-              Fichas Totales
+              Recetas Totales
             </span>
             <span className="text-2xl font-black text-ivory">{totalCount}</span>
           </div>
@@ -186,17 +186,18 @@ export default function RecipeHeader({
 
       {/* ── Fila de Filtros & Pestañas de Estación ── */}
       <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 pt-2">
-        {/* Selector de Pestañas de Estación */}
+        {/* Selector de Pestañas de Estación (Sin emojis) */}
         <div className="flex bg-surface-2 p-1 rounded-2xl border border-border overflow-x-auto">
           {(
             [
               { id: "all", label: `Todas (${totalCount})`, icon: BookOpen },
-              { id: "drink", label: `🍸 Barra (${drinkCount})`, icon: Wine },
-              { id: "food", label: `🍳 Cocina (${foodCount})`, icon: ChefHat },
-              { id: "dashboard", label: "📊 Centro de Control", icon: BarChart3 },
+              { id: "drink", label: `Barra (${drinkCount})`, icon: Wine },
+              { id: "food", label: `Cocina (${foodCount})`, icon: ChefHat },
+              { id: "dashboard", label: "Centro de Control", icon: BarChart3 },
             ] as const
           ).map((tab) => {
             const isActive = activeStation === tab.id;
+            const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
@@ -207,6 +208,7 @@ export default function RecipeHeader({
                     : "text-muted hover:text-ivory"
                 }`}
               >
+                <Icon size={14} className="shrink-0" />
                 <span>{tab.label}</span>
               </button>
             );

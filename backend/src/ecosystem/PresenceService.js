@@ -3,6 +3,8 @@
  * Gestiona el estado de presencia de los usuarios en tiempo real
  */
 
+import { getIO } from '../socket/index.js';
+
 /**
  * Estados de presencia
  */

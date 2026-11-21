@@ -170,7 +170,7 @@ deviceSchema.statics.updateActivity = async function (sessionId) {
   return this.findOneAndUpdate(
     { sessionId, isActive: true, isRevoked: false },
     { lastActivity: new Date() },
-    { new: true }
+    { returnDocument: 'after' }
   );
 };
 
@@ -186,7 +186,7 @@ deviceSchema.statics.revokeDevice = async function (sessionId, reason = 'user_ac
       revokedAt: new Date(),
       revokedReason: reason,
     },
-    { new: true }
+    { returnDocument: 'after' }
   );
 };
 
@@ -241,7 +241,7 @@ deviceSchema.statics.revokeByRefreshToken = async function (refreshTokenId, reas
       revokedAt: new Date(),
       revokedReason: reason,
     },
-    { new: true }
+    { returnDocument: 'after' }
   );
 };
 

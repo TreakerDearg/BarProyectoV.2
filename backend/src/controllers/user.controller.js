@@ -158,7 +158,7 @@ export const updateUser = async (req, res, next) => {
     }
 
     const user = await User.findByIdAndUpdate(id, updates, {
-      new: true, runValidators: true,
+      returnDocument: 'after', runValidators: true,
     }).select(safeSelect).lean();
 
     if (!user) return notFound(res, "Usuario no encontrado");
@@ -206,7 +206,7 @@ export const deactivateUser = async (req, res, next) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      id, { isActive: false, deletedAt: new Date() }, { new: true }
+      id, { isActive: false, deletedAt: new Date() }, { returnDocument: 'after' }
     ).select(safeSelect).lean();
 
     if (!user) return notFound(res, "Usuario no encontrado");
@@ -223,7 +223,7 @@ export const activateUser = async (req, res, next) => {
 
     const user = await User.findByIdAndUpdate(
       id, { isActive: true, deletedAt: null, loginAttempts: 0, lockUntil: null },
-      { new: true }
+      { returnDocument: 'after' }
     ).select(safeSelect).lean();
 
     if (!user) return notFound(res, "Usuario no encontrado");
@@ -247,7 +247,7 @@ export const updatePermissions = async (req, res, next) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      id, { permissions }, { new: true }
+      id, { permissions }, { returnDocument: 'after' }
     ).select(safeSelect).lean();
 
     if (!user) return notFound(res, "Usuario no encontrado");
@@ -309,7 +309,7 @@ export const assignShift = async (req, res, next) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      id, { shift }, { new: true }
+      id, { shift }, { returnDocument: 'after' }
     ).select(safeSelect).lean();
 
     if (!user) return notFound(res, "Usuario no encontrado");

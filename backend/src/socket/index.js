@@ -97,16 +97,26 @@ function setupDefaultNamespace(io) {
             }
           } else if (room === "orders:global") {
             // Solo roles autorizados pueden ver todas las órdenes
-            if (user && (user.role === "admin" || user.role === "manager" || user.role === "bartender" || user.role === "kitchen")) {
+            const isStaff = user && (user.role === "admin" || user.role === "manager" || user.role === "bartender" || user.role === "kitchen" || user.role === "waiter" || user.role === "cashier");
+            if (isStaff) {
               socket.join(room);
               authorizedRooms.push(room);
               logger.info(`[Socket] Usuario ${user.id} (${user.role}) unido a orders:global`);
             } else if (user && user.role === "client") {
               // Los clientes NO se unen a orders:global.
               // El backend ya emite a user:{userId} cuando hay un cambio en su pedido.
-              logger.info(`[Socket] Cliente ${user.id} — orders:global denegado, usar user:${user.id}`);
+              logger.info(`[Socket] Cliente ${user.id} — orders:global omitido, sincronización vía user:${user.id}`);
             } else {
-              logger.warn(`[Socket] Usuario sin autorización para orders:global: ${user?.role}`);
+              logger.info(`[Socket] Conexión no autenticada intentó suscribirse a orders:global (ignorado)`);
+            }
+          } else if (room === "reservations:global") {
+            const isStaff = user && (user.role === "admin" || user.role === "manager" || user.role === "bartender" || user.role === "waiter" || user.role === "cashier");
+            if (isStaff) {
+              socket.join(room);
+              authorizedRooms.push(room);
+              logger.info(`[Socket] Usuario ${user.id} (${user.role}) unido a reservations:global`);
+            } else {
+              logger.info(`[Socket] Conexión no autorizada/pública para reservations:global`);
             }
           } else if (room.startsWith("table:")) {
             // Unirse a room de mesa solo si tiene una sesión activa
@@ -169,10 +179,15 @@ export const getIO = () => {
  */
 export const socketAuthMiddleware = async (socket, next) => {
   try {
-    const token = socket.handshake.auth.token;
+    const token =
+      socket.handshake.auth?.token ||
+      (typeof socket.handshake.headers?.authorization === "string"
+        ? socket.handshake.headers.authorization.replace("Bearer ", "")
+        : null) ||
+      socket.handshake.query?.token;
     
     if (!token) {
-      logger.warn("[Socket Auth] Conexión sin token - permitiendo conexión sin autenticación para clientes públicos");
+      logger.info("[Socket Auth] Conexión sin token - permitiendo conexión sin autenticación para clientes públicos");
       // Permite conexión sin autenticación pero sin user
       socket.user = null;
       return next();

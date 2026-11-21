@@ -42,13 +42,13 @@ interface Props {
 }
 
 const DAYS_OF_WEEK: { key: keyof UserSchedule; label: string; short: string }[] = [
-  { key: "monday",    label: "Lunes",     short: "Lun" },
-  { key: "tuesday",   label: "Martes",    short: "Mar" },
+  { key: "monday", label: "Lunes", short: "Lun" },
+  { key: "tuesday", label: "Martes", short: "Mar" },
   { key: "wednesday", label: "Miércoles", short: "Mié" },
-  { key: "thursday",  label: "Jueves",    short: "Jue" },
-  { key: "friday",    label: "Viernes",   short: "Vie" },
-  { key: "saturday",  label: "Sábado",    short: "Sáb" },
-  { key: "sunday",    label: "Domingo",   short: "Dom" },
+  { key: "thursday", label: "Jueves", short: "Jue" },
+  { key: "friday", label: "Viernes", short: "Vie" },
+  { key: "saturday", label: "Sábado", short: "Sáb" },
+  { key: "sunday", label: "Domingo", short: "Dom" },
 ];
 
 const STATIONS_BY_ROLE: Record<string, string[]> = {
@@ -83,10 +83,10 @@ function getDefaultScheduleForShift(shift: string = "night"): UserSchedule {
   const isNight = shift === "night";
   const isMorning = shift === "morning";
   const start = isMorning ? "08:00" : isNight ? "20:00" : "16:00";
-  const end   = isMorning ? "16:00" : isNight ? "04:00" : "00:00";
+  const end = isMorning ? "16:00" : isNight ? "04:00" : "00:00";
 
   const workDay: DaySchedule = { isAvailable: true, startTime: start, endTime: end };
-  const offDay: DaySchedule  = { isAvailable: false, startTime: "", endTime: "" };
+  const offDay: DaySchedule = { isAvailable: false, startTime: "", endTime: "" };
 
   if (isMorning) {
     return {
@@ -181,9 +181,9 @@ export default function EmployeeDetailDrawer({
       setStation(
         user.station ||
         (user.role === "bartender" ? "Barra Principal" :
-         user.role === "waiter" ? "Salón Principal & Terraza" :
-         user.role === "kitchen" ? "Cocina Fuegos & Platos" :
-         user.role === "cashier" ? "Caja Central & TPV" : "Administración & Control")
+          user.role === "waiter" ? "Salón Principal & Terraza" :
+            user.role === "kitchen" ? "Cocina Fuegos & Platos" :
+              user.role === "cashier" ? "Caja Central & TPV" : "Administración & Control")
       );
       setIsActive(user.isActive !== false);
       setNotes(user.notes || "");
@@ -351,7 +351,7 @@ export default function EmployeeDetailDrawer({
       {/* Drawer Container (100% Solid Opaque Slate Elegante) */}
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-8">
         <div className="w-screen max-w-2xl bg-[#161B22] border-l border-[#30363D] shadow-2xl flex flex-col h-full text-[#E6EDF3]">
-          
+
           {/* Header Bar */}
           <div className="px-6 py-4 border-b border-[#30363D] flex items-center justify-between bg-[#1C2333] shrink-0">
             <div className="flex items-center gap-3.5 min-w-0">
@@ -406,11 +406,10 @@ export default function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${
-                activeTab === "profile"
+              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${activeTab === "profile"
                   ? "text-[#F0B429] border-[#F0B429]"
                   : "text-[#8B949E] border-transparent hover:text-[#E6EDF3]"
-              }`}
+                }`}
             >
               <UserIcon className="w-3.5 h-3.5" />
               Perfil & Puesto
@@ -419,11 +418,10 @@ export default function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => setActiveTab("schedule")}
-              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${
-                activeTab === "schedule"
+              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${activeTab === "schedule"
                   ? "text-[#F0B429] border-[#F0B429]"
                   : "text-[#8B949E] border-transparent hover:text-[#E6EDF3]"
-              }`}
+                }`}
             >
               <Clock className="w-3.5 h-3.5" />
               Cronograma Semanal ({totalWeeklyHours}h)
@@ -432,11 +430,10 @@ export default function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => setActiveTab("permissions")}
-              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${
-                activeTab === "permissions"
+              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${activeTab === "permissions"
                   ? "text-[#F0B429] border-[#F0B429]"
                   : "text-[#8B949E] border-transparent hover:text-[#E6EDF3]"
-              }`}
+                }`}
             >
               <Shield className="w-3.5 h-3.5" />
               Matriz Permisos
@@ -445,11 +442,10 @@ export default function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => setActiveTab("history")}
-              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${
-                activeTab === "history"
+              className={`py-3 px-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 shrink-0 ${activeTab === "history"
                   ? "text-[#F0B429] border-[#F0B429]"
                   : "text-[#8B949E] border-transparent hover:text-[#E6EDF3]"
-              }`}
+                }`}
             >
               <History className="w-3.5 h-3.5" />
               Historial Asistencia
@@ -477,7 +473,7 @@ export default function EmployeeDetailDrawer({
             {/* TAB 1: PERFIL & PUESTO OPERATIVO */}
             {activeTab === "profile" && (
               <form onSubmit={handleSubmit} className="space-y-4">
-                
+
                 {/* Bloque 1: Identificación y Contacto */}
                 <div className="bg-[#161B22] border border-[#30363D] rounded-2xl p-4 space-y-3.5">
                   <div className="flex items-center justify-between border-b border-[#30363D] pb-2">
@@ -489,11 +485,10 @@ export default function EmployeeDetailDrawer({
                     <button
                       type="button"
                       onClick={() => setIsActive(!isActive)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-colors ${
-                        isActive
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-colors ${isActive
                           ? "bg-[#3FB950]/15 text-[#3FB950] border-[#3FB950]/30 hover:bg-[#3FB950]/25"
                           : "bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30 hover:bg-[#F85149]/25"
-                      }`}
+                        }`}
                       title="Alternar estado de la cuenta"
                     >
                       <span className={`w-2 h-2 rounded-full ${isActive ? "bg-[#3FB950]" : "bg-[#F85149]"}`} />
@@ -560,11 +555,11 @@ export default function EmployeeDetailDrawer({
                         }}
                         className="w-full text-xs bg-[#1C2333] text-[#E6EDF3] border border-[#30363D] rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#F0B429] cursor-pointer"
                       >
-                        <option value="admin">👑 Administrador General</option>
-                        <option value="bartender">🍸 Bartender / Barra</option>
-                        <option value="waiter">🍽️ Mozo / Salón</option>
-                        <option value="kitchen">👨‍🍳 Cocina & Platos</option>
-                        <option value="cashier">💳 Caja & Cobros</option>
+                        <option value="admin">Administrador General</option>
+                        <option value="bartender">Bartender / Barra</option>
+                        <option value="waiter">Mozo / Salón</option>
+                        <option value="kitchen">Cocina & Platos</option>
+                        <option value="cashier">Caja & Cobros</option>
                       </select>
                     </div>
                   </div>
@@ -592,7 +587,7 @@ export default function EmployeeDetailDrawer({
                       >
                         {availableStations.map((st) => (
                           <option key={st} value={st}>
-                            📍 {st}
+                            {st}
                           </option>
                         ))}
                       </select>
@@ -611,10 +606,10 @@ export default function EmployeeDetailDrawer({
                         onChange={(e) => setShift(e.target.value as Shift)}
                         className="w-full text-xs bg-[#1C2333] text-[#E6EDF3] border border-[#30363D] rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#388BFD] cursor-pointer"
                       >
-                        <option value="morning">🌅 Turno Mañana (08:00 - 16:00)</option>
-                        <option value="afternoon">🌇 Turno Tarde (16:00 - 00:00)</option>
-                        <option value="night">🌙 Turno Noche (20:00 - 04:00)</option>
-                        <option value="event">🎉 Turno Evento (Especial)</option>
+                        <option value="morning">Turno Mañana (08:00 - 16:00)</option>
+                        <option value="afternoon">Turno Tarde (16:00 - 00:00)</option>
+                        <option value="night">Turno Noche (20:00 - 04:00)</option>
+                        <option value="event">Turno Evento (Especial)</option>
                       </select>
                       <span className="text-[10px] text-[#566270]">
                         Horario base para el cálculo de tardanzas y fichaje
@@ -731,11 +726,10 @@ export default function EmployeeDetailDrawer({
                     return (
                       <div
                         key={key}
-                        className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
-                          day.isAvailable
+                        className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${day.isAvailable
                             ? "bg-[#161B22] border-[#30363D]"
                             : "bg-[#161B22]/50 border-[#30363D]/50 opacity-60"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           <button
@@ -743,11 +737,10 @@ export default function EmployeeDetailDrawer({
                             onClick={() =>
                               handleScheduleDayChange(key, "isAvailable", !day.isAvailable)
                             }
-                            className={`w-7 h-7 rounded-xl border flex items-center justify-center font-bold text-xs transition-colors ${
-                              day.isAvailable
+                            className={`w-7 h-7 rounded-xl border flex items-center justify-center font-bold text-xs transition-colors ${day.isAvailable
                                 ? "bg-[#3FB950]/15 text-[#3FB950] border-[#3FB950]/30 shadow-sm"
                                 : "bg-[#1C2333] text-[#566270] border-[#30363D]"
-                            }`}
+                              }`}
                           >
                             {day.isAvailable ? <Check className="w-4 h-4" /> : null}
                           </button>
@@ -876,11 +869,10 @@ export default function EmployeeDetailDrawer({
                         <button
                           type="button"
                           onClick={() => handleTogglePermission(perm.key)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all border shrink-0 ${
-                            isEnabled
+                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all border shrink-0 ${isEnabled
                               ? "bg-[#3FB950]/15 text-[#3FB950] border-[#3FB950]/30 shadow-sm"
                               : "bg-[#1C2333] text-[#8B949E] border-[#30363D]"
-                          }`}
+                            }`}
                         >
                           {isEnabled ? "Permitido" : "Denegado"}
                         </button>
@@ -941,22 +933,22 @@ export default function EmployeeDetailDrawer({
                     {history.map((record) => {
                       const checkInTime = record.checkIn?.time
                         ? new Date(record.checkIn.time).toLocaleTimeString("es-AR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "--:--";
                       const checkOutTime = record.checkOut?.time
                         ? new Date(record.checkOut.time).toLocaleTimeString("es-AR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "En curso";
                       const recordDate = record.date
                         ? new Date(record.date).toLocaleDateString("es-AR", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "Hoy";
 
                       return (
@@ -988,19 +980,18 @@ export default function EmployeeDetailDrawer({
                               {record.workedHours ? `${record.workedHours} hrs` : "En Turno"}
                             </span>
                             <span
-                              className={`text-[10px] font-bold uppercase tracking-wider ${
-                                record.status === "present"
+                              className={`text-[10px] font-bold uppercase tracking-wider ${record.status === "present"
                                   ? "text-[#3FB950]"
                                   : record.status === "late"
-                                  ? "text-[#D29922]"
-                                  : "text-[#F85149]"
-                              }`}
+                                    ? "text-[#D29922]"
+                                    : "text-[#F85149]"
+                                }`}
                             >
                               {record.status === "present"
                                 ? "Presente"
                                 : record.status === "late"
-                                ? "Tardanza"
-                                : record.status}
+                                  ? "Tardanza"
+                                  : record.status}
                             </span>
                           </div>
                         </div>

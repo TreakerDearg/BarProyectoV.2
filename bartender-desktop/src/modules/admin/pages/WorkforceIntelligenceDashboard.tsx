@@ -20,6 +20,8 @@ import {
   Zap,
   Sparkles,
   Layers,
+  ClipboardList,
+  KeyRound,
 } from "lucide-react";
 import { getEmployees } from "../services/userService";
 import { getTodayAttendance } from "../services/attendanceService";
@@ -414,7 +416,13 @@ export default function WorkforceIntelligenceDashboard() {
                           : "bg-surface-dark text-gold border border-border/60"
                       }`}
                     >
-                      {isOrder ? "📋" : isLogin ? "🔑" : "⚡"}
+                      {isOrder ? (
+                        <ClipboardList className="w-3.5 h-3.5" />
+                      ) : isLogin ? (
+                        <KeyRound className="w-3.5 h-3.5" />
+                      ) : (
+                        <Zap className="w-3.5 h-3.5" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

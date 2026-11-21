@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { UtensilsCrossed, ListOrdered, Sparkles } from 'lucide-react';
 import { useRecipeWorkspace } from '../../contexts/RecipeWorkspaceContext';
 import { PremiumIngredientCard } from './PremiumIngredientCard';
 import { RecipeStepBlock } from './RecipeStepBlock';
@@ -42,22 +43,25 @@ export function FormulaCanvas() {
       <div className={styles.canvasHeader}>
         <div className={styles.canvasTabs}>
           <button
-            className={`${styles.canvasTab} ${activeSection === 'ingredients' ? styles.active : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'ingredients' ? styles.active : ''} flex items-center gap-1.5`}
             onClick={() => setActiveSection('ingredients')}
           >
-            🥗 Ingredientes ({ingredients.length})
+            <UtensilsCrossed size={13} />
+            <span>Ingredientes ({ingredients.length})</span>
           </button>
           <button
-            className={`${styles.canvasTab} ${activeSection === 'steps' ? styles.active : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'steps' ? styles.active : ''} flex items-center gap-1.5`}
             onClick={() => setActiveSection('steps')}
           >
-            📝 Pasos ({steps.length})
+            <ListOrdered size={13} />
+            <span>Pasos ({steps.length})</span>
           </button>
           <button
-            className={`${styles.canvasTab} ${activeSection === 'presentation' ? styles.active : ''}`}
+            className={`${styles.canvasTab} ${activeSection === 'presentation' ? styles.active : ''} flex items-center gap-1.5`}
             onClick={() => setActiveSection('presentation')}
           >
-            ✨ Presentación
+            <Sparkles size={13} />
+            <span>Presentación</span>
           </button>
         </div>
       </div>

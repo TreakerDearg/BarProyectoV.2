@@ -17,6 +17,10 @@ const RewardSchema = new Schema({
     user:       { type: Schema.Types.ObjectId, ref: 'User' },
     redeemedAt: { type: Date, default: Date.now },
     orderId:    { type: Schema.Types.ObjectId, default: null },
+    code:       { type: String, default: null, index: true },
+    status:     { type: String, enum: ['pending', 'claimed', 'cancelled'], default: 'pending' },
+    claimedAt:  { type: Date, default: null },
+    claimedBy:  { type: Schema.Types.ObjectId, ref: 'User', default: null },
   }],
   deleted: { type: Boolean, default: false },
 }, { timestamps: true });

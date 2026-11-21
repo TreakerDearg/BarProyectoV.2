@@ -95,6 +95,27 @@ const orderItemSchema = new mongoose.Schema(
       ref: "Recipe",
       default: null,
     },
+
+    /* =========================
+       REWARD / CANJE FIDELIDAD
+    ========================= */
+    isReward: {
+      type: Boolean,
+      default: false,
+    },
+    rewardId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Reward",
+      default: null,
+    },
+    rewardCode: {
+      type: String,
+      default: null,
+    },
+    rewardCategory: {
+      type: String,
+      default: null,
+    },
   },
   { _id: true }
 );

@@ -209,7 +209,7 @@ export default function Sidebar() {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggle = useUIStore((s) => s.toggleSidebar);
 
-  const [expanded, setExpanded] = useState<string | null>("Fichas Técnicas");
+  const [expanded, setExpanded] = useState<string | null>("Recetario & Escandallos");
 
   const handleLogout = () => { logout(); navigate("/", { replace: true }); };
   const toggleSection = (name: string) =>
@@ -239,11 +239,11 @@ export default function Sidebar() {
         { name: "Menús", path: PATHS.MENUS, icon: UtensilsCrossed },
         { name: "Inventario", path: PATHS.INVENTORY, icon: Package },
         {
-          name: "Fichas Técnicas",
+          name: "Recetario & Escandallos",
           path: PATHS.RECIPES,
           icon: BookOpen,
           submenu: [
-            { name: "Catálogo General", path: PATHS.RECIPES, icon: BookOpen },
+            { name: "Recetario General", path: PATHS.RECIPES, icon: BookOpen },
             { name: "Barra & Cócteles", path: `${PATHS.RECIPES}?type=drink`, icon: Wine },
             { name: "Cocina & Platos", path: `${PATHS.RECIPES}?type=food`, icon: ChefHat },
             { name: "Centro de Control", path: `${PATHS.RECIPES}?view=dashboard`, icon: BarChart3 },

@@ -709,7 +709,7 @@ export const updateProfile = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(
       userId,
       updates,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).select("_id name email phone avatar role lastLogin").lean();
 
     if (!user) return unauthorized(res, "Usuario no encontrado");

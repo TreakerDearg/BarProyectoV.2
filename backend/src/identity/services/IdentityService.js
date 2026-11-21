@@ -238,7 +238,10 @@ class IdentityService {
    * @returns {string} Token JWT
    */
   generateToken(user) {
-    const accessTokenExpiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || '30m';
+    const isStaff = user.role && user.role !== 'client';
+    const accessTokenExpiresIn = isStaff
+      ? (process.env.JWT_EXPIRES_IN || '24h')
+      : (process.env.ACCESS_TOKEN_EXPIRES_IN || '8h');
     return jwt.sign(
       { id: user._id, role: user.role, shift: user.shift || null },
       process.env.JWT_SECRET,

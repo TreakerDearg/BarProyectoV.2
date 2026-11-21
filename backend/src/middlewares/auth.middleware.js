@@ -51,7 +51,8 @@ export const protect = async (req, res, next) => {
     try {
       decoded = validateToken(token);
     } catch (error) {
-      logger.warn("[Auth] Token inválido", {
+      const isExpired = error.message === "Token expirado";
+      logger.warn(`[Auth] ${isExpired ? "Token expirado" : "Token inválido"}`, {
         ip: req.ip,
         path: req.path,
         error: error.message,
@@ -59,7 +60,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ 
         success: false,
         message: error.message,
-        code: "TOKEN_INVALID"
+        code: isExpired ? "TOKEN_EXPIRED" : "TOKEN_INVALID"
       });
     }
 
